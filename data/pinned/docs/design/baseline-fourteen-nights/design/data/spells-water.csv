@@ -1,0 +1,25 @@
+line,tier,branch,name,shape,cast_s,cooldown_s,mana,damage,blockable,telegraph_s,range_m,notes
+bolt,0,,Rain Needle,projectile 20 m/s,0.00,0.25,3,2.05,absorbable,0.00,12,Always on A. Inside 1.6 m the button is a staff strike.
+tide_orb,1,,Bubble Shot,projectile 12 m/s,0.15,2.5,10,7,absorbable,0.15,12,
+tide_orb,2,,Crash Orb,projectile 12 m/s; bursts r 2 m,0.20,4.0,16,12,absorbable,0.20,12,burst dedups per target
+tide_orb,3,,Twin Tides,two projectiles 12 m/s at +-10 deg,0.25,5.0,24,11 each,absorbable,0.25,12,
+tide_orb,4,A,Leviathan Orb,slow projectile 6 m/s r 1.5 m,0.60,14.0,45,40,UNBLOCKABLE,1.00,14,the orb's path is drawn; leave it or break the caster
+tide_orb,4,B,Rain of Orbs,5-orb fan 50 deg,0.40,10.0,40,9 each,absorbable,0.40,10,
+lash,1,,Tide Lash,cone 90 deg x 3 m,0.10,2.0,8,8,absorbable,0.10,3,
+lash,2,A,Undertow,cone 3 m + pull 3 m,0.20,5.0,14,9,absorbable,0.20,3,pulls into Lash range
+lash,2,B,Riptide,cone 3 m + push 3 m,0.20,5.0,14,9,absorbable,0.20,3,space for orbs
+lash,3,,Maelstrom Lash,ring 360 deg r 3 m,0.30,8.0,22,15,absorbable,0.30,3,anti-hound
+lash,4,,Drown Coil,grab 2.5 m; root 1.5 s,0.40,16.0,40,25,UNBLOCKABLE,0.80,2.5,the coil's ring fills for 0.8 s; roll out
+mire,1,,Puddle,ground r 2.5 m; slow 30% for 4 s,0.20,6.0,10,0,n/a,0.40,10,
+mire,2,,Fog Bank,ground r 3 m for 5 s; blocks line of sight; breaks soft-lock,0.30,10.0,18,0,n/a,0.40,10,
+mire,3,,Freeze Field,ground r 3 m; root 1.0 s,0.30,12.0,28,5,absorbable,0.80,10,positional: ring fills 0.8 s
+mire,4,,Glacier Tomb,encase one target 2 s (immune and silenced),0.50,20.0,40,0,n/a,0.80,8,resets the target's Flow/Heat/Footing/Momentum
+mend,1,,Cool Draught,self heal,0.40,8.0,12,heal 12,n/a,0.00,0,
+mend,2,,Tide Ward,self: absorb drain -50% for 4 s,0.20,12.0,15,0,n/a,0.00,0,
+mend,3,,Spring,self heal over time,0.40,16.0,25,heal 30 over 5 s,n/a,0.00,0,
+mend,4,,Font,self: restore 60 mana,0.60,30.0,0,0,n/a,0.00,0,rooted while casting
+mirror,1,,Sheen,self 3 s: absorbed magic refunds +50% mana,0.10,8.0,8,0,n/a,0.00,0,
+mirror,2,A,Reflection,passive while slotted: a perfect absorb reflects the projectile,0.00,0.0,0,as reflected,n/a,0.00,0,only projectiles of tier <= own unlocked tier
+mirror,2,B,Ripple,passive while slotted: a perfect absorb releases a ring r 3 m,0.00,0.0,0,7.5,absorbable,0.00,3,
+mirror,3,,Mirage,decoy for 3 s draws soft-lock,0.20,12.0,20,0,n/a,0.00,6,
+mirror,4,,Return Tide,release stored absorbed damage as a wave (max 40),0.30,18.0,20,stored (max 40),absorbable,0.30,8,stores 50% of damage absorbed since the last release

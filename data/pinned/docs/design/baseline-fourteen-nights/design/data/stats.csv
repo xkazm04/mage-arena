@@ -1,0 +1,8 @@
+stat,trained_at,points_for_rank_1_2_3_4_5,arena_effect,camp_effect,on_reset
+vigor,yard,0;6;14;24;36,maxHp = 80 + 15*rank; maxStamina = 60 + 10*rank,WORK pays +1 gold at rank >= 3,Echo: restarts at max(1; best rank - 1) with 0 extra points
+focus,cistern; tent lessons,0;6;14;24;36,maxMana = 80 + 15*rank; manaRegen = 6 + 1.5*rank per second,lessons progress +1 extra at rank >= 3,Echo
+nerve,pit,0;6;14;24;36,absorbDrain = 30 - 3*rank mana per second held; perfectReturnMult = 1 + 0.1*rank,Parley intimidate roll = nerve*4 + d20,Echo
+guile,exchange; commons,0;6;14;24;36,scouting reveal = rank - 1 (wave list; rival loadout; opening line; absorb habit),scheme = guile*4 + d20 vs dc; Parley roll = guile*4 + d20,Echo
+renown,arena,earned 0..100,at renown >= 40 the crowd throws one mana flask (+25) in a final,Tent Trial weight 0.2,resets to 5
+gold,exchange; arena,earned,gear (talisman; garment),bread; bribes; gifts,resets to 10
+mastery,Games,1..4,arena tier eligibility; lines and branches learned,none,persists

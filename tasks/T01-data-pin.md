@@ -1,6 +1,6 @@
 # T01 - Pin the combat data from the Mage Arena core project
 
-Status: open
+Status: done (verified by orchestrator 2026-10-02)
 Max turns: 60
 
 ## Goal

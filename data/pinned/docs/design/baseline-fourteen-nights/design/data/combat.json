@@ -1,0 +1,25 @@
+{
+  "_about": "Variant 2 arena constants. Single source for the kernel. Authored; confirmed by headless simulation; feel is owner-only.",
+  "simStepHz": 60,
+  "arena": { "geometryAuthority": "art/scale-contract-v1.json" },
+  "movement": { "walkMps": 4.5, "sprintMps": 6.5, "sprintStaminaPerSecond": 15 },
+  "roll": { "distanceM": 4.0, "durationS": 0.35, "iFramesS": 0.25, "staminaCost": 25, "recoveryS": 0.15 },
+  "staffStrike": { "rangeM": 1.6, "windupS": 0.25, "recoveryS": 0.30, "staminaCost": 12, "damage": 6, "interruptsCasts": true },
+  "stamina": { "regenPerSecond": 20, "regenDelayS": 0.8 },
+  "aimMode": { "holdToEnterS": 0.2, "moveWhileAiming": false, "softLockConeDeg": 60, "softLockStickyS": 1.0 },
+  "tierClock": { "unlockAtSeconds": { "1": 0, "2": 15, "3": 30, "4": 45 }, "perfectAbsorbAdvanceS": 2.0, "minimumSecondsBetweenUnlocks": 6.0, "resetsEachWave": true },
+  "absorb": {
+    "shape": "arc", "arcDeg": 140, "facing": "aim direction if aiming, else movement facing",
+    "raiseCostMana": 5, "drainPerSecond": "30 - 3 * nerveRank", "minReleaseBeforeReRaiseS": 0.12, "moveSpeedWhileHeldMult": 0.5,
+    "reduction": { "magic": 0.85, "physical": 0.30, "unblockable": 0.0, "outsideArc": 0.0 },
+    "perfect": { "rule": "fresh raise no more than windowS before the hit resolves, hit inside the arc", "windowS": 0.15, "reduction": 1.0,
+      "manaReturned": "10 * incomingTier * (1 + 0.1 * nerveRank); tier 0 returns 4", "tierClockAdvanceS": 2.0, "notAgainst": ["unblockable", "physical"] },
+    "twoAxis": "The window is the same for everyone and never scales; Nerve scales drain and return."
+  },
+  "lines": { "slots": 3, "branchAtTiers": [2, 4], "borrowedLine": "one of the 3 slots may hold a line lent by a sworn cross-tent friend (duality arc)" },
+  "flow": { "differentLineWithinS": 2.0, "max": 5, "perStackDamage": 0.06, "resetOnSameLineTwice": true, "resetAfterIdleS": 3.0, "crest": { "manaCost": 0, "damageMult": 1.5 }, "perfectAbsorbGives": 1 },
+  "threatLanguage": { "magic": "element colour, glow, shrinking ring: face it and absorb", "physical": "white/steel: roll", "unblockable": "black core, jagged red rim: leave or break with a staff strike" },
+  "reactionBands": { "minimumTelegraphPositionalS": 0.40, "minimumTelegraphUnblockableS": 0.80, "playerDeathNotBeforeS": 5.0 },
+  "betweenWaves": { "healFractionOfMissingHp": 0.30, "manaRefill": 1.0, "staminaRefill": 1.0, "tierClockReset": true },
+  "pacingTargets": { "soldierWaveS": [25, 40], "creatureWaveS": [30, 45], "duelS": [45, 80], "deadAirBucketS": 2.0 }
+}

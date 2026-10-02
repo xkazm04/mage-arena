@@ -1,0 +1,52 @@
+{
+  "source": "mage-arena (worktree mage-arena-arena, branch arena)",
+  "commit": "68a4d68d315856c89339d331ac0db7f4784d566f",
+  "copied": "2026-10-02",
+  "files": [
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/combat.json",
+      "sha256": "27344eeac1e4dadb4e2fa855cef345482df9874f3cd5bb78e545fe0ccd5f7470",
+      "bytes": 2543
+    },
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/enemies.json",
+      "sha256": "aa569eefbdda33a0b0ce0df755f230d1da402be3300e042430169cd22e2467ab",
+      "bytes": 6191
+    },
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/schools.json",
+      "sha256": "bf4e8a2ca919e59f4e3887fa71a4d64f51f0a9de157cd20766895cb9e86e9be4",
+      "bytes": 5629
+    },
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/arena-tiers.json",
+      "sha256": "4ed9f961708647ec6d8e1d5cc42a931eda2bffc125cbc6d569377c20bb2a61a3",
+      "bytes": 6129
+    },
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/spells-water.csv",
+      "sha256": "f10aad3aefafe35295e10eb61ae65e8da94465a14bee136bb2659a5b4390fa2e",
+      "bytes": 2528
+    },
+    {
+      "path": "docs/design/baseline-fourteen-nights/design/data/stats.csv",
+      "sha256": "beaff7e3bf58acc01d3c69a294cd93be9b230aff74efd309718a2757bcc3914d",
+      "bytes": 1011
+    },
+    {
+      "path": "docs/design/reference-the-ledger/design/data/spells-fire.csv",
+      "sha256": "0d6ce4f83ac9079553dbba772ebadcaeca8fee89f1faea33385f67913e4ea29b",
+      "bytes": 1805
+    },
+    {
+      "path": "packages/core/src/arena/data/runtime.json",
+      "sha256": "52d05387a6ab7f5fe3131e459b1eb6d20f98e83ea74c48a8dd4c654289db66a2",
+      "bytes": 3145
+    },
+    {
+      "path": "art/scale-contract-v1.json",
+      "sha256": "be3dec34686cec131f521f276bef1c0e108c4d54197ac4f0907926f2dcd921d9",
+      "bytes": 2372
+    }
+  ]
+}

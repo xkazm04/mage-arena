@@ -1,0 +1,279 @@
+{
+  "_about": "Variant 2 arena tiers. The Games are the last day of every loop. The tier is chosen by the player's Mastery (persists across resets). Waves are bouts: the collar's tier clock resets each wave. Nobody dies below the Summa (missio at 0 HP).",
+  "tiers": [
+    {
+      "id": "tiro",
+      "name": "Tiro Games",
+      "waves": [
+        {
+          "n": 1,
+          "kind": "soldiers",
+          "spawns": [
+            {
+              "enemy": "conscript",
+              "count": 4
+            },
+            {
+              "enemy": "slinger",
+              "count": 2
+            }
+          ],
+          "targetDurationS": [
+            25,
+            40
+          ]
+        },
+        {
+          "n": 2,
+          "kind": "creatures",
+          "spawns": [
+            {
+              "enemy": "cinder_hound",
+              "count": 3
+            },
+            {
+              "enemy": "mire_maw",
+              "count": 1
+            }
+          ],
+          "targetDurationS": [
+            30,
+            45
+          ]
+        },
+        {
+          "n": 3,
+          "kind": "semifinal",
+          "spawns": [
+            {
+              "mage": "entrant_of_another_tent",
+              "competence": 1
+            }
+          ],
+          "targetDurationS": [
+            45,
+            70
+          ]
+        },
+        {
+          "n": 4,
+          "kind": "final",
+          "spawns": [
+            {
+              "mage": "winner_of_other_semifinal",
+              "competence": 1.5
+            }
+          ],
+          "targetDurationS": [
+            45,
+            80
+          ]
+        }
+      ],
+      "payoutGold": [
+        20,
+        40,
+        60,
+        100
+      ],
+      "renown": [
+        5,
+        10,
+        15,
+        25
+      ],
+      "rankUpOn": "Mastery +1: win a final, or reach a final twice (persists across resets)",
+      "requiresMastery": 1
+    },
+    {
+      "id": "veteranus",
+      "name": "Veteranus Games",
+      "waves": [
+        {
+          "n": 1,
+          "kind": "soldiers",
+          "spawns": [
+            {
+              "enemy": "shieldman",
+              "count": 2
+            },
+            {
+              "enemy": "conscript",
+              "count": 3
+            },
+            {
+              "enemy": "netter",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "kind": "creatures",
+          "spawns": [
+            {
+              "enemy": "thornback",
+              "count": 1
+            },
+            {
+              "enemy": "hush_moth",
+              "count": 6
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "kind": "semifinal",
+          "spawns": [
+            {
+              "mage": "entrant_of_another_tent",
+              "competence": 2,
+              "orEchoFromLoop": 2
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "kind": "final",
+          "spawns": [
+            {
+              "mage": "winner_of_other_semifinal",
+              "competence": 2.5
+            }
+          ]
+        }
+      ],
+      "payoutGold": [
+        30,
+        60,
+        90,
+        150
+      ],
+      "renown": [
+        6,
+        12,
+        18,
+        30
+      ],
+      "rankUpOn": "Mastery +1: win a final, or reach a final twice (persists across resets)",
+      "requiresMastery": 2
+    },
+    {
+      "id": "primus",
+      "name": "Primus Games",
+      "waves": [
+        {
+          "n": 1,
+          "kind": "mixed",
+          "spawns": [
+            {
+              "enemy": "shieldman",
+              "count": 2
+            },
+            {
+              "enemy": "slinger",
+              "count": 2
+            },
+            {
+              "enemy": "cinder_hound",
+              "count": 3
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "kind": "creatures",
+          "spawns": [
+            {
+              "enemy": "thornback",
+              "count": 2
+            },
+            {
+              "enemy": "mire_maw",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "n": 3,
+          "kind": "semifinal",
+          "spawns": [
+            {
+              "mage": "entrant_of_another_tent",
+              "competence": 3,
+              "orEchoFromLoop": 2
+            }
+          ]
+        },
+        {
+          "n": 4,
+          "kind": "final",
+          "spawns": [
+            {
+              "mage": "champion_of_another_tent",
+              "competence": 3.5
+            }
+          ]
+        }
+      ],
+      "payoutGold": [
+        40,
+        80,
+        120,
+        200
+      ],
+      "renown": [
+        8,
+        15,
+        22,
+        35
+      ],
+      "rankUpOn": "Mastery +1: win a final, or reach a final twice (persists across resets)",
+      "requiresMastery": 3
+    },
+    {
+      "id": "summa",
+      "name": "the Summa (Grand Games)",
+      "waves": [
+        {
+          "n": 1,
+          "kind": "semifinal",
+          "spawns": [
+            {
+              "mage": "best_entrant_by_standing",
+              "competence": 4
+            }
+          ]
+        },
+        {
+          "n": 2,
+          "kind": "final_or_breaking",
+          "spawns": [
+            {
+              "mage": "other_finalist",
+              "competence": 4
+            }
+          ],
+          "ending": "if trust(player, finalist) >= 60 and both hold Knowing K-wardstones-drink, the final can become the Breaking (cooperative duet); attempted with trust < 60 it becomes the Betrayed ending"
+        }
+      ],
+      "payoutGold": [
+        0,
+        0
+      ],
+      "renown": [
+        20,
+        50
+      ],
+      "requiresMastery": 4,
+      "rankUpOn": "the ending"
+    }
+  ],
+  "tentTrial": {
+    "day": "the day before the Games (loop day 2 in Loop 0)",
+    "where": "pit",
+    "form": "unarmed stamina bout vs the same-rank tent rival, best of 3 exchanges",
+    "score": "bout result 50% + elder favour 30% (trust of elder) + renown 20%",
+    "loserWatches": "the loser's tent entrant fights simulated; the player still plays camp days"
+  }
+}

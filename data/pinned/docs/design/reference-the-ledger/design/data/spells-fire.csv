@@ -1,0 +1,11 @@
+id,name,tier,shape,cast_s,cooldown_s,mana,damage,blockable,telegraph_s,range_m,heat_gain,notes
+fire_bolt,Ember Dart,0,projectile 18 m/s,0.00,0.30,4,8,absorbable,0.00,12,2 per hit,Always available on the Bolt button. Within 1.6 m the Bolt button does a staff strike instead (stamina 12; interrupts casts).
+fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,12,20,absorbable,0.15,4,6 per target,Close-range punisher. Builds Heat fastest.
+fire_cinderstep,Cinder Step,1,dash 5 m + burning trail 2 s,0.00,6.0,15,6 per 0.5 s tick,absorbable,0.00,5,3 per tick hit,Mobility without stamina. Trail ticks dedup per tick id and target.
+fire_kindle,Kindle,1,self,0.40,10.0,8,0,n/a,0.00,0,+25 instant,The tension builder: buys Heat without contact. Rooted during the cast.
+fire_lance,Brand Lance,2,line 14 m piercing,0.60,7.0,25,32,absorbable,0.60,14,4 per target,Pierces shields and Scutum walls. The line is drawn to the target during the cast.
+fire_ring,Ring of Cinders,2,ring around self r 3 m + knockback 2 m,0.30,9.0,22,18,absorbable,0.30,3,5 per target,Anti-melee and anti-hound answer.
+fire_pyre,Pyre Circle,3,ground circle r 3 m at a point,0.50,12.0,40,48,absorbable,0.80,10,8 per target,Positional area: a telegraph ring fills for 0.8 s before it lands.
+fire_furnace,Furnace Heart,3,self,0.50,16.0,30,0,n/a,0.00,0,Heat locked at 100 for 6 s,Absorb drain is doubled while it lasts. The hothead's gamble.
+fire_sunfall,Sunfall,4,meteor circle r 3.5 m,0.80,25.0,70,95,UNBLOCKABLE,1.20,12,10 per target,Caster is rooted for the 0.8 s cast and can be interrupted by a staff strike. The shadow grows for 1.2 s.
+fire_wrath,Brand Wrath,4,channelled beam 10 m for 2.0 s,0.20,20.0,60,14 per 0.25 s tick,absorbable,0.20,10,2 per tick,Each tick has its own activation id. A perfect absorb can only catch the first tick.

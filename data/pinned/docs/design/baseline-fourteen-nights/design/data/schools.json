@@ -1,0 +1,205 @@
+{
+  "_about": "Variant 2. Same four temperaments as variant 1. The absorb is directional (140 degrees) in this variant; Water is the slice school. campBias is expressed as intent weights for the deterministic planner, and as a one-line temperament hint in every Director prompt.",
+  "schools": [
+    {
+      "id": "water",
+      "tent": "tide",
+      "tentName": "the Tide Tent",
+      "colour": "#2f7fb5",
+      "temperament": "patient, intelligent, wins before the fight",
+      "combatIdentity": {
+        "resource": "flow",
+        "range": [
+          0,
+          5
+        ],
+        "gain": {
+          "castDifferentSpellWithinSeconds": 2.0,
+          "stacksPerCast": 1
+        },
+        "decay": {
+          "resetIfNoCastSeconds": 3.0,
+          "resetOnSameSpellTwice": true
+        },
+        "thresholds": [
+          {
+            "at": 1,
+            "perStackSpellDamageMult": 0.06
+          },
+          {
+            "at": 5,
+            "name": "Crest",
+            "nextSpellManaCost": 0,
+            "nextSpellDamageMult": 1.5
+          }
+        ],
+        "perfectAbsorbExtra": "+1 Flow"
+      },
+      "campBias": {
+        "intentWeights": {
+          "WATCH": 1.4,
+          "CONFIDE": 1.2,
+          "SCHEME:persuade": 1.3,
+          "SCHEME:rumour": 1.2,
+          "TRAIN:focus": 1.2
+        },
+        "promptHint": "patient, intelligent, wins before the fight",
+        "arenaLink": "Guile scouting reveals one extra level of the opponent's loadout"
+      }
+    },
+    {
+      "id": "fire",
+      "tent": "ember",
+      "tentName": "the Ember Tent",
+      "colour": "#d4582a",
+      "temperament": "hard-headed, aggressive, stronger under tension",
+      "combatIdentity": {
+        "resource": "heat",
+        "range": [
+          0,
+          100
+        ],
+        "gain": {
+          "perBoltHit": 2,
+          "perFlickTarget": 6,
+          "perHitTakenUnabsorbed": 12,
+          "perSecondEnemyWithin3m": 3
+        },
+        "decay": {
+          "perSecond": 6,
+          "afterNoGainSeconds": 2.0
+        },
+        "thresholds": [
+          {
+            "at": 50,
+            "name": "Kindled",
+            "spellDamageMult": 1.15
+          },
+          {
+            "at": 80,
+            "name": "Blazing",
+            "spellDamageMult": 1.3,
+            "absorbDrainMult": 1.5,
+            "staminaRegenMult": 0.7
+          }
+        ],
+        "perfectAbsorbExtra": "none beyond the shared reward; Fire is paid for staying close and hitting"
+      },
+      "campBias": {
+        "intentWeights": {
+          "TRAIN:nerve": 1.4,
+          "SCHEME:poison": 1.1,
+          "BEFRIEND": 0.8,
+          "REPORT": 0.5
+        },
+        "promptHint": "hard-headed, aggressive, stronger under tension",
+        "arenaLink": "start a bout at 30 Heat against a feud target"
+      }
+    },
+    {
+      "id": "earth",
+      "tent": "stone",
+      "tentName": "the Stone Tent",
+      "colour": "#7a6a3a",
+      "temperament": "calm, protective, slow to move and hard to move",
+      "combatIdentity": {
+        "resource": "footing",
+        "range": [
+          0,
+          6
+        ],
+        "gain": {
+          "stackPerHalfSecondBelowMps": 1.0
+        },
+        "decay": {
+          "clearOnRollOrSprint": true
+        },
+        "thresholds": [
+          {
+            "at": 1,
+            "perStackDamageTakenMult": -0.04,
+            "perStackSpellPowerMult": 0.04
+          },
+          {
+            "at": 3,
+            "absorbDrainMult": 0.8
+          }
+        ],
+        "perfectAbsorbExtra": "+2 Footing"
+      },
+      "campBias": {
+        "intentWeights": {
+          "PROTECT": 1.5,
+          "WORK": 1.3,
+          "SCHEME:*": 0.3
+        },
+        "promptHint": "calm, protective, slow to move and hard to move",
+        "arenaLink": "an ally with Trust >= 40 watching the Games grants +10 starting HP (the held line)"
+      }
+    },
+    {
+      "id": "air",
+      "tent": "gale",
+      "tentName": "the Gale Tent",
+      "colour": "#5f9e98",
+      "temperament": "restless, free, contemptuous of rules",
+      "combatIdentity": {
+        "resource": "momentum",
+        "range": [
+          0,
+          100
+        ],
+        "gain": {
+          "perSecondMovingAbove4Mps": 20
+        },
+        "decay": {
+          "perSecondStill": 25
+        },
+        "thresholds": [
+          {
+            "at": 40,
+            "spellsPierce": 1,
+            "rollStaminaMult": 0.6
+          },
+          {
+            "at": 80,
+            "spellRangeMult": 1.3
+          }
+        ],
+        "absorbDrainMult": 1.2,
+        "perfectAbsorbExtra": "deflect: an absorbed projectile of tier <= own unlocked tier is redirected along the aim direction"
+      },
+      "campBias": {
+        "intentWeights": {
+          "RECRUIT": 1.6,
+          "SCHEME:rumour": 1.4,
+          "REPORT": 0.3,
+          "DEFECT": 1.3
+        },
+        "promptHint": "restless, free, contemptuous of rules",
+        "arenaLink": "Renown from Games won spreads one day faster"
+      }
+    }
+  ],
+  "nonSchools": [
+    {
+      "id": "strays",
+      "name": "the Strays",
+      "fed": false,
+      "baseTrustFromTents": -30,
+      "note": "No tent, no ration, blamed for every theft. Archetype situation (a)."
+    },
+    {
+      "id": "vigil",
+      "name": "the Vigil",
+      "fed": true,
+      "note": "Arcane wardens whose salt-wards stop the four elements working inside the camp. They stop violence and punish whoever is caught."
+    },
+    {
+      "id": "roman",
+      "name": "the Lanista's household",
+      "fed": true,
+      "note": "Outside the Door. Speaks through the grille."
+    }
+  ]
+}

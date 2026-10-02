@@ -1,0 +1,231 @@
+{
+  "_about": "Variant 2 enemy roster: shared with variant 1, plus the Echo. Three threat families, three answers: magic is absorbed (if you face it), steel is rolled, unblockable is left or broken. Seconds, metres, HP. Authored.",
+  "soldiers": [
+    {
+      "id": "conscript",
+      "name": "Hastatus conscript",
+      "hp": 38,
+      "speedMps": 3.8,
+      "attacks": [
+        {
+          "id": "spear_lunge",
+          "family": "physical",
+          "damage": 10,
+          "windupS": 0.6,
+          "recoveryS": 0.5,
+          "rangeM": 2.0
+        }
+      ],
+      "behaviour": "approach, lunge, back off 1 s",
+      "teaches": "roll timing"
+    },
+    {
+      "id": "shieldman",
+      "name": "Scutum bearer",
+      "hp": 70,
+      "speedMps": 3.0,
+      "frontBlockDeg": 120,
+      "frontBlockMult": 0.0,
+      "attacks": [
+        {
+          "id": "shield_bash",
+          "family": "physical",
+          "damage": 8,
+          "windupS": 0.7,
+          "recoveryS": 0.6,
+          "rangeM": 1.5
+        }
+      ],
+      "behaviour": "advance in pairs, shields facing the player",
+      "teaches": "flank, pierce (Brand Lance), or area damage"
+    },
+    {
+      "id": "slinger",
+      "name": "Funditor",
+      "hp": 28,
+      "speedMps": 3.6,
+      "keepDistanceM": [
+        8,
+        10
+      ],
+      "attacks": [
+        {
+          "id": "sling_stone",
+          "family": "physical",
+          "damage": 7,
+          "windupS": 0.5,
+          "cooldownS": 2.2,
+          "projectileMps": 14
+        }
+      ],
+      "behaviour": "kite at range",
+      "teaches": "closing distance; priority targets"
+    },
+    {
+      "id": "netter",
+      "name": "Net-thrower",
+      "hp": 45,
+      "speedMps": 3.4,
+      "attacks": [
+        {
+          "id": "net_cast",
+          "family": "physical",
+          "effect": "root 1.0 s",
+          "damage": 0,
+          "windupS": 0.8,
+          "cooldownS": 6.0,
+          "telegraph": "ring on the ground 2.5 m"
+        }
+      ],
+      "behaviour": "net, then conscripts converge",
+      "teaches": "rolling out of a telegraph"
+    }
+  ],
+  "creatures": [
+    {
+      "id": "cinder_hound",
+      "name": "Cinder hound",
+      "hp": 25,
+      "speedMps": 6.0,
+      "packSize": 3,
+      "attacks": [
+        {
+          "id": "bite",
+          "family": "physical",
+          "damage": 6,
+          "windupS": 0.35,
+          "recoveryS": 0.4
+        }
+      ],
+      "onDeath": {
+        "id": "ember_burst",
+        "family": "magic",
+        "tier": 0,
+        "damage": 5,
+        "radiusM": 1.5,
+        "delayS": 0.6
+      },
+      "behaviour": "pack uses 2 engagement slots around the player; the third circles",
+      "teaches": "perfect absorb on death bursts"
+    },
+    {
+      "id": "mire_maw",
+      "name": "Mire maw",
+      "hp": 100,
+      "speedMps": 1.5,
+      "attacks": [
+        {
+          "id": "bog_glob",
+          "family": "magic",
+          "tier": 1,
+          "damage": 14,
+          "windupS": 0.7,
+          "projectileMps": 9
+        },
+        {
+          "id": "tongue_pull",
+          "family": "physical",
+          "damage": 4,
+          "effect": "pull 4 m",
+          "windupS": 1.0,
+          "telegraph": "line"
+        }
+      ],
+      "behaviour": "stationary artillery; pulls players who stand in line",
+      "teaches": "absorb a slow projectile; leave a line telegraph"
+    },
+    {
+      "id": "thornback",
+      "name": "Thornback",
+      "hp": 140,
+      "armourMultVsBolt": 0.5,
+      "speedMps": 2.2,
+      "attacks": [
+        {
+          "id": "thorn_charge",
+          "family": "unblockable",
+          "damage": 22,
+          "windupS": 1.0,
+          "telegraph": "lane 2 m wide x 12 m",
+          "onWallHit": "self-stun 1.5 s"
+        }
+      ],
+      "behaviour": "charges along a lane; stunned if it hits a wall",
+      "teaches": "unblockable: leave the lane, punish the stun"
+    },
+    {
+      "id": "hush_moth",
+      "name": "Hush moth",
+      "hp": 8,
+      "speedMps": 3.0,
+      "packSize": 6,
+      "attacks": [
+        {
+          "id": "mana_sip",
+          "family": "physical",
+          "effect": "drain 6 mana per second on contact",
+          "damage": 0,
+          "windupS": 0.0
+        }
+      ],
+      "behaviour": "drift toward whoever holds absorb",
+      "teaches": "absorb is not always the answer; area spells"
+    }
+  ],
+  "mages": {
+    "_about": "AI mages use the player's own kernel: same spells, same absorb, same tier clock. Competence is a dial with human-plausible caps, never extra stats.",
+    "competence": [
+      {
+        "level": 1,
+        "reactionDelayS": 0.55,
+        "absorbChanceVsAbsorbable": 0.4,
+        "perfectAbsorbChance": 0.05,
+        "aimErrorDeg": 12,
+        "decisionCadenceS": 0.5,
+        "usesTierCurve": "random"
+      },
+      {
+        "level": 2,
+        "reactionDelayS": 0.45,
+        "absorbChanceVsAbsorbable": 0.6,
+        "perfectAbsorbChance": 0.15,
+        "aimErrorDeg": 8,
+        "decisionCadenceS": 0.4,
+        "usesTierCurve": "holds the best spell for its tier"
+      },
+      {
+        "level": 3,
+        "reactionDelayS": 0.35,
+        "absorbChanceVsAbsorbable": 0.75,
+        "perfectAbsorbChance": 0.3,
+        "aimErrorDeg": 5,
+        "decisionCadenceS": 0.35,
+        "usesTierCurve": "baits absorbs before unblockables"
+      },
+      {
+        "level": 4,
+        "reactionDelayS": 0.3,
+        "absorbChanceVsAbsorbable": 0.85,
+        "perfectAbsorbChance": 0.4,
+        "aimErrorDeg": 3,
+        "decisionCadenceS": 0.3,
+        "usesTierCurve": "full curve play"
+      }
+    ],
+    "caps": {
+      "reactionDelayMinS": 0.25,
+      "perfectAbsorbChanceMax": 0.45
+    }
+  },
+  "echo": {
+    "id": "echo",
+    "name": "your Echo",
+    "from": "Loop 2 onward, a semifinal may be replaced by the Echo",
+    "loadout": "the player's loadout from the previous loop's Games (lines and branches)",
+    "perfectAbsorbChance": "the player's measured perfect-absorb rate over the previous loop's Games, capped at 0.45",
+    "reactionDelayS": 0.3,
+    "aimErrorDeg": 4,
+    "art": "the player's figure with a shadow tint; no new images",
+    "teaches": "beat your own last bet"
+  }
+}

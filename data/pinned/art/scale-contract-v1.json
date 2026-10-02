@@ -1,0 +1,85 @@
+{
+  "version": "scale-contract-v1",
+  "status": "owner confirmed camera 2026-10-02: near distance, open oval (art/CAMERA-OK.md)",
+  "authority": "owner 2026-10-02 screen-height fraction; supersedes inconsistent pixel example",
+  "reference_viewport_px": [
+    1920,
+    1080
+  ],
+  "second_viewport_px": [
+    2560,
+    1440
+  ],
+  "camera": {
+    "projection": "orthographic ground; hand-drawn upright billboard silhouettes",
+    "elevation_above_ground_degrees": 55,
+    "elevation_range_degrees": [
+      45,
+      60
+    ],
+    "standard_ground_pixels_per_metre_at_1080p": 30,
+    "zoom_range": [
+      0.8,
+      1.2
+    ]
+  },
+  "character": {
+    "nominal_height_metres": 1.8,
+    "screen_height_fraction_range": [
+      0.04,
+      0.06
+    ],
+    "measure": "head to sole, excluding weapon, shadow, spell and absorb"
+  },
+  "distances": [
+    {
+      "id": "standard",
+      "zoom": 1,
+      "screen_height_fraction": 0.05
+    },
+    {
+      "id": "near",
+      "zoom": 1.2,
+      "screen_height_fraction": 0.06
+    },
+    {
+      "id": "far",
+      "zoom": 0.8,
+      "screen_height_fraction": 0.04
+    }
+  ],
+  "arena_metres": [
+    192,
+    144
+  ],
+  "minimum_combatant_centre_separation_metres": 6,
+  "telegraph": {
+    "minimum_ground_diameter_metres": 4,
+    "minimum_outline_px_at_1080p": 3,
+    "minimum_projectile_core_px_at_1080p": 4,
+    "use_shape_plus_colour": true
+  },
+  "absorb": {
+    "angle_degrees": 140,
+    "visual_radius_metres": 2.4,
+    "rear_open_degrees": 220,
+    "note": "140-degree mechanic from W2; radius is authored visual proposal, not combat balance"
+  },
+  "formulas": {
+    "resolution_scale": "viewport_height / 1080",
+    "ground_px_per_m_x": "30 * zoom * resolution_scale",
+    "ground_px_per_m_y": "ground_px_per_m_x * sin(elevation)",
+    "metres_per_pixel_x": "1 / ground_px_per_m_x",
+    "metres_per_pixel_y": "1 / ground_px_per_m_y",
+    "character_height_px": "viewport_height * screen_height_fraction",
+    "visible_ground_metres": "[viewport_width / ground_px_per_m_x, viewport_height / ground_px_per_m_y]"
+  },
+  "not_measured": [
+    "motion readability",
+    "owner feel",
+    "engine performance",
+    "generated scene metre accuracy",
+    "generated exact absorb angle"
+  ],
+  "a3_gate": "art/CAMERA-OK.md supplied by owner"
+}

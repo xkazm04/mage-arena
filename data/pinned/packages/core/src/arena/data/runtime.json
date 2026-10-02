@@ -1,0 +1,57 @@
+{
+  "_about": "Authored supplements absent from baseline. Baseline combat, spells and stats remain authoritative for their values.",
+  "geometry": { "arenaCentre": { "x": 16, "y": 62 }, "mageRadiusM": 0.38, "projectileRadiusM": 0.12, "staffArcDeg": 90 },
+  "training": {
+    "defaultRanks": { "vigor": 1, "focus": 1, "nerve": 1 },
+    "player": { "x": 12, "y": 10 },
+    "dummyHp": 10000,
+    "front": { "x": 23, "y": 10 },
+    "side": { "x": 12, "y": 3 },
+    "attackIntervalS": 3,
+    "firstAttackS": 1,
+    "magic": { "damage": 14, "tier": 1, "windupS": 0.7, "speedMps": 9, "rangeM": 32 },
+    "physical": { "damage": 7, "tier": 0, "windupS": 0.5, "speedMps": 14, "rangeM": 32 },
+    "charge": { "damage": 22, "windupS": 1, "rangeM": 12, "widthM": 2 },
+    "streamCount": 3, "streamIntervalS": 0.2,
+    "perfectBotLeadS": 0.1, "lateBotLeadS": 0.16,
+    "reportDurationS": 120, "windowSweepTicks": [0, 1, 3, 6, 8, 9, 10, 12, 18],
+    "performanceProjectiles": 100,
+    "performanceField": { "widthM": 40, "heightM": 20, "speedMps": 1, "rangeM": 4 }
+  },
+  "water": {
+    "_about": "Only details missing from spell CSV: fan inherits an authored projectile speed, Return Tide travels as a piercing wave, Mirage is an aim point.",
+    "fanSpeedMps": 12, "returnWaveSpeedMps": 12, "returnWaveRadiusM": 1,
+    "decoyRadiusM": 0.5, "tombCursorRadiusM": 2,
+    "reportDurationS": 60, "reportCastCadenceS": 0.5,
+    "reportRangeM": 2.6,
+    "presets": [
+      { "name": "Undertow", "lines": ["lash", "tide_orb", "mire"], "branches": { "lash": "A", "mirror": "A", "tide_orb": "A" } },
+      { "name": "Mirror tide", "lines": ["mirror", "mend", "tide_orb"], "branches": { "lash": "A", "mirror": "A", "tide_orb": "B" } },
+      { "name": "Rotation", "lines": ["tide_orb", "lash", "mirror"], "branches": { "lash": "B", "mirror": "B", "tide_orb": "B" } }
+    ]
+  },
+  "games": {
+    "_about": "W4 authored values absent from baseline. Tiro spawns, enemy stats/attacks, competence and duration targets stay baseline-owned.",
+    "playerSpawn": { "x": 8, "y": 10 }, "enemySpawn": { "x": 24, "y": 10 },
+    "spawnJitterM": 0.8, "spawnMarginM": 2,
+    "defaultMeleeRangeM": 1.2, "meleeArcDeg": 80, "defaultRecoveryS": 1.1,
+    "rangedRangeM": 24, "netRangeM": 10, "tongueRangeM": 10, "tongueWidthM": 0.7,
+    "mawArtilleryCooldownS": 3.5, "chargeCooldownS": 5, "contactRangeM": 0.8,
+    "houndOrbitM": 3.5, "conscriptBackoffM": 3,
+    "separationM": 1, "separationWeight": 1.1,
+    "magePreferredDistanceM": [5, 8], "mageStrafePeriodS": 2.4, "mageAimLeadFraction": 0.45,
+    "mageDefenceHoldS": 0.35,
+    "referenceCompetence": 2, "referencePreset": "Rotation",
+    "opponentPresets": ["Undertow", "Mirror tide"],
+    "censusFightsPerWave": 2000, "censusSeedStart": 40000, "fightTimeoutS": 180,
+    "timeoutRateMax": 0.01, "sampleReplayStride": 199,
+    "ladderTrials": 500,
+    "rosterPracticeCount": 1
+  },
+  "presentation": {
+    "maxFrameDeltaS": 0.25,
+    "perfectFlashS": 0.3, "bellHz": 880, "bellDurationS": 0.13,
+    "performanceFrames": 360, "performanceWarmupFrames": 120,
+    "cpuP95BudgetMs": 8, "targetFps": 60, "fpsToleranceFraction": 0.02
+  }
+}
