@@ -1,0 +1,21 @@
+# Unreal generated
+Game/Binaries/
+Game/Intermediate/
+Game/Saved/
+Game/DerivedDataCache/
+Game/Build/
+Game/Plugins/*/Binaries/
+Game/Plugins/*/Intermediate/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+.vs/
+.vscode/
+.idea/
+# OS / tools
+Thumbs.db
+.DS_Store
+node_modules/
