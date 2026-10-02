@@ -11,6 +11,11 @@ There is no second gesture path.
 - No blank lines. No trailing commas. Objects are closed: unknown fields are invalid.
 - On disk, under `Game/Clips/<action>.<variant>.jsonl`.
   `action` and `variant` in the header match that file name.
+- Corpus, template, mouse and noise clips live in subfolders of `Game/Clips`
+  (`corpus/`, `templates/`, `mouse/`, `noise/`, `impostors/`). A folder may hold many drawings of one
+  class, so those files may be `<action>.<variant>.<id>.jsonl`. `<id>` is a seed or token
+  (`[A-Za-z0-9_-]+`). The header `action` and `variant` are still the first two name parts.
+  The 27 quick-action clips in `Game/Clips` itself keep the unsuffixed name.
 - Positions are metres. The Unreal loader multiplies positions by 100 and stores centimetres.
   Quaternions are not scaled.
 
@@ -103,11 +108,11 @@ The synthetic seed is FNV-1a 32-bit of the UTF-8 bytes of `action`, a NUL byte, 
 
 ## Validation
 
-`node tools/clipgen/validate.mjs <dir>` checks every `*.jsonl` in the directory:
+`node tools/clipgen/validate.mjs <dir>` checks every `*.jsonl` in the directory and its subfolders:
 
 - UTF-8 with no BOM, LF only, trailing LF, no blank lines.
 - Header fields, types, exact `schema`, `space`, `hz`, and the 26 keypoint names.
-- File name `<action>.<variant>.jsonl` matches the header.
+- File name is `<action>.<variant>.jsonl`, or `<action>.<variant>.<id>.jsonl` in a corpus folder. The header `action` and `variant` match the first two name parts.
 - 26 joints of 7 finite numbers. Quaternion norm within `1e-3` of 1.
 - `conf` and `pinch` in `[0, 1]`. `hand` is declared in the header.
 - Per-hand `t` starts at 0 and is strictly increasing. File order of `t` is non-decreasing.

@@ -7,6 +7,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UMouseSigilCapture;
 
 /** Installs the desktop quick-action keys. Each key calls UHandInputSubsystem::PlayQuickAction. */
 UCLASS()
@@ -20,10 +21,12 @@ public:
 	virtual void BeginPlay() override;
 	virtual void ReceivedPlayer() override;
 	virtual void SetupInputComponent() override;
+	virtual void PlayerTick(float DeltaTime) override;
 
 private:
 	void EnsureMapping();
 	void InstallMapping();
+	void EnsureMouse();
 	EClipVariant VariantFromModifiers() const;
 
 	UPROPERTY()
@@ -31,4 +34,7 @@ private:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UInputAction>> Actions;
+
+	UPROPERTY()
+	TObjectPtr<UMouseSigilCapture> MouseCapture;
 };

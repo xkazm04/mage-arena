@@ -1,6 +1,6 @@
 # T03 - Sigil recognition on fingertip paths ($Q port), clips and mouse
 
-Status: retry 1 dispatched 2026-10-03
+Status: done after retry 1 (verified by orchestrator 2026-10-03)
 Max turns: 240
 
 ## Goal

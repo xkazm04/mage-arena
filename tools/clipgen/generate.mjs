@@ -2,7 +2,7 @@
 // Same seed, same bytes. See docs/CLIP-SCHEMA.md.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HZ = 72;
 const SPACE = 'seated-origin, metres, +X forward, +Y right, +Z up (Unreal axes, cm converted to m)';
@@ -58,9 +58,10 @@ const FINGERS = [
 ];
 
 const ACTIONS = [
-  ['sigil-line1', { kind: 'sigil', stroke: 'vertical', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
-  ['sigil-line2', { kind: 'sigil', stroke: 'horizontal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
-  ['sigil-line3', { kind: 'sigil', stroke: 'diagonal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  // `line` is the inner stroke. It must not be named `stroke`: that key is the stroke duration below.
+  ['sigil-line1', { kind: 'sigil', line: 'vertical', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  ['sigil-line2', { kind: 'sigil', line: 'horizontal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  ['sigil-line3', { kind: 'sigil', line: 'diagonal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
   ['mudra', { kind: 'mudra', hands: ['L', 'R'], approach: 0.30, hold: 0.60 }],
   ['bolt', { kind: 'flick', hands: ['R'], yaw: 0, windup: 0.10, flick: 0.12, recover: 0.20, distance: 0.18 }],
   ['ward-raise', { kind: 'ward', hands: ['L'], rise: 0.25, hold: 1.00 }],
@@ -516,7 +517,7 @@ function sampleSigil(spec, t, timeScale, params) {
   const axes = drawAxes();
   const circleStart = circlePoint(-Math.PI / 2, params);
   const circleEnd = circlePoint(-Math.PI / 2 + Math.PI * 2, params);
-  const [strokeStart, strokeEnd] = strokeEnds(spec.stroke, params);
+  const [strokeStart, strokeEnd] = strokeEnds(spec.line, params);
   const rest = restPose('R');
   const restTip = add(
     rest.pos,
@@ -746,10 +747,66 @@ function frameLine(frame) {
   return `{"t":${num(frame.t)},"hand":"${frame.hand}","conf":${num(frame.conf)},"pinch":${num(frame.pinch)},"joints":[${joints}]}`;
 }
 
-function headerLine(action, variant, hands, seed) {
+function headerLine(action, variant, hands, seed, source = 'synthetic') {
   const kp = KEYPOINTS.map((name) => `"${name}"`).join(',');
   const hs = hands.map((hand) => `"${hand}"`).join(',');
-  return `{"schema":"mage-arena/hand-clip@1","name":${JSON.stringify(action)},"action":${JSON.stringify(action)},"variant":"${variant}","hands":[${hs}],"hz":72,"space":${JSON.stringify(SPACE)},"keypoints":[${kp}],"source":"synthetic","seed":${seed}}`;
+  return `{"schema":"mage-arena/hand-clip@1","name":${JSON.stringify(action)},"action":${JSON.stringify(action)},"variant":"${variant}","hands":[${hs}],"hz":72,"space":${JSON.stringify(SPACE)},"keypoints":[${kp}],"source":${JSON.stringify(source)},"seed":${seed}}`;
+}
+
+// Frames for a clip whose sample function returns the same hand poses as the quick-action sampler.
+function renderClip({ action, variant, hands, seed, source, params, duration, sampleAt }) {
+  const n = sampleCount(duration);
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / HZ;
+    const posedHands = sampleAt(Math.min(t, duration));
+    for (const hand of posedHands) {
+      const posed = poseHand(hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+      applyJitter(posed.world, t, params);
+      const quats = jointQuats(posed.world, posed.palmNormal);
+      const joints = posed.world.map((p, j) => [p.x, p.y, p.z, quats[j].x, quats[j].y, quats[j].z, quats[j].w]);
+      frames.push({ t, hand: hand.side, conf: params.dips ? 0.96 : 1, pinch: hand.pinch, joints });
+    }
+  }
+  if (params.dips) {
+    const handCount = hands.length;
+    const per = n;
+    const pick = (r) => 4 + Math.floor(r * Math.max(1, per - 10));
+    let a = pick(params.dipA ?? 0);
+    let b = pick(params.dipB ?? 0);
+    if (Math.abs(a - b) < 4) {
+      b = Math.min(per - 3, a + 5);
+    }
+    for (const centre of [a, b]) {
+      for (let k = -1; k <= 1; k++) {
+        const frameIndex = centre + k;
+        if (frameIndex < 0 || frameIndex >= per) {
+          continue;
+        }
+        for (let h = 0; h < handCount; h++) {
+          frames[frameIndex * handCount + h].conf = 0.4;
+        }
+      }
+    }
+  }
+  stabilize(frames, hands);
+  for (const frame of frames) {
+    for (let j = 0; j < 26; j++) {
+      const q = frame.joints[j].slice(3).map((c) => Number(c.toFixed(6)));
+      const qn = Math.hypot(q[0], q[1], q[2], q[3]);
+      if (Math.abs(qn - 1) > 1e-3) {
+        throw new Error(`${action} ${variant}: rounded quat norm ${qn} at ${KEYPOINTS[j]}`);
+      }
+    }
+    if (frame.pinch < -1e-6 || frame.pinch > 1 + 1e-6) {
+      throw new Error(`${action} pinch ${frame.pinch}`);
+    }
+  }
+  const lines = [headerLine(action, variant, hands, seed, source)];
+  for (const frame of frames) {
+    lines.push(frameLine(frame));
+  }
+  return { text: `${lines.join('\n')}\n`, frames, duration: (n - 1) / HZ };
 }
 
 function tip(frame) {
@@ -879,13 +936,13 @@ function checkSigil(action, spec, frames) {
   const b = tip(stroke[stroke.length - 1]);
   const dy = b.y - a.y;
   const dz = b.z - a.z;
-  if (spec.stroke === 'vertical' && !(dz > 0.10 && Math.abs(dy) < 0.03)) {
+  if (spec.line === 'vertical' && !(dz > 0.10 && Math.abs(dy) < 0.03)) {
     throw new Error(`${action}: vertical stroke dy ${dy} dz ${dz}`);
   }
-  if (spec.stroke === 'horizontal' && !(dy > 0.10 && Math.abs(dz) < 0.03)) {
+  if (spec.line === 'horizontal' && !(dy > 0.10 && Math.abs(dz) < 0.03)) {
     throw new Error(`${action}: horizontal stroke dy ${dy} dz ${dz}`);
   }
-  if (spec.stroke === 'diagonal' && !(dy > 0.08 && dz > 0.08)) {
+  if (spec.line === 'diagonal' && !(dy > 0.08 && dz > 0.08)) {
     throw new Error(`${action}: diagonal stroke dy ${dy} dz ${dz}`);
   }
   if (frames[frames.length - 1].pinch > 0.05) {
@@ -955,8 +1012,7 @@ function selfTestMath() {
   }
 }
 
-function main() {
-  selfTestMath();
+function writeCanonical() {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const outDir = path.resolve(here, '..', '..', 'Game', 'Clips');
   fs.mkdirSync(outDir, { recursive: true });
@@ -997,4 +1053,107 @@ function main() {
   process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
 }
 
-main();
+function parseArgs(argv) {
+  let templates = false;
+  let corpus = null;
+  let seed = null;
+  for (let i = 2; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === '--templates') {
+      templates = true;
+    } else if (arg === '--corpus') {
+      corpus = Number(argv[++i]);
+      if (!Number.isInteger(corpus) || corpus < 1) {
+        throw new Error('--corpus needs a positive integer');
+      }
+    } else if (arg === '--seed') {
+      seed = Number(argv[++i]);
+      if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295) {
+        throw new Error('--seed must be an integer in [0, 4294967295]');
+      }
+    } else {
+      throw new Error(`unknown argument ${arg}`);
+    }
+  }
+  if (templates && corpus != null) {
+    throw new Error('pass --templates or --corpus, not both');
+  }
+  if (corpus != null && seed == null) {
+    throw new Error('--corpus requires --seed');
+  }
+  return { templates, corpus, seed };
+}
+
+function isDirectInvocation() {
+  return !!process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+}
+
+async function main() {
+  selfTestMath();
+  const args = parseArgs(process.argv);
+  if (args.templates || args.corpus != null) {
+    const corpus = await import('./corpus.mjs');
+    if (args.templates) {
+      corpus.writeTemplates();
+    } else {
+      corpus.writeCorpus(args.corpus, args.seed);
+    }
+    return;
+  }
+  writeCanonical();
+}
+
+if (isDirectInvocation()) {
+  // Not a top-level await: corpus.mjs imports this module, and --templates imports corpus
+  // while this evaluation would still be suspended.
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
+
+export {
+  HZ,
+  SPACE,
+  KEYPOINTS,
+  IDX,
+  DRAW_X,
+  CHEST_Z,
+  CIRCLE_R,
+  CURLS,
+  ACTIONS,
+  VARIANTS,
+  v3,
+  add,
+  sub,
+  scale,
+  len,
+  normalize,
+  lerp,
+  clamp01,
+  ease,
+  mulberry32,
+  seedFor,
+  poseHand,
+  palmForTip,
+  applyJitter,
+  jointQuats,
+  stabilize,
+  restPose,
+  drawAxes,
+  lerpCurls,
+  slerpAxes,
+  quatFromZX,
+  quatRotate,
+  buildLocal,
+  ballistic,
+  distortAround,
+  sampleFlick,
+  sampleWard,
+  yawDir,
+  num,
+  frameLine,
+  headerLine,
+  renderClip,
+  sampleCount,
+};

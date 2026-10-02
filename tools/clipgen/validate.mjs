@@ -108,11 +108,13 @@ function validateFile(file) {
   if (!Number.isInteger(header.seed) || header.seed < 0 || header.seed > 4294967295) {
     errors.push(`seed ${JSON.stringify(header.seed)}`);
   }
-  const base = path.basename(file);
+  const base = path.basename(file, '.jsonl');
   if (typeof header.action === 'string' && VARIANTS.has(header.variant)) {
-    const expected = `${header.action}.${header.variant}.jsonl`;
-    if (base !== expected) {
-      errors.push(`file name ${base} != ${expected}`);
+    const parts = base.split('.');
+    const idOk = parts.length === 2
+      || (parts.length === 3 && /^[A-Za-z0-9_-]+$/.test(parts[2]));
+    if (!idOk || parts[0] !== header.action || parts[1] !== header.variant) {
+      errors.push(`file name ${path.basename(file)} does not match ${header.action}.${header.variant}[.id].jsonl`);
     }
   }
 
@@ -219,6 +221,17 @@ function summarise(file, errors, bufText) {
   return `ok ${name} frames=${frames} hands=${header.hands.join(',')} duration=${tMax.toFixed(6)}s`;
 }
 
+function collectJsonl(dir, out) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectJsonl(full, out);
+    } else if (entry.name.endsWith('.jsonl')) {
+      out.push(full);
+    }
+  }
+}
+
 function main() {
   const dir = path.resolve(process.cwd(), process.argv[2] || path.join('Game', 'Clips'));
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
@@ -226,16 +239,18 @@ function main() {
     process.stdout.write('0 clips, 1 violations\n');
     process.exit(1);
   }
-  const files = fs.readdirSync(dir).filter((name) => name.endsWith('.jsonl')).sort();
+  const files = [];
+  collectJsonl(dir, files);
+  files.sort((a, b) => a.localeCompare(b));
   let violations = 0;
-  for (const name of files) {
-    const file = path.join(dir, name);
+  for (const file of files) {
     const errors = validateFile(file);
     const text = fs.readFileSync(file, 'utf8');
     if (errors.length > 0) {
       violations += errors.length;
     }
-    process.stdout.write(`${summarise(file, errors, text)}\n`);
+    const shown = summarise(file, errors, text).replace(path.basename(file), path.relative(dir, file).split(path.sep).join('/'));
+    process.stdout.write(`${shown}\n`);
   }
   process.stdout.write(`${files.length} clips, ${violations} violations\n`);
   process.exit(violations === 0 ? 0 : 1);

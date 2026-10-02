@@ -2,6 +2,10 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
+#include "Gestures/MouseSigilCapture.h"
+#include "Gestures/SigilRecognizerSubsystem.h"
 #include "Hands/HandInputSubsystem.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -42,6 +46,7 @@ void AMageArenaPlayerController::BeginPlay()
 	Super::BeginPlay();
 	EnsureMapping();
 	InstallMapping();
+	EnsureMouse();
 }
 
 void AMageArenaPlayerController::ReceivedPlayer()
@@ -49,6 +54,16 @@ void AMageArenaPlayerController::ReceivedPlayer()
 	Super::ReceivedPlayer();
 	EnsureMapping();
 	InstallMapping();
+	EnsureMouse();
+}
+
+void AMageArenaPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+	if (MouseCapture)
+	{
+		MouseCapture->Sample(this, DeltaTime);
+	}
 }
 
 void AMageArenaPlayerController::SetupInputComponent()
@@ -104,6 +119,27 @@ void AMageArenaPlayerController::EnsureMapping()
 		FEnhancedActionKeyMapping& Mapped = MappingContext->MapKey(Action, Binding.Key);
 		UInputTriggerPressed* Pressed = NewObject<UInputTriggerPressed>(MappingContext);
 		Mapped.Triggers.Add(Pressed);
+	}
+}
+
+void AMageArenaPlayerController::EnsureMouse()
+{
+	if (!MouseCapture)
+	{
+		MouseCapture = NewObject<UMouseSigilCapture>(this);
+	}
+	if (UGameInstance* Instance = GetGameInstance())
+	{
+		MouseCapture->SetSubsystem(Instance->GetSubsystem<USigilRecognizerSubsystem>());
+	}
+	// A free cursor is required to draw. Skip it when there is no viewport (headless automation).
+	if (IsLocalPlayerController() && GetLocalPlayer() && GEngine && GEngine->GameViewport)
+	{
+		bShowMouseCursor = true;
+		FInputModeGameAndUI Mode;
+		Mode.SetHideCursorDuringCapture(false);
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(Mode);
 	}
 }
 
