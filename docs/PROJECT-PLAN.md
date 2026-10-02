@@ -179,7 +179,7 @@ The two projects meet at four seams only:
 ## 4. Feasibility week (Mon 5 Oct - Sun 11 Oct): desktop and toolchain gates
 
 **Machine facts, read 2026-10-02:**
-- The repo and `Game/MageArenaVR.uproject` exist (`5bc06ee`): one Runtime module, Enhanced Input, forward shading on (`Game/Config/DefaultEngine.ini`). The editor target builds in 54 s on UE 5.8.2 (**measured**, `CLAUDE.md`). No XR plugin is enabled yet.
+- The repo and `apps/vr/Game/MageArenaVR.uproject` exist (`5bc06ee`): one Runtime module, Enhanced Input, forward shading on (`apps/vr/Game/Config/DefaultEngine.ini`). The editor target builds in 54 s on UE 5.8.2 (**measured**, `CLAUDE.md`). No XR plugin is enabled yet.
 - UE **5.8.2** is installed (`C:\Program Files\Epic Games\UE_5.8`, launcher manifest `5.8.2-56702186`). There is no 5.7 install.
 - The engine ships stock `OpenXR`, `OpenXRHandTracking` and `XRBase` plugins and `Engine/Platforms/Android`.
 - **Meta XR plugins are not installed.**
@@ -214,12 +214,12 @@ The two projects meet at four seams only:
 ## 5. Week-by-week schedule to 18 November
 
 **Rhythm** (mirrors the PC plan's wave rule): a design note first, data first, tests with content assertions, a green gate, an owner check for anything only the owner can judge, one commit per item.
-- The game repo is `C:\Users\kazda\kiro\mage-arena-vr` (scaffolded, `5bc06ee`), with the UE project in `Game/`. pof attaches to it as a second UE project (P0).
+- The game repo is `C:\Users\kazda\kiro\mage-arena-vr` (scaffolded, `5bc06ee`), with the UE project in `apps/vr/Game/`. pof attaches to it as a second UE project (P0).
 - October weeks are **D1-D4** (desktop, no headset); November weeks are **V1-V3** (device).
 
 | Week (dates) | Milestone and game deliverable | pof work it depends on (section 8) | Registry output (section 9) | Verification: headless / owner |
 |---|---|---|---|---|
-| **W0** Fri 2 - Sun 4 Oct | **M0 Ready:** repo and project scaffolded, editor target builds (done, `5bc06ee`). Remaining: data pin to arena `4b21c57` (`data/PINNED.json`), `combat.vr.json` overlay, clip schema | **P0** second-project support; **P1** editor-only bridge hygiene; **P2** start | Subject proposal for an `immersive-interaction` category (format of `ai-registry/docs/subject-proposal-*.md`); landing waits on the location question (section 9) | Headless: project opens, data hash check. Owner: Start application, dashboard app. |
+| **W0** Fri 2 - Sun 4 Oct | **M0 Ready:** repo and project scaffolded, editor target builds (done, `5bc06ee`). Remaining: data pin to arena `4b21c57` (`apps/vr/data/PINNED.json`), `combat.vr.json` overlay, clip schema | **P0** second-project support; **P1** editor-only bridge hygiene; **P2** start | Subject proposal for an `immersive-interaction` category (format of `ai-registry/docs/subject-proposal-*.md`); landing waits on the location question (section 9) | Headless: project opens, data hash check. Owner: Start application, dashboard app. |
 | **D1** 5 - 11 Oct | **M1 Desktop feasibility verdict** (section 4); the C++ kernel port starts (no headset sessions compete). | **P2** (APK, no install), **P16** (Quest 3 profile), **P17** clip lane, **P4** on the mouse and synthetic corpus, **P6** desktop half, **P11** dry run if the app exists | Phase-1 drafts of `drawn-gesture-command-recognition`, `hand-tracked-timing-windows` (2-4 web searches each); first engine-pitfall entries (plugin version mismatch; editor-only APIs in a runtime module) | Headless: P4 confusion matrix, APK packaged, simulator boot. **Owner: about 2.5 h at the desk.** |
 | **D2** 12 - 18 Oct | **M2 Mechanics gate Sun 18 Oct** (greybox): kernel port (absorb, tier clock, Flow, Bolt, projectiles, telegraphs, dummies, bots), clips and mouse to the kernel `InputFrame`, pads and blink, wrist rune HUD, Tide Orb, Lash, Mirror (tiers I-IV), the mudra seal, Crest, the soldiers wave, missio and retry. **Provisional VR census** on clip and mouse timings (**authored**), overlay data only; re-run on real hands in V2. | **P8** data sync, **P7** conformance gate, **P5** scenario driver (desktop replay), **P18** capture (for the style pick) | Draft `cross-runtime-rules-conformance` once 20 vectors are green | Headless: kernel unit tests (port of the TS list), 20 conformance vectors, Wave 1 replay to victory, census in band. **Owner: 2 h** plus the gate review (30 min, **felt**). |
 | **D3** 19 - 25 Oct | **M3 Style pick and content:** style chosen Mon 19 Oct from P18 captures of one duel replay re-skinned in 13 / 25 / 30 (unlit); the art, animation and audio sprint begins. Creatures wave (cinder hounds with death bursts, mire maw), the Fire mage AI (competence 1 and 1.5, Heat, Sunfall unblockable), onboarding (first 60-80 s), pause and resume, session flow, left-hand mode (mirrored clips), narrow-FOV mode (camera FOV on desktop). **Content freeze Sun 25 Oct.** | **P15** asset budgets, **P9** Niagara, **P13** music and spatial cues, **P12** VR canon, **P14** catalog mirror | Phase-1 drafts of `seated-immersive-arena-design`, `field-of-view-aware-signalling` | Headless: full-session replay to victory, Fire duel census, P15 on every import. **Owner: 3 h** (style pick, play). |
@@ -322,7 +322,7 @@ This spec is the VR game; in October the desktop feeds the same pipeline (`DESKT
 
 ## 7. Tech architecture in Unreal
 
-**Project:** `Game/MageArenaVR.uproject` on UE 5.8.2 (or 5.7 if F0b), mobile forward shading, Vulkan, multiview, MSAA 4x, baked lighting, no Lumen or Nanite. Forward shading is on from day one (`r.ForwardShading=True`). If Meta XR v207 loads: OculusXR plus ISDK for hands, poses and gaze. Otherwise stock OpenXR plus OpenXRHandTracking. The scaffold has one module, `MageArenaVR`; the split below is the target, made in D1-D2.
+**Project:** `apps/vr/Game/MageArenaVR.uproject` on UE 5.8.2 (or 5.7 if F0b), mobile forward shading, Vulkan, multiview, MSAA 4x, baked lighting, no Lumen or Nanite. Forward shading is on from day one (`r.ForwardShading=True`). If Meta XR v207 loads: OculusXR plus ISDK for hands, poses and gaze. Otherwise stock OpenXR plus OpenXRHandTracking. The scaffold has one module, `MageArenaVR`; the split below is the target, made in D1-D2.
 
 | Module | Type | Responsibility | Key rule |
 |---|---|---|---|

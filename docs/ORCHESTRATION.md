@@ -31,9 +31,9 @@ even when tools were denied - `tools/agy-run.sh` records `denied_actions`, and a
 
 ## The loop
 
-1. **Card.** Claude writes `tasks/<id>-<slug>.md` from `tasks/_TEMPLATE.md`: goal, context files to read, exact
+1. **Card.** Claude writes `apps/vr/tasks/<id>-<slug>.md` from `apps/vr/tasks/_TEMPLATE.md`: goal, context files to read, exact
    deliverables (paths), constraints, acceptance commands with expected output, and what to put in the report.
-2. **Dispatch.** `bash tools/grok-run.sh tasks/<card>.md` runs Grok headless in this repo and stores its JSON result,
+2. **Dispatch.** `bash tools/grok-run.sh apps/vr/tasks/<card>.md` runs Grok headless in this repo and stores its JSON result,
    stderr and timing under `runs/<id>/` (git-ignored).
 3. **Verify.** Claude reads `runs/<id>/REPORT.md` and `git status`, then runs the acceptance commands itself. A claim
    with no command behind it is not accepted.

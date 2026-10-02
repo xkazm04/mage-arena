@@ -19,7 +19,11 @@ mage-arena/                       github.com/xkazm04/mage-arena (public)
 When `packages/core/` lives in the same repository, the VR build reads the combat data by path and the pin
 (`data/PINNED.json`, `tools/check-pin.mjs`) becomes a conformance check against `packages/core` instead of a copy.
 
-## Phase A - this repository becomes the monorepo shell (right after T03 settles, before T04)
+## Phase A - this repository becomes the monorepo shell - DONE 2026-10-03
+
+Done: `Game/`, `data/`, `tasks/` and the VR tools moved to `apps/vr/` with history (120 renames); every path updated;
+all gates re-run green (pin, 608 clips, build, 7/7 `MageArena.*` tests, 63 committed clips byte-identical); GitHub
+repository renamed `mage-arena`. Historical task cards T01-T03 keep the paths they were written with.
 
 Done by the orchestrator, not a worker (it is history-structural work):
 1. Move `Game/`, VR-only `tools/` (`build.ps1`, `clipgen/`) and `tasks/` under `apps/vr/`; keep `docs/` and the

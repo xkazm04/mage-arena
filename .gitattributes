@@ -5,7 +5,7 @@
 *.png filter=lfs diff=lfs merge=lfs -text
 *.wav filter=lfs diff=lfs merge=lfs -text
 *.ogg filter=lfs diff=lfs merge=lfs -text
-# Pinned data must stay byte-exact (checksummed by tools/check-pin.mjs)
-data/pinned/** -text
+# Pinned data must stay byte-exact (checksummed by apps/vr/tools/check-pin.mjs)
+apps/vr/data/pinned/** -text
 # Hand clips are JSONL with LF. Regeneration must be byte-identical.
-Game/Clips/** text eol=lf
+apps/vr/Game/Clips/** text eol=lf

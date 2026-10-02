@@ -8,18 +8,18 @@ The off-hand raised palm is the 140-degree directional ward; a **fresh** raise n
 resolves is a **perfect** absorb (full block, mana back, tier clock +2 s). The defining risk is timing: the detector
 must timestamp a raise by **motion onset** (joint velocity), not by when a pose classifier finally agrees, or the
 perfect window is eaten by detection latency. Plan section 4 gate D-G3; rules from the pinned data:
-`data/pinned/docs/design/baseline-fourteen-nights/design/data/combat.json` -> `absorb` (arcDeg 140, raiseCostMana 5,
+`apps/vr/data/pinned/docs/design/baseline-fourteen-nights/design/data/combat.json` -> `absorb` (arcDeg 140, raiseCostMana 5,
 minReleaseBeforeReRaiseS 0.12, perfect.windowS 0.15, perfect.notAgainst [unblockable, physical]). Read the numbers
 from that file at runtime or via a generated header; never retype them.
 
 ## Read first
 - `CLAUDE.md`, `docs/DECISIONS.md`, `docs/DESKTOP-INPUT.md`, `docs/CLIP-SCHEMA.md`, `docs/ORCHESTRATION.md`
-- `docs/PROJECT-PLAN.md` section 4 (D-G3 row), section 6 (ward), `tasks/BACKLOG.md`
-- `Game/Source/MageArenaVR/Hands/*`, `Game/Source/MageArenaVR/Gestures/*` (from T03), `tools/clipgen/*`
+- `docs/PROJECT-PLAN.md` section 4 (D-G3 row), section 6 (ward), `apps/vr/tasks/BACKLOG.md`
+- `apps/vr/Game/Source/MageArenaVR/Hands/*`, `apps/vr/Game/Source/MageArenaVR/Gestures/*` (from T03), `apps/vr/tools/clipgen/*`
 
 ## Deliverables
 
-### 1. Fix first - `UHandClipPlayer::Step` (tasks/BACKLOG.md)
+### 1. Fix first - `UHandClipPlayer::Step` (apps/vr/tasks/BACKLOG.md)
 After a clip ends, `Step` must not re-emit frames or advance the sequence counter unless a **hold** is active (below).
 Add a regression test `MageArena.Clips.NoEmitAfterEnd`. Tick the backlog item.
 
@@ -29,7 +29,7 @@ pose, keep emitting the hold pose **with fresh timestamps** while held (this is 
 the bug above), and on release play a short lowering motion (add `ward-lower.<variant>.jsonl` to the generator, or
 reverse the raise). The key path and the test path call the same function.
 
-### 3. Detector - `Game/Source/MageArenaVR/Gestures/WardDetector.*`
+### 3. Detector - `apps/vr/Game/Source/MageArenaVR/Gestures/WardDetector.*`
 - Palm pose: palm normal from the palm/wrist/metacarpal keypoints; "raised" = palm normal within 35 degrees of the
   ward facing (forward from the seated origin, or toward the current threat when one is targeted) and hand height above
   a lap threshold. Hysteresis on both.
@@ -39,13 +39,13 @@ reverse the raise). The key path and the test path call the same function.
   it. A permanently held ward can never produce a perfect.
 - Events: `OnWardRaised(OnsetTime, Facing)`, `OnWardLowered`, broadcast by a subsystem like T03's.
 
-### 4. Absorb resolver - `Game/Source/MageArenaVR/Combat/AbsorbResolver.*` (pure logic, no actors)
+### 4. Absorb resolver - `apps/vr/Game/Source/MageArenaVR/Combat/AbsorbResolver.*` (pure logic, no actors)
 `Resolve(HitTime, HitKind {magic, physical, unblockable}, IncomingTier, HitDirection, WardState) -> {Reduction,
 bPerfect, ManaReturned, TierClockAdvanceS}` using the pinned rules exactly (arc 140, reductions per kind, perfect
 window 0.15 s measured from **OnsetTime**, not against physical or unblockable, mana formula with nerveRank = 0 for
 now). This is the seed of the C++ kernel port; keep it data-driven and unit-tested.
 
-### 5. Tests - `Game/Source/MageArenaVR/Tests/WardTests.cpp`
+### 5. Tests - `apps/vr/Game/Source/MageArenaVR/Tests/WardTests.cpp`
 - `MageArena.Ward.OnsetCompensation`: generate ward-raise clips with injected detection latency 0, 20, 40, 60, 80,
   100 ms (shift when the pose becomes recognisable, keep the motion onset fixed); with a hit scheduled exactly at the
   authored perfect tick, the resolver reports `bPerfect` within +/- 1 frame of the authored tick for latency <= 60 ms.
@@ -55,21 +55,21 @@ now). This is the seed of the C++ kernel port; keep it data-driven and unit-test
 - `MageArena.Ward.KindsAndArc`: physical never perfect; unblockable never reduced; a hit from outside the 140-degree arc
   is not reduced.
 - `MageArena.Ward.KeyHoldPath`: the `Space` hold path produces exactly one `OnWardRaised` and one `OnWardLowered`.
-- Report: write `Game/Saved/Reports/ward-timing.json` (the latency table, per-test results).
+- Report: write `apps/vr/Game/Saved/Reports/ward-timing.json` (the latency table, per-test results).
 
 ## Constraints
 - Do not commit, push, or touch any other repository. No paid services. Do not edit `docs/DECISIONS.md` or `data/`.
 - Do not change the pinned numbers or widen the window. If onset compensation cannot meet +/-1 frame at <= 60 ms,
   report measured numbers and what you tried; the plan's fallback (window 0.20 s from data) is the owner's decision.
-- One Unreal build at a time (`tools/build.ps1`). No binary assets.
+- One Unreal build at a time (`apps/vr/tools/build.ps1`). No binary assets.
 
 ## Acceptance (the orchestrator re-runs these; quote their real output in your report)
 ```
-node tools/clipgen/generate.mjs && node tools/clipgen/validate.mjs Game/Clips      # 0 violations, deterministic
-powershell -NoProfile -File tools/build.ps1                                         # Result: Succeeded
-"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
-    # every MageArena.* test Success (Clips, Sigils, Ward), read Game/Saved/Logs/MageArenaVR.log
-type Game\Saved\Reports\ward-timing.json
+node apps/vr/tools/clipgen/generate.mjs && node apps/vr/tools/clipgen/validate.mjs apps/vr/Game/Clips      # 0 violations, deterministic
+powershell -NoProfile -File apps/vr/tools/build.ps1                                         # Result: Succeeded
+"C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
+    # every MageArena.* test Success (Clips, Sigils, Ward), read apps/vr/Game/Saved/Logs/MageArenaVR.log
+type apps\vr\Game\Saved\Reports\ward-timing.json
 ```
 
 ## Report

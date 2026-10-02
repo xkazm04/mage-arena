@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dispatch one task card to Grok headless in this repo. Usage: bash tools/grok-run.sh tasks/<card>.md [model]
+# Dispatch one task card to Grok headless in this repo. Usage: bash tools/grok-run.sh apps/vr/tasks/<card>.md [model]
 set -u
 card="$1"; model="${2:-grok-4.7}"
 repo="$(cd "$(dirname "$0")/.." && pwd)"

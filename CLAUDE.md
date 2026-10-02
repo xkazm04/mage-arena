@@ -1,6 +1,6 @@
 # Mage Arena VR - agent guide
 
-A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** (C++ project in `Game/`). Entry for
+A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** (C++ project in `apps/vr/Game/`). Entry for
 the Meta VR Start Developer Competition 2026 (Gaming track; deadline **2026-11-18**). One of three channels of one game:
 TV (sister build), VR (this repo), PC (future).
 
@@ -10,7 +10,7 @@ TV (sister build), VR (this repo), PC (future).
 2. `docs/PROJECT-PLAN.md` - the full plan. Where it conflicts with DECISIONS.md, DECISIONS.md wins.
 3. `docs/DESKTOP-INPUT.md` - how the desktop build plays every hand gesture through the one gesture pipeline.
 4. `docs/ART-STYLE-STORYBOARD.md` - 30 style studies; the owner's shortlist is 13 / 25 / 30.
-5. `docs/ORCHESTRATION.md` - who does what: Grok (`grok-4.7`) implements task cards in `tasks/`, the Claude session
+5. `docs/ORCHESTRATION.md` - who does what: Grok (`grok-4.7`) implements task cards in `apps/vr/tasks/`, the Claude session
    orchestrates, verifies and commits. Paid services: ElevenLabs only, anything else needs the owner's written approval.
 
 ## Current phase (until 2026-10-31): desktop core, no VR
@@ -25,7 +25,7 @@ TV (sister build), VR (this repo), PC (future).
 ## Combat data has one owner
 
 The tuned combat numbers (spells, enemies, tier clock, Flow) live in the PC/TS project `kiro/mage-arena` and its
-calibrated simulator. This repo consumes a **pinned commit** of that data (see `data/README.md`) and never edits it in
+calibrated simulator. This repo consumes a **pinned commit** of that data (see `apps/vr/data/README.md`) and never edits it in
 place; changes go back as change requests. A `combat.json` copied from a contest folder is stale - do not use it.
 
 ## Tooling
@@ -37,7 +37,7 @@ place; changes go back as change requests. A `combat.json` copied from a contest
 
 ## Build
 
-`powershell -NoProfile -File tools/build.ps1` (editor target, Win64 Development; verified 2026-10-02: succeeded in
+`powershell -NoProfile -File apps/vr/tools/build.ps1` (editor target, Win64 Development; verified 2026-10-02: succeeded in
 54 s on UE 5.8.2). Call `Build.bat` through PowerShell's `&`; quoting it through `cmd /c` from Git Bash fails.
 
 Binary assets (`.uasset`, `.umap`) go through Git LFS (`.gitattributes`). `Binaries/`, `Intermediate/`, `Saved/`

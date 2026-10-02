@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Dispatch one task card to the Antigravity CLI (Gemini) headless in this repo.
-# Usage: bash tools/agy-run.sh tasks/<card>.md [model]   (default gemini-3.8-flash-high; hard tasks: gemini-3.1-pro-high)
+# Usage: bash tools/agy-run.sh apps/vr/tasks/<card>.md [model]   (default gemini-3.8-flash-high; hard tasks: gemini-3.1-pro-high)
 # Permissions: ~/.gemini/antigravity-cli/settings.json allow-list + .agents/hooks.json deny guard (docs/ORCHESTRATION.md).
 set -u
 card="$1"; model="${2:-gemini-3.8-flash-high}"
