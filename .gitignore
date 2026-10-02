@@ -19,3 +19,4 @@ Game/Plugins/*/Intermediate/
 Thumbs.db
 .DS_Store
 node_modules/
+runs/

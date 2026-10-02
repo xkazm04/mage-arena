@@ -10,6 +10,8 @@ TV (sister build), VR (this repo), PC (future).
 2. `docs/PROJECT-PLAN.md` - the full plan. Where it conflicts with DECISIONS.md, DECISIONS.md wins.
 3. `docs/DESKTOP-INPUT.md` - how the desktop build plays every hand gesture through the one gesture pipeline.
 4. `docs/ART-STYLE-STORYBOARD.md` - 30 style studies; the owner's shortlist is 13 / 25 / 30.
+5. `docs/ORCHESTRATION.md` - who does what: Grok (`grok-4.7`) implements task cards in `tasks/`, the Claude session
+   orchestrates, verifies and commits. Paid services: ElevenLabs only, anything else needs the owner's written approval.
 
 ## Current phase (until 2026-10-31): desktop core, no VR
 

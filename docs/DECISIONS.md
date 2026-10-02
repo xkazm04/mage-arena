@@ -2,6 +2,33 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-02 - Who does the work, what may be paid for, and the real risk
+
+> "For music and effects use ElevenLabs services ... other paid tools not allowed without specific request and
+> reasoning, like for example Tripo credits for 3D generation and animations if no other choice."
+
+- Music and SFX: **ElevenLabs**, key `ELEVENLABS_API_KEY` (the owner pointed at the personas `.env`; the variable
+  actually lives in `kiro/pof/.env`, which is pof's audio provider config). Read it by name; never copy it into this repo.
+- **No other paid tool** without a written request and reasoning to the owner first. MiVRy (paid recognizer licence)
+  is therefore out: the recognizer is the in-house $Q port. Tripo-style 3D/animation credits only on request, when
+  there is no other choice.
+
+> "Risk is in the game design and animations of 3D models - that's something we did not prove to master for a long
+> time. I believe we don't overcome it in next 3 weeks, then we reconsider the plan."
+
+- **Top risk: game design quality and 3D model animation**, not the toolchain. **Reconsider checkpoint Fri 23 Oct**
+  (three weeks from this decision): if fun-in-greybox and animated 3D opponents are not proven by then, the plan is
+  reconsidered with the owner rather than pushed on.
+
+> "For execution use Grok CLI and Grok 4.7 model to do most of the heavy lifting ... it can do most work if you keep
+> yourself as orchestrator and provide detailed plan. We then take over together once more challenging and creative
+> tasks will remain, keeping Grok as pawn until usage depleted."
+
+- **Execution model:** Grok CLI (`grok-4.7`) implements; the Claude session orchestrates with detailed task cards,
+  verifies every result itself and commits. Creative and hard calls (game feel, design judgement, art choice,
+  anything Grok fails twice) go to Claude with the owner. Grok runs until its usage is depleted. Protocol:
+  `ORCHESTRATION.md`.
+
 ## 2026-10-02 - Desktop first, VR from November
 
 > "Headset not decided yet, we will need to have PC experience saving hand gestures under keybindings as quick
