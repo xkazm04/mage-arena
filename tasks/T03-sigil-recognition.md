@@ -1,6 +1,6 @@
 # T03 - Sigil recognition on fingertip paths ($Q port), clips and mouse
 
-Status: open
+Status: retry 1 dispatched 2026-10-03
 Max turns: 240
 
 ## Goal
@@ -85,3 +85,33 @@ type Game\Saved\Reports\sigil-accuracy.json
 Write `runs/T03/REPORT.md`: files, the acceptance outputs, the accuracy table (per source and variant), the false-cast
 rate, timing p50/p95, the parameters you chose (n, reject threshold, pinch hysteresis, stillness gap) and why, anything
 you could not do with the exact error.
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+The first run is green but not accepted: an independent review (verified against the code by the orchestrator) shows
+the tests prove "every drawing is classified as something", not "only real sigils cast". Fix all of these, keep every
+existing threshold, and do not weaken a test to pass it:
+
+1. **Rejection is inactive.** `QPointCloudRecognizer.h:34` sets `DefaultRejectDistance = 30000`, above the worst
+   correct distance (23595) and reportedly above a bare circle's distance (~24147), so every reject rate is 0 %.
+   Choose the threshold from data: report the distribution of correct-match distances and of impostor distances, and
+   set it between them (state the margin).
+2. **Add impostor drawings to the corpus and the accuracy test** (`corpus.mjs`, seeded, deterministic): bare circles
+   with no inner stroke, circles with an unrelated inner mark (dot, zigzag, short hook), open arcs (< 300 degrees),
+   and a stray swipe. Each must be **rejected >= 90 %** (report per kind); real sigils keep their current bars.
+3. **Vacuous templates test:** `SigilTests.cpp:196-198` silently `continue`s when a template fails extraction (one did:
+   `sigil-line2.sloppy.t800001011` failed the circle check). A template that cannot be extracted must fail the test;
+   then fix the cause.
+4. **Circle check unwinds on one-stroke drawings:** `SigilStrokeBuilder.cpp:321` uses the final net turn; after a full
+   loop the inner stroke can reverse it below 300 degrees. Use the peak absolute net turn reached within the stroke
+   (or detect the loop closure point), so drawing style B works.
+5. **Bare-circle length is absolute:** `SigilStrokeBuilder.h:42` `BareCirclePathCm = 78` is about the circumference of
+   the nominal circle, so a normal-size circle can be treated as a complete gesture and cast before the inner stroke.
+   Make "waiting for the inner stroke" depend on the loop having closed, not on an absolute path length.
+6. **False-cast test counts unfed seconds:** `SigilTests.cpp:~356` adds the duration of left-hand noise clips that are
+   never fed to the recognizer. Feed what the casting hand would see, or count only fed seconds, and report the fed
+   total (must still be >= 180 s).
+7. Plane normal orientation (`SigilStrokeBuilder.cpp:112`): orient the projected 2D frame toward the head/view
+   direction (seated origin +X) rather than the sign of a world component, so a drawing is never mirrored.
+
+Report the before/after numbers for every bucket, including the new impostor buckets and the chosen threshold.
