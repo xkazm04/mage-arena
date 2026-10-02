@@ -2,6 +2,17 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-02 - Start program approved
+
+> "Start program approved, we can charge its benefits whenever the situation calls for it, asset library can be a
+> good fallback situation."
+
+- Eligibility condition met (membership is required at submission time).
+- Start benefits (priority technical support, mentorship, office hours, software credits, the **Meta Asset Library**)
+  may be used when the situation calls for it, without a separate request.
+- The Asset Library is the named **fallback for risk R0** (3D models and animation). Each asset's licence is checked
+  against the competition's "original, not a wrapper" rule before use, and its use is recorded.
+
 ## 2026-10-02 - Who does the work, what may be paid for, and the real risk
 
 > "For music and effects use ElevenLabs services ... other paid tools not allowed without specific request and

@@ -192,7 +192,7 @@ The two projects meet at four seams only:
 - `NDKROOT` is **unset**, and the JDK on PATH is **Zulu 22**. Whether UE 5.8 accepts NDK r28 and JDK 22 is unverified; that is the first thing D-G0 checks.
 - **Known open Meta bug (investigation 1053459897316880, status "Investigating"):** the v207 OculusXR, OculusInteraction, MetaXRHaptics and OculusPlatform plugins claim 5.8 support but are built against 5.7.0, and modules fail to load. The ISDK v207 download page lists both 5.8 and 5.7 as supported. Packaged 5.8 samples may need `r.Mobile.ShadingPath=0`.
 
-**Prerequisite (owner):** apply to the Start program (not done yet; eligibility risk until it is), then create the developer-dashboard app and its "Competition" channel (Q1). Developer mode waits for the device.
+**Prerequisite (owner):** Start program **approved 2026-10-02**; next, create the developer-dashboard app and its "Competition" channel (Q1). Developer mode waits for the device.
 
 **No gate this week needs a headset.** What each cannot prove returns in V1-V2 with the on-device numbers of section 1 (plus ≤900 ms p50 pen-down to cast; a hitch is >27.8 ms).
 
@@ -527,7 +527,7 @@ That table is the only honest answer to "what is the level of tooling for autono
 
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| R0 | **Game design quality and 3D model animation** (owner, 2026-10-02: "something we did not prove to master for a long time"). Fun in greybox and animated 3D opponents are unproven in every channel so far. | High | Critical | **Reconsider checkpoint Fri 23 Oct:** the owner judges a greybox duel replay and the first animated opponent (idle, cast, hit, death); if either is not convincing, the plan is reconsidered with the owner rather than pushed on. Animation is planned for AI-assisted authoring; paid 3D/animation credits only on written request. |
+| R0 | **Game design quality and 3D model animation** (owner, 2026-10-02: "something we did not prove to master for a long time"). Fun in greybox and animated 3D opponents are unproven in every channel so far. | High | Critical | **Reconsider checkpoint Fri 23 Oct:** the owner judges a greybox duel replay and the first animated opponent (idle, cast, hit, death); if either is not convincing, the plan is reconsidered with the owner rather than pushed on. Animation is planned for AI-assisted authoring; paid 3D/animation credits only on written request. Fallback for models and animation: the **Meta Asset Library** (a Start benefit, about 1.5M royalty-free 3D assets), licence terms checked per asset against the competition's originality rule. |
 | R1 | **Unreal hands toolchain:** the v207 plugin/5.8 mismatch (open, no workaround); few hands-first Quest hits are built in Unreal, so there is little community help. With WebXR rejected there is no off-ramp. | High | High | D-G0 with three fallbacks, route chosen by Fri 9 Oct; weekly APK and Quest 3 profile boot all October; device boot unverified until V1 |
 | R2 | **Recognizer accuracy for strangers:** judges are not the owner; air-drawing varies | Medium | High | Only 3 classes plus reject; a cross-user gate at ≥85% (on mouse in D1, on hands in V2); teach the circle first; templates from 2 people; R1-R3 fallbacks |
 | R3 | **Perfect window unreachable through tracking latency or jitter** | Medium | High | Onset timestamps; injected-latency clips in D-G3; the 0.20 s data step; the flash method in V2; the design kill is explicit |
@@ -535,7 +535,7 @@ That table is the only honest answer to "what is the level of tooling for autono
 | R5 | **First game for pof:** pof's assumptions (ARPG, GAS, Win64, one project) do not fit, and pof work crowds out game work | High | Medium | pof items are thin and test-first; P0/P1/P2 before anything else; GAS bypassed; an item may ship "thin" if its acceptance test passes |
 | R6 | **Quest performance with Niagara and translucency**, unmeasurable until V1 | Medium | High | Count budgets (D-G4) and P15 from week 1; CPU-sim particles; the stress scene packaged so V1 measures it on day one; P-1 to P-3 |
 | R7 | **Kernel divergence** between the TS oracle and the C++ port, or drift in shared data (the PC stream is actively editing) | Medium | Medium | Commit pins only; P7 vectors; P8 drift alarm; change requests through the PC orchestrator; the `vr-sim/` adapter as a fallback |
-| R8 | **Eligibility:** the Start program application is not made yet; "no pre-existing codebases"; reuse of the PC kernel and art; licensed assets | Medium | Very high (disqualification) | Owner applies in week 1 (Q1); a new repo and project; PC material dated after 24 Sep; no Fab or stock packs; ask on the Devpost forum before 12 Oct (Q9) |
+| R8 | **Eligibility:** Start membership approved 2026-10-02 (required at submission); remaining: "no pre-existing codebases"; reuse of the PC kernel and art; licensed assets | Medium | Very high (disqualification) | Owner applies in week 1 (Q1); a new repo and project; PC material dated after 24 Sep; no Fab or stock packs; ask on the Devpost forum before 12 Oct (Q9) |
 | R9 | **Owner time:** about 19 headset hours inside 1-16 Nov (13 desk hours in October) | High | High | Checklists written in D4; everything else headless; a second tester recruited in October |
 | R10 | **Genre fit:** action is outside the listed Gaming genres; Stage 1 viability | Low-Medium | Medium | Pitch strategy and reading; lead the video with deliberate perfects and composition |
 | R11 | **Comfort complaints** (blink, threats at the edge of view) | Low | Medium | Snap plus vignette, ±70° default arc, nothing from behind, Gentle mode |
@@ -588,7 +588,7 @@ Fallback if device capture fails: the rules accept video "via XR Simulator" (wea
 
 Answered 2026-10-02 and removed: the WebXR pivot (rejected), the repo location, the headset choice (deferred to the desktop core gate).
 
-1. **Start program:** you will apply; when, and when will the dashboard app and "Competition" channel exist? (R8, R12.)
+1. **Start program:** approved 2026-10-02. Still open: when the dashboard app and the "Competition" channel are created (R12).
 2. **Device order timing:** may it be ordered on Sat 31 Oct from a seller chosen in October (delivery ≤3 days), and stay on the desk by USB for headless runs? (R14.)
 3. **Hours you can commit:** the plan assumes about 13 at the desk in October and 19 in the headset in 1-16 Nov.
 4. **Kernel authority:** may the mage-arena orchestrator accept a blink and pad extension to the arena kernel by Sun 11 Oct, or should VR wrap the core with an adapter?
