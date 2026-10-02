@@ -1,0 +1,7 @@
+{
+  "worker-guard": {
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "node ../tools/agy-guard.mjs", "timeout": 10 } ] }
+    ]
+  }
+}

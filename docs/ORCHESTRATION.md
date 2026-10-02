@@ -10,7 +10,24 @@ depleted.
 |---|---|---|
 | **Owner** | decides; certifies feel, fun, art and anything only hands or eyes can judge | - |
 | **Claude (orchestrator)** | writes task cards from the plan; dispatches Grok; **verifies every result by running the acceptance commands itself**; commits; updates the plan, the decisions and the registry matrix; takes the creative and hard tasks with the owner | accepts a Grok "done" without running the checks |
-| **Grok (`grok-4.7`, worker)** | implements one task card in this repo; runs the card's checks; writes `runs/<task>/REPORT.md` | commits, pushes, edits `data/` pinned files except in a pin task, touches other repos, calls paid services, changes `docs/DECISIONS.md` |
+| **Grok (`grok-4.7`, worker 1)** | implements one task card in this repo; runs the card's checks; writes `runs/<task>/REPORT.md` | commits, pushes, edits `data/` pinned files except in a pin task, touches other repos, calls paid services, changes `docs/DECISIONS.md` |
+| **Gemini via Antigravity CLI (`agy`, worker 2)** | same contract as Grok, dispatched with `tools/agy-run.sh`; also **code review** of Grok's output and **image generation** (concept art, glyphs, UI, textures) on the AI Ultra seat | everything Grok never does; settings allow-list + `.agents/hooks.json` guard enforce it |
+
+## Worker routing (owner decisions 2026-10-02)
+
+| Work | Worker | Why |
+|---|---|---|
+| Implementation from a card (C++, tools, data, tests) | Grok `grok-4.7` first | the bulk budget; proven on T01, T02 |
+| Second implementation or a card Grok failed once | `agy` with `gemini-3.8-flash-high`; hard ones `gemini-3.1-pro-high` | a different model family breaks a repeated failure |
+| Review of a finished card before the orchestrator commits | `agy` `gemini-3.8-flash-high`, read-only prompt | cheap second pair of eyes (it found a real replay bug in T02) |
+| Images: concept art, sigil/rune glyphs, UI, texture drafts | `agy` built-in image tool (1024x1024, ~30 s) | headless and covered by the subscription |
+| Music loops, trailer clips | the **owner** in Flow Music / Flow (browser only); Claude writes prompt sheets | no headless route on the subscription |
+| SFX | ElevenLabs (`ELEVENLABS_API_KEY`) | Google has no SFX tool |
+| 3D models, rigging, animation | Claude + owner; fallback Meta Asset Library; paid credits only on request | no subscription covers it (risk R0) |
+
+The Gemini **API** (Veo, Lyria, Imagen by call) is metered even with AI Ultra: it is a paid tool and needs the owner's
+written approval. Quota is shared across `agy` models and subagents; keep fan-out low. Print mode reports SUCCESS
+even when tools were denied - `tools/agy-run.sh` records `denied_actions`, and a non-zero count is a failed run.
 
 ## The loop
 
