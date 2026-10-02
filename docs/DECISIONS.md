@@ -2,6 +2,14 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-02 - One repository for all channels
+
+> "try to at some point merge the codebases so we don't split folder for each subproject"
+
+- Home: **this public repository, renamed `mage-arena`** (owner's choice over a private home; the whole game design
+  becomes public). Order: **VR first, the PC/TV lane branches later** at a quiet point of their orchestrator.
+- Plan and phases: `MONOREPO.md`. Phase A runs right after T03 is settled and before T04 is dispatched.
+
 ## 2026-10-02 - Start program approved
 
 > "Start program approved, we can charge its benefits whenever the situation calls for it, asset library can be a
