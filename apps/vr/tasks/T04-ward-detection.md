@@ -1,6 +1,6 @@
 # T04 - Palm ward detection and the perfect-absorb window
 
-Status: open (dispatch only after T03 is settled - one Unreal build at a time)
+Status: dispatched 2026-10-03
 Max turns: 220
 
 ## Goal
