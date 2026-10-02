@@ -1,6 +1,6 @@
 # T02 - Hand clips: schema, synthetic generator, and key-driven replay into one hand source
 
-Status: open
+Status: done (verified by orchestrator 2026-10-02)
 Max turns: 220
 
 ## Goal

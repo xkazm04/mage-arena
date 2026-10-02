@@ -7,3 +7,5 @@
 *.ogg filter=lfs diff=lfs merge=lfs -text
 # Pinned data must stay byte-exact (checksummed by tools/check-pin.mjs)
 data/pinned/** -text
+# Hand clips are JSONL with LF. Regeneration must be byte-identical.
+Game/Clips/** text eol=lf

@@ -1,0 +1,1000 @@
+// Synthetic hand clips for the desktop gesture path. Node built-ins only.
+// Same seed, same bytes. See docs/CLIP-SCHEMA.md.
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HZ = 72;
+const SPACE = 'seated-origin, metres, +X forward, +Y right, +Z up (Unreal axes, cm converted to m)';
+const KEYPOINTS = [
+  'Palm', 'Wrist',
+  'ThumbMetacarpal', 'ThumbProximal', 'ThumbDistal', 'ThumbTip',
+  'IndexMetacarpal', 'IndexProximal', 'IndexIntermediate', 'IndexDistal', 'IndexTip',
+  'MiddleMetacarpal', 'MiddleProximal', 'MiddleIntermediate', 'MiddleDistal', 'MiddleTip',
+  'RingMetacarpal', 'RingProximal', 'RingIntermediate', 'RingDistal', 'RingTip',
+  'LittleMetacarpal', 'LittleProximal', 'LittleIntermediate', 'LittleDistal', 'LittleTip',
+];
+const IDX = Object.fromEntries(KEYPOINTS.map((name, i) => [name, i]));
+const TIP_NAMES = ['ThumbTip', 'IndexTip', 'MiddleTip', 'RingTip', 'LittleTip'];
+const CHILD = {
+  ThumbMetacarpal: 'ThumbProximal',
+  ThumbProximal: 'ThumbDistal',
+  ThumbDistal: 'ThumbTip',
+  IndexMetacarpal: 'IndexProximal',
+  IndexProximal: 'IndexIntermediate',
+  IndexIntermediate: 'IndexDistal',
+  IndexDistal: 'IndexTip',
+  MiddleMetacarpal: 'MiddleProximal',
+  MiddleProximal: 'MiddleIntermediate',
+  MiddleIntermediate: 'MiddleDistal',
+  MiddleDistal: 'MiddleTip',
+  RingMetacarpal: 'RingProximal',
+  RingProximal: 'RingIntermediate',
+  RingIntermediate: 'RingDistal',
+  RingDistal: 'RingTip',
+  LittleMetacarpal: 'LittleProximal',
+  LittleProximal: 'LittleIntermediate',
+  LittleIntermediate: 'LittleDistal',
+  LittleDistal: 'LittleTip',
+};
+
+const CHEST_Z = 0.34;
+const DRAW_X = 0.12 + 0.40;
+const CIRCLE_R = 0.10;
+
+const CURLS = {
+  relaxed: { index: [0.25, 0.20, 0.10], middle: [0.30, 0.25, 0.12], ring: [0.35, 0.28, 0.12], little: [0.40, 0.30, 0.14] },
+  open: { index: [0.08, 0.05, 0.02], middle: [0.08, 0.05, 0.02], ring: [0.10, 0.06, 0.03], little: [0.14, 0.08, 0.04] },
+  pen: { index: [0.55, 0.85, 0.40], middle: [1.15, 1.45, 0.90], ring: [1.25, 1.55, 0.95], little: [1.30, 1.50, 0.90] },
+  point: { index: [0.04, 0.02, 0.00], middle: [1.30, 1.55, 0.95], ring: [1.35, 1.60, 1.00], little: [1.40, 1.55, 0.95] },
+  seal: { index: [0.75, 0.95, 0.50], middle: [0.25, 0.18, 0.08], ring: [0.30, 0.20, 0.08], little: [0.40, 0.25, 0.10] },
+};
+
+const FINGERS = [
+  { name: 'index', meta: [0, -0.020, -0.012], mcp: [0, -0.022, 0.030], lens: [0.039, 0.024, 0.017], spread: -0.06 },
+  { name: 'middle', meta: [0, -0.002, -0.010], mcp: [0, -0.002, 0.034], lens: [0.044, 0.027, 0.018], spread: 0.00 },
+  { name: 'ring', meta: [0, 0.015, -0.012], mcp: [0, 0.016, 0.028], lens: [0.041, 0.025, 0.017], spread: 0.08 },
+  { name: 'little', meta: [0, 0.030, -0.016], mcp: [0, 0.032, 0.016], lens: [0.031, 0.018, 0.015], spread: 0.16 },
+];
+
+const ACTIONS = [
+  ['sigil-line1', { kind: 'sigil', stroke: 'vertical', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  ['sigil-line2', { kind: 'sigil', stroke: 'horizontal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  ['sigil-line3', { kind: 'sigil', stroke: 'diagonal', hands: ['R'], approach: 0.28, circle: 1.00, lift: 0.16, stroke: 0.45, release: 0.22 }],
+  ['mudra', { kind: 'mudra', hands: ['L', 'R'], approach: 0.30, hold: 0.60 }],
+  ['bolt', { kind: 'flick', hands: ['R'], yaw: 0, windup: 0.10, flick: 0.12, recover: 0.20, distance: 0.18 }],
+  ['ward-raise', { kind: 'ward', hands: ['L'], rise: 0.25, hold: 1.00 }],
+  ['blink-left', { kind: 'flick', hands: ['R'], yaw: -60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
+  ['blink-right', { kind: 'flick', hands: ['R'], yaw: 60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
+  ['blink-back', { kind: 'flick', hands: ['R'], yaw: 180, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
+];
+const VARIANTS = ['normal', 'slow', 'sloppy'];
+
+const v3 = (x, y, z) => ({ x, y, z });
+const add = (a, b, c) => ({
+  x: a.x + b.x + (c ? c.x : 0),
+  y: a.y + b.y + (c ? c.y : 0),
+  z: a.z + b.z + (c ? c.z : 0),
+});
+const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
+const scale = (a, s) => ({ x: a.x * s, y: a.y * s, z: a.z * s });
+const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
+const cross = (a, b) => ({
+  x: a.y * b.z - a.z * b.y,
+  y: a.z * b.x - a.x * b.z,
+  z: a.x * b.y - a.y * b.x,
+});
+const len = (a) => Math.hypot(a.x, a.y, a.z);
+const normalize = (a) => {
+  const n = len(a);
+  if (n < 1e-12) {
+    throw new Error('zero vector');
+  }
+  return scale(a, 1 / n);
+};
+const lerp = (a, b, t) => add(scale(a, 1 - t), scale(b, t));
+const clamp01 = (u) => (u < 0 ? 0 : u > 1 ? 1 : u);
+const ease = (u) => {
+  const x = clamp01(u);
+  return x * x * (3 - 2 * x);
+};
+
+function quatFromBasis(x, y, z) {
+  const m00 = x.x;
+  const m01 = y.x;
+  const m02 = z.x;
+  const m10 = x.y;
+  const m11 = y.y;
+  const m12 = z.y;
+  const m20 = x.z;
+  const m21 = y.z;
+  const m22 = z.z;
+  const tr = m00 + m11 + m22;
+  let qx;
+  let qy;
+  let qz;
+  let qw;
+  if (tr > 0) {
+    const s = Math.sqrt(tr + 1) * 2;
+    qw = 0.25 * s;
+    qx = (m21 - m12) / s;
+    qy = (m02 - m20) / s;
+    qz = (m10 - m01) / s;
+  } else if (m00 > m11 && m00 > m22) {
+    const s = Math.sqrt(1 + m00 - m11 - m22) * 2;
+    qw = (m21 - m12) / s;
+    qx = 0.25 * s;
+    qy = (m01 + m10) / s;
+    qz = (m02 + m20) / s;
+  } else if (m11 > m22) {
+    const s = Math.sqrt(1 + m11 - m00 - m22) * 2;
+    qw = (m02 - m20) / s;
+    qx = (m01 + m10) / s;
+    qy = 0.25 * s;
+    qz = (m12 + m21) / s;
+  } else {
+    const s = Math.sqrt(1 + m22 - m00 - m11) * 2;
+    qw = (m10 - m01) / s;
+    qx = (m02 + m20) / s;
+    qy = (m12 + m21) / s;
+    qz = 0.25 * s;
+  }
+  const n = Math.hypot(qx, qy, qz, qw);
+  return { x: qx / n, y: qy / n, z: qz / n, w: qw / n };
+}
+
+function quatFromZX(zAxis, xHint) {
+  const z = normalize(zAxis);
+  let x = sub(xHint, scale(z, dot(xHint, z)));
+  if (len(x) < 1e-6) {
+    const tmp = Math.abs(z.y) < 0.9 ? v3(0, 1, 0) : v3(1, 0, 0);
+    x = sub(tmp, scale(z, dot(tmp, z)));
+  }
+  x = normalize(x);
+  const y = cross(z, x);
+  return quatFromBasis(x, y, z);
+}
+
+function quatRotate(q, v) {
+  const { x, y, z, w } = q;
+  const uvx = y * v.z - z * v.y;
+  const uvy = z * v.x - x * v.z;
+  const uvz = x * v.y - y * v.x;
+  const uuvx = y * uvz - z * uvy;
+  const uuvy = z * uvx - x * uvz;
+  const uuvz = x * uvy - y * uvx;
+  return {
+    x: v.x + 2 * (w * uvx + uuvx),
+    y: v.y + 2 * (w * uvy + uuvy),
+    z: v.z + 2 * (w * uvz + uuvz),
+  };
+}
+
+function quatDot(a, b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+function slerp(a, b, t) {
+  let bx = b.x;
+  let by = b.y;
+  let bz = b.z;
+  let bw = b.w;
+  let d = quatDot(a, b);
+  if (d < 0) {
+    bx = -bx;
+    by = -by;
+    bz = -bz;
+    bw = -bw;
+    d = -d;
+  }
+  if (d > 0.9995) {
+    return normalizeQuat({
+      x: a.x + (bx - a.x) * t,
+      y: a.y + (by - a.y) * t,
+      z: a.z + (bz - a.z) * t,
+      w: a.w + (bw - a.w) * t,
+    });
+  }
+  const theta = Math.acos(Math.min(1, d));
+  const s = Math.sin(theta);
+  const w1 = Math.sin((1 - t) * theta) / s;
+  const w2 = Math.sin(t * theta) / s;
+  return normalizeQuat({ x: a.x * w1 + bx * w2, y: a.y * w1 + by * w2, z: a.z * w1 + bz * w2, w: a.w * w1 + bw * w2 });
+}
+
+function normalizeQuat(q) {
+  const n = Math.hypot(q.x, q.y, q.z, q.w);
+  return { x: q.x / n, y: q.y / n, z: q.z / n, w: q.w / n };
+}
+
+function rotateAround(v, axis, angle) {
+  const k = normalize(axis);
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  const cr = cross(k, v);
+  const d = dot(k, v);
+  return add(scale(v, c), scale(cr, s), scale(k, d * (1 - c)));
+}
+
+function flexDir(dir, angle) {
+  const palm = v3(1, 0, 0);
+  const axis = cross(palm, dir);
+  if (len(axis) < 1e-8) {
+    return dir;
+  }
+  return normalize(rotateAround(dir, axis, -angle));
+}
+
+function seedFor(action, variant) {
+  let h = 2166136261;
+  const s = `${action}\0${variant}`;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function variantParams(action, variant) {
+  const seed = seedFor(action, variant);
+  if (variant !== 'sloppy') {
+    return { seed, slow: variant === 'slow' ? 1.6 : 1, jitter: 0, distort: 0, overshoot: 0, dips: false, phases: [0, 0, 0, 0, 0] };
+  }
+  const rng = mulberry32(seed);
+  return {
+    seed,
+    slow: 1,
+    jitter: 0.004 + rng() * 0.004,
+    distort: 0.10 + rng() * 0.10,
+    overshoot: 0.08 + rng() * 0.07,
+    dips: true,
+    rng,
+    phases: [rng() * Math.PI * 2, rng() * Math.PI * 2, rng() * Math.PI * 2, rng() * Math.PI * 2, rng() * Math.PI * 2],
+    dipA: rng(),
+    dipB: rng(),
+  };
+}
+
+function durationOf(spec, scale) {
+  if (spec.kind === 'sigil') {
+    return (spec.approach + spec.circle + spec.lift + spec.stroke + spec.release) * scale;
+  }
+  if (spec.kind === 'mudra') {
+    return (spec.approach + spec.hold) * scale;
+  }
+  if (spec.kind === 'ward') {
+    return (spec.rise + spec.hold) * scale;
+  }
+  return (spec.windup + spec.flick + spec.recover) * scale;
+}
+
+function sampleCount(duration) {
+  return Math.max(2, Math.round(duration * HZ) + 1);
+}
+
+function lerpCurls(a, b, t) {
+  const out = {};
+  for (const name of ['index', 'middle', 'ring', 'little']) {
+    out[name] = a[name].map((v, i) => v + (b[name][i] - v) * t);
+  }
+  return out;
+}
+
+function yOf(side, y) {
+  return side === 'R' ? y : -y;
+}
+
+// Two-bone IK with a fixed pole. Reach is kept short of full extension so the bend cannot flip.
+function ik2(start, target, len1, len2, pole) {
+  const max = (len1 + len2) * 0.96;
+  const min = Math.abs(len1 - len2) + 0.004;
+  let aim = sub(target, start);
+  let dist = len(aim);
+  if (dist < 1e-8) {
+    aim = v3(0, 0, 1);
+    dist = 1;
+  }
+  const dir = normalize(aim);
+  const clamped = Math.min(max, Math.max(min, dist));
+  const cosA = (len1 * len1 + clamped * clamped - len2 * len2) / (2 * len1 * clamped);
+  const ang = Math.acos(Math.max(-1, Math.min(1, cosA)));
+  let bend = sub(pole, start);
+  bend = sub(bend, scale(dir, dot(bend, dir)));
+  if (len(bend) < 1e-6) {
+    const tmp = Math.abs(dir.x) < 0.9 ? v3(1, 0, 0) : v3(0, 1, 0);
+    bend = cross(dir, tmp);
+  }
+  bend = normalize(bend);
+  const midDir = normalize(add(scale(dir, Math.cos(ang)), scale(bend, Math.sin(ang))));
+  return [start, add(start, scale(midDir, len1)), add(start, scale(dir, clamped))];
+}
+
+function placeThumb(meta, side, pinch, indexTip) {
+  const ySign = side === 'R' ? 1 : -1;
+  const amount = clamp01(pinch);
+  const restDir = normalize(v3(0.25, ySign * -0.85, 0.46));
+  const pinchDir = normalize(v3(0.05, ySign * -0.35, 0.93));
+  const baseDir = normalize(lerp(restDir, pinchDir, amount));
+  const proximal = add(meta, scale(baseDir, 0.046));
+  const thumbSide = v3(0, ySign * -1, 0);
+  const restTarget = add(meta, scale(thumbSide, 0.062), v3(0.02, 0, 0.02));
+  const pinchTarget = add(indexTip, scale(thumbSide, 0.009), v3(0.004, 0, 0.002));
+  const target = lerp(restTarget, pinchTarget, amount);
+  const pole = add(proximal, v3(1, ySign * -0.25, 0.1));
+  const chain = ik2(proximal, target, 0.032, 0.026, pole);
+  return [meta, chain[0], chain[1], chain[2]];
+}
+
+function slerpAxes(normalA, fingerA, normalB, fingerB, t) {
+  const q = slerp(quatFromZX(fingerA, normalA), quatFromZX(fingerB, normalB), clamp01(t));
+  return {
+    normal: quatRotate(q, v3(1, 0, 0)),
+    finger: quatRotate(q, v3(0, 0, 1)),
+  };
+}
+
+function buildLocal(side, curls, pinch) {
+  const joints = Array.from({ length: 26 }, () => v3(0, 0, 0));
+  joints[IDX.Palm] = v3(0, 0, 0);
+  joints[IDX.Wrist] = v3(0, yOf(side, 0.006), -0.058);
+  for (const finger of FINGERS) {
+    const meta = v3(finger.meta[0], yOf(side, finger.meta[1]), finger.meta[2]);
+    const mcp = v3(finger.mcp[0], yOf(side, finger.mcp[1]), finger.mcp[2]);
+    const cap = finger.name[0].toUpperCase() + finger.name.slice(1);
+    joints[IDX[`${cap}Metacarpal`]] = meta;
+    joints[IDX[`${cap}Proximal`]] = mcp;
+    let dir = normalize(v3(0, yOf(side, Math.sin(finger.spread)), Math.cos(finger.spread)));
+    let pos = mcp;
+    const names = ['Intermediate', 'Distal', 'Tip'];
+    // Index/middle/ring/little: proximal is the MCP (already placed). Three bones follow.
+    const flex = curls[finger.name];
+    for (let i = 0; i < finger.lens.length; i++) {
+      dir = flexDir(dir, flex[i]);
+      pos = add(pos, scale(dir, finger.lens[i]));
+      joints[IDX[`${cap}${names[i]}`]] = pos;
+    }
+  }
+  const thumbMeta = v3(0.010, yOf(side, -0.018), 0.000);
+  const thumb = placeThumb(thumbMeta, side, pinch, joints[IDX.IndexTip]);
+  joints[IDX.ThumbMetacarpal] = thumb[0];
+  joints[IDX.ThumbProximal] = thumb[1];
+  joints[IDX.ThumbDistal] = thumb[2];
+  joints[IDX.ThumbTip] = thumb[3];
+  return joints;
+}
+
+function poseHand(side, palmPos, palmNormal, fingerDir, curls, pinch) {
+  const q = quatFromZX(fingerDir, palmNormal);
+  const local = buildLocal(side, curls, pinch);
+  const world = local.map((p) => add(palmPos, quatRotate(q, p)));
+  return { world, palmNormal: quatRotate(q, v3(1, 0, 0)) };
+}
+
+function jointQuats(world, palmNormal) {
+  const quats = Array.from({ length: 26 }, () => ({ x: 0, y: 0, z: 0, w: 1 }));
+  const zPalm = sub(world[IDX.MiddleProximal], world[IDX.Palm]);
+  quats[IDX.Palm] = quatFromZX(zPalm, palmNormal);
+  quats[IDX.Wrist] = quatFromZX(sub(world[IDX.Palm], world[IDX.Wrist]), palmNormal);
+  for (const [name, child] of Object.entries(CHILD)) {
+    const i = IDX[name];
+    const z = sub(world[IDX[child]], world[i]);
+    quats[i] = quatFromZX(len(z) < 1e-8 ? v3(0, 0, 1) : z, palmNormal);
+  }
+  for (const tip of TIP_NAMES) {
+    const parentName = Object.keys(CHILD).find((key) => CHILD[key] === tip);
+    const z = sub(world[IDX[tip]], world[IDX[parentName]]);
+    quats[IDX[tip]] = quatFromZX(len(z) < 1e-8 ? v3(0, 0, 1) : z, palmNormal);
+  }
+  return quats;
+}
+
+function applyJitter(world, t, params) {
+  if (params.jitter <= 0) {
+    return;
+  }
+  TIP_NAMES.forEach((name, i) => {
+    const phase = params.phases[i];
+    const wiggle = v3(
+      Math.sin(t * 17 + phase),
+      Math.sin(t * 23 + phase * 1.3),
+      Math.sin(t * 29 + phase * 0.7),
+    );
+    const n = len(wiggle) || 1;
+    const delta = scale(wiggle, params.jitter / n);
+    const p = world[IDX[name]];
+    world[IDX[name]] = add(p, delta);
+  });
+}
+
+function distortAround(point, anchor, params) {
+  if (params.distort <= 0) {
+    return point;
+  }
+  const d = sub(point, anchor);
+  d.x *= 1 + params.distort * 0.25;
+  d.y *= 1 + params.distort;
+  d.z *= 1 - params.distort * 0.55;
+  d.y += d.z * params.distort * 0.35;
+  return add(anchor, d);
+}
+
+// Progress that reaches 1+overshoot near the end of the phase, then settles to 1.
+function ballistic(u, overshoot) {
+  const x = clamp01(u);
+  if (overshoot <= 0) {
+    return ease(x);
+  }
+  const peakAt = 0.78;
+  if (x <= peakAt) {
+    return ease(x / peakAt) * (1 + overshoot);
+  }
+  const w = (x - peakAt) / (1 - peakAt);
+  return (1 + overshoot) + (1 - (1 + overshoot)) * ease(w);
+}
+
+function restPose(side) {
+  return {
+    pos: v3(0.22, side === 'R' ? 0.20 : -0.20, 0.10),
+    normal: v3(0, 0, 1),
+    finger: v3(1, 0, 0),
+    curls: CURLS.relaxed,
+    pinch: 0,
+  };
+}
+
+function palmForTip(side, tipWorld, normal, finger, curls, pinch) {
+  const q = quatFromZX(finger, normal);
+  const local = buildLocal(side, curls, pinch);
+  const offset = quatRotate(q, local[IDX.IndexTip]);
+  return sub(tipWorld, offset);
+}
+
+function yawDir(deg) {
+  const r = (deg * Math.PI) / 180;
+  return v3(Math.cos(r), Math.sin(r), 0);
+}
+
+function circlePoint(angle, params) {
+  const centre = v3(DRAW_X, 0, CHEST_Z);
+  const raw = v3(DRAW_X, Math.cos(angle) * CIRCLE_R, CHEST_Z + Math.sin(angle) * CIRCLE_R);
+  return distortAround(raw, centre, params);
+}
+
+function strokeEnds(stroke, params) {
+  const centre = v3(DRAW_X, 0, CHEST_Z);
+  let a;
+  let b;
+  if (stroke === 'vertical') {
+    a = v3(DRAW_X, 0, CHEST_Z - 0.07);
+    b = v3(DRAW_X, 0, CHEST_Z + 0.07);
+  } else if (stroke === 'horizontal') {
+    a = v3(DRAW_X, -0.07, CHEST_Z);
+    b = v3(DRAW_X, 0.07, CHEST_Z);
+  } else {
+    a = v3(DRAW_X, -0.06, CHEST_Z - 0.06);
+    b = v3(DRAW_X, 0.06, CHEST_Z + 0.06);
+  }
+  return [distortAround(a, centre, params), distortAround(b, centre, params)];
+}
+
+function drawAxes() {
+  return {
+    normal: normalize(v3(-0.15, -0.95, 0.20)),
+    finger: normalize(v3(0.25, -0.10, 0.96)),
+  };
+}
+
+function flickNormal(dir) {
+  let normal = cross(dir, v3(0, 0, 1));
+  if (len(normal) < 1e-6) {
+    normal = v3(0, -1, 0);
+  }
+  normal = normalize(normal);
+  if (normal.y > 0) {
+    normal = scale(normal, -1);
+  }
+  return normal;
+}
+
+function sampleSigil(spec, t, timeScale, params) {
+  const approach = spec.approach * timeScale;
+  const circle = spec.circle * timeScale;
+  const lift = spec.lift * timeScale;
+  const strokeT = spec.stroke * timeScale;
+  const release = spec.release * timeScale;
+  const axes = drawAxes();
+  const circleStart = circlePoint(-Math.PI / 2, params);
+  const circleEnd = circlePoint(-Math.PI / 2 + Math.PI * 2, params);
+  const [strokeStart, strokeEnd] = strokeEnds(spec.stroke, params);
+  const rest = restPose('R');
+  const restTip = add(
+    rest.pos,
+    quatRotate(quatFromZX(rest.finger, rest.normal), buildLocal('R', rest.curls, 0)[IDX.IndexTip]),
+  );
+  let tip;
+  let curls;
+  let pinch;
+  let normal = axes.normal;
+  let finger = axes.finger;
+  if (t <= approach) {
+    const u = ease(t / approach);
+    tip = lerp(restTip, circleStart, u);
+    curls = lerpCurls(CURLS.relaxed, CURLS.pen, u);
+    const turned = slerpAxes(rest.normal, rest.finger, axes.normal, axes.finger, u);
+    normal = turned.normal;
+    finger = turned.finger;
+    const pinchU = clamp01((t - approach * 0.65) / (approach * 0.35));
+    pinch = ease(pinchU);
+  } else if (t <= approach + circle) {
+    const u = (t - approach) / circle;
+    const angle = -Math.PI / 2 + ease(u) * Math.PI * 2;
+    tip = circlePoint(angle, params);
+    curls = CURLS.pen;
+    pinch = 1;
+  } else if (t <= approach + circle + lift) {
+    const u = (t - approach - circle) / lift;
+    tip = lerp(circleEnd, strokeStart, ease(u));
+    curls = CURLS.pen;
+    const valley = clamp01(u);
+    pinch = valley < 0.5 ? 1 - ease(valley / 0.5) : ease((valley - 0.5) / 0.5);
+  } else if (t <= approach + circle + lift + strokeT) {
+    const u = (t - approach - circle - lift) / strokeT;
+    const p = ballistic(u, params.overshoot);
+    tip = lerp(strokeStart, strokeEnd, p);
+    curls = CURLS.pen;
+    pinch = 1;
+  } else {
+    const u = clamp01((t - approach - circle - lift - strokeT) / release);
+    const back = add(strokeEnd, v3(-0.05, 0.02, -0.03));
+    tip = lerp(strokeEnd, back, ease(u));
+    curls = lerpCurls(CURLS.pen, CURLS.relaxed, ease(u));
+    pinch = 1 - ease(u);
+  }
+  const palm = palmForTip('R', tip, normal, finger, curls, pinch);
+  return [{ side: 'R', palm, normal, finger, curls, pinch }];
+}
+
+function sampleFlick(spec, t, timeScale, params) {
+  const windup = spec.windup * timeScale;
+  const flick = spec.flick * timeScale;
+  const recover = spec.recover * timeScale;
+  const dir = yawDir(spec.yaw);
+  const start = distortAround(v3(0.34, 0.14, 0.32), v3(0.34, 0.14, 0.32), { distort: 0 });
+  const anchor = v3(0.34, 0.14, 0.32);
+  const flicked = distortAround(add(anchor, scale(dir, spec.distance)), anchor, params);
+  const flickDelta = sub(flicked, anchor);
+  let tip;
+  if (t <= windup) {
+    const u = ease(t / Math.max(windup, 1e-6));
+    tip = add(anchor, scale(flickDelta, -0.18 * u));
+  } else if (t <= windup + flick) {
+    const u = (t - windup) / flick;
+    const p = ballistic(u, params.overshoot);
+    tip = lerp(add(anchor, scale(flickDelta, -0.18)), add(anchor, flickDelta), p);
+  } else {
+    const u = clamp01((t - windup - flick) / recover);
+    tip = lerp(add(anchor, flickDelta), add(anchor, scale(flickDelta, 0.35)), ease(u));
+  }
+  const normal = flickNormal(dir);
+  const finger = dir;
+  const curls = CURLS.point;
+  const pinch = 0;
+  const palm = palmForTip('R', tip, normal, finger, curls, pinch);
+  return [{ side: 'R', palm, normal, finger, curls, pinch }];
+}
+
+function sampleWard(spec, t, timeScale, params) {
+  const rise = spec.rise * timeScale;
+  const start = restPose('L');
+  const endPos = v3(0.36, -0.12, 0.36);
+  const endNormal = v3(1, 0, 0);
+  const endFinger = v3(0, 0, 1);
+  const u = t <= rise ? ballistic(t / rise, params.overshoot) : 1;
+  const palmPos = distortAround(lerp(start.pos, endPos, u), start.pos, params);
+  const turned = slerpAxes(start.normal, start.finger, endNormal, endFinger, u);
+  const normal = turned.normal;
+  const finger = turned.finger;
+  return [{
+    side: 'L',
+    palm: palmPos,
+    normal,
+    finger,
+    curls: CURLS.open,
+    pinch: 0,
+  }];
+}
+
+function sampleMudra(spec, t, timeScale, params) {
+  const approach = spec.approach * timeScale;
+  const u = t >= approach ? 1 : ballistic(t / approach, params.overshoot);
+  const orient = clamp01(u);
+  const leftRest = restPose('L');
+  const rightRest = restPose('R');
+  const leftEnd = v3(0.30, -0.02, 0.33);
+  const rightEnd = v3(0.30, 0.02, 0.33);
+  const leftN = normalize(v3(0.05, 1, 0.08));
+  const rightN = normalize(v3(0.05, -1, 0.08));
+  const fingers = v3(0, 0, 1);
+  const pinch = 0.85 * orient;
+  const curls = lerpCurls(CURLS.relaxed, CURLS.seal, orient);
+  const leftTurn = slerpAxes(leftRest.normal, leftRest.finger, leftN, fingers, orient);
+  const rightTurn = slerpAxes(rightRest.normal, rightRest.finger, rightN, fingers, orient);
+  return [
+    {
+      side: 'L',
+      palm: distortAround(lerp(leftRest.pos, leftEnd, u), leftRest.pos, params),
+      normal: leftTurn.normal,
+      finger: leftTurn.finger,
+      curls,
+      pinch,
+    },
+    {
+      side: 'R',
+      palm: distortAround(lerp(rightRest.pos, rightEnd, u), rightRest.pos, params),
+      normal: rightTurn.normal,
+      finger: rightTurn.finger,
+      curls,
+      pinch,
+    },
+  ];
+}
+
+function sampleAction(spec, t, timeScale, params) {
+  if (spec.kind === 'sigil') {
+    return sampleSigil(spec, t, timeScale, params);
+  }
+  if (spec.kind === 'flick') {
+    return sampleFlick(spec, t, timeScale, params);
+  }
+  if (spec.kind === 'ward') {
+    return sampleWard(spec, t, timeScale, params);
+  }
+  return sampleMudra(spec, t, timeScale, params);
+}
+
+function buildClip(action, spec, variant) {
+  const params = variantParams(action, variant);
+  const duration = durationOf(spec, params.slow);
+  const n = sampleCount(duration);
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / HZ;
+    const hands = sampleAction(spec, t, params.slow, params);
+    for (const hand of hands) {
+      const posed = poseHand(hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+      applyJitter(posed.world, t, params);
+      const quats = jointQuats(posed.world, posed.palmNormal);
+      const joints = posed.world.map((p, j) => [p.x, p.y, p.z, quats[j].x, quats[j].y, quats[j].z, quats[j].w]);
+      frames.push({ t, hand: hand.side, conf: params.dips ? 0.96 : 1, pinch: hand.pinch, joints });
+    }
+  }
+  if (params.dips) {
+    const hands = spec.hands.length;
+    const per = n;
+    const pick = (r) => 4 + Math.floor(r * Math.max(1, per - 10));
+    let a = pick(params.dipA);
+    let b = pick(params.dipB);
+    if (Math.abs(a - b) < 4) {
+      b = Math.min(per - 3, a + 5);
+    }
+    for (const centre of [a, b]) {
+      for (let k = -1; k <= 1; k++) {
+        const frameIndex = centre + k;
+        if (frameIndex < 0 || frameIndex >= per) {
+          continue;
+        }
+        for (let h = 0; h < hands; h++) {
+          frames[frameIndex * hands + h].conf = 0.4;
+        }
+      }
+    }
+  }
+  stabilize(frames, spec.hands);
+  return { frames, params, duration: (n - 1) / HZ };
+}
+
+function stabilize(frames, hands) {
+  const prev = {};
+  for (const frame of frames) {
+    for (let j = 0; j < 26; j++) {
+      const q = {
+        x: frame.joints[j][3],
+        y: frame.joints[j][4],
+        z: frame.joints[j][5],
+        w: frame.joints[j][6],
+      };
+      const key = `${frame.hand}:${j}`;
+      if (prev[key] && quatDot(prev[key], q) < 0) {
+        q.x = -q.x;
+        q.y = -q.y;
+        q.z = -q.z;
+        q.w = -q.w;
+      }
+      prev[key] = q;
+      frame.joints[j][3] = q.x;
+      frame.joints[j][4] = q.y;
+      frame.joints[j][5] = q.z;
+      frame.joints[j][6] = q.w;
+    }
+  }
+}
+
+function num(n) {
+  if (!Number.isFinite(n)) {
+    throw new Error(`non-finite number ${n}`);
+  }
+  let s = n.toFixed(6);
+  if (s === '-0.000000') {
+    s = '0.000000';
+  }
+  return s;
+}
+
+function frameLine(frame) {
+  const joints = frame.joints.map((joint) => `[${joint.map(num).join(',')}]`).join(',');
+  return `{"t":${num(frame.t)},"hand":"${frame.hand}","conf":${num(frame.conf)},"pinch":${num(frame.pinch)},"joints":[${joints}]}`;
+}
+
+function headerLine(action, variant, hands, seed) {
+  const kp = KEYPOINTS.map((name) => `"${name}"`).join(',');
+  const hs = hands.map((hand) => `"${hand}"`).join(',');
+  return `{"schema":"mage-arena/hand-clip@1","name":${JSON.stringify(action)},"action":${JSON.stringify(action)},"variant":"${variant}","hands":[${hs}],"hz":72,"space":${JSON.stringify(SPACE)},"keypoints":[${kp}],"source":"synthetic","seed":${seed}}`;
+}
+
+function tip(frame) {
+  const j = frame.joints[IDX.IndexTip];
+  return v3(j[0], j[1], j[2]);
+}
+
+function thumbTip(frame) {
+  const j = frame.joints[IDX.ThumbTip];
+  return v3(j[0], j[1], j[2]);
+}
+
+function palmNormalOf(frame) {
+  const q = { x: frame.joints[0][3], y: frame.joints[0][4], z: frame.joints[0][5], w: frame.joints[0][6] };
+  return quatRotate(q, v3(1, 0, 0));
+}
+
+function assertClip(action, spec, variant, clip) {
+  const { frames } = clip;
+  const hands = spec.hands;
+  if (frames.length % hands.length !== 0) {
+    throw new Error(`${action} ${variant}: frame count not divisible by hands`);
+  }
+  let worst = 0;
+  let worstWhere = '';
+  const prev = {};
+  const prevPalm = {};
+  for (const frame of frames) {
+    const palmNow = v3(frame.joints[0][0], frame.joints[0][1], frame.joints[0][2]);
+    const palmStep = prevPalm[frame.hand] ? len(sub(palmNow, prevPalm[frame.hand])) : 0;
+    prevPalm[frame.hand] = palmNow;
+    for (let j = 0; j < 26; j++) {
+      const q = frame.joints[j].slice(3);
+      const n = Math.hypot(q[0], q[1], q[2], q[3]);
+      if (Math.abs(n - 1) > 1e-6) {
+        throw new Error(`${action} ${variant}: quat norm ${n} at ${KEYPOINTS[j]}`);
+      }
+      const rounded = q.map((c) => Number(c.toFixed(6)));
+      const rn = Math.hypot(...rounded);
+      if (Math.abs(rn - 1) > 1e-3) {
+        throw new Error(`${action} ${variant}: rounded quat norm ${rn}`);
+      }
+      const p = v3(frame.joints[j][0], frame.joints[j][1], frame.joints[j][2]);
+      const key = `${frame.hand}:${j}`;
+      if (prev[key]) {
+        const step = len(sub(p, prev[key]));
+        if (step > 0.12) {
+          throw new Error(`${action} ${variant}: ${KEYPOINTS[j]} teleported ${step.toFixed(4)} m at t=${frame.t.toFixed(3)}`);
+        }
+        const relative = step - palmStep;
+        if (relative > worst) {
+          worst = relative;
+          worstWhere = `${KEYPOINTS[j]} t=${frame.t.toFixed(3)} palm=${palmStep.toFixed(4)}`;
+        }
+      }
+      prev[key] = p;
+    }
+    if (frame.pinch < -1e-6 || frame.pinch > 1 + 1e-6) {
+      throw new Error(`${action} pinch ${frame.pinch}`);
+    }
+  }
+  if (worst > 0.025) {
+    throw new Error(`${action} ${variant}: joint moved ${worst.toFixed(4)} m past the palm at ${worstWhere}`);
+  }
+  if (variant !== 'normal') {
+    return;
+  }
+  const right = frames.filter((frame) => frame.hand === 'R');
+  const left = frames.filter((frame) => frame.hand === 'L');
+  if (spec.kind === 'sigil') {
+    checkSigil(action, spec, right);
+  } else if (spec.kind === 'flick') {
+    checkFlick(action, spec, right);
+  } else if (spec.kind === 'ward') {
+    checkWard(left);
+  } else {
+    checkMudra(left, right);
+  }
+}
+
+function checkPinchDistance(action, frames) {
+  for (const frame of frames) {
+    const d = len(sub(thumbTip(frame), tip(frame)));
+    if (frame.pinch > 0.95 && d > 0.02) {
+      throw new Error(`${action}: pinch ${frame.pinch} but thumb-index is ${d.toFixed(4)} m`);
+    }
+    if (frame.pinch < 0.05 && d < 0.025) {
+      throw new Error(`${action}: pinch ${frame.pinch} but thumb-index is only ${d.toFixed(4)} m`);
+    }
+  }
+}
+
+function checkSigil(action, spec, frames) {
+  const approach = spec.approach;
+  const circleEnd = approach + spec.circle;
+  const liftEnd = circleEnd + spec.lift;
+  const strokeEnd = liftEnd + spec.stroke;
+  const circle = frames.filter((frame) => frame.t >= approach + 0.02 && frame.t <= circleEnd - 0.02);
+  let minR = Infinity;
+  let maxR = 0;
+  for (const frame of circle) {
+    const p = tip(frame);
+    const r = Math.hypot(p.y, p.z - CHEST_Z);
+    minR = Math.min(minR, r);
+    maxR = Math.max(maxR, r);
+  }
+  if (Math.abs(maxR - CIRCLE_R) > 0.01 || Math.abs(minR - CIRCLE_R) > 0.01) {
+    throw new Error(`${action}: circle radius ${minR.toFixed(3)}..${maxR.toFixed(3)}`);
+  }
+  const xs = circle.map((frame) => tip(frame).x);
+  const xSpread = Math.max(...xs) - Math.min(...xs);
+  if (xSpread > 0.01) {
+    throw new Error(`${action}: circle is not on a frontal plane, x spread ${xSpread}`);
+  }
+  if (circle.some((frame) => frame.pinch < 0.99)) {
+    throw new Error(`${action}: pen lifted during the circle`);
+  }
+  const midLift = frames.reduce((best, frame) => {
+    const target = (circleEnd + liftEnd) / 2;
+    return Math.abs(frame.t - target) < Math.abs(best.t - target) ? frame : best;
+  }, frames[0]);
+  if (midLift.pinch > 0.15) {
+    throw new Error(`${action}: lift pinch ${midLift.pinch}`);
+  }
+  const stroke = frames.filter((frame) => frame.t >= liftEnd + 0.02 && frame.t <= strokeEnd - 0.02);
+  const a = tip(stroke[0]);
+  const b = tip(stroke[stroke.length - 1]);
+  const dy = b.y - a.y;
+  const dz = b.z - a.z;
+  if (spec.stroke === 'vertical' && !(dz > 0.10 && Math.abs(dy) < 0.03)) {
+    throw new Error(`${action}: vertical stroke dy ${dy} dz ${dz}`);
+  }
+  if (spec.stroke === 'horizontal' && !(dy > 0.10 && Math.abs(dz) < 0.03)) {
+    throw new Error(`${action}: horizontal stroke dy ${dy} dz ${dz}`);
+  }
+  if (spec.stroke === 'diagonal' && !(dy > 0.08 && dz > 0.08)) {
+    throw new Error(`${action}: diagonal stroke dy ${dy} dz ${dz}`);
+  }
+  if (frames[frames.length - 1].pinch > 0.05) {
+    throw new Error(`${action}: pinch not released`);
+  }
+  checkPinchDistance(action, frames);
+}
+
+function checkFlick(action, spec, frames) {
+  const start = spec.windup;
+  const end = spec.windup + spec.flick;
+  const a = tip(frames.find((frame) => frame.t >= start - 1e-9));
+  const b = tip(frames.find((frame) => frame.t >= end - 1e-9) || frames[frames.length - 1]);
+  const delta = sub(b, a);
+  const dir = yawDir(spec.yaw);
+  const along = dot(normalize(delta), dir);
+  if (along < 0.95 || len(delta) < spec.distance * 0.75) {
+    throw new Error(`${action}: flick delta ${delta.x.toFixed(3)},${delta.y.toFixed(3)},${delta.z.toFixed(3)} along ${along.toFixed(3)}`);
+  }
+}
+
+function checkWard(frames) {
+  const start = frames[0];
+  const risen = frames.find((frame) => frame.t >= 0.25 - 1e-9);
+  const end = frames[frames.length - 1];
+  if (tip(risen).z - tip(start).z < 0.18 && risen.joints[0][2] - start.joints[0][2] < 0.18) {
+    throw new Error(`ward rise too small palm dz ${risen.joints[0][2] - start.joints[0][2]}`);
+  }
+  const n = palmNormalOf(end);
+  if (n.x < 0.8) {
+    throw new Error(`ward palm normal ${n.x.toFixed(3)},${n.y.toFixed(3)},${n.z.toFixed(3)}`);
+  }
+  const hold = frames.filter((frame) => frame.t >= 0.30);
+  let drift = 0;
+  for (let i = 1; i < hold.length; i++) {
+    drift = Math.max(drift, Math.abs(hold[i].joints[0][2] - hold[0].joints[0][2]));
+  }
+  if (drift > 0.005) {
+    throw new Error(`ward hold drift ${drift}`);
+  }
+}
+
+function checkMudra(left, right) {
+  const holdL = left.filter((frame) => frame.t >= 0.30);
+  const holdR = right.filter((frame) => frame.t >= 0.30);
+  let drift = 0;
+  for (let i = 1; i < holdL.length; i++) {
+    drift = Math.max(drift, len(sub(v3(holdL[i].joints[0][0], holdL[i].joints[0][1], holdL[i].joints[0][2]), v3(holdL[0].joints[0][0], holdL[0].joints[0][1], holdL[0].joints[0][2]))));
+  }
+  if (drift > 0.004) {
+    throw new Error(`mudra hold drift ${drift}`);
+  }
+  const nL = palmNormalOf(holdL[holdL.length - 1]);
+  const nR = palmNormalOf(holdR[holdR.length - 1]);
+  if (nL.y < 0.8 || nR.y > -0.8) {
+    throw new Error(`mudra palms ${nL.y.toFixed(2)} ${nR.y.toFixed(2)}`);
+  }
+  checkPinchDistance('mudra', holdL.concat(holdR));
+}
+
+function selfTestMath() {
+  const q = quatFromZX(v3(0, 0, 1), v3(1, 0, 0));
+  const rx = quatRotate(q, v3(1, 0, 0));
+  const rz = quatRotate(q, v3(0, 0, 1));
+  if (len(sub(rx, v3(1, 0, 0))) > 1e-6 || len(sub(rz, v3(0, 0, 1))) > 1e-6) {
+    throw new Error(`quat roundtrip failed ${JSON.stringify(rx)} ${JSON.stringify(rz)}`);
+  }
+}
+
+function main() {
+  selfTestMath();
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const outDir = path.resolve(here, '..', '..', 'Game', 'Clips');
+  fs.mkdirSync(outDir, { recursive: true });
+  const normals = new Map();
+  for (const variant of VARIANTS) {
+    for (const [action, spec] of ACTIONS) {
+      const clip = buildClip(action, spec, variant);
+      assertClip(action, spec, variant, clip);
+      if (variant === 'normal') {
+        normals.set(action, clip);
+      }
+      if (variant === 'slow') {
+        const base = durationOf(spec, 1);
+        const ratio = clip.duration / durationOf(spec, 1);
+        if (Math.abs(ratio - 1.6) > 0.02 && Math.abs(clip.duration - base * 1.6) > 2 / HZ) {
+          throw new Error(`${action} slow duration ratio ${ratio}`);
+        }
+      }
+      if (variant === 'sloppy') {
+        if (!clip.frames.some((frame) => frame.conf === 0.4)) {
+          throw new Error(`${action} sloppy has no confidence dip`);
+        }
+        const normal = normals.get(action);
+        const a = tip(normal.frames.find((frame) => frame.hand === spec.hands[0] && frame.t > 0.2) || normal.frames[0]);
+        const b = tip(clip.frames.find((frame) => frame.hand === spec.hands[0] && frame.t > 0.2) || clip.frames[0]);
+        if (spec.kind === 'sigil' && len(sub(a, b)) < 0.004) {
+          throw new Error(`${action} sloppy path matches normal`);
+        }
+      }
+      const lines = [headerLine(action, variant, spec.hands, clip.params.seed)];
+      for (const frame of clip.frames) {
+        lines.push(frameLine(frame));
+      }
+      const text = `${lines.join('\n')}\n`;
+      fs.writeFileSync(path.join(outDir, `${action}.${variant}.jsonl`), text, { encoding: 'utf8' });
+    }
+  }
+  process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
+}
+
+main();
