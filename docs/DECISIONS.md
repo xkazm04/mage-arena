@@ -28,9 +28,11 @@ Newest first. Quotes are the owner's words; the lines under them are what the pl
 > platform too, with potential to become PC game in the future. Once one channel masters certain mechanic other can
 > benefit so the same game design problems are not repeated."
 
-- Three channels of one game: **TV** (sister build), **VR** (this repo), **PC** (future). A mechanic solved in one
-  channel must be reusable by the others. Where that knowledge lives is being settled with the owner (see the session
-  notes); until then, record channel-neutral design solutions in `docs/` here with the channel that proved them.
+- Three channels of one game: **TV/desktop** (`kiro/mage-arena`), **VR** (this repo), **PC** (future). A mechanic
+  solved in one channel must be reusable by the others.
+- Placement chosen by the owner the same day: **hybrid**. Generic lessons -> `game-production` subjects (no product
+  names); channel realisations -> `applications/mage-arena-<channel>--<technique>.md`; game facts -> registry
+  `memory/` namespace `mage-arena` (seeded in registry commit `3f35c804`, including the mechanic-by-channel matrix).
 
 > "Lets scaffold repo in kiro/mage-arena-vr."
 

@@ -19,7 +19,7 @@ Labels used throughout: **authored** (a number someone chose), **simulated** (pr
 
 Under those verbs sits the B/2 "Fourteen Nights" combat model: the tier clock, Flow, and the threat colour language. A deterministic kernel already exists and is calibrated in the PC sibling's TypeScript `core` (W2-W4 committed; see section 3).
 
-The second bet is about tooling. This is **pof's first end-to-end game**. Every gap pof has (and it has no VR, Android-device, store or on-device profiling support today) becomes a pof work item, sequenced just ahead of the game work that needs it. Every measured lesson is forged into the knowledge registry (where it lands is pending, section 9).
+The second bet is about tooling. This is **pof's first end-to-end game**. Every gap pof has (and it has no VR, Android-device, store or on-device profiling support today) becomes a pof work item, sequenced just ahead of the game work that needs it. Every measured lesson is forged into the knowledge registry (placement decided 2026-10-02, section 9).
 
 **Owner decisions, 2026-10-02 (`DECISIONS.md`): desktop first, art last, VR in November.**
 - **October is a desktop build** of the same Unreal project: keys play recorded or synthetic hand clips through the
@@ -422,7 +422,7 @@ pof makes everything else checkable without a headset: build, install, boot, rec
 
 ## 9. Pillar 2: forging the learning into the knowledge registry
 
-**Pending: where cross-channel Mage Arena knowledge lives.** The owner asked for a Mage Arena game-development subtree shared by the TV, VR and future PC channels, so a mechanic one channel masters is not re-solved by the others (`DECISIONS.md`). It is being settled with the owner; this plan does not decide it. One constraint holds: upper registry layers carry no product names (`ai-registry/docs/rkb-profile.md:21-28`). Until then, channel-neutral solutions are recorded in this repo's `docs/` with the channel that proved them; the drafts below are written either way and land where the owner decides.
+**Decided 2026-10-02 (owner): hybrid placement.** Lessons that hold for any game become ordinary subjects in the registry's `game-production` bundle (no product names in golden paths or techniques; `ai-registry/docs/rkb-profile.md:21-28`). How a channel realised one goes in that subject's `applications/mage-arena-<channel>--<technique>.md`. Facts about this game live in the registry's `memory/` namespace `mage-arena`, seeded in registry commit `3f35c804`: `memory/semantic/mage-arena-channels-and-shared-canon.md` and `memory/semantic/mage-arena-mechanic-channel-matrix.md` (a mechanic-by-channel matrix with evidence per cell). Every milestone that proves a mechanic updates its matrix row; the drafts below land in `game-production`.
 
 ### 9.1 Domain recommendation: extend `game-production`, do not found `game-development`
 
@@ -594,7 +594,6 @@ Answered 2026-10-02 and removed: the WebXR pivot (rejected), the repo location, 
 7. **Paid tools** if needed: a MiVRy licence (fallback R2), a music provider, more 3D or image credits.
 8. **Asset policy:** generated and authored only, or are licensed packs acceptable after checking the rules?
 9. **Eligibility check:** are you comfortable reusing the PC kernel, data and art created 1-2 Oct, after the 24 Sep window opened? Should we ask on the Devpost forum?
-10. **Registry location (pending):** where cross-channel Mage Arena knowledge (TV / VR / PC) lives (section 9).
 
 ---
 
