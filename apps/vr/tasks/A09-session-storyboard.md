@@ -1,6 +1,6 @@
 # A09 - Design storyboard of the 10-minute session (images, no Unreal build)
 
-Status: open
+Status: done (frames reviewed by orchestrator 2026-10-03)
 Max turns: 140
 
 ## Goal

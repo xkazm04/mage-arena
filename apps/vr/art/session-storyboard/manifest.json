@@ -1,0 +1,186 @@
+{
+  "card": "A09",
+  "generated": "2026-10-03",
+  "note": "seconds is the wall-clock of the batch that returned the kept image, in seconds, measured from a stamped request to the file write. Rows with seconds null are from the first batch or from a single later call whose request start was not stamped; those write times are in runs/A09/REPORT.md. The Grok image tool has no negative-prompt field; each negative list was appended as 'Avoid: …'. The same full string was given to agy. Successful Grok calls did not echo a model id, and the HTTP 503 bodies named no model, so model is null on those rows. approximate_cost is null because neither tool reported one. Where a later pass was worse, an earlier pass was kept; regen_reasons names the rejected passes.",
+  "items": [
+    {
+      "asset": "01-cold-start",
+      "time": "0:00",
+      "beat": "Cold start at dusk",
+      "path": "apps/vr/art/session-storyboard/01-cold-start.jpg",
+      "tool": "agy",
+      "model": "gemini-3.8-flash-high (Antigravity image tool)",
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1376x768",
+      "regen_reasons": [
+        "pass 1 filled the empty dusk arena with a black vortex, fires on the sand, and one raised hand",
+        "pass 2 still raised one hand and hung a black-and-red spell in the sky; the quiet cold start was ignored twice, so the third pass used the agy fallback"
+      ],
+      "seconds": 31
+    },
+    {
+      "asset": "02-teach-ward",
+      "time": "0:20",
+      "beat": "Teach 1: raise the palm",
+      "path": "apps/vr/art/session-storyboard/02-teach-ward.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": null
+    },
+    {
+      "asset": "03-teach-perfect",
+      "time": "0:35",
+      "beat": "Teach 1b: the perfect absorb",
+      "path": "apps/vr/art/session-storyboard/03-teach-perfect.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": null
+    },
+    {
+      "asset": "04-teach-sigil",
+      "time": "0:50",
+      "beat": "Teach 2: draw a spell",
+      "path": "apps/vr/art/session-storyboard/04-teach-sigil.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": null
+    },
+    {
+      "asset": "05-teach-blink",
+      "time": "1:10",
+      "beat": "Teach 3: blink away",
+      "path": "apps/vr/art/session-storyboard/05-teach-blink.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 showed two side pads, but the player's hand pointed into the black spell and a third hand pointed at a pad",
+        "pass 2 aimed at a turquoise pad and still added a disembodied hand and a pad on fire"
+      ],
+      "seconds": 6
+    },
+    {
+      "asset": "06-bout-soldiers",
+      "time": "1:45",
+      "beat": "Bout 1: soldiers",
+      "path": "apps/vr/art/session-storyboard/06-bout-soldiers.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": null
+    },
+    {
+      "asset": "07-intermission",
+      "time": "2:45",
+      "beat": "Intermission: choose a branch",
+      "path": "apps/vr/art/session-storyboard/07-intermission.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 put readable letter-like glyphs on the bronze cuff"
+      ],
+      "seconds": 6
+    },
+    {
+      "asset": "08-bout-creatures",
+      "time": "3:15",
+      "beat": "Bout 2: creatures",
+      "path": "apps/vr/art/session-storyboard/08-bout-creatures.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": null
+    },
+    {
+      "asset": "09-fire-mage-entrance",
+      "time": "4:25",
+      "beat": "The Fire mage enters",
+      "path": "apps/vr/art/session-storyboard/09-fire-mage-entrance.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 6
+    },
+    {
+      "asset": "10-duel-sunfall",
+      "time": "5:15",
+      "beat": "Duel: the unstoppable spell",
+      "path": "apps/vr/art/session-storyboard/10-duel-sunfall.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 2 lost the flick and turned the side pads into red circles on the sand; pass 1 kept"
+      ],
+      "seconds": 6
+    },
+    {
+      "asset": "11-finisher",
+      "time": "6:15",
+      "beat": "The finisher",
+      "path": "apps/vr/art/session-storyboard/11-finisher.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 6
+    },
+    {
+      "asset": "12-victory",
+      "time": "6:35",
+      "beat": "Victory",
+      "path": "apps/vr/art/session-storyboard/12-victory.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 put a black orb ringed with glyph-letters in front of the player, so the frame did not read as a quiet victory",
+        "pass 3 added a large black saw-blade behind a kneeling figure who no longer read as the crimson fire mage; pass 2 kept"
+      ],
+      "seconds": null
+    }
+  ],
+  "totals": {
+    "images": 12,
+    "by_tool": {
+      "grok": 11,
+      "agy": 1
+    },
+    "failures": 3,
+    "regenerations": 8,
+    "approximate_cost": null
+  }
+}
