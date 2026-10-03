@@ -1,6 +1,6 @@
 # T04b - Ward onset: bridge stillness only while elevated (follow-up to T04)
 
-Status: open (queued after T05)
+Status: dispatched 2026-10-03
 Max turns: 120
 
 ## Goal
