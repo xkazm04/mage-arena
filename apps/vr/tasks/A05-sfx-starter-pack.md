@@ -1,6 +1,6 @@
 # A05 - SFX starter pack for the greybox (ElevenLabs, no Unreal build)
 
-Status: open
+Status: done (verified by measurement 2026-10-03; owner to audition)
 Max turns: 120
 
 ## Goal

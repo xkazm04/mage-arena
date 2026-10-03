@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greybox SFX starter pack</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #141414; color: #eceae4; font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+    header, main { padding: 28px 32px; max-width: 64rem; }
+    h1 { font-size: 32px; font-weight: 650; margin: 0 0 12px; letter-spacing: -0.02em; }
+    h2 { font-size: 20px; font-weight: 650; margin: 0 0 6px; font-family: ui-monospace, Consolas, monospace; }
+    p { margin: 0 0 10px; }
+    .lede { max-width: 70ch; color: #d4d0c8; }
+    .cue { padding: 16px 0; border-top: 1px solid #333; }
+    .badge { font-family: "Segoe UI", system-ui, sans-serif; font-size: 16px; color: #9fd0c8; margin-left: 8px; }
+    audio { width: min(100%, 36rem); display: block; margin: 8px 0; }
+    .dur { color: #b7b3aa; }
+    @media (max-width: 700px) {
+      header, main { padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Greybox SFX starter pack</h1>
+    <p class="lede">Twenty style-neutral placeholders for the mechanics gate. Each prompt was the common line followed by the sentence below. Common line: Clean, close-miked game sound effect, no music, no voice, no speech, no words, no reverb tail longer than needed, no background noise.</p>
+    <p class="lede">Files are 48 kHz, 16-bit, peak-normalised to -1 dBFS, mono except the stereo arena crowd. Looping rows repeat so the join can be heard. Leading silence below -50 dBFS is removed from every cue (5 ms detection window). Loop cues also have trailing silence below -50 dBFS removed, because a dead tail cannot meet the head. The last X seconds are then faded out on a quarter-sine curve and mixed at unity gain with the first X seconds faded in on the same curve. That mix becomes the head and the untouched middle (from X to duration minus X) is appended, so the file is X seconds shorter than the trimmed take. The last sample of the middle is the sample just before the old tail, and the first sample of the mix is that tail at full level, so the waveform continues across the loop point while the content eases from the end back to the start. X is 0.080 s (3840 samples) for the short loops and 0.250 s (12000 samples) for arena-crowd-loop.</p>
+  </header>
+  <main>
+    <article class="cue">
+      <h2>sigil-draw-loop <span class="badge">loop</span></h2>
+      <p>A soft shimmering trail of flowing water and faint glassy sparkle, continuous and even, as a fingertip draws a glowing line in the air.</p>
+      <audio controls preload="none" loop src="sigil-draw-loop.wav"> </audio>
+      <p class="dur">2.17 s</p>
+    </article>
+    <article class="cue">
+      <h2>sigil-complete</h2>
+      <p>A bright, clean magical chime with a splash of water, a spell sigil snapping into place, satisfying and short.</p>
+      <audio controls preload="none" src="sigil-complete.wav"> </audio>
+      <p class="dur">1.20 s</p>
+    </article>
+    <article class="cue">
+      <h2>sigil-reject</h2>
+      <p>A dull short fizzle, water spell fizzling out like a drop on hot stone, clearly a failure but not harsh.</p>
+      <audio controls preload="none" src="sigil-reject.wav"> </audio>
+      <p class="dur">0.80 s</p>
+    </article>
+    <article class="cue">
+      <h2>cast-bolt</h2>
+      <p>A quick small water projectile launched from a hand, tight whoosh with a wet snap.</p>
+      <audio controls preload="none" src="cast-bolt.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>cast-tide-orb</h2>
+      <p>A heavy orb of water launched forward, deep rushing swell and a rolling whoosh.</p>
+      <audio controls preload="none" src="cast-tide-orb.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>ward-raise</h2>
+      <p>A curved shield of water forming in front of a raised palm, fast rising rush of water locking into a hum.</p>
+      <audio controls preload="none" src="ward-raise.wav"> </audio>
+      <p class="dur">0.68 s</p>
+    </article>
+    <article class="cue">
+      <h2>ward-hold-loop <span class="badge">loop</span></h2>
+      <p>A low steady rippling hum of a water barrier being held, gentle and continuous, seamless loop.</p>
+      <audio controls preload="none" loop src="ward-hold-loop.wav"> </audio>
+      <p class="dur">2.92 s</p>
+    </article>
+    <article class="cue">
+      <h2>ward-absorb</h2>
+      <p>A projectile hitting a water shield and being absorbed, muffled splash with a soft thud.</p>
+      <audio controls preload="none" src="ward-absorb.wav"> </audio>
+      <p class="dur">0.80 s</p>
+    </article>
+    <article class="cue">
+      <h2>perfect-absorb</h2>
+      <p>A perfect magical block: a crystalline ring and a rising shimmering chime over a water splash, rewarding and bright.</p>
+      <audio controls preload="none" src="perfect-absorb.wav"> </audio>
+      <p class="dur">1.48 s</p>
+    </article>
+    <article class="cue">
+      <h2>hit-taken</h2>
+      <p>A magical blow striking a person, short heavy thud with a hiss, no voice.</p>
+      <audio controls preload="none" src="hit-taken.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>blink</h2>
+      <p>A quick airy displacement, a soft pop and a short swoosh of someone teleporting a few steps.</p>
+      <audio controls preload="none" src="blink.wav"> </audio>
+      <p class="dur">0.48 s</p>
+    </article>
+    <article class="cue">
+      <h2>fire-bolt-incoming</h2>
+      <p>A fireball flying toward the listener, crackling roaring whoosh that grows louder.</p>
+      <audio controls preload="none" src="fire-bolt-incoming.wav"> </audio>
+      <p class="dur">1.20 s</p>
+    </article>
+    <article class="cue">
+      <h2>fire-impact</h2>
+      <p>A fireball exploding on sand, a short burst of flame and scattering embers.</p>
+      <audio controls preload="none" src="fire-impact.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>unblockable-telegraph</h2>
+      <p>An ominous deep rising tone with a dark rumble, warning that something unstoppable is coming.</p>
+      <audio controls preload="none" src="unblockable-telegraph.wav"> </audio>
+      <p class="dur">1.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>tier-unlock</h2>
+      <p>A bronze rune clicking into place with a warm metallic ring and a soft glow swell.</p>
+      <audio controls preload="none" src="tier-unlock.wav"> </audio>
+      <p class="dur">0.88 s</p>
+    </article>
+    <article class="cue">
+      <h2>flow-stack</h2>
+      <p>A single soft ascending water note, a small pleasant pluck.</p>
+      <audio controls preload="none" src="flow-stack.wav"> </audio>
+      <p class="dur">0.48 s</p>
+    </article>
+    <article class="cue">
+      <h2>crest</h2>
+      <p>A great wave cresting and crashing, powerful rising rush of water ending in a bright magical burst.</p>
+      <audio controls preload="none" src="crest.wav"> </audio>
+      <p class="dur">2.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>hound-snarl</h2>
+      <p>A creature made of embers snarling, a crackling fiery growl, no human voice.</p>
+      <audio controls preload="none" src="hound-snarl.wav"> </audio>
+      <p class="dur">1.20 s</p>
+    </article>
+    <article class="cue">
+      <h2>arena-crowd-loop <span class="badge">loop</span></h2>
+      <p>Distant murmur of a large crowd in an open stone arena, steady and seamless, no individual words.</p>
+      <audio controls preload="none" loop src="arena-crowd-loop.wav"> </audio>
+      <p class="dur">9.75 s</p>
+    </article>
+    <article class="cue">
+      <h2>ui-pause</h2>
+      <p>A soft muted low tone for pausing, gentle and quiet.</p>
+      <audio controls preload="none" src="ui-pause.wav"> </audio>
+      <p class="dur">0.48 s</p>
+    </article>
+  </main>
+</body>
+</html>
