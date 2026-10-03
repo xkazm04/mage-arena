@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sigil glyphs and tier runes</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #141414; color: #eceae4; font: 18px/1.45 "Segoe UI", system-ui, sans-serif; }
+    header, main { padding: 28px 32px; max-width: 78rem; }
+    h1 { font-size: 32px; font-weight: 650; margin: 0 0 12px; letter-spacing: -0.02em; }
+    h2 { font-size: 24px; font-weight: 650; margin: 36px 0 8px; }
+    h3 { font-size: 16px; font-weight: 650; margin: 0 0 8px; }
+    p { margin: 0 0 10px; }
+    a { color: #9fd0c8; }
+    .lede, .stats, .legend { max-width: 70ch; color: #d4d0c8; }
+    .styles { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 22px; }
+    .style-name { font-size: 20px; font-weight: 650; }
+    .style-id { color: #b7b3aa; font-size: 16px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; max-width: 24rem; }
+    .palette { display: inline-flex; align-items: center; gap: 6px; font-size: 16px; }
+    .palette i { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; }
+    .hex { color: #b7b3aa; }
+    .plates { display: flex; flex-wrap: wrap; gap: 16px; margin: 14px 0; }
+    .plate { margin: 0; padding: 12px; border-radius: 10px; }
+    .plate.dark { background: #121212; }
+    .plate.light { background: #f4f0e6; color: #1c1c1c; }
+    .plate svg, .plate img { width: 220px; height: 220px; display: block; }
+    .plate figcaption { margin-top: 8px; font-size: 16px; }
+    .plate.dark svg path.ink { fill: none; stroke: #ffffff; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+    .plate.light svg path.ink { fill: none; stroke: #1c1c1c; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+    .plate.dark svg circle.ink { fill: #ffffff; stroke: none; }
+    .plate.light svg circle.ink { fill: #1c1c1c; stroke: none; }
+    .overlay { fill: none; stroke: #e23b4a; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 16px; margin-top: 8px; }
+    .swatch { border-radius: 8px; padding: 8px; margin-top: 8px; }
+    .swatch.dark { background: #121212; }
+    .swatch.light { background: #f4f0e6; }
+    .swatch img, .chip img { width: 100%; height: auto; display: block; }
+    .chip { background: #121212; border-radius: 8px; padding: 8px; }
+    .links { font-size: 16px; margin-top: 6px; }
+    @media (max-width: 800px) {
+      header, main { padding: 18px 16px; }
+      .grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+      .plate svg, .plate img { width: 160px; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sigil glyphs and tier runes</h1>
+    <p class="lede">Canonical strokes from the normal templates, and four geometric cuff runes. Masks are white on transparency for tinting. Each shortlisted palette has a coloured version. The 512 and 1024 files are the same drawing. This sheet opens from disk.</p>
+    <div class="styles"><div class="style-col"><div class="style-name">Screen-Print Poster</div><div class="style-id">13-screen-print</div><div class="swatches"><span class="palette"><i style="background:#F1E7CF"></i>paper <span class="hex">#F1E7CF</span></span><span class="palette"><i style="background:#1E6F73"></i>teal <span class="hex">#1E6F73</span></span><span class="palette"><i style="background:#E8743B"></i>sunset orange <span class="hex">#E8743B</span></span><span class="palette"><i style="background:#3B2340"></i>deep plum <span class="hex">#3B2340</span></span><span class="palette"><i style="background:#E2B33C"></i>mustard <span class="hex">#E2B33C</span></span></div></div><div class="style-col"><div class="style-name">Moonlit Silver Nocturne</div><div class="style-id">25-moonlit-silver</div><div class="swatches"><span class="palette"><i style="background:#C9D3DE"></i>moon silver <span class="hex">#C9D3DE</span></span><span class="palette"><i style="background:#4C5A6E"></i>slate <span class="hex">#4C5A6E</span></span><span class="palette"><i style="background:#1A2235"></i>night blue <span class="hex">#1A2235</span></span><span class="palette"><i style="background:#19E0E0"></i>water <span class="hex">#19E0E0</span></span><span class="palette"><i style="background:#FF3B1F"></i>fire <span class="hex">#FF3B1F</span></span></div></div><div class="style-col"><div class="style-name">Chalk &amp; Slate</div><div class="style-id">30-chalk-slate</div><div class="swatches"><span class="palette"><i style="background:#2A2F33"></i>slate <span class="hex">#2A2F33</span></span><span class="palette"><i style="background:#EDEDE8"></i>chalk white <span class="hex">#EDEDE8</span></span><span class="palette"><i style="background:#7CC4E8"></i>chalk blue <span class="hex">#7CC4E8</span></span><span class="palette"><i style="background:#F06A4D"></i>chalk red <span class="hex">#F06A4D</span></span><span class="palette"><i style="background:#F2D06B"></i>chalk yellow <span class="hex">#F2D06B</span></span></div></div></div>
+  </header>
+  <main>
+    <h2>Sigils</h2>
+    <section>
+    <h2>sigil-line1</h2>
+    <p>Circle, counterclockwise from the bottom, then a vertical bar drawn upward.</p>
+    <p class="stats">4 two-stroke normals averaged, 4 continuous normals not mixed in. Circle rms 0.149 cm on a 10.19 cm radius. Bar length 1.290 radii, mean angle 90.01°, drawn at 90.00° (snapped to the spell axis).</p>
+    <div class="plates">
+      <figure class="plate dark"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line1 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 128 178.3263 L 128 77.6737"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="132.7854,208.8582 128.8003,206.9309 127.1367,206.1258 127.3015,206.1118 128.045,206.1149 129.325,206.1032 131.126,206.0519 133.4294,205.9244 136.2149,205.6786 139.4592,205.2641 143.1328,204.6257 147.2007,203.7034 151.6216,202.4351 156.3427,200.7585 161.3049,198.6129 166.4373,195.941 171.66,192.6904 176.8827,188.8185 182.005,184.2934 186.9205,179.0956 191.5156,173.2228 195.6721,166.6891 199.2711,159.5269 202.1966,151.7902 204.3374,143.5526 205.5918,134.9083 205.8694,125.97 205.0995,116.8684 203.2301,107.7498 200.2322,98.7703 196.1029,90.0941 190.8655,81.8892 184.5736,74.3188 177.3057,67.5416 169.1684,61.7031 160.2924,56.9315 150.8292,53.3325 140.9469,50.9887 130.8266,49.9521 120.655,50.2476 110.6218,51.8667 100.9113,54.7712 91.6978,58.8935 83.1429,64.141 75.3875,70.3948 68.5496,77.5189 62.7227,85.3614 57.9729,93.7615 54.3382,102.5528 51.8295,111.5712 50.4313,120.6556 50.1023,129.6545 50.782,138.4318 52.3894,146.8646 54.8304,154.8502 57.9978,162.3055 61.7787,169.1659 66.0557,175.3886 70.7115,180.9495 75.6309,185.844 80.7042,190.0814 85.8281,193.6874 90.9077,196.6992 95.859,199.162 100.6057,201.1302 105.0834,202.6622 109.2353,203.8177 113.0154,204.6584 116.3842,205.2432 119.3089,205.6289 121.7631,205.8653 123.7236,205.9975 125.1708,206.0636 126.0868,206.0916 126.4562,206.1001 126.4998,205.6841 126.6281,204.2268 126.8295,201.9273"/><polyline class="overlay" points="128.7285,180.2901 128.8428,178.9875 128.8662,178.6835 128.8615,178.2215 128.8498,177.2269 128.8327,175.7362 128.8102,173.7843 128.7829,171.4078 128.7518,168.6417 128.7161,165.5218 128.6764,162.0846 128.6336,158.3652 128.5885,154.3999 128.5411,150.224 128.4913,145.8738 128.44,141.3845 128.3871,136.7917 128.3335,132.1321 128.2798,127.4413 128.2262,122.7545 128.1733,118.1072 128.1212,113.5363 128.0698,109.0772 128.0209,104.7652 127.9734,100.6367 127.9291,96.7275 127.8871,93.0725 127.8482,89.7077 127.814,86.6702 127.7829,83.9935 127.7572,81.7158 127.7362,79.8712 127.7199,78.4963 127.7098,77.6269 127.7067,77.298 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964"/></svg><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line1 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 128 178.3263 L 128 77.6737"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="132.7854,208.8582 128.8003,206.9309 127.1367,206.1258 127.3015,206.1118 128.045,206.1149 129.325,206.1032 131.126,206.0519 133.4294,205.9244 136.2149,205.6786 139.4592,205.2641 143.1328,204.6257 147.2007,203.7034 151.6216,202.4351 156.3427,200.7585 161.3049,198.6129 166.4373,195.941 171.66,192.6904 176.8827,188.8185 182.005,184.2934 186.9205,179.0956 191.5156,173.2228 195.6721,166.6891 199.2711,159.5269 202.1966,151.7902 204.3374,143.5526 205.5918,134.9083 205.8694,125.97 205.0995,116.8684 203.2301,107.7498 200.2322,98.7703 196.1029,90.0941 190.8655,81.8892 184.5736,74.3188 177.3057,67.5416 169.1684,61.7031 160.2924,56.9315 150.8292,53.3325 140.9469,50.9887 130.8266,49.9521 120.655,50.2476 110.6218,51.8667 100.9113,54.7712 91.6978,58.8935 83.1429,64.141 75.3875,70.3948 68.5496,77.5189 62.7227,85.3614 57.9729,93.7615 54.3382,102.5528 51.8295,111.5712 50.4313,120.6556 50.1023,129.6545 50.782,138.4318 52.3894,146.8646 54.8304,154.8502 57.9978,162.3055 61.7787,169.1659 66.0557,175.3886 70.7115,180.9495 75.6309,185.844 80.7042,190.0814 85.8281,193.6874 90.9077,196.6992 95.859,199.162 100.6057,201.1302 105.0834,202.6622 109.2353,203.8177 113.0154,204.6584 116.3842,205.2432 119.3089,205.6289 121.7631,205.8653 123.7236,205.9975 125.1708,206.0636 126.0868,206.0916 126.4562,206.1001 126.4998,205.6841 126.6281,204.2268 126.8295,201.9273"/><polyline class="overlay" points="128.7285,180.2901 128.8428,178.9875 128.8662,178.6835 128.8615,178.2215 128.8498,177.2269 128.8327,175.7362 128.8102,173.7843 128.7829,171.4078 128.7518,168.6417 128.7161,165.5218 128.6764,162.0846 128.6336,158.3652 128.5885,154.3999 128.5411,150.224 128.4913,145.8738 128.44,141.3845 128.3871,136.7917 128.3335,132.1321 128.2798,127.4413 128.2262,122.7545 128.1733,118.1072 128.1212,113.5363 128.0698,109.0772 128.0209,104.7652 127.9734,100.6367 127.9291,96.7275 127.8871,93.0725 127.8482,89.7077 127.814,86.6702 127.7829,83.9935 127.7572,81.7158 127.7362,79.8712 127.7199,78.4963 127.7098,77.6269 127.7067,77.298 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964 127.7067,77.2964"/></svg><figcaption>Light ground</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line1.svg" alt="sigil-line1 file"><figcaption>SVG file</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line1-guide.svg" alt="sigil-line1 guide"><figcaption>Guide, dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="sigil-line1-guide.svg" alt=""></div><figcaption>Guide, light ground</figcaption></figure>
+    </div>
+    <p class="legend">The thin red line is the projected anchor template (or, for the mudra, the unsmoothed clip). Ink is the canonical stroke.</p>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/sigil-line1-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/sigil-line1-256.png" alt="sigil-line1 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/sigil-line1-512.png">512</a> <a href="mask/sigil-line1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/sigil-line1-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/sigil-line1-256.png" alt="sigil-line1 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/sigil-line1-512.png">512</a> <a href="13-screen-print/sigil-line1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/sigil-line1-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/sigil-line1-256.png" alt="sigil-line1 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/sigil-line1-512.png">512</a> <a href="25-moonlit-silver/sigil-line1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/sigil-line1-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/sigil-line1-256.png" alt="sigil-line1 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/sigil-line1-512.png">512</a> <a href="30-chalk-slate/sigil-line1-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>sigil-line2</h2>
+    <p>The same circle, then a horizontal bar drawn from left to right.</p>
+    <p class="stats">4 two-stroke normals averaged, 4 continuous normals not mixed in. Circle rms 0.212 cm on a 9.95 cm radius. Bar length 1.248 radii, mean angle 2.61°, drawn at 0.00° (snapped to the spell axis).</p>
+    <div class="plates">
+      <figure class="plate dark"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line2 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 79.3237 128 L 176.6763 128"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="132.7464,208.972 128.7105,206.9944 127.0256,206.1686 127.1909,206.1536 127.9412,206.1576 129.2323,206.1466 131.0478,206.0962 133.3711,205.9702 136.1802,205.7269 139.4522,205.3152 143.1579,204.6806 147.2613,203.7626 151.7197,202.5006 156.4813,200.8308 161.4861,198.6941 166.6633,196.0307 171.9303,192.7918 177.1972,188.9325 182.3634,184.4221 187.321,179.2417 191.9542,173.3874 196.1442,166.8734 199.7728,159.7335 202.7204,152.0204 204.876,143.8089 206.1357,135.1913 206.4112,126.2815 205.6287,117.2104 203.736,108.1227 200.705,99.1751 196.5323,90.5307 191.2417,82.357 184.8875,74.8187 177.55,68.0725 169.3354,62.2638 160.3776,57.5196 150.8285,53.9469 140.8583,51.6268 130.6503,50.6112 120.3934,50.9245 110.2775,52.5573 100.4907,55.4719 91.2078,59.6012 82.5925,64.8501 74.7849,71.102 67.9063,78.2191 62.0497,86.051 57.2819,94.4364 53.6406,103.21 51.1355,112.2056 49.7514,121.2641 49.4467,130.2361 50.1592,138.9821 51.807,147.3833 54.2941,155.3349 57.5133,162.7551 61.3498,169.5809 65.6846,175.769 70.3997,181.2958 75.3793,186.1565 80.5109,190.3614 85.6912,193.9373 90.8259,196.9195 95.8284,199.3554 100.623,201.2992 105.1452,202.8085 109.3367,203.9437 113.1527,204.7664 116.5522,205.3356 119.503,205.708 121.979,205.9332 123.9567,206.0576 125.4164,206.1174 126.3406,206.1418 126.713,206.1481 125.958,204.9507 123.2844,200.7528 119.0653,194.1278"/><polyline class="overlay" points="79.3709,131.7989 76.9814,128.0466 76.5067,127.2546 76.9751,127.2601 77.9844,127.2712 79.4976,127.2877 81.4777,127.3097 83.8899,127.3365 86.6974,127.3672 89.8631,127.4018 93.3516,127.4404 97.1258,127.4821 101.1505,127.527 105.3885,127.5735 109.8036,127.6223 114.3596,127.6727 119.0196,127.7238 123.7489,127.7766 128.5096,127.8285 133.2656,127.8813 137.9815,127.9333 142.6202,127.9844 147.1456,128.0348 151.5221,128.0828 155.7113,128.1293 159.6792,128.1734 163.3882,128.2143 166.8026,128.2513 169.8857,128.286 172.6018,128.3159 174.9133,128.3411 176.7855,128.3615 178.1806,128.3773 179.0631,128.3867 179.3969,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907"/></svg><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line2 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 79.3237 128 L 176.6763 128"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="132.7464,208.972 128.7105,206.9944 127.0256,206.1686 127.1909,206.1536 127.9412,206.1576 129.2323,206.1466 131.0478,206.0962 133.3711,205.9702 136.1802,205.7269 139.4522,205.3152 143.1579,204.6806 147.2613,203.7626 151.7197,202.5006 156.4813,200.8308 161.4861,198.6941 166.6633,196.0307 171.9303,192.7918 177.1972,188.9325 182.3634,184.4221 187.321,179.2417 191.9542,173.3874 196.1442,166.8734 199.7728,159.7335 202.7204,152.0204 204.876,143.8089 206.1357,135.1913 206.4112,126.2815 205.6287,117.2104 203.736,108.1227 200.705,99.1751 196.5323,90.5307 191.2417,82.357 184.8875,74.8187 177.55,68.0725 169.3354,62.2638 160.3776,57.5196 150.8285,53.9469 140.8583,51.6268 130.6503,50.6112 120.3934,50.9245 110.2775,52.5573 100.4907,55.4719 91.2078,59.6012 82.5925,64.8501 74.7849,71.102 67.9063,78.2191 62.0497,86.051 57.2819,94.4364 53.6406,103.21 51.1355,112.2056 49.7514,121.2641 49.4467,130.2361 50.1592,138.9821 51.807,147.3833 54.2941,155.3349 57.5133,162.7551 61.3498,169.5809 65.6846,175.769 70.3997,181.2958 75.3793,186.1565 80.5109,190.3614 85.6912,193.9373 90.8259,196.9195 95.8284,199.3554 100.623,201.2992 105.1452,202.8085 109.3367,203.9437 113.1527,204.7664 116.5522,205.3356 119.503,205.708 121.979,205.9332 123.9567,206.0576 125.4164,206.1174 126.3406,206.1418 126.713,206.1481 125.958,204.9507 123.2844,200.7528 119.0653,194.1278"/><polyline class="overlay" points="79.3709,131.7989 76.9814,128.0466 76.5067,127.2546 76.9751,127.2601 77.9844,127.2712 79.4976,127.2877 81.4777,127.3097 83.8899,127.3365 86.6974,127.3672 89.8631,127.4018 93.3516,127.4404 97.1258,127.4821 101.1505,127.527 105.3885,127.5735 109.8036,127.6223 114.3596,127.6727 119.0196,127.7238 123.7489,127.7766 128.5096,127.8285 133.2656,127.8813 137.9815,127.9333 142.6202,127.9844 147.1456,128.0348 151.5221,128.0828 155.7113,128.1293 159.6792,128.1734 163.3882,128.2143 166.8026,128.2513 169.8857,128.286 172.6018,128.3159 174.9133,128.3411 176.7855,128.3615 178.1806,128.3773 179.0631,128.3867 179.3969,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907 179.3985,128.3907"/></svg><figcaption>Light ground</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line2.svg" alt="sigil-line2 file"><figcaption>SVG file</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line2-guide.svg" alt="sigil-line2 guide"><figcaption>Guide, dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="sigil-line2-guide.svg" alt=""></div><figcaption>Guide, light ground</figcaption></figure>
+    </div>
+    <p class="legend">The thin red line is the projected anchor template (or, for the mudra, the unsmoothed clip). Ink is the canonical stroke.</p>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/sigil-line2-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/sigil-line2-256.png" alt="sigil-line2 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/sigil-line2-512.png">512</a> <a href="mask/sigil-line2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/sigil-line2-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/sigil-line2-256.png" alt="sigil-line2 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/sigil-line2-512.png">512</a> <a href="13-screen-print/sigil-line2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/sigil-line2-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/sigil-line2-256.png" alt="sigil-line2 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/sigil-line2-512.png">512</a> <a href="25-moonlit-silver/sigil-line2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/sigil-line2-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/sigil-line2-256.png" alt="sigil-line2 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/sigil-line2-512.png">512</a> <a href="30-chalk-slate/sigil-line2-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>sigil-line3</h2>
+    <p>The same circle, then a diagonal bar drawn from lower left to upper right.</p>
+    <p class="stats">4 two-stroke normals averaged, 4 continuous normals not mixed in. Circle rms 0.214 cm on a 9.79 cm radius. Bar length 1.337 radii, mean angle 46.24°, drawn at 45.00° (snapped to the spell axis).</p>
+    <div class="plates">
+      <figure class="plate dark"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line3 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 91.1253 164.8747 L 164.8747 91.1253"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="134.7431,209.0857 130.7766,207.1095 129.1209,206.2839 129.2856,206.2642 130.0269,206.2485 131.304,206.2038 133.0995,206.105 135.3948,205.9175 138.1678,205.599 141.3942,205.0993 145.0434,204.3635 149.0793,203.3335 153.4573,201.9474 158.1247,200.144 163.0204,197.8636 168.0721,195.0514 173.1992,191.6564 178.3098,187.6377 183.3028,182.9672 188.0722,177.6283 192.5043,171.6203 196.4806,164.9612 199.885,157.6871 202.6015,149.8537 204.5211,141.5394 205.5448,132.8408 205.5863,123.8739 204.5775,114.7713 202.4713,105.6805 199.2418,96.7598 194.8905,88.1742 189.4465,80.0898 182.9663,72.6706 175.5337,66.0742 167.2579,60.442 158.2737,55.8993 148.735,52.5497 138.8118,50.4694 128.6855,49.7077 118.5451,50.2827 108.5788,52.1811 98.9694,55.3596 89.8895,59.7462 81.4976,65.2428 73.9309,71.7261 67.3048,79.0575 61.707,87.0807 57.1996,95.6335 53.8171,104.547 51.5642,113.6567 50.4213,122.8017 50.3444,131.8321 51.2669,140.6107 53.1064,149.0183 55.7657,156.9537 59.1349,164.3361 63.1002,171.1057 67.5425,177.2212 72.3448,182.6629 77.3911,187.4283 82.5723,191.5309 87.7865,194.9997 92.9402,197.8723 97.9496,200.1989 102.7418,202.0361 107.2531,203.4426 111.4286,204.482 115.2238,205.2154 118.6015,205.7049 121.5306,206.0061 123.9851,206.1724 125.9455,206.2493 127.3912,206.2736 128.3058,206.2752 128.6745,206.2728 128.1427,205.6335 126.2506,203.3932 123.2642,199.8569"/><polyline class="overlay" points="95.1735,166.5913 93.4823,164.5886 93.1457,164.1446 93.4658,163.8183 94.1545,163.1139 95.1869,162.058 96.5384,160.6759 98.185,158.9932 100.1006,157.0345 102.2609,154.8247 104.6417,152.3906 107.2178,149.7573 109.9641,146.949 112.8563,143.9916 115.8693,140.9112 118.9789,137.7318 122.159,134.4795 125.3862,131.1802 128.6353,127.8581 131.8813,124.5392 135.0999,121.2484 138.2651,118.0118 141.3542,114.8537 144.3405,111.8007 147.1998,108.8771 149.9077,106.108 152.4391,103.5201 154.7689,101.1378 156.8727,98.9861 158.7263,97.0917 160.3039,95.4781 161.5817,94.172 162.5332,93.1985 163.1357,92.5827 163.3639,92.3497 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349"/></svg><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-line3 with template overlay"><path class="ink" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/><path class="ink" d="M 91.1253 164.8747 L 164.8747 91.1253"/><circle class="ink" cx="128" cy="206" r="11"/><polyline class="overlay" points="134.7431,209.0857 130.7766,207.1095 129.1209,206.2839 129.2856,206.2642 130.0269,206.2485 131.304,206.2038 133.0995,206.105 135.3948,205.9175 138.1678,205.599 141.3942,205.0993 145.0434,204.3635 149.0793,203.3335 153.4573,201.9474 158.1247,200.144 163.0204,197.8636 168.0721,195.0514 173.1992,191.6564 178.3098,187.6377 183.3028,182.9672 188.0722,177.6283 192.5043,171.6203 196.4806,164.9612 199.885,157.6871 202.6015,149.8537 204.5211,141.5394 205.5448,132.8408 205.5863,123.8739 204.5775,114.7713 202.4713,105.6805 199.2418,96.7598 194.8905,88.1742 189.4465,80.0898 182.9663,72.6706 175.5337,66.0742 167.2579,60.442 158.2737,55.8993 148.735,52.5497 138.8118,50.4694 128.6855,49.7077 118.5451,50.2827 108.5788,52.1811 98.9694,55.3596 89.8895,59.7462 81.4976,65.2428 73.9309,71.7261 67.3048,79.0575 61.707,87.0807 57.1996,95.6335 53.8171,104.547 51.5642,113.6567 50.4213,122.8017 50.3444,131.8321 51.2669,140.6107 53.1064,149.0183 55.7657,156.9537 59.1349,164.3361 63.1002,171.1057 67.5425,177.2212 72.3448,182.6629 77.3911,187.4283 82.5723,191.5309 87.7865,194.9997 92.9402,197.8723 97.9496,200.1989 102.7418,202.0361 107.2531,203.4426 111.4286,204.482 115.2238,205.2154 118.6015,205.7049 121.5306,206.0061 123.9851,206.1724 125.9455,206.2493 127.3912,206.2736 128.3058,206.2752 128.6745,206.2728 128.1427,205.6335 126.2506,203.3932 123.2642,199.8569"/><polyline class="overlay" points="95.1735,166.5913 93.4823,164.5886 93.1457,164.1446 93.4658,163.8183 94.1545,163.1139 95.1869,162.058 96.5384,160.6759 98.185,158.9932 100.1006,157.0345 102.2609,154.8247 104.6417,152.3906 107.2178,149.7573 109.9641,146.949 112.8563,143.9916 115.8693,140.9112 118.9789,137.7318 122.159,134.4795 125.3862,131.1802 128.6353,127.8581 131.8813,124.5392 135.0999,121.2484 138.2651,118.0118 141.3542,114.8537 144.3405,111.8007 147.1998,108.8771 149.9077,106.108 152.4391,103.5201 154.7689,101.1378 156.8727,98.9861 158.7263,97.0917 160.3039,95.4781 161.5817,94.172 162.5332,93.1985 163.1357,92.5827 163.3639,92.3497 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349 163.3647,92.349"/></svg><figcaption>Light ground</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line3.svg" alt="sigil-line3 file"><figcaption>SVG file</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-line3-guide.svg" alt="sigil-line3 guide"><figcaption>Guide, dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="sigil-line3-guide.svg" alt=""></div><figcaption>Guide, light ground</figcaption></figure>
+    </div>
+    <p class="legend">The thin red line is the projected anchor template (or, for the mudra, the unsmoothed clip). Ink is the canonical stroke.</p>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/sigil-line3-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/sigil-line3-256.png" alt="sigil-line3 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/sigil-line3-512.png">512</a> <a href="mask/sigil-line3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/sigil-line3-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/sigil-line3-256.png" alt="sigil-line3 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/sigil-line3-512.png">512</a> <a href="13-screen-print/sigil-line3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/sigil-line3-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/sigil-line3-256.png" alt="sigil-line3 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/sigil-line3-512.png">512</a> <a href="25-moonlit-silver/sigil-line3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/sigil-line3-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/sigil-line3-256.png" alt="sigil-line3 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/sigil-line3-512.png">512</a> <a href="30-chalk-slate/sigil-line3-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>sigil-mudra</h2>
+    <p>Both index tips move from rest into the seal. Left hand first, then the right. The pose is not a $Q class.</p>
+    <p class="stats">Projected from mudra.normal.jsonl with the stroke builder's plane. 23 left samples and 23 right samples after the hold is trimmed to one endpoint, then resampled to 64 points.</p>
+    <div class="plates">
+      <figure class="plate dark"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-mudra with template overlay"><path class="ink" d="M 46 176.1569 L 46.4826 173.8536 L 46.9977 171.5576 L 47.5572 169.2718 L 48.1422 166.9928 L 48.7942 164.7316 L 49.4462 162.4705 L 50.1689 160.2317 L 50.9417 158.009 L 51.7145 155.7862 L 52.5326 153.5809 L 53.452 151.4146 L 54.3714 149.2484 L 55.2908 147.0821 L 56.3025 144.9594 L 57.3904 142.8727 L 58.4782 140.7859 L 59.5661 138.6991 L 60.7299 136.6565 L 62.0015 134.6763 L 63.2732 132.6962 L 64.5448 130.7161 L 65.8207 128.739 L 67.2826 126.8949 L 68.7446 125.0508 L 70.2065 123.2067 L 71.6684 121.3626 L 73.2221 119.5994 L 74.8701 117.9196 L 76.5182 116.2397 L 78.1662 114.5598 L 79.8143 112.88 L 81.6228 111.3756 L 83.4421 109.8828 L 85.2614 108.3901 L 87.0806 106.8974 L 88.9677 105.4968 L 90.9343 104.2044 L 92.901 102.9121 L 94.8677 101.6197 L 96.8527 100.3586 L 98.9379 99.2678 L 101.0231 98.1769 L 103.1083 97.086 L 105.2031 96.0158 L 107.3773 95.1154 L 109.5516 94.215 L 111.7258 93.3147 L 113.9247 92.4809 L 116.1614 91.7495 L 118.3982 91.0181 L 120.6379 90.2969 L 122.9158 89.706 L 125.1937 89.115 L 127.4763 88.5445 L 129.7797 88.0621 L 132.083 87.5797 L 133.6327 85.9719 L 134.956 84.0259 L 136.2794 82.0799 L 138.1833 81.0216 L 140.4965 80.589 L 142.8177 80.2021 L 145.1434 79.8431"/><path class="ink" d="M 210 176.1569 L 209.5174 173.8536 L 209.0023 171.5576 L 208.4428 169.2718 L 207.8578 166.9928 L 207.2058 164.7316 L 206.5538 162.4705 L 205.8311 160.2317 L 205.0583 158.009 L 204.2855 155.7862 L 203.4674 153.5809 L 202.548 151.4146 L 201.6286 149.2484 L 200.7092 147.0821 L 199.6975 144.9594 L 198.6096 142.8727 L 197.5218 140.7859 L 196.4339 138.6991 L 195.2701 136.6565 L 193.9985 134.6763 L 192.7268 132.6962 L 191.4552 130.7161 L 190.1793 128.739 L 188.7174 126.8949 L 187.2554 125.0508 L 185.7935 123.2067 L 184.3316 121.3626 L 182.7779 119.5994 L 181.1299 117.9196 L 179.4818 116.2397 L 177.8338 114.5598 L 176.1857 112.88 L 174.3772 111.3756 L 172.5579 109.8828 L 170.7386 108.3901 L 168.9194 106.8974 L 167.0323 105.4968 L 165.0657 104.2044 L 163.099 102.9121 L 161.1323 101.6197 L 159.1473 100.3586 L 157.0621 99.2678 L 154.9769 98.1769 L 152.8917 97.086 L 150.7969 96.0158 L 148.6227 95.1154 L 146.4484 94.215 L 144.2742 93.3147 L 142.0753 92.4809 L 139.8386 91.7495 L 137.6018 91.0181 L 135.3621 90.2969 L 133.0842 89.706 L 130.8063 89.115 L 128.5237 88.5445 L 126.2203 88.0621 L 123.917 87.5797 L 122.3673 85.9719 L 121.044 84.0259 L 119.7206 82.0799 L 117.8167 81.0216 L 115.5035 80.589 L 113.1823 80.2021 L 110.8566 79.8431"/><circle class="ink" cx="46" cy="176.1569" r="11"/><circle class="ink" cx="210" cy="176.1569" r="11"/><polyline class="overlay" points="46,176.1569 46.2042,175.1428 46.8333,172.2291 47.9624,167.6161 49.717,161.5313 52.2487,154.2498 55.7065,146.1028 60.2043,137.4749 65.7881,128.7801 72.4099,120.4273 79.9174,112.7749 88.0631,106.0913 96.5288,100.5281 104.9667,96.1137 113.0425,92.7694 120.4714,90.3401 127.0403,88.6359 132.6151,87.4682 136.8265,81.2754 140.7336,80.5446 143.4406,80.0997 144.8982,79.8791 145.1434,79.8431"/><polyline class="overlay" points="210,176.1569 209.7958,175.1428 209.1667,172.2291 208.0376,167.6161 206.283,161.5313 203.7513,154.2498 200.2935,146.1028 195.7957,137.4749 190.2119,128.7801 183.5901,120.4273 176.0826,112.7749 167.9369,106.0913 159.4712,100.5281 151.0333,96.1137 142.9575,92.7694 135.5286,90.3401 128.9597,88.6359 123.3849,87.4682 119.1735,81.2754 115.2664,80.5446 112.5594,80.0997 111.1018,79.8791 110.8566,79.8431"/></svg><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><svg viewBox="0 0 256 256" role="img" aria-label="sigil-mudra with template overlay"><path class="ink" d="M 46 176.1569 L 46.4826 173.8536 L 46.9977 171.5576 L 47.5572 169.2718 L 48.1422 166.9928 L 48.7942 164.7316 L 49.4462 162.4705 L 50.1689 160.2317 L 50.9417 158.009 L 51.7145 155.7862 L 52.5326 153.5809 L 53.452 151.4146 L 54.3714 149.2484 L 55.2908 147.0821 L 56.3025 144.9594 L 57.3904 142.8727 L 58.4782 140.7859 L 59.5661 138.6991 L 60.7299 136.6565 L 62.0015 134.6763 L 63.2732 132.6962 L 64.5448 130.7161 L 65.8207 128.739 L 67.2826 126.8949 L 68.7446 125.0508 L 70.2065 123.2067 L 71.6684 121.3626 L 73.2221 119.5994 L 74.8701 117.9196 L 76.5182 116.2397 L 78.1662 114.5598 L 79.8143 112.88 L 81.6228 111.3756 L 83.4421 109.8828 L 85.2614 108.3901 L 87.0806 106.8974 L 88.9677 105.4968 L 90.9343 104.2044 L 92.901 102.9121 L 94.8677 101.6197 L 96.8527 100.3586 L 98.9379 99.2678 L 101.0231 98.1769 L 103.1083 97.086 L 105.2031 96.0158 L 107.3773 95.1154 L 109.5516 94.215 L 111.7258 93.3147 L 113.9247 92.4809 L 116.1614 91.7495 L 118.3982 91.0181 L 120.6379 90.2969 L 122.9158 89.706 L 125.1937 89.115 L 127.4763 88.5445 L 129.7797 88.0621 L 132.083 87.5797 L 133.6327 85.9719 L 134.956 84.0259 L 136.2794 82.0799 L 138.1833 81.0216 L 140.4965 80.589 L 142.8177 80.2021 L 145.1434 79.8431"/><path class="ink" d="M 210 176.1569 L 209.5174 173.8536 L 209.0023 171.5576 L 208.4428 169.2718 L 207.8578 166.9928 L 207.2058 164.7316 L 206.5538 162.4705 L 205.8311 160.2317 L 205.0583 158.009 L 204.2855 155.7862 L 203.4674 153.5809 L 202.548 151.4146 L 201.6286 149.2484 L 200.7092 147.0821 L 199.6975 144.9594 L 198.6096 142.8727 L 197.5218 140.7859 L 196.4339 138.6991 L 195.2701 136.6565 L 193.9985 134.6763 L 192.7268 132.6962 L 191.4552 130.7161 L 190.1793 128.739 L 188.7174 126.8949 L 187.2554 125.0508 L 185.7935 123.2067 L 184.3316 121.3626 L 182.7779 119.5994 L 181.1299 117.9196 L 179.4818 116.2397 L 177.8338 114.5598 L 176.1857 112.88 L 174.3772 111.3756 L 172.5579 109.8828 L 170.7386 108.3901 L 168.9194 106.8974 L 167.0323 105.4968 L 165.0657 104.2044 L 163.099 102.9121 L 161.1323 101.6197 L 159.1473 100.3586 L 157.0621 99.2678 L 154.9769 98.1769 L 152.8917 97.086 L 150.7969 96.0158 L 148.6227 95.1154 L 146.4484 94.215 L 144.2742 93.3147 L 142.0753 92.4809 L 139.8386 91.7495 L 137.6018 91.0181 L 135.3621 90.2969 L 133.0842 89.706 L 130.8063 89.115 L 128.5237 88.5445 L 126.2203 88.0621 L 123.917 87.5797 L 122.3673 85.9719 L 121.044 84.0259 L 119.7206 82.0799 L 117.8167 81.0216 L 115.5035 80.589 L 113.1823 80.2021 L 110.8566 79.8431"/><circle class="ink" cx="46" cy="176.1569" r="11"/><circle class="ink" cx="210" cy="176.1569" r="11"/><polyline class="overlay" points="46,176.1569 46.2042,175.1428 46.8333,172.2291 47.9624,167.6161 49.717,161.5313 52.2487,154.2498 55.7065,146.1028 60.2043,137.4749 65.7881,128.7801 72.4099,120.4273 79.9174,112.7749 88.0631,106.0913 96.5288,100.5281 104.9667,96.1137 113.0425,92.7694 120.4714,90.3401 127.0403,88.6359 132.6151,87.4682 136.8265,81.2754 140.7336,80.5446 143.4406,80.0997 144.8982,79.8791 145.1434,79.8431"/><polyline class="overlay" points="210,176.1569 209.7958,175.1428 209.1667,172.2291 208.0376,167.6161 206.283,161.5313 203.7513,154.2498 200.2935,146.1028 195.7957,137.4749 190.2119,128.7801 183.5901,120.4273 176.0826,112.7749 167.9369,106.0913 159.4712,100.5281 151.0333,96.1137 142.9575,92.7694 135.5286,90.3401 128.9597,88.6359 123.3849,87.4682 119.1735,81.2754 115.2664,80.5446 112.5594,80.0997 111.1018,79.8791 110.8566,79.8431"/></svg><figcaption>Light ground</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-mudra.svg" alt="sigil-mudra file"><figcaption>SVG file</figcaption></figure>
+      <figure class="plate dark"><img src="sigil-mudra-guide.svg" alt="sigil-mudra guide"><figcaption>Guide, dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="sigil-mudra-guide.svg" alt=""></div><figcaption>Guide, light ground</figcaption></figure>
+    </div>
+    <p class="legend">The thin red line is the projected anchor template (or, for the mudra, the unsmoothed clip). Ink is the canonical stroke.</p>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/sigil-mudra-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/sigil-mudra-256.png" alt="sigil-mudra mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/sigil-mudra-512.png">512</a> <a href="mask/sigil-mudra-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/sigil-mudra-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/sigil-mudra-256.png" alt="sigil-mudra in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/sigil-mudra-512.png">512</a> <a href="13-screen-print/sigil-mudra-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/sigil-mudra-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/sigil-mudra-256.png" alt="sigil-mudra in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/sigil-mudra-512.png">512</a> <a href="25-moonlit-silver/sigil-mudra-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/sigil-mudra-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/sigil-mudra-256.png" alt="sigil-mudra in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/sigil-mudra-512.png">512</a> <a href="30-chalk-slate/sigil-mudra-1024.png">1024</a></p>
+    </div></div>
+  </section>
+    <h2>Tier runes</h2>
+    <section>
+    <h2>rune-tier1</h2>
+    <p>One dot inside a ring. Geometric mark. Circles, arcs, and dots only, so the mark is not a letter or a digit.</p>
+    <div class="plates">
+      <figure class="plate dark"><img src="rune-tier1.svg" alt="rune-tier1"><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="rune-tier1.svg" alt=""></div><figcaption>Light ground, dark chip (the file is white ink)</figcaption></figure>
+    </div>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/rune-tier1-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/rune-tier1-256.png" alt="rune-tier1 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/rune-tier1-512.png">512</a> <a href="mask/rune-tier1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/rune-tier1-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/rune-tier1-256.png" alt="rune-tier1 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/rune-tier1-512.png">512</a> <a href="13-screen-print/rune-tier1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/rune-tier1-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/rune-tier1-256.png" alt="rune-tier1 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/rune-tier1-512.png">512</a> <a href="25-moonlit-silver/rune-tier1-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/rune-tier1-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/rune-tier1-256.png" alt="rune-tier1 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/rune-tier1-512.png">512</a> <a href="30-chalk-slate/rune-tier1-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>rune-tier2</h2>
+    <p>Two dots inside a ring, left and right. Geometric mark. Circles, arcs, and dots only, so the mark is not a letter or a digit.</p>
+    <div class="plates">
+      <figure class="plate dark"><img src="rune-tier2.svg" alt="rune-tier2"><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="rune-tier2.svg" alt=""></div><figcaption>Light ground, dark chip (the file is white ink)</figcaption></figure>
+    </div>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/rune-tier2-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/rune-tier2-256.png" alt="rune-tier2 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/rune-tier2-512.png">512</a> <a href="mask/rune-tier2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/rune-tier2-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/rune-tier2-256.png" alt="rune-tier2 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/rune-tier2-512.png">512</a> <a href="13-screen-print/rune-tier2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/rune-tier2-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/rune-tier2-256.png" alt="rune-tier2 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/rune-tier2-512.png">512</a> <a href="25-moonlit-silver/rune-tier2-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/rune-tier2-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/rune-tier2-256.png" alt="rune-tier2 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/rune-tier2-512.png">512</a> <a href="30-chalk-slate/rune-tier2-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>rune-tier3</h2>
+    <p>Three dots inside a ring, one above and two below. Geometric mark. Circles, arcs, and dots only, so the mark is not a letter or a digit.</p>
+    <div class="plates">
+      <figure class="plate dark"><img src="rune-tier3.svg" alt="rune-tier3"><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="rune-tier3.svg" alt=""></div><figcaption>Light ground, dark chip (the file is white ink)</figcaption></figure>
+    </div>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/rune-tier3-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/rune-tier3-256.png" alt="rune-tier3 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/rune-tier3-512.png">512</a> <a href="mask/rune-tier3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/rune-tier3-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/rune-tier3-256.png" alt="rune-tier3 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/rune-tier3-512.png">512</a> <a href="13-screen-print/rune-tier3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/rune-tier3-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/rune-tier3-256.png" alt="rune-tier3 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/rune-tier3-512.png">512</a> <a href="25-moonlit-silver/rune-tier3-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/rune-tier3-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/rune-tier3-256.png" alt="rune-tier3 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/rune-tier3-512.png">512</a> <a href="30-chalk-slate/rune-tier3-1024.png">1024</a></p>
+    </div></div>
+  </section>
+<section>
+    <h2>rune-tier4</h2>
+    <p>A closed ring and a four-point star: four inward arcs, a dot on each point, and a centre dot. Geometric mark. Circles, arcs, and dots only, so the mark is not a letter or a digit.</p>
+    <div class="plates">
+      <figure class="plate dark"><img src="rune-tier4.svg" alt="rune-tier4"><figcaption>Dark ground</figcaption></figure>
+      <figure class="plate light"><div class="chip"><img src="rune-tier4.svg" alt=""></div><figcaption>Light ground, dark chip (the file is white ink)</figcaption></figure>
+    </div>
+    <div class="grid"><div class="cell">
+      <h3>White mask</h3>
+      <div class="swatch dark"><img src="mask/rune-tier4-256.png" alt=""></div>
+      <div class="swatch light"><div class="chip"><img src="mask/rune-tier4-256.png" alt="rune-tier4 mask on a dark chip"></div></div>
+      <p class="links"><a href="mask/rune-tier4-512.png">512</a> <a href="mask/rune-tier4-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Screen-Print Poster</h3>
+      <div class="swatch dark"><img src="13-screen-print/rune-tier4-256.png" alt=""></div>
+      <div class="swatch light"><img src="13-screen-print/rune-tier4-256.png" alt="rune-tier4 in Screen-Print Poster"></div>
+      <p class="links"><a href="13-screen-print/rune-tier4-512.png">512</a> <a href="13-screen-print/rune-tier4-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Moonlit Silver Nocturne</h3>
+      <div class="swatch dark"><img src="25-moonlit-silver/rune-tier4-256.png" alt=""></div>
+      <div class="swatch light"><img src="25-moonlit-silver/rune-tier4-256.png" alt="rune-tier4 in Moonlit Silver Nocturne"></div>
+      <p class="links"><a href="25-moonlit-silver/rune-tier4-512.png">512</a> <a href="25-moonlit-silver/rune-tier4-1024.png">1024</a></p>
+    </div>
+<div class="cell">
+      <h3>Chalk &amp; Slate</h3>
+      <div class="swatch dark"><img src="30-chalk-slate/rune-tier4-256.png" alt=""></div>
+      <div class="swatch light"><img src="30-chalk-slate/rune-tier4-256.png" alt="rune-tier4 in Chalk &amp; Slate"></div>
+      <p class="links"><a href="30-chalk-slate/rune-tier4-512.png">512</a> <a href="30-chalk-slate/rune-tier4-1024.png">1024</a></p>
+    </div></div>
+  </section>
+  </main>
+</body>
+</html>

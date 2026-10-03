@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <g id="rune">
+    <circle cx="128" cy="128" r="78" fill="none" stroke="#ffffff" stroke-width="14"/>
+    <circle cx="128" cy="94" r="10" fill="#ffffff"/>
+    <circle cx="98.5551" cy="145" r="10" fill="#ffffff"/>
+    <circle cx="157.4449" cy="145" r="10" fill="#ffffff"/>
+  </g></svg>

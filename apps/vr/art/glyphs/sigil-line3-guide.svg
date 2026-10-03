@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <g id="strokes" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path id="stroke-0" data-stroke="0" d="M 128 206 A 78 78 0 0 0 128 50 A 78 78 0 0 0 128 206"/>
+    <path id="stroke-1" data-stroke="1" d="M 91.1253 164.8747 L 164.8747 91.1253"/>
+  </g>
+  <g id="marks" fill="#ffffff" stroke="none">
+    <circle id="start-0" cx="128" cy="206" r="11"/>
+    <polygon id="arrow-0" points="243.98,146 234.08,128 224.18,146"/>
+    <polygon id="arrow-1" points="167.5052,100.9399 172.5964,83.4036 155.0601,88.4948"/>
+  </g></svg>

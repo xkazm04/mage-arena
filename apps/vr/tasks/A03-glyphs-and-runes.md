@@ -1,6 +1,6 @@
 # A03 - Sigil glyphs and tier runes as exact vector art (no Unreal build)
 
-Status: open
+Status: done (reviewed by orchestrator 2026-10-03)
 Max turns: 140
 
 ## Goal
