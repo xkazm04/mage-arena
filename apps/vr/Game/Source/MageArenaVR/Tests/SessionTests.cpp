@@ -56,7 +56,8 @@ struct FSessionRig
 
 FString ChainPath(const TCHAR* Name)
 {
-	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T08"), Name);
+	// T10 is this measurement. T08 keeps the seated-loss record and is not overwritten.
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T10"), Name);
 	FPaths::CollapseRelativeDirectories(Path);
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
 	return Path;
@@ -140,12 +141,14 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 	const bool bWon = Session.GetGames().Phase == TEXT("intermission");
 	const bool bInsideWindow = bWon && Measured >= PinnedWindowLo && Measured <= PinnedWindowHi;
 	const double DamageTaken = Player ? Player->Metrics.DamageTaken : -1.0;
-	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted end phase=%s t=%.2f waves=%d hp=%.1f dealt=%.1f taken=%.1f blinks=%d chain=%d"),
+	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted end phase=%s t=%.2f waves=%d hp=%.1f dealt=%.1f taken=%.1f blinks=%d perfects=%d chain=%d"),
 		*Session.GetGames().Phase, Measured, Session.GetGames().WavesCleared,
 		Player ? Player->Hp : -1.0,
 		Player ? Player->Metrics.DamageDealt : -1.0,
 		DamageTaken,
-		Session.GetBlinkAccepts(), Session.GetChain().Num());
+		Session.GetBlinkAccepts(),
+		Player ? Player->Metrics.Perfects : -1,
+		Session.GetChain().Num());
 	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f offPad=%.4f"),
 		Measured, PinnedWindowLo, PinnedWindowHi,
 		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),

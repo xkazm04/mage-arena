@@ -16,6 +16,7 @@
 #include "Kernel/SimTypes.h"
 #include "MageArenaVR.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Math/RotationMatrix.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
@@ -96,7 +97,7 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, bool bSling
 	return Created;
 }
 
-ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id)
+ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id, bool bSpear)
 {
 	for (FShot& Shot : Shots)
 	{
@@ -108,7 +109,7 @@ ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id)
 	}
 	for (FShot& Shot : Shots)
 	{
-		if (!Shot.bLive && Shot.GhostUntil <= 0.0)
+		if (!Shot.bLive && Shot.GhostUntil <= 0.0 && Shot.bSpear == bSpear && Shot.Mesh)
 		{
 			Shot.Id = Id;
 			Shot.bLive = true;
@@ -118,7 +119,8 @@ ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id)
 	FShot& Created = Shots.AddDefaulted_GetRef();
 	Created.Id = Id;
 	Created.bLive = true;
-	Created.Mesh = MakePart(TEXT("Sphere"), WaterColour);
+	Created.bSpear = bSpear;
+	Created.Mesh = MakePart(bSpear ? TEXT("Cylinder") : TEXT("Sphere"), bSpear ? SteelColour : WaterColour);
 	return Created;
 }
 
@@ -502,20 +504,75 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 
+	const FVrRuleset* Rules = Session.GetVrRules();
+	const FVrAttackMode* SpearMode = Rules ? Rules->FindThrow(TEXT("conscript")) : nullptr;
 	for (const FProjectile& Projectile : Games.State.Projectiles)
 	{
-		FShot& Shot = ShotFor(Projectile.Id);
-		LiveShots.Add(Projectile.Id);
 		const bool bPlayerOwned = Projectile.OwnerId == Games.PlayerId;
+		bool bSpear = false;
+		if (Projectile.bHasAim && !bPlayerOwned)
+		{
+			if (const FActor* ShotOwner = SimFindActor(Games.State, Projectile.OwnerId))
+			{
+				bSpear = ShotOwner->Enemy.IsSet() && ShotOwner->Enemy->Id == TEXT("conscript");
+			}
+		}
+		FShot& Shot = ShotFor(Projectile.Id, bSpear);
+		LiveShots.Add(Projectile.Id);
 		FVector At = Session.KernelToUnrealCm(Projectile.Pos);
-		At.Z += 120.0;
+		FVector Direction = FVector::UpVector;
+		if (bSpear)
+		{
+			// Absolute metres. SurfaceHeight jumps by the dais, so the shaft would kink. Both ends sit at chest height.
+			const double LengthM = SpearMode ? SpearMode->SpearLengthM : 1.7;
+			const double RadiusM = SpearMode ? SpearMode->SpearRadiusM : 0.11;
+			const double ApexM = SpearMode ? SpearMode->ArcApexM : 0.75;
+			const double ChestM = 1.35;
+			const double Span = FMath::Max(SimDistance(Projectile.OriginPos, Projectile.AimedAt), 1.0e-4);
+			const double Progress = FMath::Clamp(SimDistance(Projectile.OriginPos, Projectile.Pos) / Span, 0.0, 1.0);
+			At.Z = (ChestM + 4.0 * ApexM * Progress * (1.0 - Progress)) * 100.0;
+			const double Slope = (4.0 * ApexM * (1.0 - 2.0 * Progress)) / Span;
+			const FSimVec Flat = SimUnit(SimSub(Projectile.AimedAt, Projectile.OriginPos));
+			Direction = FVector(Flat.X, Flat.Y, Slope);
+			if (Shot.Mesh)
+			{
+				Greybox::SetSized(Shot.Mesh, FVector(RadiusM * 200.0, RadiusM * 200.0, LengthM * 100.0));
+				Shot.Mesh->SetWorldRotation(FRotationMatrix::MakeFromZ(Direction).Rotator());
+			}
+			FRing& Ring = RingFor(Projectile.Id);
+			LiveRings.Add(Projectile.Id);
+			FVector Ground = Session.KernelToUnrealCm(Projectile.AimedAt);
+			Ground.Z += 4.0;
+			if (Ring.Mesh)
+			{
+				Ring.Mesh->SetVisibility(true);
+				Ring.Mesh->SetWorldLocation(Ground);
+				Greybox::SetSized(Ring.Mesh, FVector(160.0, 160.0, 5.0));
+				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
+				{
+					Mid->SetVectorParameterValue(TEXT("Color"), SteelColour);
+				}
+			}
+			if (Ring.Rim)
+			{
+				Ring.Rim->SetVisibility(false);
+			}
+		}
+		else
+		{
+			At.Z += 120.0;
+			if (Shot.Mesh)
+			{
+				const float Diameter = FMath::Max(18.f, static_cast<float>(Projectile.Radius * 200.0));
+				Greybox::SetSized(Shot.Mesh, FVector(Diameter));
+				Shot.Mesh->SetWorldRotation(FRotator::ZeroRotator);
+			}
+		}
 		Shot.LastCm = At;
 		if (Shot.Mesh)
 		{
 			Shot.Mesh->SetVisibility(true);
 			Shot.Mesh->SetWorldLocation(At);
-			const float Diameter = FMath::Max(18.f, static_cast<float>(Projectile.Radius * 200.0));
-			Greybox::SetSized(Shot.Mesh, FVector(Diameter));
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Shot.Mesh->GetMaterial(0)))
 			{
 				const FLinearColor Colour = FamilyColour(Projectile.Family, bPlayerOwned);

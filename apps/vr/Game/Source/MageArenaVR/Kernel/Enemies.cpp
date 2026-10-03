@@ -1,6 +1,7 @@
 #include "Kernel/Enemies.h"
 
 #include "Kernel/ArenaKernel.h"
+#include "Kernel/VrRules.h"
 #include "Kernel/Water.h"
 
 #include "Algo/Sort.h"
@@ -123,7 +124,7 @@ FActor& AddEnemy(FArenaState& State, const FString& Id, const FSimVec& Pos)
 	return Actor;
 }
 
-TMap<int32, FInputFrame> EnemyInputs(FArenaState& State)
+TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	TMap<int32, FInputFrame> Inputs;
@@ -207,11 +208,20 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State)
 		const double Distance = SimDistance(Target.Pos, Actor.Pos);
 		const FSimVec Toward = SimUnit(Delta);
 		FSimVec Desired = Toward;
-		const FAttackSpec& Attack = Spec->Attacks[Brain.AttackIndex % Spec->Attacks.Num()];
+		FAttackSpec Attack = Spec->Attacks[Brain.AttackIndex % Spec->Attacks.Num()];
+		if (Rules && Rules->bActive)
+		{
+			if (const FVrAttackMode* Mode = Rules->FindThrow(Spec->Id))
+			{
+				Attack.ProjectileMps = Mode->ProjectileMps;
+				Attack.RangeM = Mode->RangeM;
+			}
+		}
 		double AttackRange = Attack.RangeM.Get(Data.DefaultMeleeRangeM);
 		if (Attack.ProjectileMps.IsSet())
 		{
-			AttackRange = Data.RangedRangeM;
+			// A shot that names rangeM uses it. Pinned shots leave rangeM empty and still use rangedRangeM.
+			AttackRange = Attack.RangeM.Get(Data.RangedRangeM);
 		}
 		if (Attack.Id == TEXT("net_cast"))
 		{
@@ -300,7 +310,25 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State)
 			ScheduleAttack(State, Actor, Target, *Spec, Attack);
 			Desired = FSimVec{0.0, 0.0};
 		}
-		if (Desired.X != 0.0 || Desired.Y != 0.0)
+		bool bAtLip = false;
+		if (Rules && Rules->bActive && Rules->FindThrow(Spec->Id))
+		{
+			const FSimVec Hold = Rules->HoldPoint(Actor.Pos, Target.Pos);
+			if (SimDistance(Actor.Pos, Hold) > 0.15)
+			{
+				Desired = SimUnit(SimSub(Hold, Actor.Pos));
+			}
+			else
+			{
+				bAtLip = true;
+				const FSimVec Out = Rules->Outward(Actor.Pos);
+				if (SimDot(Desired, Out) < 0.0)
+				{
+					Desired = SimSub(Desired, SimScale(Out, SimDot(Desired, Out)));
+				}
+			}
+		}
+		if (bAtLip || Desired.X != 0.0 || Desired.Y != 0.0)
 		{
 			for (FActor* Other : Enemies)
 			{
@@ -316,7 +344,18 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State)
 					Desired.Y += Away.Y * Data.SeparationWeight;
 				}
 			}
-			Input.Move = SimUnit(Desired);
+			if (bAtLip)
+			{
+				const FSimVec Out = Rules->Outward(Actor.Pos);
+				if (SimDot(Desired, Out) < 0.0)
+				{
+					Desired = SimSub(Desired, SimScale(Out, SimDot(Desired, Out)));
+				}
+			}
+			if (Desired.X != 0.0 || Desired.Y != 0.0)
+			{
+				Input.Move = SimUnit(Desired);
+			}
 		}
 		Inputs.FindOrAdd(Actor.Id) = Input;
 	}

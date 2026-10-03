@@ -17,6 +17,7 @@
 #include "MageArenaVR.h"
 #include "Misc/App.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "RHIStats.h"
 #include "Serialization/JsonSerializer.h"
@@ -73,6 +74,46 @@ TSharedRef<FJsonObject> SpanTime(const TArray<double>& Values)
 	Object->SetNumberField(TEXT("max"), Max);
 	return Object;
 }
+
+bool ConscriptAtLip(const FArenaSession& Bout)
+{
+	const FVrRuleset* Rules = Bout.GetVrRules();
+	if (!Rules)
+	{
+		return false;
+	}
+	for (const FActor& Actor : Bout.GetGames().State.Actors)
+	{
+		if (Actor.bDown || !Actor.Enemy.IsSet() || Actor.Enemy->Id != TEXT("conscript"))
+		{
+			continue;
+		}
+		const double Gap = Rules->OutsideGap(Actor.Pos);
+		if (Gap >= -0.05 && Gap < 0.45)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ConscriptSpearInFlight(const FArenaSession& Bout)
+{
+	const FGames& Games = Bout.GetGames();
+	for (const FProjectile& Projectile : Games.State.Projectiles)
+	{
+		if (!Projectile.bHasAim || Projectile.OwnerId == Games.PlayerId)
+		{
+			continue;
+		}
+		const FActor* Owner = SimFindActor(Games.State, Projectile.OwnerId);
+		if (Owner && Owner->Enemy.IsSet() && Owner->Enemy->Id == TEXT("conscript"))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 }
 
 UWave1CaptureDriver::UWave1CaptureDriver()
@@ -82,6 +123,8 @@ UWave1CaptureDriver::UWave1CaptureDriver()
 
 void UWave1CaptureDriver::Start()
 {
+	RunId = TEXT("T08");
+	FParse::Value(FCommandLine::Get(), TEXT("MageArenaRun="), RunId);
 	bRunning = true;
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
@@ -123,7 +166,7 @@ FString UWave1CaptureDriver::RepoPath(const TCHAR* Relative) const
 
 bool UWave1CaptureDriver::RequestShot(const TCHAR* FileName, bool bSequence)
 {
-	const FString Path = RepoPath(*FString::Printf(TEXT("runs/T08/shots/%s"), FileName));
+	const FString Path = RepoPath(*FString::Printf(TEXT("runs/%s/shots/%s"), *RunId, FileName));
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
 	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
 	PendingShot = Path;
@@ -241,6 +284,19 @@ void UWave1CaptureDriver::Advance()
 		break;
 	}
 	case EStep::WaitSoldiers:
+		if (RunId == TEXT("T10"))
+		{
+			if ((Bout && ConscriptAtLip(*Bout)) || Elapsed > 25.0)
+			{
+				if (Session)
+				{
+					Session->GetSession().SetPaused(true);
+				}
+				RequestShot(TEXT("01-dais-edge.png"), false);
+				Enter(EStep::WaitSoldiersShot);
+			}
+			break;
+		}
 		if (Bout && Bout->GetGames().State.Actors.Num() >= 5 && Elapsed > 0.4)
 		{
 			Session->GetSession().SetPaused(true);
@@ -261,6 +317,19 @@ void UWave1CaptureDriver::Advance()
 		Enter(EStep::WaitWard);
 		break;
 	case EStep::WaitWard:
+		if (RunId == TEXT("T10"))
+		{
+			if ((Bout && ConscriptSpearInFlight(*Bout)) || Elapsed > 12.0)
+			{
+				if (Session)
+				{
+					Session->GetSession().SetPaused(true);
+				}
+				RequestShot(TEXT("02-spear-flight.png"), false);
+				Enter(EStep::WaitWardShot);
+			}
+			break;
+		}
 		if ((Bout && Bout->WasWardOnStone()) || Elapsed > 8.0)
 		{
 			if (Session)
@@ -279,6 +348,11 @@ void UWave1CaptureDriver::Advance()
 		Enter(EStep::WaitSigil);
 		break;
 	case EStep::WaitSigil:
+		if (RunId == TEXT("T10"))
+		{
+			Enter(EStep::WaitBlink);
+			break;
+		}
 		if ((Bout && Bout->WasSigilHit()) || Elapsed > 14.0)
 		{
 			if (Session)
@@ -303,12 +377,12 @@ void UWave1CaptureDriver::Advance()
 			{
 				Session->GetSession().SetPaused(true);
 			}
-			RequestShot(TEXT("04-blink.png"), false);
+			RequestShot(RunId == TEXT("T10") ? TEXT("03-blink.png") : TEXT("04-blink.png"), false);
 			Enter(EStep::WaitBlinkShot);
 		}
 		else if (Elapsed > 20.0)
 		{
-			RequestShot(TEXT("04-blink.png"), false);
+			RequestShot(RunId == TEXT("T10") ? TEXT("03-blink.png") : TEXT("04-blink.png"), false);
 			Enter(EStep::WaitBlinkShot);
 		}
 		break;
@@ -328,7 +402,7 @@ void UWave1CaptureDriver::Advance()
 			{
 				Session->GetSession().SetPaused(true);
 			}
-			RequestShot(TEXT("05-victory.png"), false);
+			RequestShot(RunId == TEXT("T10") ? TEXT("04-end.png") : TEXT("05-victory.png"), false);
 			Enter(EStep::WaitVictoryShot);
 		}
 		break;
@@ -336,8 +410,10 @@ void UWave1CaptureDriver::Advance()
 		Enter(EStep::WriteBudget);
 		break;
 	case EStep::WriteBudget:
+	{
 		WriteBudgetFile();
-		if (ShotNames.Num() >= 5)
+		const int32 Needed = RunId == TEXT("T10") ? 4 : 5;
+		if (ShotNames.Num() >= Needed)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
 		}
@@ -347,6 +423,7 @@ void UWave1CaptureDriver::Advance()
 		}
 		Enter(EStep::Quit);
 		break;
+	}
 	case EStep::Quit:
 		bRunning = false;
 		SetTickableTickType(ETickableTickType::Never);
@@ -368,7 +445,9 @@ void UWave1CaptureDriver::WriteBudgetFile()
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("label"), TEXT("desktop proxy - not Quest truth"));
 	Root->SetStringField(TEXT("note"),
-		TEXT("Wave 1 soldiers are physical. A kernel perfect absorb is not possible against them. 02-ward-meets-stone is a ward meeting a sling stone, not a perfect."));
+		RunId == TEXT("T10")
+			? TEXT("Wave 1 conscripts throw spears from the dais lip. The threats are physical, so a kernel perfect absorb is not possible. 02-spear-flight is a spear in the air, not a perfect.")
+			: TEXT("Wave 1 soldiers are physical. A kernel perfect absorb is not possible against them. 02-ward-meets-stone is a ward meeting a sling stone, not a perfect."));
 	Root->SetNumberField(TEXT("sampleCount"), DrawCalls.Num());
 	Root->SetObjectField(TEXT("drawCalls"), SpanInt(DrawCalls));
 	Root->SetObjectField(TEXT("rhiPrimitivesDrawn"), SpanInt(MeasuredTriangles));
@@ -383,7 +462,7 @@ void UWave1CaptureDriver::WriteBudgetFile()
 	FString Text;
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Text);
 	FJsonSerializer::Serialize(Root, Writer);
-	const FString Path = RepoPath(TEXT("runs/T08/budget.json"));
+	const FString Path = RepoPath(*FString::Printf(TEXT("runs/%s/budget.json"), *RunId));
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
 	if (!FFileHelper::SaveStringToFile(Text, *Path))
 	{

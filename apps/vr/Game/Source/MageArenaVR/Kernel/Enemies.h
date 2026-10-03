@@ -3,7 +3,10 @@
 #include "Kernel/KernelData.h"
 #include "Kernel/Seams.h"
 
+struct FVrRuleset;
+
 const FEnemySpec* EnemySpecFor(const FActor& Actor);
 FActor& AddEnemy(FArenaState& State, const FString& Id, const FSimVec& Pos);
-TMap<int32, FInputFrame> EnemyInputs(FArenaState& State);
+// Rules null is the pinned path. A ruleset is the VR overlay passed in at session creation.
+TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules = nullptr);
 void QueueDeathEffects(FArenaState& State);

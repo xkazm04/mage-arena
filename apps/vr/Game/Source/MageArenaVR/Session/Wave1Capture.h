@@ -70,4 +70,6 @@ private:
 	TArray<double> FrameMs;
 	TArray<int32> EnemiesOnScreen;
 	TArray<FString> ShotNames;
+	// -MageArenaRun= on the command line. T08 keeps the original five stills.
+	FString RunId = TEXT("T08");
 };

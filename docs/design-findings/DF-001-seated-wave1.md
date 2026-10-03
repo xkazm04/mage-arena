@@ -24,3 +24,13 @@ Found 2026-10-03 by T08 retry 1 (`runs/T08/REPORT.md`, `runs/T08/wave1-chain.log
 
 ## Decision
 Owner, 2026-10-03: **option A** - enemies fight from the arena floor; nothing reaches the dais. Implemented as the VR overlay in card T10.
+
+## After option A (T10, 2026-10-03)
+Implemented as the VR overlay `apps/vr/data/vr/combat.vr.json` (enemies held off the dais, conscripts throw; shared rules and
+the 45 TS vectors unchanged). Re-measured from a seat: **still lost, now at 11.42 s** (thrown spears reach a seated player
+sooner than a lunge). Two gaps, per `runs/T10/REPORT.md`:
+- **survival:** ~8.3 HP/s incoming against a 95 HP pool (four conscripts' spears connect about every 2.1 s each);
+- **clear rate:** ~4.2 HP/s dealt from a seat (a drawn sigil takes ~2 s and occupies the hands), so the 208 HP wave needs
+  ~49 s even if the player lived - above the 25-40 s window.
+Standoff distance alone cannot close it; throw cadence alone only stretches survival; wave composition (option C) is the knob
+that moves the clear time. The seated loop needs a balance pass of its own - see the calibration card that follows.

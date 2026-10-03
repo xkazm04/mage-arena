@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "units": "metres",
+  "axes": "Layout metres match arena-layout.json: +X from the dais toward the arena centre, +Y to the seated player's right. The kernel frame shifts that so the centre pad sits on playerSpawn. The shift is applied when the ruleset is built. It is not a second copy of the pad.",
+  "_about": "VR-only combat overlay. Pinned combat.json, enemies.json, runtime.json and arena-tiers.json are not modified. The kernel applies this only when a session passes the ruleset into TryCreateGames. With no ruleset, movement and attacks are unchanged and the conformance vectors stay on that path.",
+
+  "daisNoEntry": {
+    "source": "apps/vr/data/vr/arena-layout.json dais",
+    "centreM": [-11.7, 0],
+    "halfExtentM": [2.6, 4.4],
+    "standoffM": 0.6,
+    "_centreM": "arena-layout.json dais.centreM x and y. The box centre on the sand.",
+    "_halfExtentM": "Half of dais.sizeM [5.2, 8.8]. The footprint is the no-entry rectangle. An enemy position inside it is on the stone.",
+    "_standoffM": "Equals dais.heightM (0.6). One dais-height of sand outside the footprint is the hold line, so a body stands clear of the lip and reads as holding at the edge. It is not a combat tune. Melee is not what keeps the spear off the stone: the conscript attack below is a throw, so the lunge is not scheduled."
+  },
+
+  "attacks": [
+    {
+      "enemyId": "conscript",
+      "mode": "throw",
+      "attackId": "spear_lunge",
+      "damage": 10,
+      "windupS": 0.6,
+      "projectileMps": 14,
+      "rangeM": 9,
+      "arcApexM": 0.75,
+      "spearLengthM": 1.7,
+      "spearRadiusM": 0.11,
+      "_damage": "Pinned spear_lunge damage. Not replaced. Family stays physical, so a ward uses combat.json absorb.reduction.physical 0.30 and a connecting spear is 7. A fresh ward does not perfect a physical hit.",
+      "_windupS": "Pinned spear_lunge windupS. This is the telegraph before the spear is loosed. Not replaced. It is above the positional telegraph floor of 0.40 s.",
+      "_projectileMps": "The melee row has no speed. 14 is the pinned sling_stone projectileMps (and the training physical shot). The spear uses that steel speed.",
+      "_rangeM": "Replaces pinned spear_lunge rangeM 2.0. The centre pad is 2.9 m behind the dais front face (pad x=-12, face x=-9.1), and the hold line adds the 0.6 m standoff, so a 2.0 m lunge from off the stone cannot be the attack. 9 m covers the longest line from the front lip of the hold box to a pad, about 8.6 m. It is not the slinger's rangedRangeM of 24, so a conscript still has to walk up before throwing.",
+      "_arcApexM": "Presentation only. The kernel hit is a flat projectile, the same resolver as a sling stone. 0.75 is threats.chestHeightAboveSandM 1.35 minus dais.heightM 0.6, so the shaft crests about a chest above the step and comes back to chest height. It does not change damage, flight time, or the blink window.",
+      "_spearLengthM": "Presentation. arena-layout.json threats.order steel lengthM. The greybox spear is that shaft.",
+      "_spearRadiusM": "Presentation. The same steel entry's radiusM. The kernel hit radius stays the pinned projectileRadiusM (0.12). The mesh is not the collider.",
+      "replaces": [
+        {
+          "field": "rangeM",
+          "pinned": 2.0,
+          "overlay": 9,
+          "why": "Pinned 2.0 is the lunge. The gap from the centre pad to the dais front face is 2.9 m before standoff, so a lunge from the hold line cannot reach a pad, and the attack would never start. 9 m is the lip-to-pad diagonal described on rangeM."
+        },
+        {
+          "field": "projectileMps",
+          "pinned": null,
+          "overlay": 14,
+          "why": "spear_lunge has no projectile speed. 14 is the pinned sling_stone projectileMps, so thrown steel matches the stone's speed. Damage and windup stay on the melee row."
+        }
+      ]
+    },
+    {
+      "enemyId": "slinger",
+      "mode": "unchanged",
+      "attackId": "sling_stone",
+      "_note": "sling_stone stays pinned: damage 7, windupS 0.5, cooldownS 2.2, projectileMps 14, keepDistanceM [8, 10]. No field is replaced. The dais no-entry still applies if a strafe would step onto the stone."
+    }
+  ],
+
+  "movement": {
+    "throwerClosesToLip": true,
+    "_throwerClosesToLip": "The conscript ready delay is unchanged: windupS 0.6 + recoveryS 0.5, then the behaviour text 'back off 1 s'. runtime.json conscriptBackoffM stays 3. While that delay runs and the player is farther than 3 m, the kernel stands still. A thrower instead keeps walking to the hold line, then holds. The delay before the next throw is the pinned one. Unlisted enemy ids keep their pinned attack; the dais no-entry still rejects their bodies."
+  },
+
+  "_unlisted": "An enemy id with no entry keeps its pinned attack. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM."
+}

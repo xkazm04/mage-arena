@@ -19,7 +19,7 @@ depleted.
 |---|---|---|
 | Implementation from a card (C++, tools, data, tests) | Grok `grok-4.7` first | the bulk budget; proven on T01, T02 |
 | Second implementation or a card Grok failed once | `agy` with `gemini-3.8-flash-high`; hard ones `gemini-3.1-pro-high` | a different model family breaks a repeated failure |
-| Review of a finished card before the orchestrator commits | `agy` `gemini-3.8-flash-high`, read-only prompt | cheap second pair of eyes (it found a real replay bug in T02) |
+| Review of a finished card before the orchestrator commits | `bash tools/agy-review.sh "<prompt>"` (Gemini, enforced read-only via `AGY_READONLY=1`) | cheap second pair of eyes; `--mode plan` alone let a review edit a test and run a build (T10), so the guard enforces it |
 | Images: concept art, sigil/rune glyphs, UI, texture drafts | `agy` built-in image tool (1024x1024, ~30 s) | headless and covered by the subscription |
 | Music loops, trailer clips | the **owner** in Flow Music / Flow (browser only); Claude writes prompt sheets | no headless route on the subscription |
 | SFX | ElevenLabs (`ELEVENLABS_API_KEY`) | Google has no SFX tool |

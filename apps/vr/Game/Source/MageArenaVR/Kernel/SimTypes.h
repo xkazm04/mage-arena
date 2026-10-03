@@ -317,6 +317,10 @@ struct FProjectile
 	double HeatOnHit = 0.0;
 	bool bSuppressPerfect = false;
 	bool bPierceShields = false;
+	// Presentation only. The sim does not read these. Spawn leaves bHasAim clear unless a telegraph passed a target.
+	FSimVec OriginPos;
+	FSimVec AimedAt;
+	bool bHasAim = false;
 };
 
 struct FZone

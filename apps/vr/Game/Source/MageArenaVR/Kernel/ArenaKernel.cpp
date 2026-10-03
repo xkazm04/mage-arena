@@ -343,7 +343,7 @@ void UpdateTelegraphs(FArenaState& State)
 			Hit.HeatOnHit = Telegraph.HeatOnHit;
 			Hit.bSuppressPerfect = Telegraph.bSuppressPerfect;
 			Hit.bPierceShields = Telegraph.bPierceShields;
-			SpawnProjectile(State, Hit, Telegraph.Origin, Direction, Telegraph.SpeedMps, Telegraph.RangeM);
+			SpawnProjectile(State, Hit, Telegraph.Origin, Direction, Telegraph.SpeedMps, Telegraph.RangeM, {}, Telegraph.Target);
 		}
 		else
 		{
@@ -666,7 +666,7 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit)
 	return Result;
 }
 
-FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec& Origin, const FSimVec& Direction, double SpeedMps, double RangeM, TOptional<double> Radius)
+FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec& Origin, const FSimVec& Direction, double SpeedMps, double RangeM, TOptional<double> Radius, TOptional<FSimVec> AimedAt)
 {
 	const FSimVec UnitDirection = SimUnit(Direction);
 	FProjectile Projectile;
@@ -685,9 +685,15 @@ FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec&
 	Projectile.Id = State.NextId++;
 	Projectile.Pos = Origin;
 	Projectile.PreviousPos = Origin;
+	Projectile.OriginPos = Origin;
 	Projectile.Velocity = SimScale(UnitDirection, SpeedMps);
 	Projectile.Radius = Radius.Get(KernelData().ProjectileRadiusM);
 	Projectile.RemainingM = RangeM;
+	if (AimedAt.IsSet())
+	{
+		Projectile.bHasAim = true;
+		Projectile.AimedAt = AimedAt.GetValue();
+	}
 	State.Projectiles.Add(MoveTemp(Projectile));
 	return State.Projectiles.Last();
 }

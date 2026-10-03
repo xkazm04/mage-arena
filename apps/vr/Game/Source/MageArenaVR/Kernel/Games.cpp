@@ -5,6 +5,7 @@
 #include "Kernel/Enemies.h"
 #include "Kernel/Geometry.h"
 #include "Kernel/MageAI.h"
+#include "Kernel/VrRules.h"
 
 #include <cmath>
 
@@ -109,7 +110,7 @@ bool FiniteActor(const FActor& Actor)
 }
 }
 
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer, bool bFireMages)
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer, bool bFireMages, const FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	if (Data.ArenaTiers.Num() == 0 || Data.Presets.Num() == 0)
@@ -124,6 +125,10 @@ bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, i
 	const FComposition* Used = Composition ? Composition : &Data.Presets[0];
 	Out = FGames();
 	Out.bFireMages = bFireMages;
+	if (Rules && Rules->bActive)
+	{
+		Out.VrRules = *Rules;
+	}
 	Out.State = CreateArena(Seed);
 	Out.PlayerId = AddMage(Out.State, 0, Data.PlayerSpawn, TEXT("Cassia")).Id;
 	FActor* Player = SimFindActor(Out.State, Out.PlayerId);
@@ -170,7 +175,8 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 	{
 		return;
 	}
-	TMap<int32, FInputFrame> Inputs = EnemyInputs(Games.State);
+	const FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
+	TMap<int32, FInputFrame> Inputs = EnemyInputs(Games.State, Rules);
 	const int32 ActorCount = Games.State.Actors.Num();
 	for (int32 Index = 0; Index < ActorCount; ++Index)
 	{
@@ -185,6 +191,10 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 		Inputs.FindOrAdd(Games.PlayerId) = *PlayerInput;
 	}
 	StepArena(Games.State, Inputs);
+	if (Rules)
+	{
+		Rules->KeepOut(Games.State);
+	}
 	QueueDeathEffects(Games.State);
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	checkf(Player, TEXT("games player %d is missing"), Games.PlayerId);

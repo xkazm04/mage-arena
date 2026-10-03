@@ -30,3 +30,7 @@ None on the pinned vectors. The kernel binary behavior is unchanged: the same in
 ## Not in this request
 
 No new damage, cost, or invulnerability number. Those stay the pinned roll values until the kernel grows a blink of its own.
+
+## See also
+
+CR-003 is the threat-geometry seam. `TryCreateGames` takes an optional ruleset. Null keeps the path this note describes. The dais and the thrown spear are not part of the blink request.

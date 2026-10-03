@@ -41,6 +41,8 @@ private:
 		FVector LastCm = FVector::ZeroVector;
 		double GhostUntil = 0.0;
 		bool bLive = false;
+		// A thrown spear is a cylinder. A bolt or a stone stays a sphere. Recycle only the matching mesh.
+		bool bSpear = false;
 	};
 
 	struct FRing
@@ -58,7 +60,7 @@ private:
 
 	UStaticMeshComponent* MakePart(const TCHAR* Shape, const FLinearColor& Colour);
 	FBody& BodyFor(int32 Id, bool bSlinger);
-	FShot& ShotFor(int32 Id);
+	FShot& ShotFor(int32 Id, bool bSpear);
 	FRing& RingFor(int32 Id);
 	void HideUnused(const TSet<int32>& LiveIds, double Now, bool bPaused);
 	void EnsureCuff();

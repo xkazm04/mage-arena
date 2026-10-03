@@ -53,6 +53,8 @@ public:
 	void SetViewAim(const FSimVec& Aim);
 
 	const FGames& GetGames() const { return Games; }
+	// Null when this bout was created without the VR overlay. Conformance never starts a session.
+	const FVrRuleset* GetVrRules() const { return Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr; }
 	const TArray<FString>& GetChain() const { return Chain; }
 	const FArenaLayout& GetLayout() const { return Layout; }
 	bool HasLayout() const { return bHasLayout; }

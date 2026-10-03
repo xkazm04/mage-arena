@@ -12,6 +12,19 @@ const rules = [
   [/\brm\s+-[a-z]*r[a-z]*f|Remove-Item\b.*-Recurse/i, 'no recursive deletes; ask the orchestrator'],
   [/ELEVENLABS_API_KEY|\.env\b/i, 'secrets are read only by tools the card names, never echoed'],
 ];
+// Review mode: `--mode plan` does NOT stop agy from editing files or building (observed 2026-10-03, T10 review), so a
+// read-only review is enforced here. With AGY_READONLY=1 only reading, listing and searching are allowed.
+if (process.env.AGY_READONLY === '1') {
+  const name = String(call.name ?? '');
+  const readTool = /^(view|read|list|grep|search|find|glob|codebase|get)/i.test(name) || /(_read|_view|_list|_search)$/i.test(name);
+  const readCmd = /^\s*(git\s+(diff|show|log|status|ls-files|grep)\b|rg\b|grep\b|cat\b|type\b|head\b|tail\b|wc\b|ls\b|dir\b|findstr\b|Get-Content\b|Select-String\b|node\s+-e\s+"[^"]*readFileSync)/i.test(cmd)
+    && !/[>|]\s*(?!\s*(head|tail|wc|grep|findstr|Select-String))/i.test(cmd.replace(/2>&1|2>\$null|2>\/dev\/null/g, ''));
+  const allowed = cmd ? readCmd : readTool;
+  if (!allowed) {
+    process.stdout.write(JSON.stringify({ decision: 'deny', reason: `read-only review: ${cmd ? 'command' : 'tool ' + name} is not a read` }));
+    process.exit(0);
+  }
+}
 const hit = rules.find(([re]) => re.test(cmd));
 process.stdout.write(JSON.stringify(hit
   ? { decision: 'deny', reason: hit[1] }

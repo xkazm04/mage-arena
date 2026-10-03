@@ -195,7 +195,14 @@ bool FArenaSession::Start(uint32 Seed)
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session layout failed: %s"), *Error);
 	}
-	if (!TryCreateGames(Games, Seed, Preset, 0, false))
+	FVrRuleset Rules;
+	FString RulesError;
+	if (!LoadVrRuleset(Rules, RulesError))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("Session start failed: %s"), *RulesError);
+		return false;
+	}
+	if (!TryCreateGames(Games, Seed, Preset, 0, false, false, &Rules))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -536,6 +543,7 @@ double FArenaSession::SoonestThreat(double MeleeEta, double ProjectileEta, bool 
 	}
 	const double Step = SimDt();
 	const FKernelData& Data = KernelData();
+	const FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
 	for (const FActor& Actor : Games.State.Actors)
 	{
 		if (Actor.Id == Player->Id || Actor.bDown || Actor.Team == Player->Team || !Actor.Enemy.IsSet())
@@ -547,7 +555,16 @@ double FArenaSession::SoonestThreat(double MeleeEta, double ProjectileEta, bool 
 		{
 			continue;
 		}
-		const FAttackSpec& Attack = Spec->Attacks[Actor.Enemy->AttackIndex % Spec->Attacks.Num()];
+		// A throw-mode conscript is a projectile for the existing script. Thresholds stay put.
+		FAttackSpec Attack = Spec->Attacks[Actor.Enemy->AttackIndex % Spec->Attacks.Num()];
+		if (Rules && Rules->bActive)
+		{
+			if (const FVrAttackMode* Mode = Rules->FindThrow(Spec->Id))
+			{
+				Attack.ProjectileMps = Mode->ProjectileMps;
+				Attack.RangeM = Mode->RangeM;
+			}
+		}
 		const bool bRanged = Attack.ProjectileMps.IsSet();
 		if (bMeleeOnly && bRanged)
 		{

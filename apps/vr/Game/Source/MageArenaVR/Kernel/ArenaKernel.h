@@ -26,7 +26,7 @@ FActor& AddMage(FArenaState& State, int32 Team, const FSimVec& Pos, const FStrin
 void Emit(FArenaState& State, const TCHAR* Kind, const FActor& Actor, double Value = 0.0, const TOptional<int32>& TargetId = {});
 void Interrupt(FArenaState& State, FActor& Actor);
 FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit);
-FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec& Origin, const FSimVec& Direction, double SpeedMps, double RangeM, TOptional<double> Radius = {});
+FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec& Origin, const FSimVec& Direction, double SpeedMps, double RangeM, TOptional<double> Radius = {}, TOptional<FSimVec> AimedAt = {});
 void UpdateClock(FArenaState& State, FActor& Actor);
 void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs);
 void StepArena(FArenaState& State);

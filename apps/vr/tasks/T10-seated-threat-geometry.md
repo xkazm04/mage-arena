@@ -1,6 +1,6 @@
 # T10 - Seated threat geometry: enemies fight from the floor, nothing reaches the dais (DF-001 option A)
 
-Status: dispatched 2026-10-03
+Status: done (option A implemented and verified 2026-10-03; seated Wave 1 still loses - DF-001 updated)
 Max turns: 260
 
 ## Goal

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Kernel/SimTypes.h"
+#include "Kernel/VrRules.h"
 
 // games.ts. Tiro is arena-tiers index 0, the same tier the pinned machine plays.
 
@@ -35,6 +36,8 @@ struct FGames
 	TArray<FSpawnRecord> SpawnLog;
 	// False keeps the pinned water-proxy duelists. Fire scenarios opt in.
 	bool bFireMages = false;
+	// Set only when a session passes the VR overlay. Conformance leaves this empty.
+	TOptional<FVrRuleset> VrRules;
 };
 
 struct FFightReport
@@ -57,7 +60,7 @@ struct FFightReport
 };
 
 // False when the wave index is outside Tiro. Does not checkf: the caller is a test.
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false, bool bFireMages = false);
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false, bool bFireMages = false, const FVrRuleset* Rules = nullptr);
 void StepGames(FGames& Games, const FInputFrame* PlayerInput = nullptr);
 // False unless the phase is intermission.
 bool TryAdvanceGames(FGames& Games);
