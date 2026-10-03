@@ -1,0 +1,42 @@
+{
+  "card": "A07",
+  "purpose": "style-neutral environment kit and arena character references for the greybox and later 3D work",
+  "style_block": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers.",
+  "items": [
+    {
+      "asset": "01-stands-kit",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Modular kit sheet for a Roman-era arena grandstand, each piece shown separately in orthographic front view and side view on the grid: a straight seating tier step module, a curved seating tier module, a stair module between tiers, a short column, and a stone railing segment. Pieces evenly spaced, same scale, no people.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/environment-kit/01-stands-kit.jpg"
+    },
+    {
+      "asset": "02-wall-gate-kit",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Modular kit sheet for an oval Roman-era arena wall, each piece shown separately in orthographic front and side views: a straight wall segment with a low parapet, a curved wall segment, a gate arch with a wooden portcullis, and a small elevated balcony for watching wardens. Same scale, evenly spaced, no people.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/environment-kit/02-wall-gate-kit.jpg"
+    },
+    {
+      "asset": "03-arena-props",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Prop sheet of arena furniture, each prop separately on the grid in front three-quarter view at the same scale: a low stone seat for one seated person, a flat round stone floor disc with a single carved circular groove, a tall cloth banner on a wooden pole, an iron brazier on three legs, a wooden weapon rack, and a small heap of sand.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/environment-kit/03-arena-props.jpg"
+    },
+    {
+      "asset": "04-crowd-cards",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Sheet of simple spectator figures for a distant crowd, a row of seated and standing Roman-era spectators in tunics and cloaks in varied poses: sitting calmly, leaning forward, cheering with raised arms, pointing, standing and clapping, all at the same scale, front view, simplified forms readable as silhouettes at a distance.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/environment-kit/04-crowd-cards.jpg"
+    },
+    {
+      "asset": "05-warden-turnaround",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Turnaround of an arcane warden, a tall figure in long grey hooded robes with a simple bronze staff and a stern bare face visible under the hood: front, side and back full-body views side by side in a neutral standing pose at the same scale.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/environment-kit/05-warden-turnaround.jpg"
+    }
+  ]
+}
