@@ -1,6 +1,6 @@
 # A04 - Style-neutral model and animation reference sheets (images, no Unreal build)
 
-Status: open
+Status: done (reviewed by orchestrator 2026-10-03; sheet 02 replaced via agy)
 Max turns: 140
 
 ## Goal

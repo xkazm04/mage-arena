@@ -1,0 +1,129 @@
+{
+  "card": "A04",
+  "generated": "2026-10-03",
+  "note": "seconds is the wall-clock of the parallel batch that returned the kept image, in seconds, measured from the batch request to the clock read after those files existed. The image tool has no negative-prompt field; each negative list was appended as 'Avoid: \u2026'. Successful calls did not echo a model id and this run had no rate-limit body, so model is null. approximate_cost is null because the tool reported none. Where a later pass was worse, an earlier pass was kept; regen_reasons names the rejected passes.",
+  "items": [
+    {
+      "style": "neutral",
+      "asset": "01-fire-mage-key-poses",
+      "path": "apps/vr/art/model-sheets/01-fire-mage-key-poses.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 raised an open hand beside the head for the wind-up, and the fourth pose read as a throwing follow-through",
+        "pass 2 lifted the release hand overhead instead of thrusting it forward"
+      ],
+      "seconds": 18
+    },
+    {
+      "style": "neutral",
+      "asset": "02-fire-mage-cast-sequence",
+      "path": "apps/vr/art/model-sheets/02-fire-mage-cast-sequence.jpg",
+      "tool": "agy",
+      "model": "gemini-3.8-flash-high (Antigravity image tool)",
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 showed five throw frames of a bald robed figure beside a three-view turnaround",
+        "pass 3 stayed a hooded faceless figure, dropped back to five frames, and left the side camera on the last frame; pass 2 kept",
+        "orchestrator: Grok passes drew a hooded robed figure, not the fire mage; replaced by one agy generation with the subject restated (bare-headed, bearded, no hood)"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "neutral",
+      "asset": "03-conscript-turnaround",
+      "path": "apps/vr/art/model-sheets/03-conscript-turnaround.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 37
+    },
+    {
+      "style": "neutral",
+      "asset": "04-slinger-turnaround",
+      "path": "apps/vr/art/model-sheets/04-slinger-turnaround.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 37
+    },
+    {
+      "style": "neutral",
+      "asset": "05-cinder-hound-turnaround",
+      "path": "apps/vr/art/model-sheets/05-cinder-hound-turnaround.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 drew the third view as a seated underside with extra paw shapes",
+        "pass 3 raised the forelegs on the third view and still gave a low rear view instead of a top view; pass 2 kept"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "neutral",
+      "asset": "06-mire-maw-turnaround",
+      "path": "apps/vr/art/model-sheets/06-mire-maw-turnaround.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 37
+    },
+    {
+      "style": "neutral",
+      "asset": "07-cinder-hound-key-poses",
+      "path": "apps/vr/art/model-sheets/07-cinder-hound-key-poses.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 made the idle a sprint and reared the hound up for the hit reaction",
+        "pass 3 reared the hound again and snarled the idle; pass 2 kept for the low watchful crouch"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "neutral",
+      "asset": "08-hand-gestures-first-person",
+      "path": "apps/vr/art/model-sheets/08-hand-gestures-first-person.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 2 dropped the traced circle and tangled the seal so the fingers could not be counted",
+        "pass 3 added a second hand in the trace panel and the flick panel, plus wrist bands; pass 1 kept"
+      ],
+      "seconds": 37
+    }
+  ],
+  "totals": {
+    "images": 8,
+    "by_tool": {
+      "grok": 7,
+      "agy": 1
+    },
+    "failures": 0,
+    "regenerations": 10,
+    "approximate_cost": null
+  }
+}

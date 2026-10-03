@@ -5,3 +5,4 @@
   an `agy` review on 2026-10-02). Fixed in T04. Regression test: `MageArena.Clips.NoEmitAfterEnd`.
 - [ ] Mudra glyph (`apps/vr/art/glyphs/sigil-mudra*`) is an arch traced from the synthetic mudra clip - it needs a deliberate seal design (creative pass for the orchestrator + owner, not a worker). Found in A03 review 2026-10-03.
 - [ ] Chalk & Slate glyphs on a light ground are low-contrast by nature; if 30 wins the style pick, define the light-UI variant separately.
+- [ ] Fire mage hair is inconsistent between model sheets (01 key poses: short hair; 02 cast sequence: bald). Settle the head when modelling starts.
