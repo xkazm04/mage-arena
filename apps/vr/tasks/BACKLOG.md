@@ -7,3 +7,4 @@
 - [ ] Chalk & Slate glyphs on a light ground are low-contrast by nature; if 30 wins the style pick, define the light-UI variant separately.
 - [ ] Fire mage hair is inconsistent between model sheets (01 key poses: short hair; 02 cast sequence: bald). Settle the head when modelling starts.
 - [ ] SFX loudness is only peak-normalised (all cues -1 dBFS peak); balance relative loudness (e.g. ui-pause, flow-stack quieter than impacts) when audio is wired in Unreal. Crowd loop join may click softly (A05 report). From A05 review 2026-10-03.
+- [ ] Environment kit (A07) wall pieces carry medieval crenellations - not Roman amphitheatre; drop them when modelling. The "low stone seat" came out as a bench with a backrest; the player seat should be a backless low block. From A07 review 2026-10-03.

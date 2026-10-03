@@ -1,0 +1,82 @@
+{
+  "card": "A07",
+  "generated": "2026-10-03",
+  "note": "seconds is the wall-clock of the parallel batch that returned the kept image, in seconds, measured from the batch request to the clock read after those files existed. The image tool has no negative-prompt field; each negative list was appended as 'Avoid: \u2026'. Successful calls did not echo a model id and this run had no rate-limit body, so model is null. approximate_cost is null because the tool reported none. Where a later pass was worse, an earlier pass was kept; regen_reasons names the rejected passes.",
+  "items": [
+    {
+      "style": "neutral",
+      "asset": "01-stands-kit",
+      "path": "apps/vr/art/environment-kit/01-stands-kit.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 31
+    },
+    {
+      "style": "neutral",
+      "asset": "02-wall-gate-kit",
+      "path": "apps/vr/art/environment-kit/02-wall-gate-kit.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 drew two front elevations of the straight wall and two similar views of the curve, with no side view of either wall"
+      ],
+      "seconds": 15
+    },
+    {
+      "style": "neutral",
+      "asset": "03-arena-props",
+      "path": "apps/vr/art/environment-kit/03-arena-props.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 31
+    },
+    {
+      "style": "neutral",
+      "asset": "04-crowd-cards",
+      "path": "apps/vr/art/environment-kit/04-crowd-cards.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 had four figures and no standing clap, and the pointing figure was in profile",
+        "pass 3 cropped the upper row, used two scales, and repeated the clap and the cheer; pass 2 kept"
+      ],
+      "seconds": 15
+    },
+    {
+      "style": "neutral",
+      "asset": "05-warden-turnaround",
+      "path": "apps/vr/art/environment-kit/05-warden-turnaround.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 31
+    }
+  ],
+  "totals": {
+    "images": 5,
+    "by_tool": {
+      "grok": 5,
+      "agy": 0
+    },
+    "failures": 0,
+    "regenerations": 3,
+    "approximate_cost": null
+  }
+}

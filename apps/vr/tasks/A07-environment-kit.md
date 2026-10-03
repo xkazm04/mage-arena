@@ -1,6 +1,6 @@
 # A07 - Style-neutral environment kit and arena character sheets (images, no Unreal build)
 
-Status: open
+Status: done (images reviewed by orchestrator 2026-10-03)
 Max turns: 140
 
 ## Goal
