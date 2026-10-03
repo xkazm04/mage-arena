@@ -1,6 +1,6 @@
 # T04 - Palm ward detection and the perfect-absorb window
 
-Status: dispatched 2026-10-03
+Status: retry 1 dispatched 2026-10-03
 Max turns: 220
 
 ## Goal
@@ -75,3 +75,31 @@ type apps\vr\Game\Saved\Reports\ward-timing.json
 ## Report
 Write `runs/T04/REPORT.md`: files, acceptance outputs, the latency table, thresholds chosen (onset speed, angle,
 hysteresis) and why, how the resolver reads the pinned data, anything you could not do with the exact error.
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+All 12 `MageArena.*` tests pass and the latency table is good, but an independent review (items 1 and 3 verified in the
+code by the orchestrator) shows real-hand failure modes the synthetic tests cannot see. Fix each AND add a test that
+fails before the fix:
+
+1. **Onset walks into the previous lowering** (`WardDetector.cpp:115-131`): `FindOnset` has no lower bound, so a quick
+   re-raise latches onto the downward stroke and reports an onset *before* `LoweredTime` (the `KindsAndArc` short gap
+   is -0.083 s, which makes its "not fresh" assertion pass for the wrong reason). Bound the walk-back at the last
+   lowering. Test: rapid lower-then-raise clips; onset must be >= LoweredTime, freshness decided by the true gap.
+2. **80 ms walk-back tail** (`WardDetector.h:24`): a real hand that decelerates and settles at the top for more than
+   80 ms before confirmation returns `confirm - 0.08 s`, not the motion onset. Add a "settle" clip variant (rise, then
+   0.15-0.30 s nearly still at the top, then confirm) and make onset still land within +/-1 frame for injected latency
+   <= 60 ms. Choose the tail from that test, not by feel; report it.
+3. **Starting already raised counts as fresh** (`WardDetector.cpp:209`): with `!bEverLowered` the first raise is always
+   fresh, so a hand that enters tracking already in the ward pose can perfect. A raise is fresh only after an observed
+   lowered state. Test: a clip that starts in the raised pose and stays there under a bolt stream: 0 perfects.
+4. **Hold resume after a finished lowering** (`HandClipPlayer.cpp:84-87`): `CanResumeHold` returns true when the clip
+   stopped, so the next Space press resumes instead of reloading (and ignores a new Shift/Ctrl variant). Test: hold,
+   release fully, hold again with Shift - the sloppy clip plays.
+5. **Space consumed by Enhanced Input** (`MageArenaPlayerController.cpp:~144`): with `bConsumeInput = true` the
+   held-key polling in `PlayerTick` never sees Space, so aim does not follow the view while held, and releasing RMB while
+   Space is held drops the ward. Fix and cover with a test of the hold-state logic (no rendering needed).
+6. **Degenerate hit direction counts as inside the arc** (`AbsorbResolver.cpp:~128`): a hit with zero horizontal
+   component returns "inside". Treat it as outside (or resolve by the 3D direction) and assert it in `KindsAndArc`.
+
+Keep the 0.15 s window and every existing test. Report before/after numbers, the new tests, and the chosen tail.
