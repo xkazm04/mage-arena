@@ -1,6 +1,6 @@
 # A02 - Greybox arena, seated desktop view, visible hands, threat-colour placeholders, screenshots
 
-Status: open
+Status: retry 1 dispatched 2026-10-03
 Max turns: 260
 
 ## Goal
@@ -60,3 +60,36 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
 powershell -NoProfile -File apps/vr/tools/capture-greybox.ps1     # screenshots + budget.json
 ```
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+The greybox renders and 22/22 tests pass, but the orchestrator's look at the five screenshots plus an independent
+review found defects that matter for the game's core readability. Fix all of them, keep every test green, and
+re-capture. Do not weaken any check.
+
+1. **Triangle count is not measured.** `GreyboxCapture.cpp:~226` reads `GNumPrimitivesDrawnRHI[0]`, which misses UE5's
+   GPU-scene indirect draws (median 117 triangles for this scene is impossible), and the CSV fallback in
+   `capture-greybox.ps1` is skipped because that counter is non-zero. Measure triangles in a way that includes indirect
+   draws (CSV profiler with an explicit capture-frame count, render stats, or summing the LOD0 triangles of the visible
+   spawned static mesh components) and add a **plausibility check**: the measured count must be at least the sum of
+   the spawned components' LOD0 triangles that are in view, or the capture fails. Report both numbers.
+2. **Threat colours are dull.** Rings use lit `BasicShapeMaterial` under an 8-lux sun and threats use the translucent
+   `M_SimpleUnlitTranslucent`, so vermilion renders brown and concentric shells wash out. Render the four threat bodies
+   and their ground rings **opaque and unlit (or emissive)** with an engine material that has a colour parameter (no
+   binary assets). **Measurable acceptance:** in `04-threats-midflight.png`, sample each threat's centre pixel (project
+   its world position to the screenshot) and report its colour; each must be within a small distance (e.g. delta E
+   2000 <= 10, state the metric) of its target: water #19E0E0-ish turquoise, fire vermilion #E2421F-ish, steel a light
+   neutral grey, unblockable core near-black with a visible red rim. The unblockable's rim must not hide its black core
+   (`ThreatDemo.cpp:~221`): use a ring or rim shell that leaves the core visible.
+3. **Ward arc is too large** (`03-ward-arc.png`: it fills most of the lower view). Make it a 140-degree arc about 0.4-0.6 m
+   in radius centred in front of the off-hand palm, so the arena and incoming threats stay visible above it.
+4. **Period and sky:** remove the merlons/crenellations from the ring wall (a Roman amphitheatre has a plain parapet),
+   and give the scene a dusk sky instead of black (runtime-spawned sky atmosphere/sky light/height fog components or a
+   simple gradient dome - no binary assets).
+5. Review findings: telegraph rings landing on the dais must sit on the dais top, not 0.6 m inside it
+   (`ThreatDemo.cpp:~200`); mouse pitch is inverted (`MageArenaPlayerController.cpp:~135`); yaw is not clamped on
+   init/recentre (`MageArenaPawn.cpp:~186`); `GreyboxTests.cpp:~78` asserts a tautology (eye height) - test the pawn's
+   actual camera height after `BlinkToPad` instead; the threat-spawner test must not early-return under `-nullrhi`
+   without asserting something.
+
+Report before/after for every item, the pixel-colour table, and the corrected budget numbers.
