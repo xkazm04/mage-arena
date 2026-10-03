@@ -1,6 +1,6 @@
 # A08 - The wrist-cuff HUD as exact vector art, every state, three palettes (no Unreal build)
 
-Status: open
+Status: done (reviewed by orchestrator 2026-10-03)
 Max turns: 140
 
 ## Goal
