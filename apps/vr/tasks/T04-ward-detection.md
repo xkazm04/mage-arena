@@ -1,6 +1,6 @@
 # T04 - Palm ward detection and the perfect-absorb window
 
-Status: retry 1 dispatched 2026-10-03
+Status: done after retry 1 (verified 2026-10-03; follow-up T04b)
 Max turns: 220
 
 ## Goal

@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "Gestures/MouseSigilCapture.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
+#include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
@@ -19,6 +20,7 @@ struct FQuickActionKey
 	FKey Key;
 	FName Action;
 	bool bPause = false;
+	bool bHold = false;
 };
 
 // One table. The mapping context and PlayQuickAction calls are built from it.
@@ -28,12 +30,52 @@ const FQuickActionKey GQuickActionKeys[] = {
 	{ EKeys::Three, TEXT("sigil-line3"), false },
 	{ EKeys::Four, TEXT("mudra"), false },
 	{ EKeys::Q, TEXT("bolt"), false },
-	{ EKeys::SpaceBar, TEXT("ward-raise"), false },
+	{ EKeys::SpaceBar, TEXT("ward-raise"), false, true },
 	{ EKeys::A, TEXT("blink-left"), false },
 	{ EKeys::D, TEXT("blink-right"), false },
 	{ EKeys::S, TEXT("blink-back"), false },
 	{ EKeys::Escape, NAME_None, true },
 };
+}
+
+FWardHoldStep StepWardHold(const FWardHoldKeys& Prev, const FWardHoldKeys& Now)
+{
+	FWardHoldStep Step;
+	const bool bWasHeld = Prev.bSpaceDown || Prev.bRightDown;
+	const bool bHeld = Now.bSpaceDown || Now.bRightDown;
+	Step.bHeld = bHeld;
+	Step.bPress = bHeld && !bWasHeld;
+	Step.bRelease = bWasHeld && !bHeld;
+	Step.bAim = bHeld && !Step.bPress;
+	Step.bAimFromCursor = Now.bRightDown;
+	return Step;
+}
+
+FVector ResolveWardAim(bool bFromCursor, const FVector& CursorDirection, const FVector& ViewDirection)
+{
+	auto Flat = [](const FVector& Direction) -> FVector
+	{
+		const FVector Horizontal(Direction.X, Direction.Y, 0.0);
+		if (Horizontal.IsNearlyZero())
+		{
+			return FVector::ZeroVector;
+		}
+		return Horizontal.GetSafeNormal();
+	};
+	if (bFromCursor)
+	{
+		const FVector Cursor = Flat(CursorDirection);
+		if (!Cursor.IsNearlyZero())
+		{
+			return Cursor;
+		}
+	}
+	const FVector View = Flat(ViewDirection);
+	if (View.IsNearlyZero())
+	{
+		return FVector::ForwardVector;
+	}
+	return View;
 }
 
 AMageArenaPlayerController::AMageArenaPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -64,6 +106,27 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 	{
 		MouseCapture->Sample(this, DeltaTime);
 	}
+	FWardHoldKeys Now;
+	// The action latch covers a consumed Space key. The poll covers the same key once it is not consumed.
+	Now.bSpaceDown = bSpaceFromAction || IsInputKeyDown(EKeys::SpaceBar);
+	Now.bRightDown = IsInputKeyDown(EKeys::RightMouseButton);
+	const FWardHoldStep Step = StepWardHold(WardKeys, Now);
+	if (Step.bPress)
+	{
+		PressWard(Step.bAimFromCursor);
+	}
+	else if (Step.bRelease)
+	{
+		if (UHandInputSubsystem* Hands = HandsOrNull())
+		{
+			Hands->SetWardHeld(false, EClipVariant::Normal);
+		}
+	}
+	else if (Step.bAim)
+	{
+		AimWard(Step.bAimFromCursor);
+	}
+	WardKeys = Now;
 }
 
 void AMageArenaPlayerController::SetupInputComponent()
@@ -85,6 +148,28 @@ void AMageArenaPlayerController::SetupInputComponent()
 			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Triggered, [this](const FInputActionValue&)
 			{
 				UE_LOG(LogMageArena, Log, TEXT("Pause reserved (Esc); no clip played"));
+			});
+			continue;
+		}
+		if (Binding.bHold)
+		{
+			// The action sees Space even when a consumed key would hide it from IsInputKeyDown.
+			// PlayerTick turns this latch into the hold chord. These lambdas do not press or release.
+			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Started, [this](const FInputActionValue&)
+			{
+				bSpaceFromAction = true;
+			});
+			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Triggered, [this](const FInputActionValue&)
+			{
+				bSpaceFromAction = true;
+			});
+			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Completed, [this](const FInputActionValue&)
+			{
+				bSpaceFromAction = false;
+			});
+			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Canceled, [this](const FInputActionValue&)
+			{
+				bSpaceFromAction = false;
 			});
 			continue;
 		}
@@ -114,11 +199,22 @@ void AMageArenaPlayerController::EnsureMapping()
 	{
 		UInputAction* Action = NewObject<UInputAction>(this);
 		Action->ValueType = EInputActionValueType::Boolean;
-		Action->bConsumeInput = true;
+		// A consumed Space key never reaches IsInputKeyDown, so aim froze and releasing
+		// the right button dropped a ward that Space was still holding.
+		Action->bConsumeInput = !Binding.bHold;
+		Action->bConsumesActionAndAxisMappings = false;
 		Actions.Add(Action);
 		FEnhancedActionKeyMapping& Mapped = MappingContext->MapKey(Action, Binding.Key);
-		UInputTriggerPressed* Pressed = NewObject<UInputTriggerPressed>(MappingContext);
-		Mapped.Triggers.Add(Pressed);
+		if (Binding.bHold)
+		{
+			UInputTriggerDown* Down = NewObject<UInputTriggerDown>(MappingContext);
+			Mapped.Triggers.Add(Down);
+		}
+		else
+		{
+			UInputTriggerPressed* Pressed = NewObject<UInputTriggerPressed>(MappingContext);
+			Mapped.Triggers.Add(Pressed);
+		}
 	}
 }
 
@@ -172,4 +268,67 @@ EClipVariant AMageArenaPlayerController::VariantFromModifiers() const
 		return EClipVariant::Slow;
 	}
 	return EClipVariant::Normal;
+}
+
+void AMageArenaPlayerController::PressWard(bool bFromCursor)
+{
+	AimWard(bFromCursor);
+	if (UHandInputSubsystem* Hands = HandsOrNull())
+	{
+		Hands->SetWardHeld(true, VariantFromModifiers());
+	}
+	else
+	{
+		UE_LOG(LogMageArena, Error, TEXT("Ward hold: hand input subsystem missing"));
+	}
+}
+
+void AMageArenaPlayerController::AimWard(bool bFromCursor)
+{
+	const FVector Aim = WardAimDirection(bFromCursor);
+	const double Yaw = FMath::Atan2(Aim.Y, Aim.X);
+	if (UHandInputSubsystem* Hands = HandsOrNull())
+	{
+		Hands->SetAimYaw(Yaw);
+	}
+	if (UGameInstance* Instance = GetGameInstance())
+	{
+		if (UWardDetectorSubsystem* Wards = Instance->GetSubsystem<UWardDetectorSubsystem>())
+		{
+			Wards->SetAimFacing(Aim);
+		}
+	}
+}
+
+FVector AMageArenaPlayerController::WardAimDirection(bool bFromCursor) const
+{
+	FVector Cursor = FVector::ZeroVector;
+	if (bFromCursor)
+	{
+		FVector Origin = FVector::ZeroVector;
+		FVector Direction = FVector::ZeroVector;
+		if (DeprojectMousePositionToWorld(Origin, Direction))
+		{
+			Cursor = Direction;
+		}
+	}
+	return ResolveWardAim(bFromCursor, Cursor, GetControlRotation().Vector());
+}
+
+bool AMageArenaPlayerController::IsQuickActionConsuming(const FKey& Key) const
+{
+	for (int32 Index = 0; Index < UE_ARRAY_COUNT(GQuickActionKeys); ++Index)
+	{
+		if (GQuickActionKeys[Index].Key == Key)
+		{
+			return Actions.IsValidIndex(Index) && Actions[Index] && Actions[Index]->bConsumeInput;
+		}
+	}
+	return true;
+}
+
+UHandInputSubsystem* AMageArenaPlayerController::HandsOrNull() const
+{
+	UGameInstance* Instance = GetGameInstance();
+	return Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr;
 }

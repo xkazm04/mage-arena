@@ -9,6 +9,8 @@
 /**
  * Plays a loaded clip as an IHandSource. Game time samples by t.
  * Tests call Step with a fixed dt; that path does not use the world tick.
+ * After the clip ends, Step emits nothing. A hold is the exception: the pose
+ * stays latched and each Step stamps a new time until EndHold reverses it.
  */
 UCLASS()
 class MAGEARENAVR_API UHandClipPlayer : public UObject, public FTickableGameObject, public IHandSource
@@ -21,6 +23,20 @@ public:
 	void Play(const FHandClip& InClip);
 	void Stop();
 	void Step(double DeltaSeconds);
+
+	/** Latch the pose at HoldPoseTime and keep streaming it while the caller holds. */
+	void BeginHold(double InHoldPoseTime);
+	/** Sample the clip backward from the current pose down to the start. */
+	void EndHold();
+	/** True only while the hold clip is still lowering. A finished lower reloads on the next press. */
+	bool CanResumeHold() const;
+	/** Continue that hold without restarting the emit clock. */
+	void ResumeHold();
+	/** Yaw the emitted hand around seated +Z. Zero keeps the clip's authored facing. */
+	void SetAimYaw(double YawRadians);
+
+	/** First sample of the settled palm pose. Ward-raise's hold lives there. */
+	static double FindPlateauStart(const FHandClip& Clip, EControllerHand Hand);
 
 	bool IsPlaying() const { return bPlaying; }
 	double GetTime() const { return TimeSeconds; }
@@ -39,14 +55,23 @@ public:
 	virtual void BeginDestroy() override;
 
 private:
-	void Emit();
+	void EmitSample(double SampleAt, double StampTime);
+	void ApplyAimYaw(FHandFrame& Frame) const;
+	void RefreshTick();
 
 	FHandClip Clip;
 	double TimeSeconds = 0.0;
+	double SampleTime = 0.0;
 	double Duration = 0.0;
+	double HoldPoseTime = 0.0;
+	double AimYawRadians = 0.0;
 	uint64 Sequence = 0;
 	bool bHasClip = false;
 	bool bPlaying = false;
+	bool bHoldArmed = false;
+	bool bHoldEmitting = false;
+	bool bLowering = false;
+	bool bHoldClip = false;
 	bool bHasLeft = false;
 	bool bHasRight = false;
 	FHandFrame LatestLeft;

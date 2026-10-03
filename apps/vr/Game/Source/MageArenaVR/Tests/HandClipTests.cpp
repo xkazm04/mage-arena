@@ -360,4 +360,79 @@ bool FMageArenaClipsQuickActionPath::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaClipsNoEmitAfterEnd, "MageArena.Clips.NoEmitAfterEnd",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaClipsNoEmitAfterEnd::RunTest(const FString& Parameters)
+{
+	UHandClipPlayer* Player = NewDirectPlayer(GetTransientPackage());
+	FHandClip Clip;
+	FString Error;
+	const FString Path = FHandClip::MakeFilePath(TEXT("bolt"), EClipVariant::Normal);
+	if (!FHandClip::LoadFromFile(Path, Clip, Error))
+	{
+		AddError(Error);
+		DestroyPlayer(Player);
+		return false;
+	}
+	if (Clip.GetHands().Num() == 0)
+	{
+		AddError(TEXT("bolt.normal has no hands"));
+		DestroyPlayer(Player);
+		return false;
+	}
+
+	int32 Emits = 0;
+	Player->OnHandFrame().AddLambda([&Emits](const FHandFrame&)
+	{
+		++Emits;
+	});
+	Player->Play(Clip);
+
+	int32 Guard = 0;
+	while (Player->IsPlaying() && Guard < 1000)
+	{
+		Player->Step(1.0 / 90.0);
+		++Guard;
+	}
+
+	const uint64 Sequence = Player->GetFrameSequence();
+	const int32 EmitsAtEnd = Emits;
+	TArray<double> LatestTimes;
+	for (const EControllerHand Hand : Clip.GetHands())
+	{
+		FHandFrame Latest;
+		if (!Player->GetLatest(Hand, Latest))
+		{
+			AddError(TEXT("GetLatest failed at the end of bolt.normal"));
+			DestroyPlayer(Player);
+			return false;
+		}
+		LatestTimes.Add(Latest.TimeSeconds);
+	}
+
+	Player->Step(1.0 / 90.0);
+	Player->Step(0.5);
+	Player->Step(1.0);
+
+	bool bPass = true;
+	bPass &= TestFalse(TEXT("playback finished"), Player->IsPlaying());
+	bPass &= TestTrue(TEXT("sequence frozen after the end"), Player->GetFrameSequence() == Sequence);
+	bPass &= TestEqual(TEXT("no emits after the end"), Emits, EmitsAtEnd);
+	bPass &= TestTrue(TEXT("the clip itself emitted"), EmitsAtEnd > 0);
+	for (int32 Index = 0; Index < Clip.GetHands().Num(); ++Index)
+	{
+		FHandFrame After;
+		if (!Player->GetLatest(Clip.GetHands()[Index], After))
+		{
+			AddError(TEXT("GetLatest failed after extra steps"));
+			bPass = false;
+			break;
+		}
+		bPass &= TestEqual(TEXT("latest time unchanged"), After.TimeSeconds, LatestTimes[Index]);
+	}
+	DestroyPlayer(Player);
+	return bPass;
+}
+
 #endif

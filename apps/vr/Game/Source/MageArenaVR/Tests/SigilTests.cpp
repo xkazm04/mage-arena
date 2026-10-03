@@ -652,8 +652,8 @@ bool FMageArenaSigilsEndToEnd::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	// Step on the clip's own sample times and stop at Duration. UHandClipPlayer::Step ignores
-	// bPlaying and would re-emit the last frame if stepped past the end (T04 owns that bug).
+	// Step on the clip's own sample times and stop at Duration.
+	// Stepping past the end no longer emits (MageArena.Clips.NoEmitAfterEnd).
 	const double Duration = Player->GetDuration();
 	for (int32 Index = 1; Index < Right->Frames.Num(); ++Index)
 	{

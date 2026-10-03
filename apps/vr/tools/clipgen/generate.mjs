@@ -616,6 +616,60 @@ function sampleWard(spec, t, timeScale, params) {
   }];
 }
 
+// Rise, then sit nearly still short of the raised pose, then rotate into it.
+// The still span is the top of the 0.15–0.30 s range the onset tail has to cross.
+const SETTLE_RISE_S = 0.22;
+const SETTLE_STILL_S = 0.30;
+const SETTLE_ORIENT_S = 0.12;
+const SETTLE_HOLD_DEG = 55;
+const SETTLE_DURATION_S = SETTLE_RISE_S + SETTLE_STILL_S + SETTLE_ORIENT_S;
+
+function settleAxes(deg) {
+  const rad = (deg * Math.PI) / 180;
+  return {
+    normal: v3(Math.cos(rad), 0, Math.sin(rad)),
+    finger: v3(-Math.sin(rad), 0, Math.cos(rad)),
+  };
+}
+
+function sampleWardSettle(t) {
+  const start = restPose('L');
+  const endPos = v3(0.36, -0.12, 0.36);
+  const held = settleAxes(SETTLE_HOLD_DEG);
+  const endNormal = v3(1, 0, 0);
+  const endFinger = v3(0, 0, 1);
+  const stillStart = SETTLE_RISE_S;
+  const orientStart = SETTLE_RISE_S + SETTLE_STILL_S;
+  let palm;
+  let normal;
+  let finger;
+  if (t <= stillStart) {
+    const u = ease(t / stillStart);
+    palm = lerp(start.pos, endPos, u);
+    const turned = slerpAxes(start.normal, start.finger, held.normal, held.finger, u);
+    normal = turned.normal;
+    finger = turned.finger;
+  } else if (t <= orientStart) {
+    palm = endPos;
+    normal = held.normal;
+    finger = held.finger;
+  } else {
+    const u = ease(clamp01((t - orientStart) / SETTLE_ORIENT_S));
+    palm = endPos;
+    const turned = slerpAxes(held.normal, held.finger, endNormal, endFinger, u);
+    normal = turned.normal;
+    finger = turned.finger;
+  }
+  return [{
+    side: 'L',
+    palm,
+    normal,
+    finger,
+    curls: CURLS.open,
+    pinch: 0,
+  }];
+}
+
 function sampleMudra(spec, t, timeScale, params) {
   const approach = spec.approach * timeScale;
   const u = t >= approach ? 1 : ballistic(t / approach, params.overshoot);
@@ -1003,6 +1057,298 @@ function checkMudra(left, right) {
   checkPinchDistance('mudra', holdL.concat(holdR));
 }
 
+function framePalm(frame) {
+  const j = frame.joints[0];
+  return v3(j[0], j[1], j[2]);
+}
+
+function frameJoint(frame, index) {
+  const j = frame.joints[index];
+  return v3(j[0], j[1], j[2]);
+}
+
+// Same construction as FWardDetector::PalmNormal: index/little metacarpals off the wrist.
+function detectorPalmNormal(frame) {
+  const wrist = frameJoint(frame, IDX.Wrist);
+  const index = frameJoint(frame, IDX.IndexMetacarpal);
+  const little = frameJoint(frame, IDX.LittleMetacarpal);
+  const crossed = cross(sub(index, wrist), sub(little, wrist));
+  if (len(crossed) < 1e-8) {
+    return palmNormalOf(frame);
+  }
+  return normalize(crossed);
+}
+
+function angleToForwardDeg(normal) {
+  const d = Math.max(-1, Math.min(1, normal.x));
+  return (Math.acos(d) * 180) / Math.PI;
+}
+
+function isDetectorRaised(frame) {
+  return angleToForwardDeg(detectorPalmNormal(frame)) <= 35 && framePalm(frame).z >= 0.20;
+}
+
+function palmSpeeds(frames) {
+  const speeds = [0];
+  for (let i = 1; i < frames.length; i++) {
+    const dt = frames[i].t - frames[i - 1].t;
+    speeds.push(len(sub(framePalm(frames[i]), framePalm(frames[i - 1]))) / dt);
+  }
+  return speeds;
+}
+
+function lerpFramePalm(frames, sourceT) {
+  if (sourceT <= frames[0].t) {
+    return framePalm(frames[0]);
+  }
+  const last = frames[frames.length - 1];
+  if (sourceT >= last.t) {
+    return framePalm(last);
+  }
+  let hi = 1;
+  while (hi < frames.length && frames[hi].t < sourceT) {
+    hi += 1;
+  }
+  const before = frames[hi - 1];
+  const after = frames[hi];
+  const span = after.t - before.t;
+  const alpha = span > 0 ? (sourceT - before.t) / span : 0;
+  return lerp(framePalm(before), framePalm(after), alpha);
+}
+
+function lerpRaised(frames, sourceT) {
+  if (sourceT <= frames[0].t) {
+    return isDetectorRaised(frames[0]);
+  }
+  const last = frames[frames.length - 1];
+  if (sourceT >= last.t) {
+    return isDetectorRaised(last);
+  }
+  let hi = 1;
+  while (hi < frames.length && frames[hi].t < sourceT) {
+    hi += 1;
+  }
+  const before = frames[hi - 1];
+  const after = frames[hi];
+  const span = after.t - before.t;
+  const alpha = span > 0 ? (sourceT - before.t) / span : 0;
+  const wrist = lerp(frameJoint(before, IDX.Wrist), frameJoint(after, IDX.Wrist), alpha);
+  const index = lerp(frameJoint(before, IDX.IndexMetacarpal), frameJoint(after, IDX.IndexMetacarpal), alpha);
+  const little = lerp(frameJoint(before, IDX.LittleMetacarpal), frameJoint(after, IDX.LittleMetacarpal), alpha);
+  const palm = lerp(framePalm(before), framePalm(after), alpha);
+  const crossed = cross(sub(index, wrist), sub(little, wrist));
+  const normal = len(crossed) < 1e-8 ? detectorPalmNormal(after) : normalize(crossed);
+  return angleToForwardDeg(normal) <= 35 && palm.z >= 0.20;
+}
+
+// Mirrors FWardDetector::FindOnset, including the lower-time bound.
+function findOnset(history, tail, bound) {
+  let index = history.length - 1;
+  const confirm = history[index].time;
+  while (index > 0
+    && history[index].speed < 0.30
+    && (confirm - history[index].time) <= tail
+    && history[index - 1].time >= bound - 1e-9) {
+    index -= 1;
+  }
+  while (index > 0
+    && history[index - 1].speed >= 0.30
+    && history[index - 1].time >= bound - 1e-9) {
+    index -= 1;
+  }
+  return history[index].time;
+}
+
+function geometricOnset(frames, speeds) {
+  for (let i = 1; i < frames.length; i++) {
+    if (speeds[i] >= 0.30) {
+      return frames[i].t;
+    }
+  }
+  return -1;
+}
+
+function warpedTrial(frames, latency, tail, geoOnset, confirmSource) {
+  const frameDt = 1 / HZ;
+  const anchor = geoOnset + 2 * frameDt;
+  const span = confirmSource - anchor;
+  const scale = span / (span + latency);
+  const history = [];
+  const push = (source, output) => {
+    const palm = lerpFramePalm(frames, source);
+    let speed = 0;
+    if (history.length > 0) {
+      const dt = output - history[history.length - 1].time;
+      if (dt >= 1e-6) {
+        speed = len(sub(palm, history[history.length - 1].palm)) / dt;
+      }
+    }
+    history.push({ time: output, palm, speed, raised: lerpRaised(frames, source) });
+  };
+  push(0, 0);
+  let output = 0;
+  let guard = 0;
+  while (!history[history.length - 1].raised && output < confirmSource + latency + 0.5 && guard < 500) {
+    output += frameDt;
+    let source = output;
+    if (output > anchor) {
+      source = anchor + (output - anchor) * scale;
+    }
+    source = Math.max(0, Math.min(frames[frames.length - 1].t, source));
+    push(source, output);
+    guard += 1;
+  }
+  const raised = history[history.length - 1].raised;
+  const onset = raised ? findOnset(history, tail, -1e9) : -1;
+  return { raised, onset, confirm: raised ? output : -1, history };
+}
+
+function assertSettle(frames) {
+  if (!(SETTLE_STILL_S >= 0.15 && SETTLE_STILL_S <= 0.30)) {
+    throw new Error(`settle still ${SETTLE_STILL_S} is outside 0.15-0.30 s`);
+  }
+  const speeds = palmSpeeds(frames);
+  const orientStart = SETTLE_RISE_S + SETTLE_STILL_S;
+  let sawFast = false;
+  let maxStillSpeed = 0;
+  let firstRaised = -1;
+  for (let i = 0; i < frames.length; i++) {
+    const authored = palmNormalOf(frames[i]);
+    const detected = detectorPalmNormal(frames[i]);
+    if (dot(normalize(authored), detected) < 0.99) {
+      throw new Error(`settle palm normal diverges at t=${frames[i].t.toFixed(3)}`);
+    }
+    if (speeds[i] >= 0.30) {
+      sawFast = true;
+    }
+    if (frames[i].t >= SETTLE_RISE_S - 1e-9 && frames[i].t <= orientStart + 1e-9) {
+      maxStillSpeed = Math.max(maxStillSpeed, speeds[i]);
+    }
+    if (firstRaised < 0 && isDetectorRaised(frames[i])) {
+      firstRaised = frames[i].t;
+    }
+  }
+  if (!sawFast) {
+    throw new Error('settle rise never reaches onset speed');
+  }
+  if (maxStillSpeed >= 0.30) {
+    throw new Error(`settle is not nearly still (${maxStillSpeed.toFixed(3)} m/s)`);
+  }
+  if (firstRaised < orientStart - 1e-9) {
+    throw new Error(`settle confirms at ${firstRaised.toFixed(3)} before the orient`);
+  }
+  const geo = geometricOnset(frames, speeds);
+  if (!(firstRaised > geo + SETTLE_STILL_S - 1 / HZ)) {
+    throw new Error(`settle confirm ${firstRaised} is not after a ${SETTLE_STILL_S}s still from onset ${geo}`);
+  }
+  let fastRun = false;
+  let broke = false;
+  for (let i = 1; i < speeds.length; i++) {
+    if (speeds[i] >= 0.30) {
+      if (broke) {
+        throw new Error(`settle rise speed dips below onset at t=${frames[i].t.toFixed(3)}`);
+      }
+      fastRun = true;
+    } else if (fastRun) {
+      broke = true;
+    }
+  }
+  return { speeds, geo, firstRaised };
+}
+
+function chooseOnsetTail(settleFrames, normalFrames) {
+  const settle = assertSettle(settleFrames);
+  const normalSpeeds = palmSpeeds(normalFrames);
+  const normalOnset = geometricOnset(normalFrames, normalSpeeds);
+  let normalConfirm = -1;
+  for (const frame of normalFrames) {
+    if (isDetectorRaised(frame)) {
+      normalConfirm = frame.t;
+      break;
+    }
+  }
+  const frameDt = 1 / HZ;
+  const latencies = [0, 0.02, 0.04, 0.06];
+  const probe = (tail) => {
+    for (const latency of latencies) {
+      const trial = warpedTrial(settleFrames, latency, tail, settle.geo, settle.firstRaised);
+      if (!trial.raised || Math.abs(trial.onset - settle.geo) > frameDt + 1e-6) {
+        return false;
+      }
+      const normal = warpedTrial(normalFrames, latency, tail, normalOnset, normalConfirm);
+      if (!normal.raised || Math.abs(normal.onset - normalOnset) > frameDt + 1e-6) {
+        return false;
+      }
+    }
+    return true;
+  };
+  let lo = 0;
+  let hi = 0.9;
+  if (!probe(hi)) {
+    throw new Error('settle onset is not recovered even with a 0.90 s tail');
+  }
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (probe(mid)) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  const needed = hi;
+  const chosen = Math.ceil(needed * HZ - 1e-9) / HZ;
+  if (!probe(chosen)) {
+    throw new Error(`rounded tail ${chosen} does not recover settle onset`);
+  }
+  const at60 = warpedTrial(settleFrames, 0.06, chosen, settle.geo, settle.firstRaised);
+  let lastFast = settle.geo;
+  for (let i = 0; i < at60.history.length; i++) {
+    if (at60.history[i].speed >= 0.30 && at60.history[i].time <= at60.confirm) {
+      lastFast = at60.history[i].time;
+    }
+  }
+  return {
+    needed,
+    chosen,
+    gapAt60: at60.confirm - lastFast,
+    onsetAt60: at60.onset,
+    geo: settle.geo,
+    confirm: settle.firstRaised,
+    stillSpeed: null,
+  };
+}
+
+function writeSettleClip(outDir) {
+  const params = variantParams('ward-raise', 'normal');
+  const rendered = renderClip({
+    action: 'ward-raise',
+    variant: 'normal',
+    hands: ['L'],
+    seed: params.seed,
+    source: 'synthetic',
+    params,
+    duration: SETTLE_DURATION_S,
+    sampleAt: (t) => sampleWardSettle(Math.min(t, SETTLE_DURATION_S)),
+  });
+  const normalText = fs.readFileSync(path.join(outDir, 'ward-raise.normal.jsonl'), 'utf8');
+  const left = normalText.trim().split('\n').slice(1).map((line) => JSON.parse(line));
+  const dir = path.join(outDir, 'ward');
+  fs.mkdirSync(dir, { recursive: true });
+  const filePath = path.join(dir, 'ward-raise.normal.settle.jsonl');
+  fs.writeFileSync(filePath, rendered.text, { encoding: 'utf8' });
+  // Measure the tail on the rounded bytes the detector will load, not the in-memory poses.
+  const rounded = fs.readFileSync(filePath, 'utf8').trim().split('\n').slice(1).map((line) => JSON.parse(line));
+  const tail = chooseOnsetTail(rounded, left);
+  const chosenFrames = Math.round(tail.chosen * HZ);
+  if (chosenFrames !== 29) {
+    throw new Error(`settle tail moved to ${tail.chosen.toFixed(6)} s (${chosenFrames}/72); update WardDetector.h OnsetTailS`);
+  }
+  process.stdout.write(
+    `settle clip still=${SETTLE_STILL_S.toFixed(2)}s confirm=${tail.confirm.toFixed(4)} onset=${tail.geo.toFixed(4)} neededTail=${tail.needed.toFixed(4)} chosenTail=${tail.chosen.toFixed(4)} gapAt60=${tail.gapAt60.toFixed(4)}\n`,
+  );
+  return tail;
+}
+
 function selfTestMath() {
   const q = quatFromZX(v3(0, 0, 1), v3(1, 0, 0));
   const rx = quatRotate(q, v3(1, 0, 0));
@@ -1050,6 +1396,7 @@ function writeCanonical() {
       fs.writeFileSync(path.join(outDir, `${action}.${variant}.jsonl`), text, { encoding: 'utf8' });
     }
   }
+  writeSettleClip(outDir);
   process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
 }
 

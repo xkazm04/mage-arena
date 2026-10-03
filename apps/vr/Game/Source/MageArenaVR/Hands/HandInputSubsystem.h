@@ -18,6 +18,15 @@ public:
 	/** Loads Game/Clips/<action>.<variant>.jsonl and plays it. This is the key path. */
 	void PlayQuickAction(FName Action, EClipVariant Variant);
 
+	/**
+	 * Hold ward-raise while bHeld is true, then reverse it on release.
+	 * Space and the right mouse button both call this. A second press while held does nothing.
+	 * A press during the lower reverses that lower. A press after the lower has finished loads Variant.
+	 */
+	void SetWardHeld(bool bHeld, EClipVariant Variant);
+	void SetAimYaw(double YawRadians);
+	bool IsWardHeld() const { return bWardHeld; }
+
 	void Step(double DeltaSeconds);
 	bool GetLatest(EControllerHand Hand, FHandFrame& Out) const;
 	uint64 GetFrameSequence() const;
@@ -31,4 +40,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UHandClipPlayer> ClipPlayer;
+
+	bool bWardHeld = false;
+	EClipVariant HeldVariant = EClipVariant::Normal;
 };

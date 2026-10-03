@@ -126,7 +126,7 @@ void USigilRecognizerSubsystem::HandleHandFrame(const FHandFrame& Frame)
 		return;
 	}
 	// A new clip restarts at t=0. Do not let that sample continue the previous stroke.
-	// UHandClipPlayer::Step also keeps emitting after the clip ends; callers stop at Duration.
+	// Stepping past the end no longer emits (MageArena.Clips.NoEmitAfterEnd).
 	if (bHasHandTime && Frame.TimeSeconds + 1.0e-4 < LastHandTime)
 	{
 		HandBuilder.Reset();
