@@ -21,3 +21,6 @@ Found 2026-10-03 by T08 retry 1 (`runs/T08/REPORT.md`, `runs/T08/wave1-chain.log
 - **B. Seated defence numbers (VR overlay):** stronger physical ward reduction, cheaper/longer blink i-frames, pads further apart.
 - **C. VR wave composition:** fewer conscripts, more slingers in the competition slice.
 - Orchestrator's recommendation: **A**, with C as fine-tuning, then re-measure; B only if A+C are not enough.
+
+## Decision
+Owner, 2026-10-03: **option A** - enemies fight from the arena floor; nothing reaches the dais. Implemented as the VR overlay in card T10.

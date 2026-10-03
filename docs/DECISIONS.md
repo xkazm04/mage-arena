@@ -2,6 +2,17 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-03 - Seated combat: enemies fight from the floor, nothing reaches the dais (DF-001)
+
+> Option "A: ranged from the dais" for DF-001 (`docs/design-findings/DF-001-seated-wave1.md`).
+
+- From a seat the player lost Wave 1 at 16.45 s with the pinned, walking-calibrated numbers. Decision: **enemies stay on the
+  arena floor below the raised dais and attack from range** (spears thrown, stones slung); melee reach never touches the
+  dais. Threats come to the player; the player wards, blinks and casts.
+- Implemented as a **VR-only overlay** (`combat.vr.json`); the shared kernel rules and the pinned data stay unchanged and the
+  conformance vectors stay byte-identical. Re-measure the seated Wave 1; wave composition (option C) is the fine-tuning
+  knob if needed. Card T10.
+
 ## 2026-10-03 - Sigil shape, and all four schools in every kernel
 
 > "c. circle + bar"
