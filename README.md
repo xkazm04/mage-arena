@@ -143,6 +143,10 @@ node apps/vr/tools/clipgen/generate.mjs; node apps/vr/tools/clipgen/validate.mjs
 Then open `apps/vr/Game/MageArenaVR.uproject` and press Play: the number keys, `Q`, `Space` and `A`/`D`/`S` replay hand clips
 (hold `Shift` for a sloppy hand, `Ctrl` for a slow one).
 
+## Art boards
+
+Everything produced for the art direction so far - style studies for the 19 Oct pick, VFX concepts, the session storyboard, model and environment references, exact glyphs and the wrist HUD, and the SFX starter pack - is linked from one page: [`apps/vr/art/index.html`](apps/vr/art/index.html) (open from disk).
+
 ## Documents
 
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) - the owner's decisions, newest first; they outrank everything else
