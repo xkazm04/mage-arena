@@ -129,6 +129,10 @@ bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, c
 	{
 		const FFlowCast Flow = FlowCast(Actor, Spell->Line, State.Tick);
 		DamageMult = Flow.DamageMult;
+		if (Mod && Mod->PowerMult != 1.0)
+		{
+			DamageMult *= Mod->PowerMult;
+		}
 	}
 	Actor.Mana -= Cost;
 	SimSetCooldown(Actor.Water, Spell->Line, State.Tick + SimTicks(Spell->CooldownS));

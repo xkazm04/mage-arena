@@ -114,6 +114,15 @@ void USigilRecognizerSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	}
 }
 
+void USigilRecognizerSubsystem::ResetStrokes()
+{
+	HandBuilder.Reset();
+	HandBuilder.SetStyle(DrawStyle);
+	MouseBuilder.Reset();
+	MouseBuilder.SetStyle(DrawStyle);
+	bHasHandTime = false;
+}
+
 void USigilRecognizerSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
 	if (Frame.Hand != EControllerHand::Right)

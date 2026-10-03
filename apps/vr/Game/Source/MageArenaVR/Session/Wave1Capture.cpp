@@ -14,6 +14,8 @@
 #include "HAL/PlatformTime.h"
 #include "Hands/MageArenaPawn.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kernel/SimMath.h"
+#include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Misc/App.h"
 #include "Misc/FileHelper.h"
@@ -25,8 +27,37 @@
 #include "ShaderCompiler.h"
 #include "UnrealClient.h"
 
+#include <cmath>
+
 namespace
 {
+bool FireWallBoltClose(const FArenaSession& Bout)
+{
+	const FVrRuleset* Rules = Bout.GetVrRules();
+	if (!Rules || Rules->Walls.Num() == 0)
+	{
+		return false;
+	}
+	const int32 PlayerId = Bout.GetGames().PlayerId;
+	for (const FProjectile& Shot : Bout.GetGames().State.Projectiles)
+	{
+		if (Shot.OwnerId != PlayerId || Shot.Family == TEXT("unblockable"))
+		{
+			continue;
+		}
+		for (const FVrWall& Wall : Rules->Walls)
+		{
+			const FSimVec Toward = SimSub(Shot.Pos, Wall.Centre);
+			const double Gap = std::abs(SimDistance(Shot.Pos, Wall.Centre) - Wall.DistanceM);
+			if (Gap < 1.2 && SimInArc(Wall.Facing, Toward, Wall.ArcDeg + 24.0))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 double MedianOf(TArray<double> Values)
 {
 	if (Values.Num() == 0)
@@ -277,6 +308,10 @@ void UWave1CaptureDriver::Advance()
 			}
 			Pawn->ApplyFlatPresentation();
 			Pawn->LookAtArena();
+			if (RunId == TEXT("T12"))
+			{
+				Session->GetSession().SetBout(2, true);
+			}
 			Session->Start(1, true);
 			LastSequenceWall = Now;
 			Enter(EStep::WaitSoldiers);
@@ -284,6 +319,24 @@ void UWave1CaptureDriver::Advance()
 		break;
 	}
 	case EStep::WaitSoldiers:
+		if (RunId == TEXT("T12"))
+		{
+			if (Bout && FireWallBoltClose(*Bout))
+			{
+				if (Session)
+				{
+					Session->GetSession().SetPaused(true);
+				}
+				RequestShot(TEXT("01-firewall-bolt.png"), false);
+				Enter(EStep::WaitSoldiersShot);
+			}
+			else if (Elapsed > 75.0)
+			{
+				UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL firewall bolt was not in frame"));
+				Enter(EStep::WriteBudget);
+			}
+			break;
+		}
 		if (RunId == TEXT("T11"))
 		{
 			// The sigil clip is 2.1 s. The palm is in frame by 1 s, and the line is still being drawn.
@@ -325,6 +378,11 @@ void UWave1CaptureDriver::Advance()
 		}
 		break;
 	case EStep::WaitSoldiersShot:
+		if (RunId == TEXT("T12"))
+		{
+			Enter(EStep::WriteBudget);
+			break;
+		}
 		if (Session)
 		{
 			Session->GetSession().SetPaused(false);
@@ -445,7 +503,7 @@ void UWave1CaptureDriver::Advance()
 	case EStep::WriteBudget:
 	{
 		WriteBudgetFile();
-		const int32 Needed = RunId == TEXT("T11") ? 3 : RunId == TEXT("T10") ? 4 : 5;
+		const int32 Needed = RunId == TEXT("T12") ? 1 : RunId == TEXT("T11") ? 3 : RunId == TEXT("T10") ? 4 : 5;
 		if (ShotNames.Num() >= Needed)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
@@ -478,7 +536,9 @@ void UWave1CaptureDriver::WriteBudgetFile()
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("label"), TEXT("desktop proxy - not Quest truth"));
 	Root->SetStringField(TEXT("note"),
-		RunId == TEXT("T11")
+		RunId == TEXT("T12")
+			? TEXT("Seated Fire duel. The orange-red curtain is the fire mage's wall. The bolt is still in the air, short of the arc that will destroy it. The curtain is not the black-and-red unblockable rim.")
+			: RunId == TEXT("T11")
 			? TEXT("Wave 1 with the ward held while a sigil is drawn, and a planted staff dome. Threats are physical, so the dome is a reduction, not a perfect absorb.")
 			: RunId == TEXT("T10")
 			? TEXT("Wave 1 conscripts throw spears from the dais lip. The threats are physical, so a kernel perfect absorb is not possible. 02-spear-flight is a spear in the air, not a perfect.")

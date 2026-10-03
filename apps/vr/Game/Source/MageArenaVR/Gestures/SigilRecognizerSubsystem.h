@@ -28,6 +28,7 @@ public:
 	/** Loads every template clip in the directory. Missing or unrecognizable files are logged and skipped. */
 	void LoadTemplatesFromDirectory(const FString& Directory);
 	void BindToHands(UHandInputSubsystem* Hands);
+	void ResetStrokes();
 
 	/** One mouse sample in centimetres. Pinch is 1 while the button is held and 0 on release. */
 	void IngestMouse(const FVector& TipCm, float Pinch, double TimeSeconds);

@@ -214,12 +214,17 @@ bool FArenaSession::Start(uint32 Seed)
 	}
 	FVrRuleset Rules;
 	FString RulesError;
-	if (!LoadVrRuleset(Rules, RulesError))
+	if (RulesOverride.IsSet())
+	{
+		Rules = RulesOverride.GetValue();
+		Rules.ClearRuntime();
+	}
+	else if (!LoadVrRuleset(Rules, RulesError))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: %s"), *RulesError);
 		return false;
 	}
-	if (!TryCreateGames(Games, Seed, Preset, 0, false, false, &Rules))
+	if (!TryCreateGames(Games, Seed, Preset, BoutWave, false, bFireMages, &Rules))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -254,6 +259,25 @@ bool FArenaSession::Start(uint32 Seed)
 	bClipWasPlaying = false;
 	SplitCasts = 0;
 	StaffPlants = 0;
+	bWingSeat = bFireMages;
+	bWingSeated = false;
+	SunfallPad = -1;
+	if (Hands)
+	{
+		Hands->StopAll();
+	}
+	if (Wards)
+	{
+		Wards->GetDetector().ResetStream();
+	}
+	if (Staff)
+	{
+		Staff->GetDetector().Reset();
+	}
+	if (Sigils)
+	{
+		Sigils->ResetStrokes();
+	}
 	if (Blinks)
 	{
 		Blinks->ResetDetector();
@@ -263,8 +287,35 @@ bool FArenaSession::Start(uint32 Seed)
 	{
 		SeatOnActivePad(*Player);
 	}
-	Note(FString::Printf(TEXT("Session start seed=%u wave=1 preset=Rotation"), Seed));
+	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=Rotation"), Seed, BoutWave + 1));
 	return true;
+}
+
+void FArenaSession::SetBout(int32 WaveIndex, bool bInFireMages)
+{
+	BoutWave = WaveIndex;
+	bFireMages = bInFireMages;
+}
+
+void FArenaSession::SetPolicy(const FSeatedPolicy& InPolicy)
+{
+	Policy = InPolicy;
+}
+
+void FArenaSession::SetRulesOverride(const FVrRuleset& Rules)
+{
+	RulesOverride = Rules;
+}
+
+void FArenaSession::SetQuiet(bool bInQuiet)
+{
+	bQuiet = bInQuiet;
+}
+
+int32 FArenaSession::GetWallsRaised() const
+{
+	const FVrRuleset* Rules = GetVrRules();
+	return Rules ? Rules->WallsRaised : 0;
 }
 
 void FArenaSession::SetScripted(bool bInScripted)
@@ -339,7 +390,10 @@ FSimVec FArenaSession::PadKernel(int32 PadIndex) const
 void FArenaSession::Note(const FString& Line)
 {
 	Chain.Add(Line);
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CHAIN %s"), *Line);
+	if (!bQuiet)
+	{
+		UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CHAIN %s"), *Line);
+	}
 }
 
 void FArenaSession::PlayAction(FName Action)
@@ -753,6 +807,149 @@ bool FArenaSession::TryScriptBlink()
 	return true;
 }
 
+bool FArenaSession::PlayBlinkToward(int32 WantPad)
+{
+	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+	if (!Player || !Hands)
+	{
+		return false;
+	}
+	if (IsStaffPlanted())
+	{
+		if (!(ClipPlaying() && ClipAction() == TEXT("staff-lift")))
+		{
+			if (Hands->IsWardHeld())
+			{
+				Hands->SetWardHeld(false, EClipVariant::Normal);
+			}
+			bAbsorb = false;
+			bSuppressWard = false;
+			bWardStarted = false;
+			bWardReleased = true;
+			PlayAction(TEXT("staff-lift"));
+			Note(TEXT("script staff lift sunfall"));
+		}
+		return true;
+	}
+	int32 StepPad = WantPad;
+	if (FMath::Abs(WantPad - ActivePad) > 1)
+	{
+		StepPad = ActivePad < WantPad ? ActivePad + 1 : ActivePad - 1;
+	}
+	if (StepPad == ActivePad)
+	{
+		return false;
+	}
+	if (!CanBlink(*Player))
+	{
+		return ClipPlaying() && ClipAction().StartsWith(TEXT("blink"));
+	}
+	if (Hands->IsWardHeld())
+	{
+		Hands->SetWardHeld(false, EClipVariant::Normal);
+	}
+	bSuppressWard = true;
+	bAbsorb = false;
+	FName Clip = TEXT("blink-back");
+	if (ActivePad != 1 && StepPad == 1)
+	{
+		Clip = TEXT("blink-back");
+	}
+	else if (StepPad > ActivePad)
+	{
+		Clip = TEXT("blink-right");
+	}
+	else
+	{
+		Clip = TEXT("blink-left");
+	}
+	PlayAction(Clip);
+	return true;
+}
+
+bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
+{
+	if (!bWingSeat || !Hands)
+	{
+		return false;
+	}
+	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+	if (!Player || Player->bDown)
+	{
+		return false;
+	}
+	const FTelegraph* Meteor = nullptr;
+	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
+	{
+		if (Telegraph.OwnerId != Games.PlayerId && Telegraph.Kind == TEXT("area") && Telegraph.Family == TEXT("unblockable"))
+		{
+			Meteor = &Telegraph;
+			break;
+		}
+	}
+	const FPendingCast* PendingSun = nullptr;
+	FSimVec PendingAim{0.0, 0.0};
+	if (!Meteor)
+	{
+		for (const FActor& Actor : Games.State.Actors)
+		{
+			if (Actor.bDown || Actor.Team == Player->Team || !Actor.Pending.IsSet() || !Actor.Pending->SpellId.IsSet())
+			{
+				continue;
+			}
+			if (Actor.Pending->SpellId.GetValue() == TEXT("fire_sunfall"))
+			{
+				PendingSun = &Actor.Pending.GetValue();
+				PendingAim = PendingSun->Aim;
+				break;
+			}
+		}
+	}
+	if (Meteor || PendingSun)
+	{
+		const FSimVec Impact = Meteor ? Meteor->Target : PendingAim;
+		int32 BestPad = ActivePad;
+		double BestDist = -1.0;
+		for (int32 Pad = 0; Pad < 3; ++Pad)
+		{
+			const double Dist = SimDistance(PadKernel(Pad), Impact);
+			if (Dist > BestDist)
+			{
+				BestDist = Dist;
+				BestPad = Pad;
+			}
+		}
+		SunfallPad = BestPad;
+		const double Reach = (Meteor ? Meteor->WidthM : 3.5) + Player->Radius + 0.15;
+		const bool bInside = SimDistance(Impact, Player->Pos) <= Reach;
+		if (ActivePad != BestPad || IsStaffPlanted() || bInside)
+		{
+			if (PlayBlinkToward(BestPad))
+			{
+				Note(FString::Printf(TEXT("script sunfall pad=%d from=%d"), BestPad, ActivePad));
+				return true;
+			}
+			if (ActivePad != BestPad)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	const bool bMeleeWindow = MeleeEta <= 0.30 && MeleeEta >= 0.22;
+	const bool bStoneWindow = ProjectileEta <= 0.30 && ProjectileEta >= 0.22;
+	if (!bWingSeated && ActivePad == 1 && !bMeleeWindow && !bStoneWindow && GetSimSeconds() >= 0.4)
+	{
+		if (PlayBlinkToward(0))
+		{
+			bWingSeated = true;
+			Note(TEXT("script wing seat"));
+			return true;
+		}
+	}
+	return false;
+}
+
 void FArenaSession::DecideScript()
 {
 	if (!Hands || Games.Phase != TEXT("active"))
@@ -782,6 +979,11 @@ void FArenaSession::DecideScript()
 	const double Nearest = NearestLiving(Games, *Player, nullptr, 3.1);
 	const bool bInMelee = Nearest <= KernelData().StaffRangeM + 0.05;
 
+	if (TrySunfallEscape(MeleeEta, ProjectileEta))
+	{
+		return;
+	}
+
 	// A sigil, staff, mudra, or blink owns the casting hand until the clip ends.
 	// Returning here keeps a held ward up through the sigil, which is the split-hand pose.
 	if (bPlaying && (Action.StartsWith(TEXT("sigil")) || Action.StartsWith(TEXT("staff")) || Action == TEXT("mudra") || Action.StartsWith(TEXT("blink"))))
@@ -794,17 +996,36 @@ void FArenaSession::DecideScript()
 		bSuppressWard = false;
 		bWardStarted = true;
 		bWardReleased = false;
-		WardReleaseSim = Now + 1.6;
+		WardReleaseSim = Now + Policy.WardHoldS;
 		Hands->SetWardHeld(true, EClipVariant::Normal);
 	};
 
-	auto TryBolt = [this, Player, &bInMelee]()
+	auto ReleaseForCast = [this]()
+	{
+		if (Policy.bSplit || !Hands)
+		{
+			return;
+		}
+		if (Hands->IsWardHeld())
+		{
+			Hands->SetWardHeld(false, EClipVariant::Normal);
+		}
+		bAbsorb = false;
+		bWardStarted = false;
+		bWardReleased = true;
+	};
+
+	auto TryBolt = [this, Player, &bInMelee, &ReleaseForCast]()
 	{
 		const FSpell* Bolt = SpellFor(*Player, 0);
 		const double BoltRange = Bolt ? Bolt->RangeM : KernelData().BoltRangeM;
 		const double Distance = NearestLiving(Games, *Player, nullptr, 0.0);
 		if (!bInMelee && Distance <= BoltRange - 0.15 && SpellReady(Games, *Player, 0) && !WouldSplitRefuse(0))
 		{
+			if (!IsStaffPlanted())
+			{
+				ReleaseForCast();
+			}
 			PlayAction(TEXT("bolt"));
 			return true;
 		}
@@ -853,10 +1074,10 @@ void FArenaSession::DecideScript()
 
 	const double UpFront = Rules && Rules->Staff.bEnabled ? Rules->Staff.ManaUpFront : 1.0e9;
 	const bool bStaffFree = !bPlaying && !Player->Pending.IsSet();
-	if (bStaffFree && Rules && Rules->Staff.bEnabled && Player->Mana >= UpFront + 12.0 && MeleeGap > 0.8)
+	if (Policy.bPlant && bStaffFree && Rules && Rules->Staff.bEnabled && Player->Mana >= UpFront + 12.0 && MeleeGap > 0.8)
 	{
-		const bool bOpening = StaffPlants == 0 && Now >= 1.5 && Now < 6.0 && (bTideStarted || Now >= 2.5);
-		const bool bHurt = Player->Hp < 55.0 && Now >= 3.0;
+		const bool bOpening = StaffPlants == 0 && Now >= 1.5 && Now < Policy.OpeningPlantEndS && (bTideStarted || Now >= 2.5);
+		const bool bHurt = Player->Hp < Policy.PlantHurtHp && Now >= 3.0;
 		const int32 SplitCap = Rules->Split.bEnabled ? Rules->Split.MaxTier : 2;
 		const bool bHighTier = bAbsorb && Player->Tier > SplitCap;
 		if (bOpening || bHurt || bHighTier)
@@ -880,7 +1101,7 @@ void FArenaSession::DecideScript()
 	{
 		const bool bHeldMin = Now >= WardReleaseSim - 1.25;
 		const bool bClear = ProjectileEta > 0.85 && MeleeEta > 0.85;
-		const bool bCap = Now >= WardReleaseSim || Player->Mana < 16.0;
+		const bool bCap = Now >= WardReleaseSim || Player->Mana < Policy.WardDropMana;
 		const bool bYield = bBlinkReady && (bMeleeWindow || (bStoneWindow && MeleeGap > 1.2 && Player->Stamina >= 50.0));
 		if (bCap || bYield || (bClear && bHeldMin))
 		{
@@ -897,7 +1118,7 @@ void FArenaSession::DecideScript()
 	const bool bSpearFallback = MeleeEta <= 0.70 && MeleeEta >= 0.05 && !bBlinkReady;
 	const bool bFirstStone = !WasWardOnStone() && ProjectileEta <= 1.15 && ProjectileEta >= 0.20;
 	const bool bStoneFallback = ProjectileEta <= 1.05 && ProjectileEta >= 0.20 && MeleeGap > 0.9 && Player->Stamina < 50.0;
-	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= 20.0 && (bSpearFallback || bFirstStone || bStoneFallback || Now < 0.4))
+	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || Now < 0.4))
 	{
 		RaiseWard();
 	}
@@ -914,8 +1135,9 @@ void FArenaSession::DecideScript()
 	}
 
 	// Opening tide with the ward already up. The right hand draws; the left keeps the palm.
-	if (!bTideStarted && MeleeGap > 1.2 && Now < 4.0 && Player->Mana >= 12.0)
+	if (!bTideStarted && MeleeGap > 1.2 && Now < 4.0 && Player->Mana >= Policy.SplitSigilMana)
 	{
+		ReleaseForCast();
 		PlayAction(TEXT("sigil-line1"));
 		bTideStarted = true;
 		return;
@@ -927,6 +1149,7 @@ void FArenaSession::DecideScript()
 		&& Player->Tier >= 2 && Nearest <= 2.9 && MeleeGap > 0.9 && Player->Mana >= 16.0 && SpellReady(Games, *Player, 2)
 		&& !WouldSplitRefuse(2))
 	{
+		ReleaseForCast();
 		PlayAction(TEXT("sigil-line2"));
 		return;
 	}

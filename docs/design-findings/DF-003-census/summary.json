@@ -1,0 +1,132 @@
+{
+	"seeds": 20,
+	"wallSeconds": 193.54427190124989,
+	"winner": "wide",
+	"official": true,
+	"candidates": [
+		{
+			"name": "wide",
+			"targetsMet": false,
+			"knobs": 9,
+			"enemyKnobs": 0,
+			"distance": 7.1449999999999996,
+			"penalty": 6.5387119883040938,
+			"waveWinWindow": 0.84999999999999998,
+			"waveHpMedian": 0.17157894736842064,
+			"waveTimeMedian": 39.049999999999997,
+			"duelC1TimeMedian": 44.825000000000003,
+			"duelC15TimeMedian": 40.558333333333337,
+			"duelC1Sunfall": 0.050000000000000003,
+			"duelC15Sunfall": 0.14999999999999999,
+			"duelC1Win": 0.94999999999999996,
+			"duelC15Win": 0.75
+		},
+		{
+			"name": "halfward",
+			"targetsMet": false,
+			"knobs": 10,
+			"enemyKnobs": 0,
+			"distance": 7.6450000000000005,
+			"penalty": 6.6331856725146201,
+			"waveWinWindow": 0.84999999999999998,
+			"waveHpMedian": 0.16421052631578908,
+			"waveTimeMedian": 38.816666666666663,
+			"duelC1TimeMedian": 44.825000000000003,
+			"duelC15TimeMedian": 40.558333333333337,
+			"duelC1Sunfall": 0.050000000000000003,
+			"duelC15Sunfall": 0.14999999999999999,
+			"duelC1Win": 0.94999999999999996,
+			"duelC15Win": 0.75
+		},
+		{
+			"name": "quarterward",
+			"targetsMet": false,
+			"knobs": 10,
+			"enemyKnobs": 0,
+			"distance": 7.8950000000000005,
+			"penalty": 6.6709488304093583,
+			"waveWinWindow": 1,
+			"waveHpMedian": 0.15789473684210484,
+			"waveTimeMedian": 39.299999999999997,
+			"duelC1TimeMedian": 44.825000000000003,
+			"duelC15TimeMedian": 40.558333333333337,
+			"duelC1Sunfall": 0.050000000000000003,
+			"duelC15Sunfall": 0.14999999999999999,
+			"duelC1Win": 0.94999999999999996,
+			"duelC15Win": 0.75
+		},
+		{
+			"name": "opendome",
+			"targetsMet": false,
+			"knobs": 5,
+			"enemyKnobs": 0,
+			"distance": 2.8583333333333334,
+			"penalty": 13.287068713450291,
+			"waveWinWindow": 0.45000000000000001,
+			"waveHpMedian": 0.083684210526316125,
+			"waveTimeMedian": 25.625,
+			"duelC1TimeMedian": 26.166666666666668,
+			"duelC15TimeMedian": 26.649999999999999,
+			"duelC1Sunfall": 0,
+			"duelC15Sunfall": 0,
+			"duelC1Win": 1,
+			"duelC15Win": 1
+		},
+		{
+			"name": "baseline",
+			"targetsMet": false,
+			"knobs": 0,
+			"enemyKnobs": 0,
+			"distance": 0,
+			"penalty": 14.867222222222221,
+			"waveWinWindow": 0,
+			"waveHpMedian": 0,
+			"waveTimeMedian": 18.649999999999999,
+			"duelC1TimeMedian": 30.466666666666665,
+			"duelC15TimeMedian": 28.524999999999999,
+			"duelC1Sunfall": 0,
+			"duelC15Sunfall": 0,
+			"duelC1Win": 0.84999999999999998,
+			"duelC15Win": 0.59999999999999998
+		},
+		{
+			"name": "shade",
+			"targetsMet": false,
+			"knobs": 2,
+			"enemyKnobs": 0,
+			"distance": 3.5,
+			"penalty": 17.096666666666668,
+			"waveWinWindow": 0,
+			"waveHpMedian": 0,
+			"waveTimeMedian": 18.649999999999999,
+			"duelC1TimeMedian": 38.658333333333331,
+			"duelC15TimeMedian": 28.966666666666669,
+			"duelC1Sunfall": 0.20000000000000001,
+			"duelC15Sunfall": 0,
+			"duelC1Win": 0.34999999999999998,
+			"duelC15Win": 0
+		}
+	],
+	"waveWindowByPolicy":
+	{
+		"opendome":
+		{
+			"reference": 0.45000000000000001
+		},
+		"wide":
+		{
+			"reference": 0.84999999999999998,
+			"eager-split": 0.40000000000000002,
+			"no-split": 1,
+			"no-plant": 0.10000000000000001
+		},
+		"halfward":
+		{
+			"reference": 0.84999999999999998
+		},
+		"quarterward":
+		{
+			"reference": 1
+		}
+	}
+}

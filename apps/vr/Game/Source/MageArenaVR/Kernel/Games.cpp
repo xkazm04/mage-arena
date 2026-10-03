@@ -40,15 +40,36 @@ void SpawnWave(FGames& Games)
 	const FArenaTier& Tiro = TiroTier();
 	checkf(Games.Wave >= 0 && Games.Wave < Tiro.Waves.Num(), TEXT("Invalid Tiro wave"));
 	const FArenaWave& Wave = Tiro.Waves[Games.Wave];
+	auto CountOf = [&Games](const FWaveSpawn& Spawn) -> int32
+	{
+		if (!Spawn.bEnemy)
+		{
+			return 1;
+		}
+		int32 Count = Spawn.Count;
+		if (Games.Wave == 0 && Games.VrRules.IsSet())
+		{
+			const FVrWaveTune& Tune = Games.VrRules->Wave;
+			if (Spawn.EnemyId == TEXT("conscript") && Tune.ConscriptCount >= 0)
+			{
+				Count = Tune.ConscriptCount;
+			}
+			else if (Spawn.EnemyId == TEXT("slinger") && Tune.SlingerCount >= 0)
+			{
+				Count = Tune.SlingerCount;
+			}
+		}
+		return Count;
+	};
 	int32 Total = 0;
 	for (const FWaveSpawn& Spawn : Wave.Spawns)
 	{
-		Total += Spawn.bEnemy ? Spawn.Count : 1;
+		Total += CountOf(Spawn);
 	}
 	int32 Index = 0;
 	for (const FWaveSpawn& Spawn : Wave.Spawns)
 	{
-		const int32 Count = Spawn.bEnemy ? Spawn.Count : 1;
+		const int32 Count = CountOf(Spawn);
 		for (int32 N = 0; N < Count; ++N)
 		{
 			const double JitterX = (ArenaRandom(Games.State, FString::Printf(TEXT("wave %d spawn x"), Games.Wave)) * 2.0 - 1.0) * Data.SpawnJitterM;
@@ -89,6 +110,16 @@ void SpawnWave(FGames& Games)
 			Record.X = Pos.X;
 			Record.Y = Pos.Y;
 			Games.SpawnLog.Add(Record);
+			if (Spawn.bEnemy && Games.Wave == 0 && Games.VrRules.IsSet() && Games.VrRules->Wave.SpawnDelayS > 0.0)
+			{
+				if (FActor* Born = SimFindActor(Games.State, Id))
+				{
+					if (Born->Enemy.IsSet())
+					{
+						Born->Enemy->ReadyTick = Games.State.Tick + SimTicks(Games.VrRules->Wave.SpawnDelayS * static_cast<double>(N + 1));
+					}
+				}
+			}
 			++Index;
 		}
 	}
@@ -183,7 +214,7 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 		FActor& Actor = Games.State.Actors[Index];
 		if (Actor.MageAI.IsSet() && !Actor.bDown)
 		{
-			Inputs.FindOrAdd(Actor.Id) = MageInput(Games.State, Actor);
+			Inputs.FindOrAdd(Actor.Id) = MageInput(Games.State, Actor, Rules);
 		}
 	}
 	if (PlayerInput)

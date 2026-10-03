@@ -72,9 +72,10 @@ struct FInputFrame
 	bool bAbsorb = false;
 	bool bRoll = false;
 	bool bSprint = false;
-	// VR overlay only. Conformance frames leave both false. The pinned path ignores them.
+	// VR overlay only. Conformance frames leave these false. The pinned path ignores them.
 	bool bPlantStaff = false;
 	bool bLiftStaff = false;
+	bool bRaiseFireWall = false;
 };
 
 inline FInputFrame SimIdleInput(const FSimVec& Aim = FSimVec{IdleAimX, IdleAimY})
@@ -225,6 +226,11 @@ struct FMageBrain
 	FSimVec TargetPoint;
 	TArray<int32> DecisionTicks;
 	TArray<int32> ReactionAges;
+	// VR overlay. The fire wall reaction. Not part of the pinned state hash.
+	// WallSeenTick is the first inbound bolt of this volley. WallLastSeenTick is the
+	// latest one, so a gap shorter than the reaction does not start the timer over.
+	int32 WallSeenTick = NeverTick;
+	int32 WallLastSeenTick = NeverTick;
 };
 
 struct FPendingCast

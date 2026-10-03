@@ -1,0 +1,59 @@
+{
+	"version": 1,
+	"_about": "not live until the owner signs off; applied only with -MageArenaProposal",
+	"knobs":
+	{
+		"wave":
+		{
+			"conscriptCount": -1,
+			"slingerCount": -1,
+			"spawnDelayS": 0,
+			"_why": "Wave 1 keeps the pinned four conscripts and two slingers. Spawn timing stays pinned."
+		},
+		"pressure":
+		{
+			"attackCadence": 1,
+			"enemyDamage": 1,
+			"fireMageDamage": 1,
+			"_why": "Soldiers and the Fire mage keep their pinned damage and cadence."
+		},
+		"power":
+		{
+			"boltDamage": 1,
+			"lineDamage": 1,
+			"manaRegen": 1.25,
+			"_why": "Mana regen 1.25 so the second plant can be paid. Bolt and line stay pinned."
+		},
+		"defence":
+		{
+			"wardDrainSplit": 1,
+			"oneHandPower": 1,
+			"staffDurationS": 14,
+			"staffManaUpFront": 8,
+			"staffDrainPerSecond": 1.5,
+			"staffMagicReduction": 0.92000000000000004,
+			"staffPhysicalReduction": 0.90000000000000002,
+			"fireWallDistanceM": 4,
+			"fireWallArcDeg": 150,
+			"fireWallDurationS": 12,
+			"fireWallManaCost": 6,
+			"fireWallHeatPerStop": 4,
+			"fireWallBurnDamage": 12,
+			"_why": "The dome lasts 14 s, drains 1.5/s, and blocks 0.9 of a physical hit, so a 10-damage spear becomes 1 while it is planted. It blocks 0.92 of a magic hit. One-hand power is 1.0. The fire wall lasts 12 s, costs 6 mana, and covers 150 degrees so a blink does not step outside it."
+		}
+	},
+	"measured":
+	{
+		"seeds": 20,
+		"targetsMet": false,
+		"waveWinWindow": 0.84999999999999998,
+		"waveHpMedian": 0.17157894736842064,
+		"waveTimeMedian": 39.049999999999997,
+		"duelC1TimeMedian": 44.825000000000003,
+		"duelC15TimeMedian": 40.558333333333337,
+		"duelC1Sunfall": 0.050000000000000003,
+		"duelC15Sunfall": 0.14999999999999999,
+		"duelC1Win": 0.94999999999999996,
+		"duelC15Win": 0.75
+	}
+}

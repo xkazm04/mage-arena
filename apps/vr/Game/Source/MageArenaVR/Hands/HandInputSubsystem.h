@@ -33,6 +33,8 @@ public:
 	bool IsWardHeld() const { return bWardHeld; }
 
 	void Step(double DeltaSeconds);
+	/** Stops both lanes. A fresh player that is not playing stays idle. */
+	void StopAll();
 	bool GetLatest(EControllerHand Hand, FHandFrame& Out) const;
 	uint64 GetFrameSequence() const;
 	FOnHandSourceFrame& OnHandFrame();

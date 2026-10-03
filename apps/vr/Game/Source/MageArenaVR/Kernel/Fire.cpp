@@ -7,8 +7,6 @@
 
 #include <cmath>
 
-namespace
-{
 void GainHeat(FArenaState& State, FActor& Actor, double Amount)
 {
 	if (!Actor.Fire.bSchool || !(Amount > 0.0) || State.Tick < Actor.Fire.LockUntil)
@@ -21,6 +19,8 @@ void GainHeat(FArenaState& State, FActor& Actor, double Amount)
 	Actor.Fire.LastGainTick = State.Tick;
 }
 
+namespace
+{
 void SetFireCooldown(FActor& Actor, const FString& SpellId, int32 Until)
 {
 	for (FFireCooldown& Entry : Actor.Fire.Cooldowns)
@@ -214,7 +214,11 @@ void ReleaseFire(FArenaState& State, FActor& Actor)
 		return;
 	}
 	const double Mult = FireSpellDamageMult(Actor);
-	const double Damage = Spell->Damage * Mult;
+	double Damage = Spell->Damage * Mult;
+	if (Pending.DamageMult.IsSet())
+	{
+		Damage *= Pending.DamageMult.GetValue();
+	}
 	const FSimVec Direction = AimDirection(Actor, Pending.Aim);
 	if (Spell->Kind == TEXT("projectile"))
 	{
@@ -289,6 +293,10 @@ void ReleaseFire(FArenaState& State, FActor& Actor)
 		Trail.IntervalTicks = std::max(1, SimTicks(Spell->TickS));
 		Trail.NextTick = State.Tick + Trail.IntervalTicks;
 		Trail.Damage = Spell->Damage;
+		if (Pending.DamageMult.IsSet())
+		{
+			Trail.Damage *= Pending.DamageMult.GetValue();
+		}
 		Trail.HeatOnHit = HeatPaid(*Spell);
 		Trail.Tier = Spell->Tier;
 		Trail.Family = HitFamily(*Spell);
@@ -303,6 +311,10 @@ void ReleaseFire(FArenaState& State, FActor& Actor)
 		Channel.IntervalTicks = std::max(1, SimTicks(Spell->TickS));
 		Channel.NextTick = State.Tick + Channel.IntervalTicks;
 		Channel.Damage = Spell->Damage;
+		if (Pending.DamageMult.IsSet())
+		{
+			Channel.Damage *= Pending.DamageMult.GetValue();
+		}
 		Channel.HeatOnHit = HeatPaid(*Spell);
 		Channel.RangeM = Spell->RangeM;
 		Channel.Tier = Spell->Tier;

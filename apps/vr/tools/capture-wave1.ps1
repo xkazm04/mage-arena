@@ -1,6 +1,7 @@
 # Records the scripted Wave 1.
 # -Run T08 (default) keeps the five original stills. -Run T10 writes the four threat-geometry stills.
 # -Run T11 writes the split-hand pose, the planted dome, and the end still.
+# -Run T12 writes one still of the Fire mage's wall with a bolt about to cross it.
 # Success is MAGEVR_CAPTURE_DONE plus those pngs. The editor Quit code is not the gate.
 param([string]$Run = "T08")
 
@@ -65,6 +66,10 @@ if ($Run -eq "T10") {
 		"01-split-hands.png",
 		"02-planted-dome.png",
 		"03-end.png"
+	)
+} elseif ($Run -eq "T12") {
+	$ShotNames = @(
+		"01-firewall-bolt.png"
 	)
 } else {
 	$ShotNames = @(

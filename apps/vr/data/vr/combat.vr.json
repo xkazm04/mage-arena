@@ -81,5 +81,20 @@
     "_drainPerSecond": "Proposal. 4 mana per second while the dome is up, including the plant tick. Six seconds is 24, plus 8 up front is 32. Ward drain at nerve 1 is 27 per second, so the dome is the cheaper hold and leaves mana to cast.",
     "_magicReduction": "Same fraction as combat.json absorb.reduction.magic. A magic hit through the dome keeps 0.15. The dome does not perfect.",
     "_physicalReduction": "Proposal, stronger than the palm ward's 0.30. A 10-damage spear through the dome is 4. Unblockables pass. Not signed off."
+  },
+
+  "fireWall": {
+    "distanceM": 4,
+    "arcDeg": 90,
+    "durationS": 3,
+    "manaCost": 12,
+    "heatPerStop": 4,
+    "burnDamage": 12,
+    "_distanceM": "Proposal from SCHOOL-DEFENCES C. The arc stands this far in front of the caster. Not signed off.",
+    "_arcDeg": "Proposal. 90 degrees, so 45 degrees either side of facing. Not signed off.",
+    "_durationS": "Proposal. The curtain lasts this many seconds, then drops. Not signed off.",
+    "_manaCost": "Proposal. Paid once on the raise tick, after that tick's regen. Above a bolt, below Sunfall. Not signed off.",
+    "_heatPerStop": "Proposal. Heat granted to the caster for each magic or physical projectile the curtain destroys. Between a bolt hit and a flick. Not signed off.",
+    "_burnDamage": "Proposal. Magic damage to an enemy body that crosses the arc. A ward can chip it. Unblockable projectiles pass and do not burn by themselves. Not signed off."
   }
 }

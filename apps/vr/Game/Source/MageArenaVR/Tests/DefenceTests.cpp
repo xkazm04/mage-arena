@@ -12,6 +12,7 @@
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/KernelData.h"
+#include "Kernel/MageAI.h"
 #include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Misc/Paths.h"
@@ -170,12 +171,17 @@ bool HasRefusal(const FVrRuleset& Rules, const TCHAR* Reason)
 struct FDefenceLogProbe : FOutputDevice
 {
 	int32 Lines = 0;
+	int32 Stops = 0;
 
 	virtual void Serialize(const TCHAR* Message, ELogVerbosity::Type, const FName&) override
 	{
 		if (Message && FCString::Strstr(Message, TEXT("defence ")))
 		{
 			++Lines;
+		}
+		if (Message && FCString::Strstr(Message, TEXT("firewall stop")))
+		{
+			++Stops;
 		}
 	}
 };
@@ -948,6 +954,495 @@ bool FMageArenaDefencesStaffClips::RunTest(const FString& Parameters)
 		Rig.Staff->OnLift.Remove(LiftHeard);
 		Rig.Finish();
 	}
+	return bPass;
+}
+
+struct FWallRig
+{
+	FArenaState State;
+	FVrRuleset Rules;
+	int32 Caster = 0;
+};
+
+bool OpenFireWall(FAutomationTestBase& Test, FWallRig& Out)
+{
+	if (!Ready(Test))
+	{
+		return false;
+	}
+	FString Error;
+	if (!LoadVrRuleset(Out.Rules, Error))
+	{
+		Test.AddError(Error);
+		return false;
+	}
+	const FVrFireWall& Wall = Out.Rules.FireWall;
+	bool bNumbers = Test.TestTrue(TEXT("firewall enabled"), Wall.bEnabled);
+	bNumbers &= Near(Test, TEXT("distance"), Wall.DistanceM, 4.0);
+	bNumbers &= Near(Test, TEXT("arc"), Wall.ArcDeg, 90.0);
+	bNumbers &= Near(Test, TEXT("duration"), Wall.DurationS, 3.0);
+	bNumbers &= Near(Test, TEXT("mana"), Wall.ManaCost, 12.0);
+	bNumbers &= Near(Test, TEXT("heat"), Wall.HeatPerStop, 4.0);
+	bNumbers &= Near(Test, TEXT("burn"), Wall.BurnDamage, 12.0);
+	bNumbers &= Test.TestEqual(TEXT("three seconds is 180 ticks"), SimTicks(3.0), 180);
+	if (!bNumbers)
+	{
+		return false;
+	}
+	Out.State = CreateArena(11);
+	FActor& Caster = AddMage(Out.State, 1, FSimVec{8.0, 10.0}, TEXT("Ember"));
+	Caster.Fire.bSchool = true;
+	Caster.Facing = FSimVec{1.0, 0.0};
+	Out.Caster = Caster.Id;
+	return true;
+}
+
+FInputFrame RaiseInput()
+{
+	FInputFrame Input = SimIdleInput(FSimVec{9.0, 10.0});
+	Input.bRaiseFireWall = true;
+	return Input;
+}
+
+void StepCaster(FWallRig& Rig, const FInputFrame& Input)
+{
+	TMap<int32, FInputFrame> Inputs;
+	Inputs.Add(Rig.Caster, Input);
+	StepArena(Rig.State, Inputs, &Rig.Rules);
+}
+
+FProjectile& Launch(FWallRig& Rig, const FString& Family, double X, double Y, double Speed, double Remaining)
+{
+	FHit Hit;
+	Hit.OwnerId = 0;
+	Hit.Damage = 8.0;
+	Hit.Family = Family;
+	Hit.bBolt = Family != TEXT("physical");
+	return SpawnProjectile(Rig.State, Hit, FSimVec{X, Y}, FSimVec{-1.0, 0.0}, Speed, Remaining);
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallBolt, "MageArena.Defences.FireWallBolt",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallBolt::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	FActor& Caster = *SimFindActor(Rig.State, Rig.Caster);
+	// runtime.json training.defaultRanks focus is 1. stats.csv maxMana = 80 + 15*rank, so the pool is 95.
+	// manaRegen = 6 + 1.5*rank = 7.5/s, and combat.json simStepHz is 60, so a tick would add 0.125.
+	// The pool is already full, so that regen is clamped away. combat.vr.json fireWall.manaCost is 12. 95 - 12 = 83.
+	// combat.vr.json fireWall.heatPerStop is 4. durationS 3 is 180 ticks. Raised on tick 1, so until is 181.
+	bool bPass = TestEqual(TEXT("focus rank"), Caster.Ranks.Focus, 1);
+	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
+	StepCaster(Rig, RaiseInput());
+	const FActor& After = *SimFindActor(Rig.State, Rig.Caster);
+	bPass &= TestEqual(TEXT("bolt destroyed"), Rig.State.Projectiles.Num(), 0);
+	bPass &= TestEqual(TEXT("one wall"), Rig.Rules.Walls.Num(), 1);
+	bPass &= TestEqual(TEXT("raised"), Rig.Rules.WallsRaised, 1);
+	bPass &= Near(*this, TEXT("mana after raise"), After.Mana, 83.0);
+	bPass &= Near(*this, TEXT("heat per stop"), After.Fire.Heat, 4.0);
+	if (Rig.Rules.Walls.Num() == 1)
+	{
+		bPass &= TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 181);
+		bPass &= Near(*this, TEXT("wall x"), Rig.Rules.Walls[0].Centre.X, 8.0);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallPhysical, "MageArena.Defences.FireWallPhysical",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallPhysical::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	Launch(Rig, TEXT("physical"), 12.6, 10.0, 60.0, 20.0);
+	StepCaster(Rig, RaiseInput());
+	const FActor& After = *SimFindActor(Rig.State, Rig.Caster);
+	// combat.vr.json fireWall.heatPerStop is 4 for a physical stop as well as a magic one.
+	bool bPass = TestEqual(TEXT("physical destroyed"), Rig.State.Projectiles.Num(), 0);
+	bPass &= Near(*this, TEXT("heat per physical stop"), After.Fire.Heat, 4.0);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallUnblockable, "MageArena.Defences.FireWallUnblockable",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallUnblockable::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	Launch(Rig, TEXT("unblockable"), 12.6, 10.0, 60.0, 20.0);
+	StepCaster(Rig, RaiseInput());
+	const FActor& After = *SimFindActor(Rig.State, Rig.Caster);
+	// 60 m/s at combat.json simStepHz 60 travels 1 m. Remaining starts at 20, so the bolt keeps 19.
+	bool bPass = TestEqual(TEXT("unblockable remains"), Rig.State.Projectiles.Num(), 1);
+	if (Rig.State.Projectiles.Num() == 1)
+	{
+		bPass &= Near(*this, TEXT("travel only"), Rig.State.Projectiles[0].RemainingM, 19.0);
+	}
+	bPass &= Near(*this, TEXT("no heat from an unblockable"), After.Fire.Heat, 0.0);
+	bPass &= TestEqual(TEXT("wall still raised"), Rig.Rules.Walls.Num(), 1);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallBurn, "MageArena.Defences.FireWallBurn",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallBurn::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	FActor& Crosser = AddMage(Rig.State, 0, FSimVec{12.6, 10.0}, TEXT("Crosser"));
+	Crosser.SpeedMps = 120.0;
+	const double StartHp = Crosser.Hp;
+	const int32 CrosserId = Crosser.Id;
+	FInputFrame Move = SimIdleInput(FSimVec{12.6, 10.0});
+	Move.Move = FSimVec{-1.0, 0.0};
+	TMap<int32, FInputFrame> Inputs;
+	Inputs.Add(Rig.Caster, RaiseInput());
+	Inputs.Add(CrosserId, Move);
+	StepArena(Rig.State, Inputs, &Rig.Rules);
+	const FActor& After = *SimFindActor(Rig.State, CrosserId);
+	// runtime.json default vigor is 1. stats.csv maxHp = 80 + 15*rank, so the crosser starts at 95.
+	// combat.vr.json fireWall.burnDamage is 12. 95 - 12 = 83.
+	bool bPass = Near(*this, TEXT("crosser started full"), StartHp, 95.0);
+	bPass &= Near(*this, TEXT("burn on the crossing step"), After.Hp, 83.0);
+	bPass &= TestTrue(TEXT("crosser still up"), !After.bDown);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallDuration, "MageArena.Defences.FireWallDuration",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallDuration::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	StepCaster(Rig, RaiseInput());
+	if (Rig.Rules.Walls.Num() != 1)
+	{
+		AddError(TEXT("wall did not raise"));
+		return false;
+	}
+	// combat.vr.json fireWall.durationS is 3. combat.json simStepHz is 60, so the curtain lives 180 ticks.
+	// The raise lands on tick 1, so UntilTick is 181: tick 180 still stops, tick 181 has already expired.
+	bool bPass = TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 181);
+	Rig.State.Tick = 179;
+	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
+	StepCaster(Rig, SimIdleInput(FSimVec{9.0, 10.0}));
+	bPass &= TestEqual(TEXT("last included tick"), Rig.State.Tick, 180);
+	bPass &= TestEqual(TEXT("bolt stopped on the last tick"), Rig.State.Projectiles.Num(), 0);
+	bPass &= TestEqual(TEXT("wall still up"), Rig.Rules.Walls.Num(), 1);
+	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
+	StepCaster(Rig, SimIdleInput(FSimVec{9.0, 10.0}));
+	bPass &= TestEqual(TEXT("expiry tick"), Rig.State.Tick, 181);
+	bPass &= TestEqual(TEXT("wall dropped"), Rig.Rules.Walls.Num(), 0);
+	bPass &= TestEqual(TEXT("bolt passed"), Rig.State.Projectiles.Num(), 1);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallNull, "MageArena.Defences.FireWallNull",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallNull::RunTest(const FString& Parameters)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	// The bolt starts at x=12.6 going toward the caster at x=8. A live wall's curtain is the circle at x=12.
+	// 60 m/s at 60 Hz travels 1 m, so the step ends at x=11.6 and remaining 19: it crossed where the curtain would stand.
+	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
+	TMap<int32, FInputFrame> Inputs;
+	Inputs.Add(Rig.Caster, RaiseInput());
+	FDefenceLogProbe Probe;
+	{
+		FDefenceLogScope Scope(Probe);
+		StepArena(Rig.State, Inputs, nullptr);
+	}
+	const FActor& After = *SimFindActor(Rig.State, Rig.Caster);
+	bool bPass = TestEqual(TEXT("pinned path keeps the bolt"), Rig.State.Projectiles.Num(), 1);
+	bPass &= TestEqual(TEXT("no defence line"), Probe.Lines, 0);
+	bPass &= TestEqual(TEXT("no firewall stop"), Probe.Stops, 0);
+	bPass &= Near(*this, TEXT("no heat"), After.Fire.Heat, 0.0);
+	if (Rig.State.Projectiles.Num() == 1)
+	{
+		bPass &= Near(*this, TEXT("crossed the curtain line"), Rig.State.Projectiles[0].Pos.X, 11.6);
+		bPass &= Near(*this, TEXT("travel only"), Rig.State.Projectiles[0].RemainingM, 19.0);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallOwnBolt, "MageArena.Defences.FireWallOwnBolt",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallOwnBolt::RunTest(const FString& Parameters)
+{
+	// The curtain stands on the circle x = 8 + 4. A bolt from x = 11.2 going outward at 60 m/s
+	// travels 1 m this tick (combat.json simStepHz 60) and ends at x = 12.2, so the segment crosses it.
+	// Remaining starts at 20, so a bolt the wall does not claim keeps 19. The raise still costs 12 mana (95 - 12 = 83).
+	FWallRig Rig;
+	if (!OpenFireWall(*this, Rig))
+	{
+		return false;
+	}
+	FActor& Ally = AddMage(Rig.State, 1, FSimVec{8.0, 14.0}, TEXT("Ally"));
+	FHit Own;
+	Own.OwnerId = Rig.Caster;
+	Own.Family = TEXT("magic");
+	Own.Damage = 8.0;
+	Own.bBolt = true;
+	SpawnProjectile(Rig.State, Own, FSimVec{11.2, 10.0}, FSimVec{1.0, 0.0}, 60.0, 20.0);
+	FHit Teammate = Own;
+	Teammate.OwnerId = Ally.Id;
+	SpawnProjectile(Rig.State, Teammate, FSimVec{11.2, 10.4}, FSimVec{1.0, 0.0}, 60.0, 20.0);
+	FDefenceLogProbe Probe;
+	{
+		FDefenceLogScope Scope(Probe);
+		StepCaster(Rig, RaiseInput());
+	}
+	const FActor& After = *SimFindActor(Rig.State, Rig.Caster);
+	bool bPass = TestEqual(TEXT("both bolts remain"), Rig.State.Projectiles.Num(), 2);
+	bPass &= TestEqual(TEXT("wall is up"), Rig.Rules.Walls.Num(), 1);
+	bPass &= TestEqual(TEXT("no firewall stop"), Probe.Stops, 0);
+	bPass &= Near(*this, TEXT("raise paid, no heat"), After.Mana, 83.0);
+	bPass &= Near(*this, TEXT("no heat from her own curtain"), After.Fire.Heat, 0.0);
+	for (const FProjectile& Projectile : Rig.State.Projectiles)
+	{
+		bPass &= Near(*this, TEXT("crossed her curtain"), Projectile.Pos.X, 12.2);
+		bPass &= Near(*this, TEXT("range untouched"), Projectile.RemainingM, 19.0);
+	}
+	return bPass;
+}
+
+struct FWallRaise
+{
+	int32 InputTick = -1;
+	int32 WallTick = -1;
+};
+
+bool WatchWallRaise(FAutomationTestBase& Test, double Competence, FWallRaise& Out)
+{
+	FWallRig Rig;
+	if (!OpenFireWall(Test, Rig))
+	{
+		return false;
+	}
+	FActor& Player = AddMage(Rig.State, 0, FSimVec{24.0, 10.0}, TEXT("Cassia"));
+	FActor& Mage = *SimFindActor(Rig.State, Rig.Caster);
+	AttachMageAI(Mage, Competence, 0);
+	FPendingCast Hold;
+	Hold.Kind = TEXT("staff");
+	Hold.ReleaseTick = 1000000;
+	Hold.Aim = FSimVec{24.0, 10.0};
+	Mage.Pending = Hold;
+	FHit Hit;
+	Hit.OwnerId = Player.Id;
+	Hit.Family = TEXT("magic");
+	Hit.Damage = 8.0;
+	Hit.bBolt = true;
+	SpawnProjectile(Rig.State, Hit, FSimVec{22.0, 11.0}, FSimVec{-1.0, 0.0}, 1.0, 40.0);
+	for (int32 Step = 0; Step < 48 && (Out.InputTick < 0 || Out.WallTick < 0); ++Step)
+	{
+		FActor& Live = *SimFindActor(Rig.State, Rig.Caster);
+		const FInputFrame Input = MageInput(Rig.State, Live, &Rig.Rules);
+		if (Out.InputTick < 0 && Input.bRaiseFireWall)
+		{
+			Out.InputTick = Rig.State.Tick;
+		}
+		TMap<int32, FInputFrame> Inputs;
+		Inputs.Add(Rig.Caster, Input);
+		StepArena(Rig.State, Inputs, &Rig.Rules);
+		if (Out.WallTick < 0 && Rig.Rules.Walls.Num() > 0)
+		{
+			Out.WallTick = Rig.State.Tick;
+		}
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallReaction, "MageArena.Defences.FireWallReaction",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallReaction::RunTest(const FString& Parameters)
+{
+	// enemies.json mages.competence: level 1 reactionDelayS is 0.55, level 2 is 0.45.
+	// Level 1.5 is the midpoint, 0.50 s. combat.json simStepHz is 60, so the waits are 33 and 30 ticks.
+	// The raise bit is that tick's input. The curtain stands on the next step.
+	FWallRaise Slow;
+	FWallRaise Fast;
+	if (!WatchWallRaise(*this, 1.0, Slow) || !WatchWallRaise(*this, 1.5, Fast))
+	{
+		return false;
+	}
+	bool bPass = TestEqual(TEXT("competence 1 raises on tick 33"), Slow.InputTick, 33);
+	bPass &= TestEqual(TEXT("competence 1 wall stands on tick 34"), Slow.WallTick, 34);
+	bPass &= TestEqual(TEXT("competence 1.5 raises on tick 30"), Fast.InputTick, 30);
+	bPass &= TestEqual(TEXT("competence 1.5 wall stands on tick 31"), Fast.WallTick, 31);
+	bPass &= TestTrue(TEXT("competence 1.5 raises before competence 1"), Fast.InputTick >= 0 && Fast.InputTick < Slow.InputTick);
+	return bPass;
+}
+
+void ArmWallMage(FWallRig& Rig)
+{
+	FActor& Player = AddMage(Rig.State, 0, FSimVec{24.0, 10.0}, TEXT("Cassia"));
+	FActor& Mage = *SimFindActor(Rig.State, Rig.Caster);
+	AttachMageAI(Mage, 1.0, 0);
+	FPendingCast Hold;
+	Hold.Kind = TEXT("staff");
+	Hold.ReleaseTick = 1000000;
+	Hold.Aim = FSimVec{24.0, 10.0};
+	Mage.Pending = Hold;
+	FHit Hit;
+	Hit.OwnerId = Player.Id;
+	Hit.Family = TEXT("magic");
+	Hit.Damage = 8.0;
+	Hit.bBolt = true;
+	SpawnProjectile(Rig.State, Hit, FSimVec{22.0, 11.0}, FSimVec{-1.0, 0.0}, 1.0, 40.0);
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireWallVolley, "MageArena.Defences.FireWallVolley",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireWallVolley::RunTest(const FString& Parameters)
+{
+	// A duel bolt lands inside the 0.55 s reaction. The timer has to survive that gap,
+	// and a quiet longer than the reaction plus 0.4 s has to forget the volley.
+	FWallRig Held;
+	if (!OpenFireWall(*this, Held))
+	{
+		return false;
+	}
+	ArmWallMage(Held);
+	// enemies.json mages.competence level 1 reactionDelayS is 0.55. combat.json simStepHz is 60, so the wait is 33 ticks.
+	// MageAI holds a quiet volley for that wait plus 0.4 s (24 ticks). 33 + 24 = 57.
+	constexpr int32 Delay = 33;
+	constexpr int32 ForgetAfter = 57;
+	{
+		FActor& Live = *SimFindActor(Held.State, Held.Caster);
+		const FInputFrame Sight = MageInput(Held.State, Live, &Held.Rules);
+		bool bPass = TestFalse(TEXT("no raise on the sight tick"), Sight.bRaiseFireWall);
+		bPass &= TestEqual(TEXT("volley remembered"), Live.MageAI.GetValue().WallSeenTick, Held.State.Tick);
+		Held.State.Projectiles.Reset();
+		TMap<int32, FInputFrame> Inputs;
+		Inputs.Add(Held.Caster, Sight);
+		StepArena(Held.State, Inputs, &Held.Rules);
+		bool bSawRaise = false;
+		for (int32 Step = 0; Step < Delay + 2 && !bSawRaise; ++Step)
+		{
+			FActor& Now = *SimFindActor(Held.State, Held.Caster);
+			const FInputFrame Input = MageInput(Held.State, Now, &Held.Rules);
+			if (Held.State.Tick == Delay - 1)
+			{
+				bPass &= TestFalse(TEXT("gap does not raise early"), Input.bRaiseFireWall);
+				bPass &= TestEqual(TEXT("first sight still held"), Now.MageAI.GetValue().WallSeenTick, 0);
+			}
+			if (Held.State.Tick == Delay)
+			{
+				bPass &= TestTrue(TEXT("raise on the delay tick after the bolt is gone"), Input.bRaiseFireWall);
+				bSawRaise = Input.bRaiseFireWall;
+			}
+			TMap<int32, FInputFrame> StepInputs;
+			StepInputs.Add(Held.Caster, Input);
+			StepArena(Held.State, StepInputs, &Held.Rules);
+		}
+		bPass &= TestTrue(TEXT("raise bit observed across the gap"), bSawRaise);
+		bPass &= TestEqual(TEXT("wall appears the step after the delay"), Held.State.Tick, Delay + 1);
+		if (!bPass)
+		{
+			return false;
+		}
+	}
+
+	FWallRig Quiet;
+	if (!OpenFireWall(*this, Quiet))
+	{
+		return false;
+	}
+	ArmWallMage(Quiet);
+	bool bPass = true;
+	{
+		FActor& Live = *SimFindActor(Quiet.State, Quiet.Caster);
+		Live.Mana = 0.0;
+		const FInputFrame Sight = MageInput(Quiet.State, Live, &Quiet.Rules);
+		Quiet.State.Projectiles.Reset();
+		TMap<int32, FInputFrame> Inputs;
+		Inputs.Add(Quiet.Caster, Sight);
+		StepArena(Quiet.State, Inputs, &Quiet.Rules);
+	}
+	while (Quiet.State.Tick <= ForgetAfter + 1)
+	{
+		FActor& Now = *SimFindActor(Quiet.State, Quiet.Caster);
+		Now.Mana = 0.0;
+		const FInputFrame Input = MageInput(Quiet.State, Now, &Quiet.Rules);
+		bPass &= TestFalse(TEXT("no raise while the pool cannot pay"), Input.bRaiseFireWall);
+		if (Quiet.State.Tick == Delay)
+		{
+			bPass &= TestEqual(TEXT("gap still holds through the delay"), Now.MageAI.GetValue().WallSeenTick, 0);
+		}
+		TMap<int32, FInputFrame> Inputs;
+		Inputs.Add(Quiet.Caster, Input);
+		StepArena(Quiet.State, Inputs, &Quiet.Rules);
+	}
+	bPass &= TestEqual(TEXT("quiet raised nothing"), Quiet.Rules.Walls.Num(), 0);
+	FActor& Forgotten = *SimFindActor(Quiet.State, Quiet.Caster);
+	bPass &= TestEqual(TEXT("quiet longer than the reaction forgets the volley"), Forgotten.MageAI.GetValue().WallSeenTick, NeverTick);
+	Forgotten.Mana = Forgotten.MaxMana;
+	int32 PlayerId = 0;
+	for (const FActor& Actor : Quiet.State.Actors)
+	{
+		if (Actor.Team == 0)
+		{
+			PlayerId = Actor.Id;
+			break;
+		}
+	}
+	FHit Hit;
+	Hit.OwnerId = PlayerId;
+	Hit.Family = TEXT("magic");
+	Hit.Damage = 8.0;
+	Hit.bBolt = true;
+	SpawnProjectile(Quiet.State, Hit, FSimVec{22.0, 11.0}, FSimVec{-1.0, 0.0}, 1.0, 40.0);
+	const int32 SeenAt = Quiet.State.Tick;
+	FInputFrame Input = MageInput(Quiet.State, Forgotten, &Quiet.Rules);
+	bPass &= TestFalse(TEXT("a new bolt does not raise on its sight tick"), Input.bRaiseFireWall);
+	bPass &= TestEqual(TEXT("new volley starts its own timer"), Forgotten.MageAI.GetValue().WallSeenTick, SeenAt);
+	bool bSawFresh = false;
+	for (int32 Step = 0; Step < Delay + 2 && !bSawFresh; ++Step)
+	{
+		if (Quiet.State.Tick == SeenAt + Delay)
+		{
+			bPass &= TestTrue(TEXT("new volley raises on its own delay"), Input.bRaiseFireWall);
+			bSawFresh = Input.bRaiseFireWall;
+		}
+		TMap<int32, FInputFrame> Inputs;
+		Inputs.Add(Quiet.Caster, Input);
+		StepArena(Quiet.State, Inputs, &Quiet.Rules);
+		if (!bSawFresh)
+		{
+			FActor& Now = *SimFindActor(Quiet.State, Quiet.Caster);
+			Input = MageInput(Quiet.State, Now, &Quiet.Rules);
+		}
+	}
+	bPass &= TestTrue(TEXT("fresh raise observed"), bSawFresh);
 	return bPass;
 }
 

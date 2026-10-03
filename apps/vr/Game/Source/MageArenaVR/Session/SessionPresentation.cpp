@@ -13,7 +13,9 @@
 #include "IImageWrapperModule.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/KernelData.h"
+#include "Kernel/SimMath.h"
 #include "Kernel/SimTypes.h"
+#include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Math/RotationMatrix.h"
@@ -556,6 +558,56 @@ void ASessionPresentation::SyncDome(const FArenaSession& Session, const FActor* 
 	DomeAnchor->SetWorldRotation(FRotator::ZeroRotator);
 }
 
+void ASessionPresentation::SyncWalls(const FArenaSession& Session)
+{
+	const FVrRuleset* Rules = Session.GetVrRules();
+	int32 Used = 0;
+	if (Rules && Rules->FireWall.bEnabled)
+	{
+		UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+		const FLinearColor Curtain(FireColour.R, FireColour.G, FireColour.B, 0.88f);
+		for (const FVrWall& Wall : Rules->Walls)
+		{
+			const int32 Segments = 8;
+			const double Arc = Wall.ArcDeg * SimPi / 180.0;
+			for (int32 Index = 0; Index < Segments; ++Index)
+			{
+				const double Angle = -Arc * 0.5 + Arc * (static_cast<double>(Index) + 0.5) / static_cast<double>(Segments);
+				const FSimVec Direction = SimRotate(Wall.Facing, Angle);
+				const FSimVec Point = SimAdd(Wall.Centre, SimScale(Direction, Wall.DistanceM));
+				if (!WallSlats.IsValidIndex(Used))
+				{
+					UMaterialInstanceDynamic* Material = Greybox::Tint(Greybox::TranslucentMaterial(), this, Curtain);
+					UStaticMeshComponent* Mesh = Greybox::MakeMesh(this, CylinderMesh, Material);
+					if (Mesh)
+					{
+						Mesh->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+					}
+					WallSlats.Add(Mesh);
+				}
+				UStaticMeshComponent* Slat = WallSlats[Used];
+				if (Slat)
+				{
+					FVector World = Session.KernelToUnrealCm(Point);
+					World.Z += 60.0;
+					Slat->SetWorldLocation(World);
+					Slat->SetWorldRotation(FRotator::ZeroRotator);
+					Greybox::SetSized(Slat, FVector(16.0, 36.0, 120.0));
+					Slat->SetVisibility(true);
+				}
+				++Used;
+			}
+		}
+	}
+	for (int32 Index = Used; Index < WallSlats.Num(); ++Index)
+	{
+		if (WallSlats[Index])
+		{
+			WallSlats[Index]->SetVisibility(false);
+		}
+	}
+}
+
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
 	if (!Session.IsRunning())
@@ -565,6 +617,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	const FGames& Games = Session.GetGames();
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
+	SyncWalls(Session);
 	const double Now = FPlatformTime::Seconds();
 	TSet<int32> LiveBodies;
 	TSet<int32> LiveShots;

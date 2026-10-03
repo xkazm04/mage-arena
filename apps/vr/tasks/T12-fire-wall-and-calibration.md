@@ -1,6 +1,6 @@
 # T12 - Fire wall (C) for the Fire mage, and the seated calibration census
 
-Status: open (dispatch after T11 is committed)
+Status: done after retry 1 (verified 2026-10-03: MageArena. 124/124, census reproduced byte-identical, proposal never adopted; design gates red live, Wave1Seated green with the proposal, FireSeated red on Sunfall - owner decision DF-003)
 Max turns: 320
 
 ## Goal
@@ -76,3 +76,40 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArenaDesign.;Quit" -unattended -nullrhi -nosplash -log
 <the same design run with the proposal switch>  # shows the proposal's effect
 ```
+
+## Continuation (orchestrator, 2026-10-03 19:45) - not a retry
+The first session ended its turn after 149 turns while waiting for a rebuild ("I'll check whether the rebuild has
+finished"), with no REPORT.md, no census output and no shots. Its code is in the working tree (fire wall in `VrRules.*`,
+`Fire.*`, `MageAI.*`; `Tests/CensusTests.cpp`; reset helpers `StopAll` / `ResetStrokes`). No build is running now.
+**Continue from the working tree** - do not start over: build (`apps/vr/tools/build.ps1`), fix compile errors, run the
+regular suite, then the 3-seed census probe, then the full census, then the deliverables (proposal JSON, DF-003, shots,
+REPORT.md). Run long commands to completion before ending your turn; do not end the turn while a build or test is running.
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+Verified: clips 615/0, conformance byte-identical, pin OK, build green, `MageArena.` 123/123; live Wave1Seated lost at
+23.25 s, proposal Wave1Seated won at 39.38 s (HP 8.6); FireSeated live c1 won 29.47 s / c1.5 lost 22.92 s, with the
+proposal 46.87 s / 45.30 s won, red on Sunfall only. The proposal switch, the null-ruleset path, the census
+traceability and the reset helpers passed review. DF-003 is a good write-up. Fix these:
+
+1. **The fire wall stops its caster's own projectiles** (`ArenaKernel.cpp:~508-545`, and the second wall loop at
+   ~583-591): the wall loop has no owner/team filter, so the Fire mage's outbound bolts cross her own wall 4 m ahead,
+   are destroyed, and award her Heat. `BurnCrossers` and `HostileProjectileCrosses` already filter friendly ownership;
+   do the same here (skip projectiles whose owner is the wall's owner or on the wall owner's team). Add an oracle test:
+   the caster's own bolt passes her wall untouched, no Heat gained, no `firewall stop` line.
+2. **Re-run the official census** (20 seeds, same candidate families plus the policy sweep) after the fix, because the
+   bug lengthened every duel in which the mage raised a wall. Rewrite `calibration-proposal.json`,
+   `docs/design-findings/DF-003-calibration-proposal.md` and the census CSV/JSON from the new numbers. Also add the one
+   follow-up DF-003 names but did not measure: **ward drain while split-casting** as a knob (e.g. 0.5x and 0.25x of the
+   27/s) in at least one candidate. Keep the rules: propose, never adopt into the live overlay.
+3. **Weak tests in `DefenceTests.cpp`** (fire wall section): `~1153` compares `Life` to the formula that set it (X == X);
+   `~1172` asserts `Rig.Rules.Walls.Num() == 0` after a `StepArena(..., nullptr)` that could never touch `Rig.Rules` -
+   observe the null path instead (a bolt crossing where a wall would be is not stopped, no Heat, no `defence` line);
+   `~1207` compares two static table lookups - drive two mages at competence 1 and 1.5 and observe which raises the
+   wall first, or delete it. Hand-compute expectations as constants with the data source in a comment instead of
+   re-evaluating kernel formulas (`~1019-1025` mana 40 - 12 = 28 plus stated regen, `~1046/1069` Heat 4, `~1049` until
+   tick 181, `~1088/1092` remaining distance, `~1120` HP 95 - 12 = 83, `~1240` forget-after).
+4. **`MageArenaDesign.Census.Sweep` asserts nothing**: add sanity assertions that can fail - row count = seeds x
+   candidates x bouts, seeds distinct, every candidate produced rows, no NaN medians, the written proposal equals the
+   reported winner.
+5. Update `runs/T12/REPORT.md` with a Retry 1 section.

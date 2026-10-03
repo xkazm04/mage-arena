@@ -4,6 +4,7 @@
 #include "Kernel/Catalog.h"
 #include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
+#include "Kernel/VrRules.h"
 #include "Kernel/Water.h"
 
 #include <algorithm>
@@ -496,6 +497,115 @@ void React(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfi
 	}
 	Brain.Observed = MoveTemp(Kept);
 }
+
+bool HostileProjectileCrosses(const FArenaState& State, const FActor& Self, const FSimVec& Facing, const FVrFireWall& Spec)
+{
+	FVrWall Ghost;
+	Ghost.Centre = Self.Pos;
+	Ghost.Facing = Facing;
+	Ghost.DistanceM = Spec.DistanceM;
+	Ghost.ArcDeg = Spec.ArcDeg;
+	for (const FProjectile& Projectile : State.Projectiles)
+	{
+		if (Projectile.OwnerId == Self.Id || Projectile.Family == TEXT("unblockable"))
+		{
+			continue;
+		}
+		if (Projectile.Family != TEXT("magic") && Projectile.Family != TEXT("physical"))
+		{
+			continue;
+		}
+		const FActor* Owner = ActorById(State, Projectile.OwnerId);
+		if (Owner && Owner->Team == Self.Team)
+		{
+			continue;
+		}
+		if (!(Projectile.RemainingM > 0.0) || !(SimLength(Projectile.Velocity) > 0.0))
+		{
+			continue;
+		}
+		const FSimVec Direction = SimUnit(Projectile.Velocity);
+		const FSimVec End = SimAdd(Projectile.Pos, SimScale(Direction, Projectile.RemainingM));
+		double CrossT = 0.0;
+		if (VrWallSegmentCrosses(Ghost, Projectile.Pos, End, CrossT))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void ConsiderFireWall(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, FInputFrame& Result, const FVrRuleset* Rules)
+{
+	if (!Rules || !Rules->bActive || !Rules->FireWall.bEnabled || !Self.Fire.bSchool)
+	{
+		return;
+	}
+	if (Rules->FindWall(Self.Id) != nullptr)
+	{
+		// The curtain is already up. The next volley starts a fresh reaction.
+		Brain.WallSeenTick = NeverTick;
+		Brain.WallLastSeenTick = NeverTick;
+		return;
+	}
+	const FSimVec Facing = SimUnit(SimSub(Result.Aim, Self.Pos), Self.Facing);
+	if (HostileProjectileCrosses(State, Self, Facing, Rules->FireWall))
+	{
+		Brain.WallLastSeenTick = State.Tick;
+		if (Brain.WallSeenTick == NeverTick)
+		{
+			Brain.WallSeenTick = State.Tick;
+		}
+	}
+	else if (Brain.WallSeenTick == NeverTick)
+	{
+		return;
+	}
+	else
+	{
+		// A water bolt from duel range lands inside the reaction window, so the tick
+		// it dies would otherwise wipe the timer. Hold the first sight across that gap.
+		// Forget only after a quiet longer than the reaction plus a short grace.
+		const int32 QuietFor = State.Tick - Brain.WallLastSeenTick;
+		const int32 ForgetAfter = SimTicks(Profile.ReactionDelayS) + SimTicks(0.4);
+		if (QuietFor > ForgetAfter)
+		{
+			Brain.WallSeenTick = NeverTick;
+			Brain.WallLastSeenTick = NeverTick;
+			return;
+		}
+	}
+	if (State.Tick - Brain.WallSeenTick < SimTicks(Profile.ReactionDelayS))
+	{
+		return;
+	}
+	if (Self.Mana + 1.0e-9 < Rules->FireWall.ManaCost)
+	{
+		return;
+	}
+	if (Self.Tier >= 4 && !Self.Fire.bSunfallLoosed)
+	{
+		if (const FFireSpell* Sun = FindFireSpell(TEXT("fire_sunfall")))
+		{
+			if (Self.Mana - Rules->FireWall.ManaCost < Sun->Mana)
+			{
+				return;
+			}
+		}
+	}
+	if (Result.bCast)
+	{
+		const FFireSpell* Spell = FireSpellFor(Self, Result.Slot);
+		if (Spell && Spell->Id == TEXT("fire_sunfall"))
+		{
+			return;
+		}
+	}
+	// The curtain deletes the bolt. Spending the same tick on the palm would keep the wall down.
+	Result.bRaiseFireWall = true;
+	Result.bCast = false;
+	Result.bAbsorb = false;
+}
 }
 
 FMageProfile MageCompetence(double Level)
@@ -537,7 +647,7 @@ void AttachMageAI(FActor& Actor, double Level, int32 Tick)
 	Actor.MageAI = Brain;
 }
 
-FInputFrame MageInput(FArenaState& State, FActor& Self)
+FInputFrame MageInput(FArenaState& State, FActor& Self, const FVrRuleset* Rules)
 {
 	if (!Self.MageAI.IsSet() || Self.bDown)
 	{
@@ -617,6 +727,7 @@ FInputFrame MageInput(FArenaState& State, FActor& Self)
 		Result.bCast = false;
 		Result.Move = FSimVec{0.0, 0.0};
 	}
+	ConsiderFireWall(State, Self, Brain, Profile, Result, Rules);
 	Brain.Input.bRoll = false;
 	return Result;
 }

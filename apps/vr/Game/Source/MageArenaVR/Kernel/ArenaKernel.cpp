@@ -1,5 +1,6 @@
 #include "Kernel/ArenaKernel.h"
 
+#include "MageArenaVR.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
 #include "Kernel/Fire.h"
@@ -88,7 +89,7 @@ EAbsorbHitKind KindFromFamily(const FString& Family)
 	return EAbsorbHitKind::Magic;
 }
 
-void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	if (!Input.bAbsorb)
@@ -121,6 +122,10 @@ void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 		if (Actor.Fire.bSchool)
 		{
 			Cost *= FireAbsorbDrainMult(State, Actor);
+		}
+		if (Rules && Rules->bActive && Rules->IsSplitCasting(Actor.Id) && Rules->Defence.WardDrainSplit != 1.0)
+		{
+			Cost *= Rules->Defence.WardDrainSplit;
 		}
 		const double Paid = std::min(Actor.Mana, Cost);
 		Actor.Mana -= Paid;
@@ -222,6 +227,10 @@ void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 		Hit.OwnerId = Actor.Id;
 		Hit.ActivationId = Pending.ActivationId;
 		Hit.Damage = Data.BoltDamage;
+		if (Rules && Rules->bActive && Actor.Team == 0 && Rules->Power.BoltDamage != 1.0)
+		{
+			Hit.Damage *= Rules->Power.BoltDamage;
+		}
 		Hit.Family = TEXT("magic");
 		Hit.Tier = 0;
 		Hit.Source = Actor.Pos;
@@ -299,6 +308,10 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 	{
 		if (TryFireCast(State, Actor, Input))
 		{
+			if (Rules && Rules->bActive && Actor.MageAI.IsSet() && Rules->Pressure.FireMageDamage != 1.0 && Actor.Pending.IsSet())
+			{
+				Actor.Pending->DamageMult = Rules->Pressure.FireMageDamage;
+			}
 			ReleaseCast(State, Actor, Rules);
 		}
 		return;
@@ -325,9 +338,33 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 			FSpellCastMod Mod;
 			Mod.bSuppressFlow = true;
 			Mod.PowerMult = Rules->Split.OneHandPower;
+			if (Actor.Team == 0 && Spell->Kind == TEXT("line") && Rules->Power.LineDamage != 1.0)
+			{
+				Mod.PowerMult *= Rules->Power.LineDamage;
+			}
+			else if (Actor.Team == 0 && (Spell->Kind == TEXT("projectile") || Spell->Line == TEXT("bolt")) && Rules->Power.BoltDamage != 1.0)
+			{
+				Mod.PowerMult *= Rules->Power.BoltDamage;
+			}
 			if (TrySpellCast(State, Actor, Input, &Mod))
 			{
 				Rules->SetSplitCasting(Actor.Id, true);
+				ReleaseCast(State, Actor, Rules);
+			}
+			return;
+		}
+		const FSpell* PowerSpell = SpellFor(Actor, Input.Slot);
+		const bool bLine = PowerSpell && PowerSpell->Kind == TEXT("line");
+		const bool bBolt = PowerSpell && (PowerSpell->Kind == TEXT("projectile") || PowerSpell->Line == TEXT("bolt"));
+		const double Power = (Rules && Rules->bActive && Actor.Team == 0)
+			? (bLine ? Rules->Power.LineDamage : (bBolt ? Rules->Power.BoltDamage : 1.0))
+			: 1.0;
+		if (Power != 1.0)
+		{
+			FSpellCastMod Mod;
+			Mod.PowerMult = Power;
+			if (TrySpellCast(State, Actor, Input, &Mod))
+			{
 				ReleaseCast(State, Actor, Rules);
 			}
 			return;
@@ -454,6 +491,22 @@ void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 	}
 }
 
+bool WallClaimsProjectile(const FArenaState& State, const FVrWall& Wall, const FProjectile& Projectile, const FActor* ProjectileOwner)
+{
+	if (Projectile.OwnerId == Wall.OwnerId)
+	{
+		return false;
+	}
+	if (const FActor* WallOwner = SimFindActor(State, Wall.OwnerId))
+	{
+		if (ProjectileOwner && ProjectileOwner->Team == WallOwner->Team)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 {
 	const int32 Count = State.Projectiles.Num();
@@ -466,6 +519,25 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 		Projectile.PreviousPos = Projectile.Pos;
 		const FSimVec End = SimAdd(Projectile.Pos, SimScale(Direction, Travel));
 		const FActor* Owner = SimFindActor(State, Projectile.OwnerId);
+		double WallT = std::numeric_limits<double>::infinity();
+		const FVrWall* Stopping = nullptr;
+		if (Rules && Rules->bActive && Rules->FireWall.bEnabled && Projectile.Family != TEXT("unblockable")
+			&& (Projectile.Family == TEXT("magic") || Projectile.Family == TEXT("physical")))
+		{
+			for (const FVrWall& Wall : Rules->Walls)
+			{
+				if (!WallClaimsProjectile(State, Wall, Projectile, Owner))
+				{
+					continue;
+				}
+				double CrossT = 0.0;
+				if (VrWallSegmentCrosses(Wall, Projectile.Pos, End, CrossT) && CrossT < WallT)
+				{
+					WallT = CrossT;
+					Stopping = &Wall;
+				}
+			}
+		}
 		FActor* First = nullptr;
 		double FirstT = std::numeric_limits<double>::infinity();
 		for (FActor& Actor : State.Actors)
@@ -480,6 +552,16 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 				FirstT = T.GetValue();
 				First = &Actor;
 			}
+		}
+		if (Stopping && WallClaimsProjectile(State, *Stopping, Projectile, Owner) && (!First || WallT <= FirstT))
+		{
+			if (FActor* Caster = SimFindActor(State, Stopping->OwnerId))
+			{
+				GainHeat(State, *Caster, Rules->FireWall.HeatPerStop);
+			}
+			UE_LOG(LogMageArena, Log, TEXT("defence firewall stop wall=%d projectile=%d owner=%d"), Stopping->Id, Projectile.Id, Stopping->OwnerId);
+			Projectile.RemainingM = 0.0;
+			continue;
 		}
 		if (First)
 		{
@@ -518,7 +600,16 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 					}
 				}
 			}
-			if (!Projectile.bPiercing || Result.bPerfect)
+			if (Stopping && WallClaimsProjectile(State, *Stopping, Projectile, Owner) && Projectile.bPiercing && !Result.bPerfect)
+			{
+				if (FActor* Caster = SimFindActor(State, Stopping->OwnerId))
+				{
+					GainHeat(State, *Caster, Rules->FireWall.HeatPerStop);
+				}
+				UE_LOG(LogMageArena, Log, TEXT("defence firewall stop wall=%d projectile=%d owner=%d"), Stopping->Id, Projectile.Id, Stopping->OwnerId);
+				Projectile.RemainingM = 0.0;
+			}
+			else if (!Projectile.bPiercing || Result.bPerfect)
 			{
 				Projectile.RemainingM = 0.0;
 			}
@@ -774,6 +865,10 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 {
 	const FKernelData& Data = KernelData();
 	State.Tick++;
+	if (Rules)
+	{
+		Rules->ExpireWalls(State);
+	}
 	for (FActor& Actor : State.Actors)
 	{
 		if (Actor.bDown)
@@ -782,7 +877,12 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		}
 		UpdateWater(State, Actor);
 		UpdateFireResource(State, Actor);
-		Actor.Mana = std::min(Actor.MaxMana, Actor.Mana + Maximum(Data.ManaRegenBase, Data.ManaRegenPerRank, Actor.Ranks.Focus) * SimDt());
+		double ManaRegen = Maximum(Data.ManaRegenBase, Data.ManaRegenPerRank, Actor.Ranks.Focus) * SimDt();
+		if (Rules && Rules->bActive && Actor.Team == 0 && Rules->Power.ManaRegen != 1.0)
+		{
+			ManaRegen *= Rules->Power.ManaRegen;
+		}
+		Actor.Mana = std::min(Actor.MaxMana, Actor.Mana + ManaRegen);
 		if (State.Tick - Actor.StaminaUsedTick >= SimTicks(Data.StaminaRegenDelayS))
 		{
 			double Regen = Data.StaminaRegenPerSecond * SimDt();
@@ -801,7 +901,7 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		const FInputFrame* Found = Inputs.Find(Actor.Id);
 		const FInputFrame Input = Found ? *Found : SimIdleInput(FSimVec{Actor.Pos.X + Actor.Facing.X, Actor.Pos.Y + Actor.Facing.Y});
 		Actor.Facing = SimUnit(SimSub(Input.Aim, Actor.Pos), Actor.Facing);
-		UpdateWard(State, Actor, Input);
+		UpdateWard(State, Actor, Input, Rules);
 		if (Rules && !Actor.bAbsorb)
 		{
 			Rules->SetSplitCasting(Actor.Id, false);
@@ -809,12 +909,17 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		if (Rules)
 		{
 			Rules->TickStaff(State, Actor, Input);
+			Rules->TickWalls(State, Actor, Input);
 		}
 		MoveActor(State, Actor, Input, Rules);
 		ReleaseCast(State, Actor, Rules);
 		StartCast(State, Actor, Input, Rules);
 		Actor.LastInput = Input;
 		UpdateFireOngoing(State, Actor);
+	}
+	if (Rules)
+	{
+		Rules->BurnCrossers(State);
 	}
 	UpdateTelegraphs(State, Rules);
 	UpdateProjectiles(State, Rules);

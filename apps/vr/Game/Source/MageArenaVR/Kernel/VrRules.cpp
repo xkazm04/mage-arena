@@ -4,8 +4,13 @@
 #include "Kernel/KernelData.h"
 #include "MageArenaVR.h"
 
+#include "Kernel/SimMath.h"
+
 #include "Dom/JsonObject.h"
+#include "HAL/PlatformMisc.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -460,7 +465,120 @@ void FVrRuleset::KeepOut(FArenaState& State) const
 	}
 }
 
-bool LoadVrRuleset(FVrRuleset& Out, FString& Error)
+bool ProposalRequested()
+{
+	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")))
+	{
+		return true;
+	}
+	const FString Env = FPlatformMisc::GetEnvironmentVariable(TEXT("MageArenaProposal"));
+	return Env == TEXT("1") || Env.Equals(TEXT("true"), ESearchCase::IgnoreCase);
+}
+
+bool InRange(double Value, double Min, double Max, bool bExclusiveMin)
+{
+	if (bExclusiveMin)
+	{
+		return Value > Min && Value <= Max;
+	}
+	return Value >= Min && Value <= Max;
+}
+
+bool ReadOptional(const FJsonObject& Object, const TCHAR* Field, double& Slot, FString& Error, double Min, double Max, bool bExclusiveMin)
+{
+	if (!Object.HasField(Field))
+	{
+		return true;
+	}
+	double Value = 0.0;
+	if (!Object.TryGetNumberField(Field, Value) || !InRange(Value, Min, Max, bExclusiveMin))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: proposal %s is missing or out of range"), Field));
+	}
+	Slot = Value;
+	return true;
+}
+
+bool ReadCount(const FJsonObject& Object, const TCHAR* Field, int32& Slot, FString& Error)
+{
+	if (!Object.HasField(Field))
+	{
+		return true;
+	}
+	double Value = 0.0;
+	if (!Object.TryGetNumberField(Field, Value))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: proposal %s is not a number"), Field));
+	}
+	const double Whole = std::round(Value);
+	if (std::abs(Value - Whole) > 1.0e-6 || Whole < -1.0 || Whole > 8.0)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: proposal %s must be an integer from -1 to 8"), Field));
+	}
+	Slot = static_cast<int32>(Whole);
+	return true;
+}
+
+bool ApplyProposal(FVrRuleset& Out, FString& Error)
+{
+	const FString Path = VrFile(TEXT("calibration-proposal.json"));
+	TSharedPtr<FJsonObject> Root;
+	if (!LoadJsonFile(Path, Root, Error))
+	{
+		return Fail(Error, TEXT("vr rules: -MageArenaProposal is set and calibration-proposal.json could not be read"));
+	}
+	const FJsonObject* Knobs = nullptr;
+	if (!NeedObject(*Root, TEXT("knobs"), Knobs, Error))
+	{
+		return false;
+	}
+	const FJsonObject* Wave = nullptr;
+	const FJsonObject* Pressure = nullptr;
+	const FJsonObject* Power = nullptr;
+	const FJsonObject* Defence = nullptr;
+	if (!NeedObject(*Knobs, TEXT("wave"), Wave, Error) || !NeedObject(*Knobs, TEXT("pressure"), Pressure, Error)
+		|| !NeedObject(*Knobs, TEXT("power"), Power, Error) || !NeedObject(*Knobs, TEXT("defence"), Defence, Error))
+	{
+		return false;
+	}
+	if (!ReadCount(*Wave, TEXT("conscriptCount"), Out.Wave.ConscriptCount, Error)
+		|| !ReadCount(*Wave, TEXT("slingerCount"), Out.Wave.SlingerCount, Error)
+		|| !ReadOptional(*Wave, TEXT("spawnDelayS"), Out.Wave.SpawnDelayS, Error, 0.0, 20.0, false))
+	{
+		return false;
+	}
+	if (!ReadOptional(*Pressure, TEXT("attackCadence"), Out.Pressure.AttackCadence, Error, 0.0, 3.0, true)
+		|| !ReadOptional(*Pressure, TEXT("enemyDamage"), Out.Pressure.EnemyDamage, Error, 0.0, 3.0, true)
+		|| !ReadOptional(*Pressure, TEXT("fireMageDamage"), Out.Pressure.FireMageDamage, Error, 0.0, 3.0, true))
+	{
+		return false;
+	}
+	if (!ReadOptional(*Power, TEXT("boltDamage"), Out.Power.BoltDamage, Error, 0.0, 3.0, true)
+		|| !ReadOptional(*Power, TEXT("lineDamage"), Out.Power.LineDamage, Error, 0.0, 3.0, true)
+		|| !ReadOptional(*Power, TEXT("manaRegen"), Out.Power.ManaRegen, Error, 0.0, 3.0, true))
+	{
+		return false;
+	}
+	if (!ReadOptional(*Defence, TEXT("wardDrainSplit"), Out.Defence.WardDrainSplit, Error, 0.0, 3.0, true)
+		|| !ReadOptional(*Defence, TEXT("oneHandPower"), Out.Split.OneHandPower, Error, 0.0, 1.0, true)
+		|| !ReadOptional(*Defence, TEXT("staffDurationS"), Out.Staff.DurationS, Error, 0.0, 30.0, true)
+		|| !ReadOptional(*Defence, TEXT("staffManaUpFront"), Out.Staff.ManaUpFront, Error, 0.0, 80.0, false)
+		|| !ReadOptional(*Defence, TEXT("staffDrainPerSecond"), Out.Staff.DrainPerSecond, Error, 0.0, 40.0, false)
+		|| !ReadOptional(*Defence, TEXT("staffMagicReduction"), Out.Staff.MagicReduction, Error, 0.0, 1.0, false)
+		|| !ReadOptional(*Defence, TEXT("staffPhysicalReduction"), Out.Staff.PhysicalReduction, Error, 0.0, 1.0, false)
+		|| !ReadOptional(*Defence, TEXT("fireWallDistanceM"), Out.FireWall.DistanceM, Error, 1.0, 12.0, false)
+		|| !ReadOptional(*Defence, TEXT("fireWallArcDeg"), Out.FireWall.ArcDeg, Error, 1.0, 180.0, false)
+		|| !ReadOptional(*Defence, TEXT("fireWallDurationS"), Out.FireWall.DurationS, Error, 0.0, 30.0, true)
+		|| !ReadOptional(*Defence, TEXT("fireWallManaCost"), Out.FireWall.ManaCost, Error, 0.0, 80.0, false)
+		|| !ReadOptional(*Defence, TEXT("fireWallHeatPerStop"), Out.FireWall.HeatPerStop, Error, 0.0, 40.0, false)
+		|| !ReadOptional(*Defence, TEXT("fireWallBurnDamage"), Out.FireWall.BurnDamage, Error, 0.0, 80.0, false))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 {
 	Out = FVrRuleset();
 	if (!KernelData().bReady)
@@ -641,6 +759,39 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error)
 	Out.Staff.MagicReduction = MagicReduction;
 	Out.Staff.PhysicalReduction = PhysicalReduction;
 
+	const FJsonObject* WallJson = nullptr;
+	if (!NeedObject(*Overlay, TEXT("fireWall"), WallJson, Error))
+	{
+		return false;
+	}
+	double DistanceM = 0.0;
+	double ArcDeg = 0.0;
+	double WallDurationS = 0.0;
+	double ManaCost = 0.0;
+	double HeatPerStop = 0.0;
+	double BurnDamage = 0.0;
+	if (!NeedNumber(*WallJson, TEXT("distanceM"), DistanceM, Error)
+		|| !NeedNumber(*WallJson, TEXT("arcDeg"), ArcDeg, Error)
+		|| !NeedNumber(*WallJson, TEXT("durationS"), WallDurationS, Error)
+		|| !NeedNumber(*WallJson, TEXT("manaCost"), ManaCost, Error)
+		|| !NeedNumber(*WallJson, TEXT("heatPerStop"), HeatPerStop, Error)
+		|| !NeedNumber(*WallJson, TEXT("burnDamage"), BurnDamage, Error))
+	{
+		return false;
+	}
+	if (!(DistanceM > 0.0 && DistanceM <= 16.0) || !(ArcDeg > 0.0 && ArcDeg <= 360.0)
+		|| !(WallDurationS > 0.0 && WallDurationS <= 30.0) || ManaCost < 0.0 || HeatPerStop < 0.0 || BurnDamage < 0.0)
+	{
+		return Fail(Error, TEXT("vr rules: fireWall distance, arc, duration, mana, heat, or burn is out of range"));
+	}
+	Out.FireWall.bEnabled = true;
+	Out.FireWall.DistanceM = DistanceM;
+	Out.FireWall.ArcDeg = ArcDeg;
+	Out.FireWall.DurationS = WallDurationS;
+	Out.FireWall.ManaCost = ManaCost;
+	Out.FireWall.HeatPerStop = HeatPerStop;
+	Out.FireWall.BurnDamage = BurnDamage;
+
 	Out.bActive = true;
 	Out.StandoffM = Standoff;
 	Out.Dais.MinX = Centre.X - HalfX;
@@ -648,7 +799,161 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error)
 	Out.Dais.MinY = Centre.Y - HalfY;
 	Out.Dais.MaxY = Centre.Y + HalfY;
 	Out.Throws.Add(Throw);
+	if (bHonorProposalSwitch && ProposalRequested())
+	{
+		if (!ApplyProposal(Out, Error))
+		{
+			Out.bActive = false;
+			return false;
+		}
+	}
 	return true;
+}
+
+bool VrWallSegmentCrosses(const FVrWall& Wall, const FSimVec& From, const FSimVec& To, double& OutT)
+{
+	// The curtain is the arc, not the disk. A chord that enters and leaves still crosses it,
+	// which is how the mage sees a bolt whose whole flight starts and ends outside the ring.
+	if (!(Wall.DistanceM > 0.0))
+	{
+		return false;
+	}
+	const FSimVec Delta = SimSub(To, From);
+	const FSimVec Offset = SimSub(From, Wall.Centre);
+	const double A = SimDot(Delta, Delta);
+	if (!(A > 0.0))
+	{
+		return false;
+	}
+	const double B = 2.0 * SimDot(Offset, Delta);
+	const double C = SimDot(Offset, Offset) - Wall.DistanceM * Wall.DistanceM;
+	const double Disc = B * B - 4.0 * A * C;
+	if (Disc < 0.0)
+	{
+		return false;
+	}
+	const double Root = std::sqrt(Disc);
+	const double Inv = 1.0 / (2.0 * A);
+	const double Hits[] = {(-B - Root) * Inv, (-B + Root) * Inv};
+	for (const double T : Hits)
+	{
+		if (T < 0.0 || T > 1.0)
+		{
+			continue;
+		}
+		const FSimVec Point = SimAdd(From, SimScale(Delta, T));
+		if (!SimInArc(Wall.Facing, SimSub(Point, Wall.Centre), Wall.ArcDeg))
+		{
+			continue;
+		}
+		OutT = T;
+		return true;
+	}
+	return false;
+}
+
+const FVrWall* FVrRuleset::FindWall(int32 OwnerId) const
+{
+	for (const FVrWall& Wall : Walls)
+	{
+		if (Wall.OwnerId == OwnerId)
+		{
+			return &Wall;
+		}
+	}
+	return nullptr;
+}
+
+void FVrRuleset::ExpireWalls(const FArenaState& State)
+{
+	for (int32 Index = Walls.Num() - 1; Index >= 0; --Index)
+	{
+		if (State.Tick >= Walls[Index].UntilTick)
+		{
+			UE_LOG(LogMageArena, Log, TEXT("defence firewall end id=%d owner=%d tick=%d"), Walls[Index].Id, Walls[Index].OwnerId, State.Tick);
+			Walls.RemoveAt(Index);
+		}
+	}
+}
+
+void FVrRuleset::TickWalls(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+{
+	if (!bActive || !FireWall.bEnabled || !Actor.Fire.bSchool || !Input.bRaiseFireWall)
+	{
+		return;
+	}
+	if (FindWall(Actor.Id))
+	{
+		return;
+	}
+	if (Actor.Mana + 1.0e-9 < FireWall.ManaCost)
+	{
+		Refuse(Actor, TEXT("firewall-mana"));
+		return;
+	}
+	Actor.Mana -= FireWall.ManaCost;
+	FVrWall Wall;
+	Wall.Id = State.NextId++;
+	Wall.OwnerId = Actor.Id;
+	Wall.Centre = Actor.Pos;
+	Wall.Facing = Actor.Facing;
+	Wall.DistanceM = FireWall.DistanceM;
+	Wall.ArcDeg = FireWall.ArcDeg;
+	Wall.UntilTick = State.Tick + SimTicks(FireWall.DurationS);
+	Walls.Add(Wall);
+	++WallsRaised;
+	UE_LOG(LogMageArena, Log, TEXT("defence firewall raise actor=%d until=%d mana=%.3f"), Actor.Id, Wall.UntilTick, Actor.Mana);
+}
+
+void FVrRuleset::BurnCrossers(FArenaState& State)
+{
+	if (!bActive || !FireWall.bEnabled || Walls.Num() == 0)
+	{
+		return;
+	}
+	for (FActor& Actor : State.Actors)
+	{
+		if (Actor.bDown)
+		{
+			continue;
+		}
+		for (const FVrWall& Wall : Walls)
+		{
+			if (Wall.OwnerId == Actor.Id)
+			{
+				continue;
+			}
+			const FActor* Owner = SimFindActor(State, Wall.OwnerId);
+			if (Owner && Owner->Team == Actor.Team)
+			{
+				continue;
+			}
+			double CrossT = 0.0;
+			if (!VrWallSegmentCrosses(Wall, Actor.PreviousPos, Actor.Pos, CrossT))
+			{
+				continue;
+			}
+			FHit Hit;
+			Hit.OwnerId = Wall.OwnerId;
+			Hit.ActivationId = Wall.Id;
+			Hit.Damage = FireWall.BurnDamage;
+			Hit.Family = TEXT("magic");
+			Hit.Tier = 0;
+			Hit.Source = Wall.Centre;
+			Hit.Delivery = TEXT("area");
+			UE_LOG(LogMageArena, Log, TEXT("defence firewall burn wall=%d actor=%d damage=%.3f"), Wall.Id, Actor.Id, FireWall.BurnDamage);
+			ResolveHit(State, Actor, Hit, this);
+		}
+	}
+}
+
+void FVrRuleset::ClearRuntime()
+{
+	Walls.Reset();
+	WallsRaised = 0;
+	StaffRuntime = FVrStaffRuntime();
+	SplitCasting.Reset();
+	Refusals.Reset();
 }
 
 bool FVrRuleset::IsPlanted(int32 ActorId) const

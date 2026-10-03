@@ -59,8 +59,8 @@ struct FSessionRig
 
 FString ChainPath(const TCHAR* Name)
 {
-	// T11 is this measurement. T10 keeps the dais-edge record and is not overwritten.
-	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T11"), Name);
+	// T12 is this measurement. T11 keeps the split-hand record and is not overwritten.
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T12"), Name);
 	FPaths::CollapseRelativeDirectories(Path);
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
 	return Path;
@@ -172,6 +172,85 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("victory line"), CountChain(Session.GetChain(), TEXT("Session victory")) == 1);
 
 	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireSeated, "MageArenaDesign.Duel.FireSeated",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFireSeated::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	const double Dt = 1.0 / 72.0;
+	const double Lo = 45.0;
+	const double Hi = 80.0;
+	bool bPass = true;
+	auto RunOne = [&](int32 Wave, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
+	{
+		FArenaSession Session;
+		Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+		Session.SetScripted(true);
+		Session.SetBout(Wave, true);
+		if (!Session.Start(Seed))
+		{
+			AddError(FString::Printf(TEXT("%s start failed"), Label));
+			Session.Unbind();
+			return false;
+		}
+		int32 Guard = 0;
+		double WorstOffPad = 0.0;
+		while (Session.GetGames().Phase == TEXT("active") && Session.GetSimSeconds() < 120.0 && Guard < 10000)
+		{
+			Session.Advance(Dt, true);
+			++Guard;
+			const FActor* Marked = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
+			double OffPad = 1.0e9;
+			if (Marked)
+			{
+				for (int32 Pad = 0; Pad < 3; ++Pad)
+				{
+					OffPad = FMath::Min(OffPad, SimDistance(Marked->Pos, Session.PadKernel(Pad)));
+				}
+			}
+			WorstOffPad = FMath::Max(WorstOffPad, OffPad);
+		}
+		const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
+		FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("%s-chain.log"), Label)));
+		const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
+		bool bSunfall = false;
+		for (const FActor& Actor : Session.GetGames().State.Actors)
+		{
+			if (Actor.Fire.bSchool && Actor.Team != 0 && (Actor.Fire.SunfallCastTick > 0 || Actor.Fire.bSunfallLoosed))
+			{
+				bSunfall = true;
+			}
+		}
+		const double Measured = Session.GetSimSeconds();
+		const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
+		const bool bBand = Measured >= Lo && Measured <= Hi && Session.GetGames().Phase != TEXT("active");
+		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d"),
+			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0,
+			Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0,
+			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants());
+		bool bOne = true;
+		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s Sunfall cast"), Label), bSunfall);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s stayed on a pad (worst %.4f m)"), Label, WorstOffPad), WorstOffPad < 1.0e-3);
+		if (bRequireWin)
+		{
+			bOne &= TestTrue(*FString::Printf(TEXT("%s player wins (phase %s)"), Label, *Session.GetGames().Phase), bWon);
+		}
+		Session.Unbind();
+		return bOne;
+	};
+	bPass &= RunOne(2, 1, TEXT("fire-c1"), true);
+	bPass &= RunOne(3, 1, TEXT("fire-c15"), false);
+	FArenaSession Dummy;
+	Rig.Close(Dummy);
 	return bPass;
 }
 

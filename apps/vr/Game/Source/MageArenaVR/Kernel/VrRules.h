@@ -51,6 +51,63 @@ struct FVrStaffRuntime
 	int32 UntilTick = 0;
 };
 
+// SCHOOL-DEFENCES C. Proposal values live in combat.vr.json. Calibration may override them.
+struct FVrFireWall
+{
+	bool bEnabled = false;
+	double DistanceM = 4.0;
+	double ArcDeg = 90.0;
+	double DurationS = 3.0;
+	double ManaCost = 12.0;
+	double HeatPerStop = 4.0;
+	double BurnDamage = 12.0;
+};
+
+// One raised curtain. Centre and facing are the caster's at the raise tick, before that tick's move.
+struct FVrWall
+{
+	int32 Id = 0;
+	int32 OwnerId = -1;
+	FSimVec Centre;
+	FSimVec Facing{1.0, 0.0};
+	double DistanceM = 4.0;
+	double ArcDeg = 90.0;
+	int32 UntilTick = 0;
+};
+
+// Identity leaves the pinned wave. Counts below zero mean "use the pinned count".
+struct FVrWaveTune
+{
+	int32 ConscriptCount = -1;
+	int32 SlingerCount = -1;
+	double SpawnDelayS = 0.0;
+};
+
+// Identity is 1. Cadence scales recovery, backoff, and cooldown, not the telegraph windup.
+struct FVrPressure
+{
+	double AttackCadence = 1.0;
+	double EnemyDamage = 1.0;
+	double FireMageDamage = 1.0;
+};
+
+// Identity is 1. Applied to the seated player (team 0) only.
+struct FVrPower
+{
+	double BoltDamage = 1.0;
+	double LineDamage = 1.0;
+	double ManaRegen = 1.0;
+};
+
+// Multiplier on ward drain while a split cast is latched. Identity is 1.
+struct FVrDefenceTune
+{
+	double WardDrainSplit = 1.0;
+};
+
+// True when the segment crosses the arc. OutT is along From -> To. A graze that stays outside does not count.
+bool VrWallSegmentCrosses(const FVrWall& Wall, const FSimVec& From, const FSimVec& To, double& OutT);
+
 struct FVrRuleset
 {
 	bool bActive = false;
@@ -59,7 +116,14 @@ struct FVrRuleset
 	TArray<FVrAttackMode> Throws;
 	FVrSplitHands Split;
 	FVrPlantedStaff Staff;
+	FVrFireWall FireWall;
+	FVrWaveTune Wave;
+	FVrPressure Pressure;
+	FVrPower Power;
+	FVrDefenceTune Defence;
 	FVrStaffRuntime StaffRuntime;
+	TArray<FVrWall> Walls;
+	int32 WallsRaised = 0;
 	TArray<int32> SplitCasting;
 	TArray<FString> Refusals;
 
@@ -82,7 +146,14 @@ struct FVrRuleset
 	double DomeReduction(const FString& Family) const;
 	void TickStaff(FArenaState& State, FActor& Actor, const FInputFrame& Input);
 	void Refuse(const FActor& Actor, const TCHAR* Reason);
+
+	const FVrWall* FindWall(int32 OwnerId) const;
+	void ExpireWalls(const FArenaState& State);
+	void TickWalls(FArenaState& State, FActor& Actor, const FInputFrame& Input);
+	void BurnCrossers(FArenaState& State);
+	void ClearRuntime();
 };
 
-// Reads combat.vr.json and checks the dais against arena-layout.json and the pinned rows it names.
-bool LoadVrRuleset(FVrRuleset& Out, FString& Error);
+// Reads combat.vr.json. With bHonorProposalSwitch, -MageArenaProposal or MageArenaProposal=1
+// overlays apps/vr/data/vr/calibration-proposal.json. The default bout does not.
+bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch = true);

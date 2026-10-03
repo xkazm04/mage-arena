@@ -18,3 +18,5 @@ bool FireChannelBusy(const FActor& Actor);
 void CancelFireChannel(FActor& Actor);
 void ResetFire(FActor& Actor);
 void FireOnHitResolved(FArenaState& State, FActor& Target, const FHit& Hit, double Incoming, double Reduction);
+// The same grant the spells use. A non-fire actor, a non-positive amount, or a heat lock pays nothing.
+void GainHeat(FArenaState& State, FActor& Actor, double Amount);

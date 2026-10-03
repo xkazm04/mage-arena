@@ -19,7 +19,7 @@ double Extract(const FString& Text, const FString& Pattern)
 	return FCString::Atod(*Matcher.GetCaptureGroup(1));
 }
 
-void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, const FEnemySpec& Spec, const FAttackSpec& Attack)
+void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, const FEnemySpec& Spec, const FAttackSpec& Attack, const FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	const int32 Id = State.NextId++;
@@ -30,6 +30,10 @@ void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, con
 	Telegraph.Family = Attack.Family;
 	Telegraph.Tier = Attack.Tier.Get(0);
 	Telegraph.Damage = Attack.Damage;
+	if (Rules && Rules->bActive && Rules->Pressure.EnemyDamage != 1.0)
+	{
+		Telegraph.Damage *= Rules->Pressure.EnemyDamage;
+	}
 	Telegraph.Source = Actor.Pos;
 	Telegraph.Kind = Attack.ProjectileMps.IsSet() ? TEXT("projectile") : TEXT("melee");
 	Telegraph.Origin = Actor.Pos;
@@ -76,10 +80,27 @@ void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, con
 	{
 		Cooldown = Attack.CooldownS.GetValue();
 	}
+	const bool bScaleCadence = Rules && Rules->bActive && Rules->Pressure.AttackCadence != 1.0;
+	if (bScaleCadence)
+	{
+		if (!Attack.CooldownS.IsSet() && Spec.Id != TEXT("mire_maw") && Spec.Id != TEXT("thornback"))
+		{
+			Cooldown = Attack.WindupS + Attack.RecoveryS.Get(Data.DefaultRecoveryS) * Rules->Pressure.AttackCadence;
+		}
+		else
+		{
+			Cooldown *= Rules->Pressure.AttackCadence;
+		}
+	}
 	Brain.ReadyTick = State.Tick + 1 + SimTicks(Cooldown);
 	if (Spec.Id == TEXT("conscript"))
 	{
-		Brain.BackoffUntil = Brain.ReadyTick + SimTicks(Extract(Spec.Behaviour, TEXT("back off ([\\d.]+) s")));
+		double Backoff = Extract(Spec.Behaviour, TEXT("back off ([\\d.]+) s"));
+		if (bScaleCadence)
+		{
+			Backoff *= Rules->Pressure.AttackCadence;
+		}
+		Brain.BackoffUntil = Brain.ReadyTick + SimTicks(Backoff);
 		Brain.ReadyTick = Brain.BackoffUntil;
 	}
 }
@@ -307,7 +328,7 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules
 		}
 		else if (bEngaged && Distance <= AttackRange && State.Tick + 1 >= Brain.ReadyTick)
 		{
-			ScheduleAttack(State, Actor, Target, *Spec, Attack);
+			ScheduleAttack(State, Actor, Target, *Spec, Attack, Rules);
 			Desired = FSimVec{0.0, 0.0};
 		}
 		bool bAtLip = false;

@@ -9,6 +9,19 @@
 
 class AMageArenaPawn;
 class ASessionPresentation;
+
+/** Reference thresholds match the seated Wave 1 script. Census varies them. */
+struct FSeatedPolicy
+{
+	bool bSplit = true;
+	bool bPlant = true;
+	double PlantHurtHp = 55.0;
+	double OpeningPlantEndS = 6.0;
+	double WardRaiseMana = 20.0;
+	double WardDropMana = 16.0;
+	double SplitSigilMana = 12.0;
+	double WardHoldS = 1.6;
+};
 class UBlinkDetectorSubsystem;
 class UHandInputSubsystem;
 class USigilRecognizerSubsystem;
@@ -37,8 +50,12 @@ public:
 		UStaffDetectorSubsystem* InStaff = nullptr);
 	void Unbind();
 
-	/** Wave index 0, Rotation composition, human player. Clears pause. */
+	/** Wave index 0, Rotation composition, human player, unless SetBout says otherwise. Clears pause. */
 	bool Start(uint32 Seed);
+	void SetBout(int32 WaveIndex, bool bInFireMages);
+	void SetPolicy(const FSeatedPolicy& InPolicy);
+	void SetRulesOverride(const FVrRuleset& Rules);
+	void SetQuiet(bool bInQuiet);
 	void SetScripted(bool bInScripted);
 	void SetPaused(bool bInPaused);
 	void TogglePause();
@@ -70,6 +87,7 @@ public:
 	bool IsSplitPose() const;
 	int32 GetSplitCasts() const { return SplitCasts; }
 	int32 GetStaffPlants() const { return StaffPlants; }
+	int32 GetWallsRaised() const;
 	bool ConsumeCameraPad(int32& OutPad);
 
 	FVector KernelToUnrealCm(const FSimVec& Pos) const;
@@ -97,6 +115,8 @@ private:
 	/** Stamina, recovery and a blink clip already playing. No side effects. */
 	bool CanBlink(const FActor& Player) const;
 	bool TryScriptBlink();
+	bool TrySunfallEscape(double MeleeEta, double ProjectileEta);
+	bool PlayBlinkToward(int32 WantPad);
 	/**
 	 * Seconds until the next steel hit, including attacks that have not been scheduled yet.
 	 * bMeleeOnly ignores slingers. A conscript in backoff is timed through the walk back in.
@@ -159,6 +179,15 @@ private:
 	bool bClipWasPlaying = false;
 	int32 SplitCasts = 0;
 	int32 StaffPlants = 0;
+
+	FSeatedPolicy Policy;
+	int32 BoutWave = 0;
+	bool bFireMages = false;
+	bool bWingSeat = false;
+	bool bWingSeated = false;
+	int32 SunfallPad = -1;
+	bool bQuiet = false;
+	TOptional<FVrRuleset> RulesOverride;
 
 	TArray<FString> Chain;
 };

@@ -16,4 +16,6 @@ struct FMageProfile
 
 FMageProfile MageCompetence(double Level);
 void AttachMageAI(FActor& Actor, double Level, int32 Tick = 0);
-FInputFrame MageInput(FArenaState& State, FActor& Actor);
+// Rules null is the pinned path: no fire wall, no extra random draw.
+struct FVrRuleset;
+FInputFrame MageInput(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nullptr);

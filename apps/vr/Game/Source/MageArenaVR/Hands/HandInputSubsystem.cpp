@@ -130,6 +130,21 @@ void UHandInputSubsystem::SetAimYaw(double YawRadians)
 	WardPlayer->SetAimYaw(YawRadians);
 }
 
+void UHandInputSubsystem::StopAll()
+{
+	EnsurePlayers();
+	bWardHeld = false;
+	if (WardPlayer)
+	{
+		WardPlayer->Stop();
+	}
+	if (ActionPlayer)
+	{
+		ActionPlayer->Stop();
+	}
+	LastStarted = nullptr;
+}
+
 void UHandInputSubsystem::Step(double DeltaSeconds)
 {
 	EnsurePlayers();
