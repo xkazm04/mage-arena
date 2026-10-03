@@ -4,6 +4,7 @@
 #include "Kernel/Enemies.h"
 #include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
+#include "Kernel/VrRules.h"
 #include "Kernel/Water.h"
 
 #include <cmath>
@@ -133,14 +134,20 @@ void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	}
 }
 
-void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	Actor.PreviousPos = Actor.Pos;
 	const bool bRooted = State.Tick < Actor.Water.RootUntil
 		|| (Actor.Pending.IsSet() && Actor.Pending->SpellId.IsSet() && Actor.Pending->SpellId.GetValue() == TEXT("mend:4:base"))
 		|| FireCastRoots(Actor);
-	if (!bRooted && Input.bRoll && !Actor.LastInput.bRoll && State.Tick >= Actor.RollUntil && State.Tick >= Actor.RecoveryUntil
+	const bool bBlinkEdge = Input.bRoll && !Actor.LastInput.bRoll;
+	const bool bAnchored = Rules && Rules->IsPlanted(Actor.Id) && bBlinkEdge;
+	if (bAnchored)
+	{
+		Rules->Lift(TEXT("blink"));
+	}
+	else if (!bRooted && bBlinkEdge && State.Tick >= Actor.RollUntil && State.Tick >= Actor.RecoveryUntil
 		&& Actor.Stamina >= Data.RollStaminaCost)
 	{
 		Actor.RollDirection = SimUnit(Input.Move, Actor.Facing);
@@ -188,7 +195,7 @@ void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	Actor.Pos = ConstrainToArena(SimAdd(Actor.Pos, SimScale(Velocity, SimDt())), Actor.Radius);
 }
 
-void ReleaseCast(FArenaState& State, FActor& Actor)
+void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 {
 	if (!Actor.Pending.IsSet() || State.Tick < Actor.Pending->ReleaseTick)
 	{
@@ -238,7 +245,7 @@ void ReleaseCast(FArenaState& State, FActor& Actor)
 			Hit.Tier = 0;
 			Hit.Source = Actor.Pos;
 			Hit.Delivery = TEXT("melee");
-			const FSimHitResult Result = ResolveHit(State, Target, Hit);
+			const FSimHitResult Result = ResolveHit(State, Target, Hit, Rules);
 			if (Result.Damage > 0.0 && Data.bStaffInterrupts)
 			{
 				Interrupt(State, Target);
@@ -248,9 +255,12 @@ void ReleaseCast(FArenaState& State, FActor& Actor)
 	}
 }
 
-void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrRuleset* Rules)
 {
-	if (!Input.bCast || Actor.Pending.IsSet() || FireChannelBusy(Actor) || Actor.bAbsorb || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
+	const bool bPlanted = Rules && Rules->IsPlanted(Actor.Id);
+	const bool bSplit = Rules && Rules->Split.bEnabled && Actor.bAbsorb && !bPlanted;
+	const bool bHandsLocked = Actor.bAbsorb && !bSplit && !bPlanted;
+	if (!Input.bCast || Actor.Pending.IsSet() || FireChannelBusy(Actor) || bHandsLocked || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
 	{
 		return;
 	}
@@ -289,24 +299,55 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	{
 		if (TryFireCast(State, Actor, Input))
 		{
-			ReleaseCast(State, Actor);
+			ReleaseCast(State, Actor, Rules);
 		}
 		return;
 	}
 	else
 	{
+		if (bSplit)
+		{
+			const FSpell* Spell = SpellFor(Actor, Input.Slot);
+			if (!Spell || Spell->Kind == TEXT("passive"))
+			{
+				return;
+			}
+			if (Spell->Tier > Rules->Split.MaxTier)
+			{
+				Rules->Refuse(Actor, TEXT("tier"));
+				return;
+			}
+			if (Actor.Water.Flow >= Data.FlowMax)
+			{
+				Rules->Refuse(Actor, TEXT("crest"));
+				return;
+			}
+			FSpellCastMod Mod;
+			Mod.bSuppressFlow = true;
+			Mod.PowerMult = Rules->Split.OneHandPower;
+			if (TrySpellCast(State, Actor, Input, &Mod))
+			{
+				Rules->SetSplitCasting(Actor.Id, true);
+				ReleaseCast(State, Actor, Rules);
+			}
+			return;
+		}
 		if (TrySpellCast(State, Actor, Input))
 		{
-			ReleaseCast(State, Actor);
+			ReleaseCast(State, Actor, Rules);
 		}
 		return;
 	}
+	if (bSplit && Rules)
+	{
+		Rules->SetSplitCasting(Actor.Id, true);
+	}
 	Actor.Metrics.Casts++;
 	Emit(State, TEXT("cast"), Actor);
-	ReleaseCast(State, Actor);
+	ReleaseCast(State, Actor, Rules);
 }
 
-void UpdateTelegraphs(FArenaState& State)
+void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 {
 	TArray<FTelegraph> Due;
 	TArray<FTelegraph> Keep;
@@ -385,7 +426,7 @@ void UpdateTelegraphs(FArenaState& State)
 				Hit.bSuppressPerfect = Telegraph.bSuppressPerfect;
 				Hit.bPierceShields = Telegraph.bPierceShields;
 				Hit.Delivery = Telegraph.Kind == TEXT("melee") ? TEXT("melee") : TEXT("area");
-				const FSimHitResult Result = ResolveHit(State, Target, Hit);
+				const FSimHitResult Result = ResolveHit(State, Target, Hit, Rules);
 				if (!bImmune && !Result.bPerfect && !Target.bDown)
 				{
 					if (Telegraph.RootS > 0.0)
@@ -413,7 +454,7 @@ void UpdateTelegraphs(FArenaState& State)
 	}
 }
 
-void UpdateProjectiles(FArenaState& State)
+void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 {
 	const int32 Count = State.Projectiles.Num();
 	State.Projectiles.Reserve(Count * 2 + 8);
@@ -456,7 +497,7 @@ void UpdateProjectiles(FArenaState& State)
 			Hit.bSuppressPerfect = Projectile.bSuppressPerfect;
 			Hit.bPierceShields = Projectile.bPierceShields;
 			Hit.Delivery = (Projectile.BurstRadiusM > 0.0 || Projectile.bPiercing) ? TEXT("area") : TEXT("projectile");
-			const FSimHitResult Result = ResolveHit(State, *First, Hit);
+			const FSimHitResult Result = ResolveHit(State, *First, Hit, Rules);
 			Projectile.HitIds.Add(First->Id);
 			if (Result.bPerfect)
 			{
@@ -472,7 +513,7 @@ void UpdateProjectiles(FArenaState& State)
 						FHit Burst = Hit;
 						Burst.Source = First->Pos;
 						Burst.Delivery = TEXT("area");
-						ResolveHit(State, Target, Burst);
+						ResolveHit(State, Target, Burst, Rules);
 						Projectile.HitIds.Add(Target.Id);
 					}
 				}
@@ -609,7 +650,7 @@ void Interrupt(FArenaState& State, FActor& Actor)
 	}
 }
 
-FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit)
+FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit, const FVrRuleset* Rules)
 {
 	FSimHitResult Result;
 	if (Target.bDown || State.Tick < Target.ImmuneUntil || State.Tick < Target.Water.EncasedUntil)
@@ -625,8 +666,21 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit)
 	const double Block = bShielded ? (Spec->FrontBlockMult.IsSet() ? Spec->FrontBlockMult.GetValue() : 1.0) : 1.0;
 	const double Incoming = Hit.Damage * Armour * Block;
 	const bool bGuarded = Target.bAbsorb && SimInArc(Target.Facing, SimSub(Hit.Source, Target.Pos), Data.Absorb.ArcDeg);
-	const bool bFreshWindow = !Hit.bSuppressPerfect && State.Tick - Target.AbsorbFreshTick <= SimTicks(Data.Absorb.WindowS);
-	const FAbsorbVerdict Verdict = EvaluateAbsorb(Data.Absorb, bGuarded, bFreshWindow, KindFromFamily(Hit.Family), Hit.Tier, static_cast<double>(Target.Ranks.Nerve));
+	bool bFreshWindow = !Hit.bSuppressPerfect && State.Tick - Target.AbsorbFreshTick <= SimTicks(Data.Absorb.WindowS);
+	if (Rules && Target.bAbsorb && Rules->IsSplitCasting(Target.Id))
+	{
+		bFreshWindow = false;
+	}
+	FAbsorbVerdict Verdict = EvaluateAbsorb(Data.Absorb, bGuarded, bFreshWindow, KindFromFamily(Hit.Family), Hit.Tier, static_cast<double>(Target.Ranks.Nerve));
+	if (Rules && Rules->IsPlanted(Target.Id) && !Verdict.bPerfect)
+	{
+		const double Dome = Rules->DomeReduction(Hit.Family);
+		if (Dome > Verdict.Reduction)
+		{
+			Verdict.Reduction = Dome;
+			Verdict.bPerfect = false;
+		}
+	}
 	Result.Damage = Incoming * (1.0 - Verdict.Reduction);
 	Result.bPerfect = Verdict.bPerfect;
 	if (Verdict.bPerfect)
@@ -716,7 +770,7 @@ void UpdateClock(FArenaState& State, FActor& Actor)
 	}
 }
 
-void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
+void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRuleset* Rules)
 {
 	const FKernelData& Data = KernelData();
 	State.Tick++;
@@ -748,14 +802,22 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
 		const FInputFrame Input = Found ? *Found : SimIdleInput(FSimVec{Actor.Pos.X + Actor.Facing.X, Actor.Pos.Y + Actor.Facing.Y});
 		Actor.Facing = SimUnit(SimSub(Input.Aim, Actor.Pos), Actor.Facing);
 		UpdateWard(State, Actor, Input);
-		MoveActor(State, Actor, Input);
-		ReleaseCast(State, Actor);
-		StartCast(State, Actor, Input);
+		if (Rules && !Actor.bAbsorb)
+		{
+			Rules->SetSplitCasting(Actor.Id, false);
+		}
+		if (Rules)
+		{
+			Rules->TickStaff(State, Actor, Input);
+		}
+		MoveActor(State, Actor, Input, Rules);
+		ReleaseCast(State, Actor, Rules);
+		StartCast(State, Actor, Input, Rules);
 		Actor.LastInput = Input;
 		UpdateFireOngoing(State, Actor);
 	}
-	UpdateTelegraphs(State);
-	UpdateProjectiles(State);
+	UpdateTelegraphs(State, Rules);
+	UpdateProjectiles(State, Rules);
 	State.Zones.RemoveAll([&State](const FZone& Zone) { return !(Zone.Until > State.Tick); });
 	for (FActor& Actor : State.Actors)
 	{
@@ -766,9 +828,14 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
 	}
 }
 
+void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
+{
+	StepArena(State, Inputs, nullptr);
+}
+
 void StepArena(FArenaState& State)
 {
-	StepArena(State, TMap<int32, FInputFrame>());
+	StepArena(State, TMap<int32, FInputFrame>(), nullptr);
 }
 
 void ResetWave(FArenaState& State, FActor& Actor)

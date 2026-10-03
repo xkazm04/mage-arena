@@ -64,6 +64,8 @@ private:
 	FRing& RingFor(int32 Id);
 	void HideUnused(const TSet<int32>& LiveIds, double Now, bool bPaused);
 	void EnsureCuff();
+	void EnsureDome();
+	void SyncDome(const FArenaSession& Session, const struct FActor* Player);
 	void SyncCuff(const FArenaSession& Session, const struct FActor& Player, bool bPaused);
 	void ShowMask(const TCHAR* Name);
 	UTexture2D* LoadMask(const FString& Name);
@@ -119,4 +121,15 @@ private:
 	bool bLoggedTextureParams = false;
 	double LastUnlockSim = -1.0;
 	double LastPerfectSim = -1.0;
+
+	UPROPERTY()
+	TObjectPtr<USceneComponent> DomeAnchor;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> Dome;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> DomeRibs;
+
+	bool bDomeBuilt = false;
 };

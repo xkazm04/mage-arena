@@ -175,7 +175,7 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 	{
 		return;
 	}
-	const FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
+	FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
 	TMap<int32, FInputFrame> Inputs = EnemyInputs(Games.State, Rules);
 	const int32 ActorCount = Games.State.Actors.Num();
 	for (int32 Index = 0; Index < ActorCount; ++Index)
@@ -190,7 +190,7 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 	{
 		Inputs.FindOrAdd(Games.PlayerId) = *PlayerInput;
 	}
-	StepArena(Games.State, Inputs);
+	StepArena(Games.State, Inputs, Rules);
 	if (Rules)
 	{
 		Rules->KeepOut(Games.State);

@@ -1,6 +1,6 @@
 # T11 - Split hands (A) and planted staff (E) for the Water slice
 
-Status: open
+Status: done after retry 1 (verified 2026-10-03; two further vacuous PinnedPath checks fixed by the orchestrator and mutation-proven; seated Wave 1 still lost at 23.25 s - calibration is T12)
 Max turns: 300
 
 ## Goal
@@ -50,3 +50,31 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena.;Quit" -unattended -nullrhi -nosplash -log
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArenaDesign.;Quit" -unattended -nullrhi -nosplash -log
 ```
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+Verified: clips 615/0, conformance byte-identical, pin OK, build green, `MageArena.` 115/115, design gate reproduced
+(lost 23.25 s, splitCasts=1, staff=1). The rules and the null-ruleset path passed review. Fix these and keep everything
+else as it is; do not retune numbers, do not weaken checks.
+
+1. **Dome ribs go through the camera** (`SessionPresentation.cpp:~506-518`, seen in `shots/02-planted-dome.png`): each rib
+   is the solid engine cylinder scaled to 8 x 440 x 220 cm and centred on the pad, so a vertical slab passes through the
+   seated eye (pad + 120 cm) and covers ~40% of the view. Make the ribs follow the shell, e.g. thin arcs or rings on
+   the dome surface (several small segments along a meridian, or a low torus-like ring at the base), so nothing sits
+   within ~1.5 m of the camera except the shell itself. Keep the shell readable but not blinding: the screen should stay
+   mostly clear (the current full-screen cyan wash is too strong; lower its opacity). Re-capture `02-planted-dome.png`.
+2. **Vacuous assertions in `MageArena.Defences.PinnedPath`** (`DefenceTests.cpp:~754` and `~770`): `Duel.Rules` /
+   `Locked.Rules` are never passed to `StepArena`, so `IsPlanted` false and `Refusals.Num() == 0` cannot fail. Replace
+   them with checks that observe the null path itself (e.g. a magic hit on the "planted" player is not reduced by the
+   dome; no `defence` log line was emitted), or delete them.
+3. **Expectations copied from the implementation** (`DefenceTests.cpp:~445-447`, `~752-753`): regen and ward drain are
+   re-computed with the kernel's own formulas. Hand-compute from the data in the test (e.g. Focus 3 -> 7.5/s -> 0.125
+   per tick; Nerve 1 ward drain 27/s -> 0.45 per tick; state the data source in a comment) and assert against the
+   constants.
+4. Update `runs/T11/REPORT.md` with a short Retry 1 section.
+
+## Orchestrator fix (2026-10-03, after Retry 1)
+The focused review found `PinnedPath` still partly vacuous: the plant frame also set `bLiftStaff`, so even an active
+ruleset would not plant; and a split Bolt emits no `defence` line under either path. Removed `bLiftStaff` from that frame
+and dropped the log assertion on the Bolt (the cast-count check distinguishes the paths). Mutation check: passing
+`&Duel.Rules` to that step makes the test fail (mana -7.94 vs 0.125; magic hit 3 vs 20). Regular suite 115/115.

@@ -284,6 +284,21 @@ void UWave1CaptureDriver::Advance()
 		break;
 	}
 	case EStep::WaitSoldiers:
+		if (RunId == TEXT("T11"))
+		{
+			// The sigil clip is 2.1 s. The palm is in frame by 1 s, and the line is still being drawn.
+			const bool bPose = Bout && Bout->IsSplitPose() && Bout->GetSimSeconds() >= 1.0;
+			if (bPose || Elapsed > 18.0)
+			{
+				if (Session)
+				{
+					Session->GetSession().SetPaused(true);
+				}
+				RequestShot(TEXT("01-split-hands.png"), false);
+				Enter(EStep::WaitSoldiersShot);
+			}
+			break;
+		}
 		if (RunId == TEXT("T10"))
 		{
 			if ((Bout && ConscriptAtLip(*Bout)) || Elapsed > 25.0)
@@ -317,6 +332,19 @@ void UWave1CaptureDriver::Advance()
 		Enter(EStep::WaitWard);
 		break;
 	case EStep::WaitWard:
+		if (RunId == TEXT("T11"))
+		{
+			if ((Bout && Bout->IsStaffPlanted()) || Elapsed > 22.0)
+			{
+				if (Session)
+				{
+					Session->GetSession().SetPaused(true);
+				}
+				RequestShot(TEXT("02-planted-dome.png"), false);
+				Enter(EStep::WaitWardShot);
+			}
+			break;
+		}
 		if (RunId == TEXT("T10"))
 		{
 			if ((Bout && ConscriptSpearInFlight(*Bout)) || Elapsed > 12.0)
@@ -351,6 +379,11 @@ void UWave1CaptureDriver::Advance()
 		if (RunId == TEXT("T10"))
 		{
 			Enter(EStep::WaitBlink);
+			break;
+		}
+		if (RunId == TEXT("T11"))
+		{
+			Enter(EStep::WaitVictory);
 			break;
 		}
 		if ((Bout && Bout->WasSigilHit()) || Elapsed > 14.0)
@@ -402,7 +435,7 @@ void UWave1CaptureDriver::Advance()
 			{
 				Session->GetSession().SetPaused(true);
 			}
-			RequestShot(RunId == TEXT("T10") ? TEXT("04-end.png") : TEXT("05-victory.png"), false);
+			RequestShot(RunId == TEXT("T11") ? TEXT("03-end.png") : RunId == TEXT("T10") ? TEXT("04-end.png") : TEXT("05-victory.png"), false);
 			Enter(EStep::WaitVictoryShot);
 		}
 		break;
@@ -412,7 +445,7 @@ void UWave1CaptureDriver::Advance()
 	case EStep::WriteBudget:
 	{
 		WriteBudgetFile();
-		const int32 Needed = RunId == TEXT("T10") ? 4 : 5;
+		const int32 Needed = RunId == TEXT("T11") ? 3 : RunId == TEXT("T10") ? 4 : 5;
 		if (ShotNames.Num() >= Needed)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
@@ -445,7 +478,9 @@ void UWave1CaptureDriver::WriteBudgetFile()
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("label"), TEXT("desktop proxy - not Quest truth"));
 	Root->SetStringField(TEXT("note"),
-		RunId == TEXT("T10")
+		RunId == TEXT("T11")
+			? TEXT("Wave 1 with the ward held while a sigil is drawn, and a planted staff dome. Threats are physical, so the dome is a reduction, not a perfect absorb.")
+			: RunId == TEXT("T10")
 			? TEXT("Wave 1 conscripts throw spears from the dais lip. The threats are physical, so a kernel perfect absorb is not possible. 02-spear-flight is a spear in the air, not a perfect.")
 			: TEXT("Wave 1 soldiers are physical. A kernel perfect absorb is not possible against them. 02-ward-meets-stone is a ward meeting a sling stone, not a perfect."));
 	Root->SetNumberField(TEXT("sampleCount"), DrawCalls.Num());

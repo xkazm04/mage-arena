@@ -5,30 +5,52 @@
 void UHandInputSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	EnsurePlayer();
+	EnsurePlayers();
 }
 
 void UHandInputSubsystem::Deinitialize()
 {
-	if (ClipPlayer)
+	if (WardPlayer)
 	{
-		ClipPlayer->Stop();
+		WardPlayer->Stop();
 	}
-	ClipPlayer = nullptr;
+	if (ActionPlayer)
+	{
+		ActionPlayer->Stop();
+	}
+	WardPlayer = nullptr;
+	ActionPlayer = nullptr;
+	LastStarted = nullptr;
 	Super::Deinitialize();
 }
 
-void UHandInputSubsystem::EnsurePlayer()
+void UHandInputSubsystem::EnsurePlayers()
 {
-	if (!ClipPlayer)
+	if (!WardPlayer)
 	{
-		ClipPlayer = NewObject<UHandClipPlayer>(this);
+		WardPlayer = NewObject<UHandClipPlayer>(this);
+		WardPlayer->OnHandFrame().AddUObject(this, &UHandInputSubsystem::ForwardFrame);
 	}
+	if (!ActionPlayer)
+	{
+		ActionPlayer = NewObject<UHandClipPlayer>(this);
+		ActionPlayer->OnHandFrame().AddUObject(this, &UHandInputSubsystem::ForwardFrame);
+	}
+}
+
+void UHandInputSubsystem::ForwardFrame(const FHandFrame& Frame)
+{
+	FrameDelegate.Broadcast(Frame);
+}
+
+bool UHandInputSubsystem::ActionOwns(EControllerHand Hand) const
+{
+	return ActionPlayer && ActionPlayer->IsPlaying() && ActionPlayer->GetClip().GetHands().Contains(Hand);
 }
 
 void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 {
-	EnsurePlayer();
+	EnsurePlayers();
 	const FString Path = FHandClip::MakeFilePath(Action, Variant);
 	FHandClip Loaded;
 	FString Error;
@@ -37,27 +59,40 @@ void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 		UE_LOG(LogMageArena, Error, TEXT("PlayQuickAction failed for %s: %s"), *Action.ToString(), *Error);
 		return;
 	}
-	bWardHeld = false;
-	ClipPlayer->SetAimYaw(0.0);
-	ClipPlayer->Play(Loaded);
+	const bool bUsesLeft = Loaded.GetHands().Contains(EControllerHand::Left);
+	if (bUsesLeft)
+	{
+		bWardHeld = false;
+		if (WardPlayer)
+		{
+			WardPlayer->Stop();
+		}
+	}
+	ActionPlayer->Play(Loaded);
+	LastStarted = ActionPlayer;
 	UE_LOG(LogMageArena, Log, TEXT("Hand clip started: action=%s variant=%s source=%s frames=%d duration=%.3fs path=%s"),
 		*Loaded.Action, *Loaded.Variant, *Loaded.Source, Loaded.GetSampleCount(), Loaded.GetDuration(), *Path);
 }
 
 void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 {
-	EnsurePlayer();
+	EnsurePlayers();
 	if (bHeld)
 	{
+		if (ActionOwns(EControllerHand::Left))
+		{
+			ActionPlayer->Stop();
+		}
 		if (bWardHeld)
 		{
 			return;
 		}
-		if (ClipPlayer->CanResumeHold())
+		if (WardPlayer->CanResumeHold())
 		{
 			bWardHeld = true;
 			HeldVariant = Variant;
-			ClipPlayer->ResumeHold();
+			WardPlayer->ResumeHold();
+			LastStarted = WardPlayer;
 			UE_LOG(LogMageArena, Log, TEXT("Ward hold resumed variant=%s"), FHandClip::VariantToString(Variant));
 			return;
 		}
@@ -72,8 +107,9 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 		const double Plateau = UHandClipPlayer::FindPlateauStart(Loaded, EControllerHand::Left);
 		HeldVariant = Variant;
 		bWardHeld = true;
-		ClipPlayer->Play(Loaded);
-		ClipPlayer->BeginHold(Plateau);
+		WardPlayer->Play(Loaded);
+		WardPlayer->BeginHold(Plateau);
+		LastStarted = WardPlayer;
 		UE_LOG(LogMageArena, Log, TEXT("Ward hold started variant=%s plateau=%.3f path=%s"),
 			FHandClip::VariantToString(Variant), Plateau, *Path);
 		return;
@@ -84,36 +120,66 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 		return;
 	}
 	bWardHeld = false;
-	ClipPlayer->EndHold();
+	WardPlayer->EndHold();
 	UE_LOG(LogMageArena, Log, TEXT("Ward hold released"));
 }
 
 void UHandInputSubsystem::SetAimYaw(double YawRadians)
 {
-	EnsurePlayer();
-	ClipPlayer->SetAimYaw(YawRadians);
+	EnsurePlayers();
+	WardPlayer->SetAimYaw(YawRadians);
 }
 
 void UHandInputSubsystem::Step(double DeltaSeconds)
 {
-	if (ClipPlayer)
-	{
-		ClipPlayer->Step(DeltaSeconds);
-	}
+	EnsurePlayers();
+	WardPlayer->Step(DeltaSeconds);
+	ActionPlayer->Step(DeltaSeconds);
 }
 
 bool UHandInputSubsystem::GetLatest(EControllerHand Hand, FHandFrame& Out) const
 {
-	return ClipPlayer && ClipPlayer->GetLatest(Hand, Out);
+	if (Hand == EControllerHand::Left)
+	{
+		if (ActionOwns(Hand) && ActionPlayer->GetLatest(Hand, Out))
+		{
+			return true;
+		}
+		if (WardPlayer && (WardPlayer->IsPlaying() || !ActionPlayer || !ActionPlayer->GetClip().GetHands().Contains(Hand))
+			&& WardPlayer->GetLatest(Hand, Out))
+		{
+			return true;
+		}
+		return ActionPlayer && ActionPlayer->GetLatest(Hand, Out);
+	}
+	if (ActionPlayer && ActionPlayer->GetClip().GetHands().Contains(Hand) && ActionPlayer->GetLatest(Hand, Out))
+	{
+		return true;
+	}
+	return WardPlayer && WardPlayer->GetLatest(Hand, Out);
 }
 
 uint64 UHandInputSubsystem::GetFrameSequence() const
 {
-	return ClipPlayer ? ClipPlayer->GetFrameSequence() : 0;
+	return LastStarted ? LastStarted->GetFrameSequence() : 0;
 }
 
 FOnHandSourceFrame& UHandInputSubsystem::OnHandFrame()
 {
-	EnsurePlayer();
-	return ClipPlayer->OnHandFrame();
+	EnsurePlayers();
+	return FrameDelegate;
+}
+
+bool UHandInputSubsystem::IsActionPlaying() const
+{
+	return ActionPlayer && ActionPlayer->IsPlaying();
+}
+
+FString UHandInputSubsystem::GetActionName() const
+{
+	if (!ActionPlayer)
+	{
+		return FString();
+	}
+	return ActionPlayer->GetClip().Action;
 }

@@ -61,5 +61,25 @@
     "_throwerClosesToLip": "The conscript ready delay is unchanged: windupS 0.6 + recoveryS 0.5, then the behaviour text 'back off 1 s'. runtime.json conscriptBackoffM stays 3. While that delay runs and the player is farther than 3 m, the kernel stands still. A thrower instead keeps walking to the hold line, then holds. The delay before the next throw is the pinned one. Unlisted enemy ids keep their pinned attack; the dais no-entry still rejects their bodies."
   },
 
-  "_unlisted": "An enemy id with no entry keeps its pinned attack. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM."
+  "_unlisted": "An enemy id with no entry keeps its pinned attack. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM.",
+
+  "splitHands": {
+    "oneHandPower": 0.6,
+    "maxTier": 2,
+    "_oneHandPower": "Proposal from SCHOOL-DEFENCES A. With the ward held and the staff not planted, Bolt and lines up to maxTier deal this fraction and build no Flow. Calibration may change it. Not signed off.",
+    "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate."
+  },
+
+  "plantedStaff": {
+    "durationS": 6,
+    "manaUpFront": 8,
+    "drainPerSecond": 4,
+    "magicReduction": 0.85,
+    "physicalReduction": 0.6,
+    "_durationS": "Proposal from SCHOOL-DEFENCES E. The dome lasts this many seconds, then lifts. The lift gesture and a blink attempt also lift it. Not signed off.",
+    "_manaUpFront": "Proposal. Paid once on the plant tick, before that tick's drain. It is above the ward raise cost of 5 so planting is a choice.",
+    "_drainPerSecond": "Proposal. 4 mana per second while the dome is up, including the plant tick. Six seconds is 24, plus 8 up front is 32. Ward drain at nerve 1 is 27 per second, so the dome is the cheaper hold and leaves mana to cast.",
+    "_magicReduction": "Same fraction as combat.json absorb.reduction.magic. A magic hit through the dome keeps 0.15. The dome does not perfect.",
+    "_physicalReduction": "Proposal, stronger than the palm ward's 0.30. A 10-damage spear through the dome is 4. Unblockables pass. Not signed off."
+  }
 }

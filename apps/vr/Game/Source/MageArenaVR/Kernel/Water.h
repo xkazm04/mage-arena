@@ -2,7 +2,14 @@
 
 #include "Kernel/SimTypes.h"
 
-bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input);
+// Null is the pinned cast: Flow, Crest mana, and the crest multiplier. The overlay passes a mod.
+struct FSpellCastMod
+{
+	bool bSuppressFlow = false;
+	double PowerMult = 1.0;
+};
+
+bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FSpellCastMod* Mod = nullptr);
 void ReleaseSpell(FArenaState& State, FActor& Actor);
 void UpdateWater(FArenaState& State, FActor& Actor);
 double WardDrainMult(const FArenaState& State, const FActor& Actor);

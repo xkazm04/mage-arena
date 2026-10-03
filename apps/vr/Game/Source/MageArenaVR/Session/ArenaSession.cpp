@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
+#include "Gestures/StaffDetector.h"
 #include "Gestures/WardDetector.h"
 #include "HAL/IConsoleManager.h"
 #include "Hands/ClipVariant.h"
@@ -123,13 +124,15 @@ void FArenaSession::Bind(
 	UHandInputSubsystem* InHands,
 	USigilRecognizerSubsystem* InSigils,
 	UWardDetectorSubsystem* InWards,
-	UBlinkDetectorSubsystem* InBlinks)
+	UBlinkDetectorSubsystem* InBlinks,
+	UStaffDetectorSubsystem* InStaff)
 {
 	Unbind();
 	Hands = InHands;
 	Sigils = InSigils;
 	Wards = InWards;
 	Blinks = InBlinks;
+	Staff = InStaff;
 	if (Blinks)
 	{
 		Blinks->BindToHands(Hands);
@@ -146,6 +149,12 @@ void FArenaSession::Bind(
 		Wards->BindToHands(Hands);
 		WardRaisedHandle = Wards->OnWardRaised.AddRaw(this, &FArenaSession::HandleWardRaised);
 		WardLoweredHandle = Wards->OnWardLowered.AddRaw(this, &FArenaSession::HandleWardLowered);
+	}
+	if (Staff)
+	{
+		Staff->BindToHands(Hands);
+		StaffPlantHandle = Staff->OnPlant.AddRaw(this, &FArenaSession::HandleStaffPlant);
+		StaffLiftHandle = Staff->OnLift.AddRaw(this, &FArenaSession::HandleStaffLift);
 	}
 }
 
@@ -165,15 +174,23 @@ void FArenaSession::Unbind()
 		Blinks->OnBlink.Remove(BlinkHandle);
 		Blinks->OnBolt.Remove(BoltHandle);
 	}
+	if (Staff)
+	{
+		Staff->OnPlant.Remove(StaffPlantHandle);
+		Staff->OnLift.Remove(StaffLiftHandle);
+	}
 	SigilHandle.Reset();
 	WardRaisedHandle.Reset();
 	WardLoweredHandle.Reset();
 	BlinkHandle.Reset();
 	BoltHandle.Reset();
+	StaffPlantHandle.Reset();
+	StaffLiftHandle.Reset();
 	Hands = nullptr;
 	Sigils = nullptr;
 	Wards = nullptr;
 	Blinks = nullptr;
+	Staff = nullptr;
 }
 
 bool FArenaSession::Start(uint32 Seed)
@@ -215,6 +232,8 @@ bool FArenaSession::Start(uint32 Seed)
 	bSuppressWard = false;
 	bBlinkQueued = false;
 	bCastPulse = false;
+	bPlantPulse = false;
+	bLiftPulse = false;
 	bBoltFlicked = false;
 	BoltFlickSim = -1.0;
 	bLastCastSigil = false;
@@ -233,6 +252,8 @@ bool FArenaSession::Start(uint32 Seed)
 	ViewAim = FSimVec{IdleAimX, IdleAimY};
 	AimPoint = ViewAim;
 	bClipWasPlaying = false;
+	SplitCasts = 0;
+	StaffPlants = 0;
 	if (Blinks)
 	{
 		Blinks->ResetDetector();
@@ -328,25 +349,56 @@ void FArenaSession::PlayAction(FName Action)
 		return;
 	}
 	bBoltFlicked = false;
+	const FString Name = Action.ToString();
+	if (Name.StartsWith(TEXT("staff")) || Name == TEXT("mudra"))
+	{
+		bAbsorb = false;
+		bSuppressWard = false;
+		bWardStarted = false;
+		bWardReleased = true;
+	}
 	Hands->PlayQuickAction(Action, EClipVariant::Normal);
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_SCRIPT play %s"), *Action.ToString());
 }
 
 FString FArenaSession::ClipAction() const
 {
-	if (!Hands || !Hands->GetClipPlayer())
-	{
-		return FString();
-	}
-	return Hands->GetClipPlayer()->GetClip().Action;
+	return Hands ? Hands->GetActionName() : FString();
 }
 
 bool FArenaSession::ClipPlaying() const
 {
-	return Hands && Hands->GetClipPlayer() && Hands->GetClipPlayer()->IsPlaying();
+	return Hands && Hands->IsActionPlaying();
 }
 
-void FArenaSession::BeginCast(int32 Slot, const TCHAR* Gesture)
+bool FArenaSession::IsStaffPlanted() const
+{
+	const FVrRuleset* Rules = GetVrRules();
+	return Rules && Rules->IsPlanted(Games.PlayerId);
+}
+
+bool FArenaSession::IsSplitPose() const
+{
+	return Hands && Hands->IsWardHeld() && Hands->IsActionPlaying() && Hands->GetActionName().StartsWith(TEXT("sigil"));
+}
+
+bool FArenaSession::WouldSplitRefuse(int32 Slot) const
+{
+	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+	const FVrRuleset* Rules = GetVrRules();
+	if (!Player || !bAbsorb || IsStaffPlanted() || !Rules || !Rules->Split.bEnabled)
+	{
+		return false;
+	}
+	if (Player->Water.Flow >= KernelData().FlowMax)
+	{
+		return true;
+	}
+	const FSpell* Spell = SpellFor(*Player, Slot);
+	return Spell && Spell->Tier > Rules->Split.MaxTier;
+}
+
+void FArenaSession::BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard)
 {
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	bCastPulse = true;
@@ -354,8 +406,16 @@ void FArenaSession::BeginCast(int32 Slot, const TCHAR* Gesture)
 	CastsBeforePulse = Player ? Player->Metrics.Casts : 0;
 	CastExpireTick = Games.State.Tick + 90;
 	bLastCastSigil = Slot != 0;
-	bSuppressWard = true;
-	bAbsorb = false;
+	if (bKeepWard && bAbsorb)
+	{
+		++SplitCasts;
+		Note(FString::Printf(TEXT("script split slot %d"), Slot));
+	}
+	else
+	{
+		bSuppressWard = true;
+		bAbsorb = false;
+	}
 	Note(Gesture);
 }
 
@@ -383,8 +443,14 @@ void FArenaSession::HandleSigil(FName Line, float Score, double LatencyMs)
 	{
 		return;
 	}
+	if (WouldSplitRefuse(Slot))
+	{
+		Note(FString::Printf(TEXT("script split refused slot %d"), Slot));
+		return;
+	}
+	const bool bKeepWard = bAbsorb && !IsStaffPlanted();
 	BeginCast(Slot, *FString::Printf(TEXT("gesture sigil %s score=%.2f latency=%.0fms -> slot %d"),
-		*Line.ToString(), Score, LatencyMs, Slot));
+		*Line.ToString(), Score, LatencyMs, Slot), bKeepWard);
 }
 
 void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
@@ -437,7 +503,26 @@ void FArenaSession::HandleBolt(const FBoltFlickEvent& Event)
 		Note(FString::Printf(TEXT("gesture bolt -> suppressed in melee yaw=%.1f"), Event.YawDegrees));
 		return;
 	}
-	BeginCast(0, *FString::Printf(TEXT("gesture bolt -> slot 0 yaw=%.1f"), Event.YawDegrees));
+	if (WouldSplitRefuse(0))
+	{
+		Note(TEXT("script split refused slot 0"));
+		return;
+	}
+	const bool bKeepWard = bAbsorb && !IsStaffPlanted();
+	BeginCast(0, *FString::Printf(TEXT("gesture bolt -> slot 0 yaw=%.1f"), Event.YawDegrees), bKeepWard);
+}
+
+void FArenaSession::HandleStaffPlant()
+{
+	bPlantPulse = true;
+	++StaffPlants;
+	Note(TEXT("gesture staff-plant"));
+}
+
+void FArenaSession::HandleStaffLift()
+{
+	bLiftPulse = true;
+	Note(TEXT("gesture staff-lift"));
 }
 
 void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta) const
@@ -517,7 +602,7 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta) const
 bool FArenaSession::CanBlink(const FActor& Player) const
 {
 	const FKernelData& Data = KernelData();
-	if (!Hands || Player.Stamina < Data.RollStaminaCost || bBlinkQueued)
+	if (IsStaffPlanted() || !Hands || Player.Stamina < Data.RollStaminaCost || bBlinkQueued)
 	{
 		return false;
 	}
@@ -687,15 +772,110 @@ void FArenaSession::DecideScript()
 	const FString Action = ClipAction();
 
 	// The blink clip's flick lands about 0.12-0.20 s after PlayAction, and the roll's i-frames last 0.25 s.
-	// Starting as ETA crosses 0.30 puts that roll on the hit. 0.40 was early: the i-frames expired and the
-	// spear still landed. The floor only matters when a clip blocked the high edge.
+	// Starting as ETA crosses 0.30 puts that roll on the hit.
 	const bool bMeleeWindow = MeleeEta <= 0.30 && MeleeEta >= 0.22;
 	const bool bStoneWindow = ProjectileEta <= 0.30 && ProjectileEta >= 0.22;
 	const bool bBlinkReady = CanBlink(*Player);
 	const double MeleeGap = SoonestThreat(MeleeEta, ProjectileEta, true);
+	const bool bPlanted = IsStaffPlanted();
+	const FVrRuleset* Rules = GetVrRules();
+	const double Nearest = NearestLiving(Games, *Player, nullptr, 3.1);
+	const bool bInMelee = Nearest <= KernelData().StaffRangeM + 0.05;
 
-	// Hold the palm through the impact. Drop it for a blink, once the steel has passed, or at the mana cap.
-	// A spear ETA falling does not drop the palm: that was letting the 10-damage lunge land whole.
+	// A sigil, staff, mudra, or blink owns the casting hand until the clip ends.
+	// Returning here keeps a held ward up through the sigil, which is the split-hand pose.
+	if (bPlaying && (Action.StartsWith(TEXT("sigil")) || Action.StartsWith(TEXT("staff")) || Action == TEXT("mudra") || Action.StartsWith(TEXT("blink"))))
+	{
+		return;
+	}
+
+	auto RaiseWard = [this, Now]()
+	{
+		bSuppressWard = false;
+		bWardStarted = true;
+		bWardReleased = false;
+		WardReleaseSim = Now + 1.6;
+		Hands->SetWardHeld(true, EClipVariant::Normal);
+	};
+
+	auto TryBolt = [this, Player, &bInMelee]()
+	{
+		const FSpell* Bolt = SpellFor(*Player, 0);
+		const double BoltRange = Bolt ? Bolt->RangeM : KernelData().BoltRangeM;
+		const double Distance = NearestLiving(Games, *Player, nullptr, 0.0);
+		if (!bInMelee && Distance <= BoltRange - 0.15 && SpellReady(Games, *Player, 0) && !WouldSplitRefuse(0))
+		{
+			PlayAction(TEXT("bolt"));
+			return true;
+		}
+		return false;
+	};
+
+	// Planted dome: both hands cast at full power. Blink stays refused.
+	if (bPlanted)
+	{
+		if (bPlaying && Action == TEXT("bolt") && bBoltFlicked && Now >= BoltFlickSim + 0.06 && Player->Mana >= 9.0 && !bInMelee
+			&& !Player->Pending.IsSet())
+		{
+			PlayAction(TEXT("bolt"));
+			return;
+		}
+		if (bPlaying || Player->Pending.IsSet())
+		{
+			return;
+		}
+		if (Player->Tier >= 2 && Nearest <= 2.9 && Player->Mana >= 16.0 && SpellReady(Games, *Player, 2))
+		{
+			PlayAction(TEXT("sigil-line2"));
+			return;
+		}
+		if (!bTideStarted && Player->Mana >= 12.0 && SpellReady(Games, *Player, 1))
+		{
+			PlayAction(TEXT("sigil-line1"));
+			bTideStarted = true;
+			return;
+		}
+		TryBolt();
+		return;
+	}
+
+	// Spears first, while the dome is down. A blink drops the ward.
+	if (bMeleeWindow && TryScriptBlink())
+	{
+		Note(FString::Printf(TEXT("script blink melee eta=%.3f t=%.3f"), MeleeEta, Now));
+		return;
+	}
+	if (bStoneWindow && MeleeGap > 1.2 && Player->Stamina >= 50.0 && TryScriptBlink())
+	{
+		Note(FString::Printf(TEXT("script blink stone eta=%.3f t=%.3f"), ProjectileEta, Now));
+		return;
+	}
+
+	const double UpFront = Rules && Rules->Staff.bEnabled ? Rules->Staff.ManaUpFront : 1.0e9;
+	const bool bStaffFree = !bPlaying && !Player->Pending.IsSet();
+	if (bStaffFree && Rules && Rules->Staff.bEnabled && Player->Mana >= UpFront + 12.0 && MeleeGap > 0.8)
+	{
+		const bool bOpening = StaffPlants == 0 && Now >= 1.5 && Now < 6.0 && (bTideStarted || Now >= 2.5);
+		const bool bHurt = Player->Hp < 55.0 && Now >= 3.0;
+		const int32 SplitCap = Rules->Split.bEnabled ? Rules->Split.MaxTier : 2;
+		const bool bHighTier = bAbsorb && Player->Tier > SplitCap;
+		if (bOpening || bHurt || bHighTier)
+		{
+			if (Hands->IsWardHeld())
+			{
+				Hands->SetWardHeld(false, EClipVariant::Normal);
+			}
+			bAbsorb = false;
+			bWardStarted = false;
+			bWardReleased = true;
+			PlayAction(TEXT("staff-plant"));
+			Note(TEXT("script staff plant"));
+			return;
+		}
+	}
+
+	// Drop the palm once the steel has passed, mana is low, or a blink needs the hand.
+	// While it stays up, fall through and cast with the other hand.
 	if (bWardStarted && !bWardReleased)
 	{
 		const bool bHeldMin = Now >= WardReleaseSim - 1.25;
@@ -711,59 +891,17 @@ void FArenaSession::DecideScript()
 			bWardReleased = true;
 			bWardStarted = false;
 		}
-		else
-		{
-			return;
-		}
 	}
 
-	// A sigil only lands if the clip finishes. Do not steal the hand.
-	if (bPlaying && Action.StartsWith(TEXT("sigil")))
-	{
-		return;
-	}
-
-	const double Nearest = NearestLiving(Games, *Player, nullptr, 3.1);
-	const bool bInMelee = Nearest <= KernelData().StaffRangeM + 0.05;
-
-	auto RaiseWard = [this, Now]()
-	{
-		bSuppressWard = false;
-		bWardStarted = true;
-		bWardReleased = false;
-		WardReleaseSim = Now + 1.4;
-		Hands->SetWardHeld(true, EClipVariant::Normal);
-	};
-
-	// Spears first. A stone spends a roll only when the next spear is far and a second roll is still affordable.
-	if (bMeleeWindow && TryScriptBlink())
-	{
-		Note(FString::Printf(TEXT("script blink melee eta=%.3f t=%.3f"), MeleeEta, Now));
-		return;
-	}
-	if (bStoneWindow && MeleeGap > 1.2 && Player->Stamina >= 50.0 && TryScriptBlink())
-	{
-		Note(FString::Printf(TEXT("script blink stone eta=%.3f t=%.3f"), ProjectileEta, Now));
-		return;
-	}
-
-	// The roll is down, or this steel is inside the recovery gap. The palm chips a spear from 10 to 7 and a stone from 7 to 4.9.
-	// Ward and blink share the clip player, so a blink clip already in flight is left alone.
 	const bool bBlinkClip = bPlaying && Action.StartsWith(TEXT("blink"));
 	const bool bSpearFallback = MeleeEta <= 0.70 && MeleeEta >= 0.05 && !bBlinkReady;
 	const bool bFirstStone = !WasWardOnStone() && ProjectileEta <= 1.15 && ProjectileEta >= 0.20;
 	const bool bStoneFallback = ProjectileEta <= 1.05 && ProjectileEta >= 0.20 && MeleeGap > 0.9 && Player->Stamina < 50.0;
-	if (!bBlinkClip && !bPlaying && Player->Mana >= 20.0 && (bSpearFallback || bFirstStone || bStoneFallback))
+	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= 20.0 && (bSpearFallback || bFirstStone || bStoneFallback || Now < 0.4))
 	{
 		RaiseWard();
-		return;
-	}
-	if (bPlaying && (Action == TEXT("ward-raise") || Action.StartsWith(TEXT("blink"))))
-	{
-		return;
 	}
 
-	// The flick is earlier than the clip's end. Start the next bolt once its flick will clear the cooldown.
 	if (bPlaying && Action == TEXT("bolt") && bBoltFlicked && Now >= BoltFlickSim + 0.06 && Player->Mana >= 9.0 && !bInMelee
 		&& !Player->Pending.IsSet())
 	{
@@ -775,18 +913,19 @@ void FArenaSession::DecideScript()
 		return;
 	}
 
-	// One tide while the conscripts are still out of spear range. The clip is longer than the opening stone
-	// flight, so the first stone lands. Walking used to step off it.
-	if (!bTideStarted && MeleeGap > 2.6 && Now < 4.0)
+	// Opening tide with the ward already up. The right hand draws; the left keeps the palm.
+	if (!bTideStarted && MeleeGap > 1.2 && Now < 4.0 && Player->Mana >= 12.0)
 	{
 		PlayAction(TEXT("sigil-line1"));
 		bTideStarted = true;
 		return;
 	}
 
-	// Riptide is the seated push. The sigil clip locks blinks for ~2.1 s, so it only starts when the next
-	// spear is further out than that clip. The cone is 3 m; a loose pack is left to bolts.
-	if (Player->Tier >= 2 && Nearest <= 2.9 && MeleeGap > 2.45 && Player->Mana >= 16.0 && SpellReady(Games, *Player, 2))
+	const bool bWardUp = Hands->IsWardHeld() || bAbsorb;
+	const int32 MaxTier = Rules && Rules->Split.bEnabled ? Rules->Split.MaxTier : 4;
+	if (!(bWardUp && Player->Tier > MaxTier)
+		&& Player->Tier >= 2 && Nearest <= 2.9 && MeleeGap > 0.9 && Player->Mana >= 16.0 && SpellReady(Games, *Player, 2)
+		&& !WouldSplitRefuse(2))
 	{
 		PlayAction(TEXT("sigil-line2"));
 		return;
@@ -796,12 +935,7 @@ void FArenaSession::DecideScript()
 	{
 		return;
 	}
-	const FSpell* Bolt = SpellFor(*Player, 0);
-	const double BoltRange = Bolt ? Bolt->RangeM : KernelData().BoltRangeM;
-	if (Nearest <= BoltRange - 0.15 && SpellReady(Games, *Player, 0))
-	{
-		PlayAction(TEXT("bolt"));
-	}
+	TryBolt();
 }
 
 FSimVec FArenaSession::ComputeAim(int32 Slot) const
@@ -1013,6 +1147,10 @@ void FArenaSession::StepKernel()
 	Input.Slot = CastSlot;
 	Input.bCast = bCastPulse && !bWantRoll;
 	Input.bAbsorb = bAbsorb && !bWantRoll;
+	Input.bPlantStaff = bPlantPulse;
+	Input.bLiftStaff = bLiftPulse;
+	bPlantPulse = false;
+	bLiftPulse = false;
 	if (bWantRoll)
 	{
 		Input.bRoll = true;
@@ -1139,7 +1277,8 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr,
 		Instance ? Instance->GetSubsystem<USigilRecognizerSubsystem>() : nullptr,
 		Instance ? Instance->GetSubsystem<UWardDetectorSubsystem>() : nullptr,
-		Instance ? Instance->GetSubsystem<UBlinkDetectorSubsystem>() : nullptr);
+		Instance ? Instance->GetSubsystem<UBlinkDetectorSubsystem>() : nullptr,
+		Instance ? Instance->GetSubsystem<UStaffDetectorSubsystem>() : nullptr);
 
 	const bool bNull = FParse::Param(FCommandLine::Get(), TEXT("nullrhi"));
 	const bool bGreyboxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));

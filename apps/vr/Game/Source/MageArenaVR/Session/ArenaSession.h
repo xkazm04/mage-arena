@@ -12,6 +12,7 @@ class ASessionPresentation;
 class UBlinkDetectorSubsystem;
 class UHandInputSubsystem;
 class USigilRecognizerSubsystem;
+class UStaffDetectorSubsystem;
 class UWardDetectorSubsystem;
 class UWave1CaptureDriver;
 
@@ -32,7 +33,8 @@ public:
 		UHandInputSubsystem* InHands,
 		USigilRecognizerSubsystem* InSigils,
 		UWardDetectorSubsystem* InWards,
-		UBlinkDetectorSubsystem* InBlinks);
+		UBlinkDetectorSubsystem* InBlinks,
+		UStaffDetectorSubsystem* InStaff = nullptr);
 	void Unbind();
 
 	/** Wave index 0, Rotation composition, human player. Clears pause. */
@@ -63,6 +65,11 @@ public:
 	int32 GetBlinkAccepts() const { return BlinkAccepts; }
 	bool WasSigilHit() const { return bSawSigilHit; }
 	bool WasWardOnStone() const { return bSawWardOnStone; }
+	bool IsStaffPlanted() const;
+	/** Ward held and a sigil clip playing on the other hand. */
+	bool IsSplitPose() const;
+	int32 GetSplitCasts() const { return SplitCasts; }
+	int32 GetStaffPlants() const { return StaffPlants; }
 	bool ConsumeCameraPad(int32& OutPad);
 
 	FVector KernelToUnrealCm(const FSimVec& Pos) const;
@@ -74,11 +81,14 @@ private:
 	void HandleWardLowered();
 	void HandleBlink(const FBlinkEvent& Event);
 	void HandleBolt(const FBoltFlickEvent& Event);
+	void HandleStaffPlant();
+	void HandleStaffLift();
 	void StepKernel();
 	void DecideScript();
 	void DrainEvents(const FActor* PlayerBefore);
 	void Note(const FString& Line);
-	void BeginCast(int32 Slot, const TCHAR* Gesture);
+	void BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard);
+	bool WouldSplitRefuse(int32 Slot) const;
 	void PlayAction(FName Action);
 	FString ClipAction() const;
 	bool ClipPlaying() const;
@@ -99,11 +109,14 @@ private:
 	USigilRecognizerSubsystem* Sigils = nullptr;
 	UWardDetectorSubsystem* Wards = nullptr;
 	UBlinkDetectorSubsystem* Blinks = nullptr;
+	UStaffDetectorSubsystem* Staff = nullptr;
 	FDelegateHandle SigilHandle;
 	FDelegateHandle WardRaisedHandle;
 	FDelegateHandle WardLoweredHandle;
 	FDelegateHandle BlinkHandle;
 	FDelegateHandle BoltHandle;
+	FDelegateHandle StaffPlantHandle;
+	FDelegateHandle StaffLiftHandle;
 
 	FGames Games;
 	FArenaLayout Layout;
@@ -121,6 +134,8 @@ private:
 	bool bBlinkQueued = false;
 	int32 QueuedPad = 1;
 	bool bCastPulse = false;
+	bool bPlantPulse = false;
+	bool bLiftPulse = false;
 	int32 CastSlot = 0;
 	int32 CastExpireTick = 0;
 	int32 CastsBeforePulse = 0;
@@ -142,6 +157,8 @@ private:
 	bool bSawWardOnStone = false;
 	int32 EventCursor = 0;
 	bool bClipWasPlaying = false;
+	int32 SplitCasts = 0;
+	int32 StaffPlants = 0;
 
 	TArray<FString> Chain;
 };

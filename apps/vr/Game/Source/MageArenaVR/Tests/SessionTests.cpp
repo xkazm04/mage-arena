@@ -5,6 +5,7 @@
 #include "Engine/GameInstance.h"
 #include "Gestures/BlinkDetector.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
+#include "Gestures/StaffDetector.h"
 #include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
 #include "Kernel/KernelData.h"
@@ -24,6 +25,7 @@ struct FSessionRig
 	USigilRecognizerSubsystem* Sigils = nullptr;
 	UWardDetectorSubsystem* Wards = nullptr;
 	UBlinkDetectorSubsystem* Blinks = nullptr;
+	UStaffDetectorSubsystem* Staff = nullptr;
 
 	bool Open(FAutomationTestBase& Test)
 	{
@@ -40,6 +42,7 @@ struct FSessionRig
 			return false;
 		}
 		Blinks = NewObject<UBlinkDetectorSubsystem>(Instance);
+		Staff = NewObject<UStaffDetectorSubsystem>(Instance);
 		return true;
 	}
 
@@ -56,8 +59,8 @@ struct FSessionRig
 
 FString ChainPath(const TCHAR* Name)
 {
-	// T10 is this measurement. T08 keeps the seated-loss record and is not overwritten.
-	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T10"), Name);
+	// T11 is this measurement. T10 keeps the dais-edge record and is not overwritten.
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T11"), Name);
 	FPaths::CollapseRelativeDirectories(Path);
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
 	return Path;
@@ -88,7 +91,7 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 		return false;
 	}
 	FArenaSession Session;
-	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 	Session.SetScripted(true);
 	if (!Session.Start(1))
 	{
@@ -153,6 +156,7 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 		Measured, PinnedWindowLo, PinnedWindowHi,
 		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
 		DamageTaken, WorstOffPad);
+	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted defence splitCasts=%d staff=%d"), Session.GetSplitCasts(), Session.GetStaffPlants());
 
 	bool bPass = true;
 	bPass &= TestEqual(TEXT("phase"), Session.GetGames().Phase, FString(TEXT("intermission")));

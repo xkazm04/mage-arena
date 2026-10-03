@@ -2,6 +2,8 @@
 
 #include "Kernel/SimTypes.h"
 
+struct FVrRuleset;
+
 struct FSimHitResult
 {
 	double Damage = 0.0;
@@ -25,9 +27,11 @@ double ArenaRandom(FArenaState& State, const FString& Purpose);
 FActor& AddMage(FArenaState& State, int32 Team, const FSimVec& Pos, const FString& Label = TEXT("Water mage"), const FSimRanks* Ranks = nullptr);
 void Emit(FArenaState& State, const TCHAR* Kind, const FActor& Actor, double Value = 0.0, const TOptional<int32>& TargetId = {});
 void Interrupt(FArenaState& State, FActor& Actor);
-FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit);
+FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit, const FVrRuleset* Rules = nullptr);
 FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec& Origin, const FSimVec& Direction, double SpeedMps, double RangeM, TOptional<double> Radius = {}, TOptional<FSimVec> AimedAt = {});
 void UpdateClock(FArenaState& State, FActor& Actor);
+// Rules null is the pinned path. Split hands and the planted staff run only when the pointer is set.
+void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRuleset* Rules);
 void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs);
 void StepArena(FArenaState& State);
 void ResetWave(FArenaState& State, FActor& Actor);

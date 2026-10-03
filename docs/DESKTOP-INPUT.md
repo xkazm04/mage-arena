@@ -35,6 +35,7 @@ Mouse draw (Oct)   -> fingertip path --------+         (sigil / ward / blink)
 | Ward (absorb) | raise the off-hand palm toward the threat | hold `Space` (aims at view centre) | hold RMB (aims at cursor) |
 | Perfect ward | fresh raise within 0.15 s of impact | tap `Space` on time | press RMB on time |
 | Blink to pad left / right / back | finger flick toward the pad | `A` / `D` / `S` | - |
+| Planted staff | both hands grip and thrust the staff down; the same key lifts it | `F` | - |
 | Pause / resume | palm-up menu gesture | `Esc` | - |
 
 Clip variants are selected with a modifier (`Shift` = sloppy, `Ctrl` = slow) so the desktop player can feel what an

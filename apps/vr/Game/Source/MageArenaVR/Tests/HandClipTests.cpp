@@ -23,6 +23,8 @@ const TCHAR* GActions[] = {
 	TEXT("blink-left"),
 	TEXT("blink-right"),
 	TEXT("blink-back"),
+	TEXT("staff-plant"),
+	TEXT("staff-lift"),
 };
 
 const TCHAR* GVariantNames[] = {
@@ -66,7 +68,7 @@ const EHandKeypoint GKeypointOrder[MageHandJointCount] = {
 	EHandKeypoint::LittleTip,
 };
 
-static_assert(UE_ARRAY_COUNT(GActions) == 9, "Nine quick actions.");
+static_assert(UE_ARRAY_COUNT(GActions) == 11, "Eleven quick actions.");
 static_assert(UE_ARRAY_COUNT(GVariantNames) == 3, "Three clip variants.");
 static_assert(UE_ARRAY_COUNT(GVariantValues) == 3, "Three clip variants.");
 static_assert(UE_ARRAY_COUNT(GKeypointOrder) == MageHandJointCount, "26 keypoints.");
@@ -215,7 +217,7 @@ bool FMageArenaClipsLoadAll::RunTest(const FString& Parameters)
 			Expected.Add(ExpectedFileName(Action, Variant));
 		}
 	}
-	bPass &= TestEqual(TEXT("expected clip count"), Expected.Num(), 27);
+	bPass &= TestEqual(TEXT("expected clip count"), Expected.Num(), 33);
 
 	TArray<FString> Found;
 	IFileManager::Get().FindFiles(Found, *FPaths::Combine(ClipsDirectory(), TEXT("*.jsonl")), true, false);

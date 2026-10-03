@@ -37,6 +37,7 @@ const FQuickActionKey GQuickActionKeys[] = {
 	{ EKeys::A, TEXT("blink-left"), false },
 	{ EKeys::D, TEXT("blink-right"), false },
 	{ EKeys::S, TEXT("blink-back"), false },
+	{ EKeys::F, TEXT("staff-plant"), false },
 	{ EKeys::Escape, NAME_None, true },
 };
 }
@@ -236,7 +237,21 @@ void AMageArenaPlayerController::SetupInputComponent()
 				UE_LOG(LogMageArena, Error, TEXT("PlayQuickAction %s: hand input subsystem missing"), *ClipAction.ToString());
 				return;
 			}
-			Hands->PlayQuickAction(ClipAction, VariantFromModifiers());
+			FName Play = ClipAction;
+			if (ClipAction == TEXT("staff-plant"))
+			{
+				if (UWorld* World = GetWorld())
+				{
+					if (UArenaSessionSubsystem* Session = World->GetSubsystem<UArenaSessionSubsystem>())
+					{
+						if (Session->GetSession().IsStaffPlanted())
+						{
+							Play = TEXT("staff-lift");
+						}
+					}
+				}
+			}
+			Hands->PlayQuickAction(Play, VariantFromModifiers());
 		});
 	}
 }

@@ -1,5 +1,9 @@
-# Records the scripted Wave 1: five stills, a short frame sequence, budget.json.
-# Success is MAGEVR_CAPTURE_DONE plus the five pngs. The editor Quit code is not the gate.
+# Records the scripted Wave 1.
+# -Run T08 (default) keeps the five original stills. -Run T10 writes the four threat-geometry stills.
+# -Run T11 writes the split-hand pose, the planted dome, and the end still.
+# Success is MAGEVR_CAPTURE_DONE plus those pngs. The editor Quit code is not the gate.
+param([string]$Run = "T08")
+
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
 $VrDir = Split-Path -Parent $ToolsDir
@@ -7,7 +11,7 @@ $AppsDir = Split-Path -Parent $VrDir
 $Repo = Split-Path -Parent $AppsDir
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
-$RunDir = Join-Path $Repo "runs\T08"
+$RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 $SeqDir = Join-Path $ShotDir "seq"
 $BudgetPath = Join-Path $RunDir "budget.json"
@@ -36,10 +40,11 @@ $ArgumentList = @(
 	"-FullStdOutLogOutput",
 	"-log",
 	"-abslog=$LogPath",
-	"-MageArenaWave1Capture"
+	"-MageArenaWave1Capture",
+	"-MageArenaRun=$Run"
 )
 
-Write-Host "capture-wave1: starting UnrealEditor-Cmd"
+Write-Host "capture-wave1: starting UnrealEditor-Cmd run=$Run"
 $Process = Start-Process -FilePath $Editor -ArgumentList $ArgumentList -PassThru -WindowStyle Hidden -RedirectStandardOutput $StdoutPath -RedirectStandardError $StderrPath
 $Finished = $Process.WaitForExit(360000)
 if (-not $Finished) {
@@ -48,13 +53,28 @@ if (-not $Finished) {
 	Start-Sleep -Seconds 2
 }
 
-$ShotNames = @(
-	"01-first-soldiers.png",
-	"02-ward-meets-stone.png",
-	"03-sigil-hit.png",
-	"04-blink.png",
-	"05-victory.png"
-)
+if ($Run -eq "T10") {
+	$ShotNames = @(
+		"01-dais-edge.png",
+		"02-spear-flight.png",
+		"03-blink.png",
+		"04-end.png"
+	)
+} elseif ($Run -eq "T11") {
+	$ShotNames = @(
+		"01-split-hands.png",
+		"02-planted-dome.png",
+		"03-end.png"
+	)
+} else {
+	$ShotNames = @(
+		"01-first-soldiers.png",
+		"02-ward-meets-stone.png",
+		"03-sigil-hit.png",
+		"04-blink.png",
+		"05-victory.png"
+	)
+}
 
 $Missing = @()
 foreach ($Name in $ShotNames) {

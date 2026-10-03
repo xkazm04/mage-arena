@@ -5,7 +5,12 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "HandInputSubsystem.generated.h"
 
-/** Owns the active hand source and plays the clip a key (or a test) asks for. */
+/**
+ * Owns two clip players. The ward lane holds the off hand. The action lane plays the latest
+ * quick action. A right-hand clip (sigil, bolt, blink) leaves the ward running. A clip that
+ * uses the left hand (mudra, staff) stops the ward. Detectors bind to OnHandFrame, which
+ * merges both players, so each hand is read on its own.
+ */
 UCLASS()
 class MAGEARENAVR_API UHandInputSubsystem : public UGameInstanceSubsystem
 {
@@ -32,15 +37,28 @@ public:
 	uint64 GetFrameSequence() const;
 	FOnHandSourceFrame& OnHandFrame();
 
-	UHandClipPlayer* GetClipPlayer() const { return ClipPlayer; }
-	IHandSource* GetActiveSource() const { return ClipPlayer; }
+	/** The player a test just started: the ward after SetWardHeld, the action after PlayQuickAction. */
+	UHandClipPlayer* GetClipPlayer() const { return LastStarted ? LastStarted : ActionPlayer; }
+	IHandSource* GetActiveSource() const { return GetClipPlayer(); }
+
+	bool IsActionPlaying() const;
+	FString GetActionName() const;
 
 private:
-	void EnsurePlayer();
+	void EnsurePlayers();
+	void ForwardFrame(const FHandFrame& Frame);
+	bool ActionOwns(EControllerHand Hand) const;
 
 	UPROPERTY()
-	TObjectPtr<UHandClipPlayer> ClipPlayer;
+	TObjectPtr<UHandClipPlayer> WardPlayer;
 
+	UPROPERTY()
+	TObjectPtr<UHandClipPlayer> ActionPlayer;
+
+	UPROPERTY()
+	TObjectPtr<UHandClipPlayer> LastStarted;
+
+	FOnHandSourceFrame FrameDelegate;
 	bool bWardHeld = false;
 	EClipVariant HeldVariant = EClipVariant::Normal;
 };

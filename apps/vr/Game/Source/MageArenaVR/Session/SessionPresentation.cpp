@@ -447,6 +447,115 @@ void ASessionPresentation::SyncCuff(const FArenaSession& Session, const FActor& 
 	ShowMask(Mask);
 }
 
+void ASessionPresentation::EnsureDome()
+{
+	if (bDomeBuilt)
+	{
+		return;
+	}
+	bDomeBuilt = true;
+	DomeAnchor = NewObject<USceneComponent>(this, TEXT("DomeAnchor"));
+	DomeAnchor->SetupAttachment(GetRootComponent());
+	DomeAnchor->RegisterComponent();
+
+	UStaticMesh* SphereMesh = Greybox::LoadShape(TEXT("Sphere"));
+	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+	// The eye is inside the shell, so this alpha tints the whole view. 0.10 keeps a readable veil.
+	const FLinearColor Water(WaterColour.R, WaterColour.G, WaterColour.B, 0.10f);
+	const FLinearColor Rib(WaterColour.R, WaterColour.G, WaterColour.B, 0.80f);
+	auto Make = [this](UStaticMesh* Shape, const FLinearColor& Colour) -> UStaticMeshComponent*
+	{
+		if (!Shape || !DomeAnchor)
+		{
+			return nullptr;
+		}
+		UMaterialInstanceDynamic* Material = Greybox::Tint(Greybox::TranslucentMaterial(), this, Colour);
+		UStaticMeshComponent* Mesh = Greybox::MakeMesh(this, Shape, Material);
+		if (Mesh)
+		{
+			Mesh->AttachToComponent(DomeAnchor, FAttachmentTransformRules::KeepRelativeTransform);
+			Mesh->SetVisibility(false);
+		}
+		return Mesh;
+	};
+	Dome = Make(SphereMesh, Water);
+	if (Dome)
+	{
+		Dome->SetRelativeLocation(FVector::ZeroVector);
+		Greybox::SetSized(Dome, FVector(440.0, 440.0, 220.0));
+		// The seated camera is inside the shell. The debug material culls back faces,
+		// so the inner surface has to be the front face or the dome is invisible.
+		Dome->SetReverseCulling(true);
+	}
+	if (!CylinderMesh)
+	{
+		return;
+	}
+	// Short rods on the ellipsoid. A scaled cylinder through the centre is a slab that
+	// contains the eye (pad + 120 cm; the shell centre is pad + 110 cm).
+	// The shell is 440 x 440 x 220 cm. These latitudes sit on it, 8 cm out along the normal.
+	// The nearest rod surface is about 1.85 m from that eye. Only the shell is closer.
+	const double RadiusXY = 220.0;
+	const double RadiusZ = 110.0;
+	const FVector Rod(6.0, 6.0, 32.0);
+	auto AddRod = [&](double LatDeg, double LonDeg, bool bAlongRing)
+	{
+		const double Lat = FMath::DegreesToRadians(LatDeg);
+		const double Lon = FMath::DegreesToRadians(LonDeg);
+		const double CosLat = FMath::Cos(Lat);
+		const double SinLat = FMath::Sin(Lat);
+		const double CosLon = FMath::Cos(Lon);
+		const double SinLon = FMath::Sin(Lon);
+		const FVector OnShell(RadiusXY * CosLat * CosLon, RadiusXY * CosLat * SinLon, RadiusZ * SinLat);
+		const FVector Normal = FVector(
+			OnShell.X / (RadiusXY * RadiusXY),
+			OnShell.Y / (RadiusXY * RadiusXY),
+			OnShell.Z / (RadiusZ * RadiusZ)).GetSafeNormal();
+		const FVector Tangent = bAlongRing
+			? FVector(-CosLat * SinLon, CosLat * CosLon, 0.0).GetSafeNormal()
+			: FVector(-RadiusXY * SinLat * CosLon, -RadiusXY * SinLat * SinLon, RadiusZ * CosLat).GetSafeNormal();
+		UStaticMeshComponent* Segment = Make(CylinderMesh, Rib);
+		if (!Segment)
+		{
+			return;
+		}
+		Segment->SetRelativeLocation(OnShell + Normal * 8.0);
+		Segment->SetRelativeRotation(FRotationMatrix::MakeFromZ(Tangent).Rotator());
+		Greybox::SetSized(Segment, Rod);
+		DomeRibs.Add(Segment);
+	};
+	const double MeridianLatDeg[] = {-36.0, -18.0, 0.0, 18.0};
+	for (int32 LonDeg = 0; LonDeg < 360; LonDeg += 60)
+	{
+		for (const double LatDeg : MeridianLatDeg)
+		{
+			AddRod(LatDeg, static_cast<double>(LonDeg), false);
+		}
+	}
+	for (int32 LonDeg = 10; LonDeg < 360; LonDeg += 20)
+	{
+		AddRod(-42.0, static_cast<double>(LonDeg), true);
+	}
+}
+
+void ASessionPresentation::SyncDome(const FArenaSession& Session, const FActor* Player)
+{
+	EnsureDome();
+	const bool bUp = Player && Session.IsStaffPlanted();
+	if (DomeAnchor)
+	{
+		DomeAnchor->SetVisibility(bUp, true);
+	}
+	if (!bUp || !Player || !DomeAnchor)
+	{
+		return;
+	}
+	FVector Centre = Session.KernelToUnrealCm(Player->Pos);
+	Centre.Z += 110.0;
+	DomeAnchor->SetWorldLocation(Centre);
+	DomeAnchor->SetWorldRotation(FRotator::ZeroRotator);
+}
+
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
 	if (!Session.IsRunning())
@@ -455,6 +564,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	}
 	const FGames& Games = Session.GetGames();
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+	SyncDome(Session, Player);
 	const double Now = FPlatformTime::Seconds();
 	TSet<int32> LiveBodies;
 	TSet<int32> LiveShots;

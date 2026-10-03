@@ -73,7 +73,7 @@ void ApplyControl(FArenaState& State, FActor& Actor, FActor& Target, const FSpel
 }
 }
 
-bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FSpellCastMod* Mod)
 {
 	const FSpell* Spell = SpellFor(Actor, Input.Slot);
 	if (!Spell || Spell->Kind == TEXT("passive") || State.Tick < SimCooldownUntil(Actor.Water, Spell->Line))
@@ -81,7 +81,8 @@ bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 		return false;
 	}
 	const FKernelData& Data = KernelData();
-	const double Cost = Actor.Water.Flow >= Data.FlowMax ? Data.CrestManaCost : Spell->Mana;
+	const bool bSuppressFlow = Mod && Mod->bSuppressFlow;
+	const double Cost = (!bSuppressFlow && Actor.Water.Flow >= Data.FlowMax) ? Data.CrestManaCost : Spell->Mana;
 	if (Actor.Mana < Cost)
 	{
 		return false;
@@ -119,7 +120,16 @@ bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 		}
 		TargetId = Candidates[0];
 	}
-	const FFlowCast Flow = FlowCast(Actor, Spell->Line, State.Tick);
+	double DamageMult = 1.0;
+	if (bSuppressFlow)
+	{
+		DamageMult = Mod->PowerMult;
+	}
+	else
+	{
+		const FFlowCast Flow = FlowCast(Actor, Spell->Line, State.Tick);
+		DamageMult = Flow.DamageMult;
+	}
 	Actor.Mana -= Cost;
 	SimSetCooldown(Actor.Water, Spell->Line, State.Tick + SimTicks(Spell->CooldownS));
 	const FSimVec Direction = SimUnit(SimSub(Input.Aim, Actor.Pos), Actor.Facing);
@@ -133,7 +143,7 @@ bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 		: Input.Aim;
 	Pending.ActivationId = State.NextId++;
 	Pending.SpellId = Spell->Id;
-	Pending.DamageMult = Flow.DamageMult;
+	Pending.DamageMult = DamageMult;
 	Pending.TargetId = TargetId;
 	Actor.Pending = Pending;
 	Actor.Metrics.Casts++;

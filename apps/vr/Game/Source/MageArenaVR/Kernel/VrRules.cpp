@@ -1,6 +1,8 @@
 #include "Kernel/VrRules.h"
 
+#include "Kernel/ArenaKernel.h"
 #include "Kernel/KernelData.h"
+#include "MageArenaVR.h"
 
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
@@ -594,6 +596,51 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error)
 	const FSimVec Centre{
 		Spawn.X + (CentreX - PadX),
 		Spawn.Y + (CentreY - PadY)};
+
+	const FJsonObject* Split = nullptr;
+	const FJsonObject* Planted = nullptr;
+	if (!NeedObject(*Overlay, TEXT("splitHands"), Split, Error) || !NeedObject(*Overlay, TEXT("plantedStaff"), Planted, Error))
+	{
+		return false;
+	}
+	double OneHandPower = 0.0;
+	double MaxTier = 0.0;
+	double DurationS = 0.0;
+	double ManaUpFront = 0.0;
+	double Drain = 0.0;
+	double MagicReduction = 0.0;
+	double PhysicalReduction = 0.0;
+	if (!NeedNumber(*Split, TEXT("oneHandPower"), OneHandPower, Error)
+		|| !NeedNumber(*Split, TEXT("maxTier"), MaxTier, Error)
+		|| !NeedNumber(*Planted, TEXT("durationS"), DurationS, Error)
+		|| !NeedNumber(*Planted, TEXT("manaUpFront"), ManaUpFront, Error)
+		|| !NeedNumber(*Planted, TEXT("drainPerSecond"), Drain, Error)
+		|| !NeedNumber(*Planted, TEXT("magicReduction"), MagicReduction, Error)
+		|| !NeedNumber(*Planted, TEXT("physicalReduction"), PhysicalReduction, Error))
+	{
+		return false;
+	}
+	const double TierRounded = std::round(MaxTier);
+	if (!(OneHandPower > 0.0 && OneHandPower <= 1.0) || std::abs(MaxTier - TierRounded) > 1.0e-6
+		|| TierRounded < 0.0 || TierRounded > 4.0)
+	{
+		return Fail(Error, TEXT("vr rules: splitHands oneHandPower must be in (0, 1] and maxTier an integer 0..4"));
+	}
+	if (!(DurationS > 0.0 && DurationS <= 30.0) || ManaUpFront < 0.0 || Drain < 0.0
+		|| MagicReduction < 0.0 || MagicReduction > 1.0 || PhysicalReduction < 0.0 || PhysicalReduction > 1.0)
+	{
+		return Fail(Error, TEXT("vr rules: plantedStaff duration, mana, or reduction is out of range"));
+	}
+	Out.Split.bEnabled = true;
+	Out.Split.OneHandPower = OneHandPower;
+	Out.Split.MaxTier = static_cast<int32>(TierRounded);
+	Out.Staff.bEnabled = true;
+	Out.Staff.DurationS = DurationS;
+	Out.Staff.ManaUpFront = ManaUpFront;
+	Out.Staff.DrainPerSecond = Drain;
+	Out.Staff.MagicReduction = MagicReduction;
+	Out.Staff.PhysicalReduction = PhysicalReduction;
+
 	Out.bActive = true;
 	Out.StandoffM = Standoff;
 	Out.Dais.MinX = Centre.X - HalfX;
@@ -602,4 +649,105 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error)
 	Out.Dais.MaxY = Centre.Y + HalfY;
 	Out.Throws.Add(Throw);
 	return true;
+}
+
+bool FVrRuleset::IsPlanted(int32 ActorId) const
+{
+	return bActive && Staff.bEnabled && StaffRuntime.bPlanted && StaffRuntime.ActorId == ActorId;
+}
+
+void FVrRuleset::Lift(const TCHAR* Why)
+{
+	if (!StaffRuntime.bPlanted)
+	{
+		return;
+	}
+	StaffRuntime.bPlanted = false;
+	StaffRuntime.ActorId = -1;
+	StaffRuntime.UntilTick = 0;
+	UE_LOG(LogMageArena, Log, TEXT("defence staff lift %s"), Why);
+}
+
+bool FVrRuleset::IsSplitCasting(int32 ActorId) const
+{
+	return SplitCasting.Contains(ActorId);
+}
+
+void FVrRuleset::SetSplitCasting(int32 ActorId, bool bCasting)
+{
+	if (bCasting)
+	{
+		if (!SplitCasting.Contains(ActorId))
+		{
+			SplitCasting.Add(ActorId);
+		}
+		return;
+	}
+	SplitCasting.Remove(ActorId);
+}
+
+double FVrRuleset::DomeReduction(const FString& Family) const
+{
+	if (!Staff.bEnabled)
+	{
+		return 0.0;
+	}
+	if (Family == TEXT("magic"))
+	{
+		return Staff.MagicReduction;
+	}
+	if (Family == TEXT("physical"))
+	{
+		return Staff.PhysicalReduction;
+	}
+	return 0.0;
+}
+
+void FVrRuleset::Refuse(const FActor& Actor, const TCHAR* Reason)
+{
+	Refusals.Add(Reason);
+	UE_LOG(LogMageArena, Log, TEXT("defence refuse %s actor=%d tier=%d flow=%d"), Reason, Actor.Id, Actor.Tier, Actor.Water.Flow);
+}
+
+void FVrRuleset::TickStaff(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+{
+	if (!bActive || !Staff.bEnabled || Actor.Enemy.IsSet())
+	{
+		return;
+	}
+	if (IsPlanted(Actor.Id) && State.Tick >= StaffRuntime.UntilTick)
+	{
+		Lift(TEXT("expiry"));
+	}
+	if (IsPlanted(Actor.Id) && Input.bLiftStaff)
+	{
+		Lift(TEXT("gesture"));
+	}
+	if (!IsPlanted(Actor.Id) && Input.bPlantStaff && !Input.bLiftStaff)
+	{
+		if (Actor.Mana + 1.0e-9 >= Staff.ManaUpFront)
+		{
+			Actor.Mana -= Staff.ManaUpFront;
+			StaffRuntime.bPlanted = true;
+			StaffRuntime.ActorId = Actor.Id;
+			StaffRuntime.UntilTick = State.Tick + SimTicks(Staff.DurationS);
+			UE_LOG(LogMageArena, Log, TEXT("defence staff plant actor=%d until=%d mana=%.3f"), Actor.Id, StaffRuntime.UntilTick, Actor.Mana);
+		}
+		else
+		{
+			Refuse(Actor, TEXT("staff-mana"));
+		}
+	}
+	if (!IsPlanted(Actor.Id))
+	{
+		return;
+	}
+	const double Cost = Staff.DrainPerSecond * SimDt();
+	const double Paid = std::min(Actor.Mana, Cost);
+	Actor.Mana -= Paid;
+	if (Paid + 1.0e-12 < Cost || Actor.Mana <= ManaExhaustedEpsilon)
+	{
+		Actor.Mana = std::max(0.0, Actor.Mana);
+		Lift(TEXT("mana"));
+	}
 }

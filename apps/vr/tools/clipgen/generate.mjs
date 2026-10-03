@@ -48,6 +48,7 @@ const CURLS = {
   pen: { index: [0.55, 0.85, 0.40], middle: [1.15, 1.45, 0.90], ring: [1.25, 1.55, 0.95], little: [1.30, 1.50, 0.90] },
   point: { index: [0.04, 0.02, 0.00], middle: [1.30, 1.55, 0.95], ring: [1.35, 1.60, 1.00], little: [1.40, 1.55, 0.95] },
   seal: { index: [0.75, 0.95, 0.50], middle: [0.25, 0.18, 0.08], ring: [0.30, 0.20, 0.08], little: [0.40, 0.25, 0.10] },
+  fist: { index: [1.20, 1.45, 0.90], middle: [1.25, 1.50, 0.95], ring: [1.30, 1.55, 0.95], little: [1.35, 1.50, 0.90] },
 };
 
 const FINGERS = [
@@ -68,6 +69,8 @@ const ACTIONS = [
   ['blink-left', { kind: 'flick', hands: ['R'], yaw: -60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
   ['blink-right', { kind: 'flick', hands: ['R'], yaw: 60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
   ['blink-back', { kind: 'flick', hands: ['R'], yaw: 180, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
+  ['staff-plant', { kind: 'staff', dir: -1, hands: ['L', 'R'], thrust: 0.40, settle: 0.25 }],
+  ['staff-lift', { kind: 'staff', dir: 1, hands: ['L', 'R'], thrust: 0.40, settle: 0.25 }],
 ];
 const VARIANTS = ['normal', 'slow', 'sloppy'];
 
@@ -276,6 +279,9 @@ function durationOf(spec, scale) {
   }
   if (spec.kind === 'ward') {
     return (spec.rise + spec.hold) * scale;
+  }
+  if (spec.kind === 'staff') {
+    return (spec.thrust + spec.settle) * scale;
   }
   return (spec.windup + spec.flick + spec.recover) * scale;
 }
@@ -705,6 +711,39 @@ function sampleMudra(spec, t, timeScale, params) {
   ];
 }
 
+function sampleStaff(spec, t, timeScale, params) {
+  const thrust = spec.thrust * timeScale;
+  const u = t >= thrust ? 1 : ease(t / Math.max(thrust, 1e-6));
+  const zTopL = 0.48;
+  const zBotL = 0.23;
+  const zTopR = 0.45;
+  const zBotR = 0.20;
+  const dropping = spec.dir < 0;
+  const leftStart = v3(0.34, -0.04, dropping ? zTopL : zBotL);
+  const leftEnd = v3(0.34, -0.04, dropping ? zBotL : zTopL);
+  const rightStart = v3(0.34, 0.04, dropping ? zTopR : zBotR);
+  const rightEnd = v3(0.34, 0.04, dropping ? zBotR : zTopR);
+  const finger = v3(1, 0, 0);
+  return [
+    {
+      side: 'L',
+      palm: distortAround(lerp(leftStart, leftEnd, u), leftStart, params),
+      normal: v3(0, 1, 0),
+      finger,
+      curls: CURLS.fist,
+      pinch: 0.90,
+    },
+    {
+      side: 'R',
+      palm: distortAround(lerp(rightStart, rightEnd, u), rightStart, params),
+      normal: v3(0, -1, 0),
+      finger,
+      curls: CURLS.fist,
+      pinch: 0.90,
+    },
+  ];
+}
+
 function sampleAction(spec, t, timeScale, params) {
   if (spec.kind === 'sigil') {
     return sampleSigil(spec, t, timeScale, params);
@@ -714,6 +753,9 @@ function sampleAction(spec, t, timeScale, params) {
   }
   if (spec.kind === 'ward') {
     return sampleWard(spec, t, timeScale, params);
+  }
+  if (spec.kind === 'staff') {
+    return sampleStaff(spec, t, timeScale, params);
   }
   return sampleMudra(spec, t, timeScale, params);
 }
@@ -936,6 +978,8 @@ function assertClip(action, spec, variant, clip) {
     checkFlick(action, spec, right);
   } else if (spec.kind === 'ward') {
     checkWard(left);
+  } else if (spec.kind === 'staff') {
+    checkStaff(action, spec, left, right);
   } else {
     checkMudra(left, right);
   }
@@ -1036,6 +1080,28 @@ function checkWard(frames) {
   }
   if (drift > 0.005) {
     throw new Error(`ward hold drift ${drift}`);
+  }
+}
+
+function checkStaff(action, spec, left, right) {
+  if (left.length === 0 || right.length === 0) {
+    throw new Error(`${action}: staff needs both hands`);
+  }
+  const dz = (framePalm(left[left.length - 1]).z - framePalm(left[0]).z
+    + framePalm(right[right.length - 1]).z - framePalm(right[0]).z) / 2;
+  const expected = spec.dir * 0.25;
+  if (Math.abs(dz - expected) > 0.04) {
+    throw new Error(`${action}: staff dz ${dz.toFixed(3)} expected ${expected.toFixed(3)}`);
+  }
+  const count = Math.min(left.length, right.length);
+  for (let i = 0; i < count; i++) {
+    const gap = Math.abs(framePalm(left[i]).y - framePalm(right[i]).y);
+    if (gap > 0.12) {
+      throw new Error(`${action}: staff hands ${gap.toFixed(3)} m apart`);
+    }
+    if (left[i].pinch < 0.85 || right[i].pinch < 0.85) {
+      throw new Error(`${action}: staff pinch ${left[i].pinch}`);
+    }
   }
 }
 

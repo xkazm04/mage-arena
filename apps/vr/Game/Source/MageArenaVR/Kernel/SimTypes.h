@@ -72,6 +72,9 @@ struct FInputFrame
 	bool bAbsorb = false;
 	bool bRoll = false;
 	bool bSprint = false;
+	// VR overlay only. Conformance frames leave both false. The pinned path ignores them.
+	bool bPlantStaff = false;
+	bool bLiftStaff = false;
 };
 
 inline FInputFrame SimIdleInput(const FSimVec& Aim = FSimVec{IdleAimX, IdleAimY})

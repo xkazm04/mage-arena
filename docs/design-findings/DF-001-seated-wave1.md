@@ -34,3 +34,8 @@ sooner than a lunge). Two gaps, per `runs/T10/REPORT.md`:
   ~49 s even if the player lived - above the 25-40 s window.
 Standoff distance alone cannot close it; throw cadence alone only stretches survival; wave composition (option C) is the knob
 that moves the clear time. The seated loop needs a balance pass of its own - see the calibration card that follows.
+
+## After T11 (split hands + planted staff, 2026-10-03)
+Lost at **23.25 s** (was 11.42 s): dealt 106.7 of 208 (4.59 HP/s, a ~45 s clear at that rate), took 95. The dome doubled
+survival; damage rate barely moved. The scripted player split-cast once: the palm ward drains 27 mana/s at Nerve 1, so
+warding while casting is nearly unaffordable. Next: T12 calibration census (proposal for owner sign-off).
