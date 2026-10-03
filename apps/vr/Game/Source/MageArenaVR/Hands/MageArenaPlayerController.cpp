@@ -38,6 +38,7 @@ const FQuickActionKey GQuickActionKeys[] = {
 	{ EKeys::D, TEXT("blink-right"), false },
 	{ EKeys::S, TEXT("blink-back"), false },
 	{ EKeys::F, TEXT("staff-plant"), false },
+	{ EKeys::R, TEXT("both-palms"), false },
 	{ EKeys::Escape, NAME_None, true },
 };
 }
@@ -123,6 +124,25 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 			{
 				Mage->BlinkToPad(2);
 			}
+			else if (WasInputKeyJustPressed(EKeys::F8))
+			{
+				if (UWorld* World = GetWorld())
+				{
+					if (UArenaSessionSubsystem* Session = World->GetSubsystem<UArenaSessionSubsystem>())
+					{
+						Session->GetSession().NotifyHeadsetRemoved();
+						UE_LOG(LogMageArena, Log, TEXT("F8 headset removed"));
+					}
+				}
+			}
+			else if (WasInputKeyJustPressed(EKeys::F9))
+			{
+				if (UHandInputSubsystem* Hands = HandsOrNull())
+				{
+					Hands->SetTrackingDropped(!Hands->IsTrackingDropped());
+					UE_LOG(LogMageArena, Log, TEXT("F9 tracking dropped=%d"), Hands->IsTrackingDropped() ? 1 : 0);
+				}
+			}
 
 			const bool bDrawing = IsInputKeyDown(EKeys::LeftMouseButton) || IsInputKeyDown(EKeys::RightMouseButton);
 			float DX = 0.f;
@@ -130,7 +150,8 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 			GetInputMouseDelta(DX, DY);
 			// The capture sequence owns the camera. A hidden cursor delta must not drag the scripted shots.
 			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"))
-				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
+				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"))
+				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
 			if (!bDrawing && !Mage->IsBlinkBusy() && !bCapture)
 			{
 				FRotator Rot = GetControlRotation();

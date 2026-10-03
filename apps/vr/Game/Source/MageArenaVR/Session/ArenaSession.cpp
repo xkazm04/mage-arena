@@ -1,11 +1,16 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/SessionPresentation.h"
+#include "Session/TeachCapture.h"
 #include "Session/Wave1Capture.h"
 
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "IHeadMountedDisplay.h"
+#include "IXRTrackingSystem.h"
+#include "Misc/App.h"
+#include "Misc/CoreDelegates.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
 #include "Gestures/StaffDetector.h"
 #include "Gestures/WardDetector.h"
@@ -111,6 +116,25 @@ FAutoConsoleCommand GSessionStart(
 	TEXT("MageArena.Session.Start"),
 	TEXT("Start pinned Tiro wave 1 (Rotation) against the human player. Optional seed."),
 	FConsoleCommandWithArgsDelegate::CreateStatic(&StartSessionCommand));
+
+void SkipTeachCommand(const TArray<FString>& Args)
+{
+	(void)Args;
+	UWorld* World = FindGameWorld();
+	UArenaSessionSubsystem* Session = World ? World->GetSubsystem<UArenaSessionSubsystem>() : nullptr;
+	if (!Session)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MageArena.Session.SkipTeach: no game world"));
+		return;
+	}
+	Session->GetSession().SkipTeach();
+	UE_LOG(LogMageArena, Log, TEXT("MageArena.Session.SkipTeach"));
+}
+
+FAutoConsoleCommand GSessionSkipTeach(
+	TEXT("MageArena.Session.SkipTeach"),
+	TEXT("Testing only. Skip cold start and the teach, and start the bout."),
+	FConsoleCommandWithArgsDelegate::CreateStatic(&SkipTeachCommand));
 }
 
 FArenaSession::FArenaSession() = default;
@@ -156,6 +180,10 @@ void FArenaSession::Bind(
 		StaffPlantHandle = Staff->OnPlant.AddRaw(this, &FArenaSession::HandleStaffPlant);
 		StaffLiftHandle = Staff->OnLift.AddRaw(this, &FArenaSession::HandleStaffLift);
 	}
+	if (Hands)
+	{
+		HandFrameHandle = Hands->OnHandFrame().AddRaw(this, &FArenaSession::NoteHandFrame);
+	}
 }
 
 void FArenaSession::Unbind()
@@ -179,6 +207,10 @@ void FArenaSession::Unbind()
 		Staff->OnPlant.Remove(StaffPlantHandle);
 		Staff->OnLift.Remove(StaffLiftHandle);
 	}
+	if (Hands)
+	{
+		Hands->OnHandFrame().Remove(HandFrameHandle);
+	}
 	SigilHandle.Reset();
 	WardRaisedHandle.Reset();
 	WardLoweredHandle.Reset();
@@ -186,6 +218,7 @@ void FArenaSession::Unbind()
 	BoltHandle.Reset();
 	StaffPlantHandle.Reset();
 	StaffLiftHandle.Reset();
+	HandFrameHandle.Reset();
 	Hands = nullptr;
 	Sigils = nullptr;
 	Wards = nullptr;
@@ -224,6 +257,14 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: %s"), *RulesError);
 		return false;
 	}
+	if (!IsTiroWave(BoutWave))
+	{
+		const int32 Waves = (KernelData().bReady && KernelData().ArenaTiers.Num() > 0)
+			? KernelData().ArenaTiers[0].Waves.Num()
+			: 0;
+		UE_LOG(LogMageArena, Error, TEXT("Session bout %d is outside Tiro waves [0, %d); refusing to spawn"), BoutWave, Waves);
+		return false;
+	}
 	if (!TryCreateGames(Games, Seed, Preset, BoutWave, false, bFireMages, &Rules))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
@@ -231,6 +272,7 @@ bool FArenaSession::Start(uint32 Seed)
 	}
 	bRunning = true;
 	bPaused = false;
+	bFrameHold = false;
 	bLoggedEnd = false;
 	Accumulator = 0.0;
 	bAbsorb = false;
@@ -253,7 +295,36 @@ bool FArenaSession::Start(uint32 Seed)
 	bSawSigilHit = false;
 	bSawWardOnStone = false;
 	EventCursor = Games.State.Events.Num();
-	Chain.Reset();
+	if (!bKeepChain)
+	{
+		Chain.Reset();
+	}
+	bKeepChain = false;
+	bResumeGate = false;
+	bResumeCounting = false;
+	ResumeElapsed = 0.0;
+	LostTrackingS = 0.0;
+	bHandLeftSeen = false;
+	bHandRightSeen = false;
+	bHandLeftTracked = false;
+	bHandRightTracked = false;
+	TeachStep = ETeachStep::None;
+	TeachClock = 0.0;
+	ArcClock = 0.0;
+	OfferHold = 0.0;
+	bCuePlayed = false;
+	bColdRaised = false;
+	bColdPlayed = false;
+	bOfferContinue = false;
+	bFlowCue = false;
+	bClockCue = false;
+	WristUntil = -1.0;
+	WristText.Reset();
+	PerfectRingUntil = -1.0;
+	DummyId = 0;
+	// TeachElapsed stays. The duration test reads it after the teach calls Start.
+	LoadTeachData();
+	LoadStrings();
 	ViewAim = FSimVec{IdleAimX, IdleAimY};
 	AimPoint = ViewAim;
 	bClipWasPlaying = false;
@@ -339,6 +410,13 @@ void FArenaSession::SetPaused(bool bInPaused)
 
 void FArenaSession::TogglePause()
 {
+	// Esc stays instant. A safety pause drops the palm gate and the count.
+	if (bResumeGate || bResumeCounting)
+	{
+		bResumeGate = false;
+		bResumeCounting = false;
+		ResumeElapsed = 0.0;
+	}
 	SetPaused(!bPaused);
 }
 
@@ -509,6 +587,21 @@ void FArenaSession::HandleSigil(FName Line, float Score, double LatencyMs)
 
 void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 {
+	const bool bBoth = ClipAction() == TEXT("both-palms");
+	if (bResumeGate || bBoth)
+	{
+		return;
+	}
+	if (Games.Phase == TEXT("cold"))
+	{
+		bColdRaised = true;
+		return;
+	}
+	if (Games.Phase == TEXT("offer"))
+	{
+		bOfferContinue = true;
+		return;
+	}
 	if (bSuppressWard)
 	{
 		return;
@@ -831,12 +924,12 @@ bool FArenaSession::PlayBlinkToward(int32 WantPad)
 		}
 		return true;
 	}
-	int32 StepPad = WantPad;
+	int32 NextPad = WantPad;
 	if (FMath::Abs(WantPad - ActivePad) > 1)
 	{
-		StepPad = ActivePad < WantPad ? ActivePad + 1 : ActivePad - 1;
+		NextPad = ActivePad < WantPad ? ActivePad + 1 : ActivePad - 1;
 	}
-	if (StepPad == ActivePad)
+	if (NextPad == ActivePad)
 	{
 		return false;
 	}
@@ -851,11 +944,11 @@ bool FArenaSession::PlayBlinkToward(int32 WantPad)
 	bSuppressWard = true;
 	bAbsorb = false;
 	FName Clip = TEXT("blink-back");
-	if (ActivePad != 1 && StepPad == 1)
+	if (ActivePad != 1 && NextPad == 1)
 	{
 		Clip = TEXT("blink-back");
 	}
-	else if (StepPad > ActivePad)
+	else if (NextPad > ActivePad)
 	{
 		Clip = TEXT("blink-right");
 	}
@@ -1251,11 +1344,32 @@ void FArenaSession::DrainEvents(const FActor* Player)
 		else if (Event.Kind == TEXT("perfect") && Event.ActorId == Games.PlayerId)
 		{
 			Note(FString::Printf(TEXT("kernel perfect target=%d"), Event.ActorId));
+			if (Games.Phase == TEXT("teach"))
+			{
+				PerfectRingUntil = GetSimSeconds() + Tuning.PerfectRingS;
+				Note(TEXT("cue bell perfect-absorb"));
+			}
 		}
 		else if (Event.Kind == TEXT("unlock") && Event.ActorId == Games.PlayerId)
 		{
 			Note(FString::Printf(TEXT("kernel unlock tier=%.0f"), Event.Value));
+			// TODO(T13): Flow and the tier clock get one wrist cue each during Wave 1.
+			if (Games.Phase == TEXT("active") && !bClockCue)
+			{
+				bClockCue = true;
+				WristText = TeachString(TEXT("wave.clock"));
+				WristUntil = GetSimSeconds() + 4.0;
+				Note(TEXT("cue wrist clock"));
+			}
 		}
+	}
+	// TODO(T13): Flow and the tier clock get one wrist cue each during Wave 1.
+	if (Games.Phase == TEXT("active") && Player && !bFlowCue && Player->Water.Flow > 0)
+	{
+		bFlowCue = true;
+		WristText = TeachString(TEXT("wave.flow"));
+		WristUntil = GetSimSeconds() + 4.0;
+		Note(TEXT("cue wrist flow"));
 	}
 	EventCursor = Games.State.Events.Num();
 }
@@ -1439,7 +1553,12 @@ void FArenaSession::StepKernel()
 
 void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 {
-	if (!bRunning || bPaused || DeltaSeconds <= 0.0)
+	if (!bRunning || DeltaSeconds <= 0.0)
+	{
+		return;
+	}
+	// Capture stills hold the kernel on the current prompt. Pause would replace that text.
+	if (bFrameHold)
 	{
 		return;
 	}
@@ -1447,10 +1566,23 @@ void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 	{
 		Hands->Step(DeltaSeconds);
 	}
+	PollTracking(DeltaSeconds);
 	// A flick that never slows before the clip ends still has to reach the kernel.
 	if (bClipWasPlaying && !ClipPlaying() && Blinks)
 	{
 		Blinks->FlushPending();
+	}
+	if (bPaused)
+	{
+		UpdateResume(DeltaSeconds);
+		bClipWasPlaying = ClipPlaying();
+		return;
+	}
+	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
+	{
+		AdvanceArc(DeltaSeconds);
+		bClipWasPlaying = ClipPlaying();
+		return;
 	}
 	if (bScripted && Games.Phase == TEXT("active"))
 	{
@@ -1476,6 +1608,12 @@ void UArenaSessionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UArenaSessionSubsystem::Deinitialize()
 {
+	if (FocusHandle.IsValid())
+	{
+		FCoreDelegates::ApplicationWillDeactivateDelegate.Remove(FocusHandle);
+		FocusHandle.Reset();
+	}
+	Session.NotifyQuit();
 	Session.Unbind();
 	bRunning = false;
 	Super::Deinitialize();
@@ -1506,7 +1644,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bNull = FParse::Param(FCommandLine::Get(), TEXT("nullrhi"));
 	const bool bGreyboxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
 	const bool bWave1Capture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
+	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
+	if (!FApp::IsUnattended())
+	{
+		FocusHandle = FCoreDelegates::ApplicationWillDeactivateDelegate.AddUObject(this, &UArenaSessionSubsystem::OnAppDeactivate);
+	}
 	if (!bNull)
 	{
 		FActorSpawnParameters Params;
@@ -1519,10 +1662,56 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Capture->Start();
 		return;
 	}
+	if (bTeachCapture)
+	{
+		TeachCapture = NewObject<UTeachCaptureDriver>(this);
+		TeachCapture->Start();
+		return;
+	}
 	if (bGame && !bGreyboxCapture)
 	{
-		Start(1, false);
+		BeginArc(1, false);
 	}
+}
+
+bool UArenaSessionSubsystem::BeginArc(uint32 Seed, bool bScripted)
+{
+	Session.SetScripted(bScripted);
+	const bool bOk = Session.BeginArc(Seed);
+	bRunning = bOk;
+	UE_LOG(LogMageArena, Log, TEXT("MageArena.Session.BeginArc seed=%u scripted=%d ok=%d"), Seed, bScripted ? 1 : 0, bOk ? 1 : 0);
+	return bOk;
+}
+
+void UArenaSessionSubsystem::OnAppDeactivate()
+{
+	bFocusLatched = true;
+}
+
+void UArenaSessionSubsystem::PollPlatform()
+{
+	if (bFocusLatched)
+	{
+		bFocusLatched = false;
+		Session.NotifyFocusLost();
+	}
+	if (!GEngine || !GEngine->XRSystem.IsValid())
+	{
+		return;
+	}
+	IXRTrackingSystem* Tracking = GEngine->XRSystem.Get();
+	IHeadMountedDisplay* Hmd = Tracking ? Tracking->GetHMDDevice() : nullptr;
+	if (!Hmd)
+	{
+		return;
+	}
+	const EHMDWornState::Type Worn = Hmd->GetHMDWornState();
+	if (bHaveWorn && LastWorn == static_cast<int32>(EHMDWornState::Worn) && Worn == EHMDWornState::NotWorn)
+	{
+		Session.NotifyHeadsetRemoved();
+	}
+	LastWorn = static_cast<int32>(Worn);
+	bHaveWorn = true;
 }
 
 bool UArenaSessionSubsystem::Start(uint32 Seed, bool bScripted)
@@ -1607,10 +1796,11 @@ void UArenaSessionSubsystem::Tick(float DeltaTime)
 		return;
 	}
 	ApplyViewAim();
-	if (!Session.IsPaused())
+	if (!FApp::IsUnattended())
 	{
-		Session.Advance(DeltaTime, false);
+		PollPlatform();
 	}
+	Session.Advance(DeltaTime, false);
 	if (Presentation && Session.IsRunning())
 	{
 		Presentation->Sync(Session, Session.IsPaused());

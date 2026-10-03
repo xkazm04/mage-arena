@@ -5,6 +5,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Styling/CoreStyle.h"
+#include "Widgets/Text/STextBlock.h"
+#include "Engine/Engine.h"
 #include "Engine/Texture2D.h"
 #include "EngineUtils.h"
 #include "Greybox/GreyboxUtil.h"
@@ -36,6 +41,26 @@ const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
+const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
+const FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
+const FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
+
+FVector PadForward(const FArenaSession& Session)
+{
+	FVector Forward(1.0, 0.0, 0.0);
+	if (Session.HasLayout())
+	{
+		if (const FRunePad* Pad = Session.GetLayout().FindPad(Session.GetActivePad()))
+		{
+			Forward = Session.GetLayout().FlatForwardM(*Pad);
+		}
+	}
+	if (Forward.IsNearlyZero())
+	{
+		return FVector(1.0, 0.0, 0.0);
+	}
+	return Forward.GetSafeNormal();
+}
 
 FLinearColor FamilyColour(const FString& Family, bool bPlayerOwned)
 {
@@ -238,13 +263,12 @@ UCameraComponent* ASessionPresentation::FindCamera() const
 	return nullptr;
 }
 
-UTexture2D* ASessionPresentation::LoadMask(const FString& Name)
+UTexture2D* ASessionPresentation::LoadPng(const FString& Name, const FString& Path)
 {
 	if (TObjectPtr<UTexture2D>* Found = Masks.Find(Name))
 	{
 		return Found->Get();
 	}
-	const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../art/hud/mask"), Name + TEXT(".png"));
 	TArray<uint8> Compressed;
 	if (!FFileHelper::LoadFileToArray(Compressed, *Path))
 	{
@@ -284,6 +308,12 @@ UTexture2D* ASessionPresentation::LoadMask(const FString& Name)
 	Texture->UpdateResource();
 	Masks.Add(Name, Texture);
 	return Texture;
+}
+
+UTexture2D* ASessionPresentation::LoadMask(const FString& Name)
+{
+	const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../art/hud/mask"), Name + TEXT(".png"));
+	return LoadPng(Name, Path);
 }
 
 void ASessionPresentation::ShowMask(const TCHAR* Name)
@@ -372,6 +402,22 @@ void ASessionPresentation::EnsureCuff()
 	ManaBar = Bar(ManaColour, FVector(0.0, 0.0, -5.8));
 	StaminaBar = Bar(StaminaColour, FVector(0.0, 0.0, -7.4));
 	ClockBar = Bar(ClockColour, FVector(0.0, 0.0, -9.0));
+	CuffCue = NewObject<UTextRenderComponent>(this, TEXT("CuffCue"));
+	if (CuffCue && CuffRoot)
+	{
+		CuffCue->SetupAttachment(CuffRoot);
+		CuffCue->RegisterComponent();
+		if (GEngine && GEngine->GetMediumFont())
+		{
+			CuffCue->SetFont(GEngine->GetMediumFont());
+		}
+		CuffCue->SetWorldSize(3.5f);
+		CuffCue->SetTextRenderColor(FColor(236, 232, 220));
+		CuffCue->SetHorizontalAlignment(EHTA_Center);
+		CuffCue->SetRelativeLocation(FVector(-1.0, 0.0, 4.0));
+		CuffCue->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+		CuffCue->SetVisibility(false);
+	}
 	ShowMask(TEXT("idle"));
 }
 
@@ -447,6 +493,230 @@ void ASessionPresentation::SyncCuff(const FArenaSession& Session, const FActor& 
 		Mask = TEXT("tier2");
 	}
 	ShowMask(Mask);
+	if (CuffCue)
+	{
+		const FString Cue = Session.GetWristCue();
+		CuffCue->SetText(FText::FromString(Cue));
+		CuffCue->SetVisibility(!Cue.IsEmpty());
+	}
+}
+
+void ASessionPresentation::EnsureTeachVisuals()
+{
+	if (bTeachVisuals || !GetRootComponent())
+	{
+		return;
+	}
+	bTeachVisuals = true;
+	DaisWidget = NewObject<UWidgetComponent>(this, TEXT("DaisPrompt"));
+	if (DaisWidget)
+	{
+		DaisWidget->SetupAttachment(GetRootComponent());
+		DaisWidget->SetWidgetSpace(EWidgetSpace::World);
+		DaisWidget->SetDrawSize(FVector2D(1100.f, 180.f));
+		DaisWidget->SetPivot(FVector2D(0.5f, 0.5f));
+		DaisWidget->SetTwoSided(true);
+		DaisWidget->SetBlendMode(EWidgetBlendMode::Transparent);
+		DaisWidget->SetBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 0.f));
+		DaisWidget->SetTintColorAndOpacity(FLinearColor::White);
+		DaisWidget->SetTickMode(ETickMode::Enabled);
+		DaisWidget->SetTickWhenOffscreen(true);
+		DaisWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		DaisWidget->SetCastShadow(false);
+		DaisWidget->SetVisibility(false);
+		DaisWidget->RegisterComponent();
+		AddInstanceComponent(DaisWidget);
+		DaisWidget->SetSlateWidget(
+			SNew(STextBlock)
+			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 52))
+			.ColorAndOpacity(FLinearColor(1.f, 0.97f, 0.90f, 1.f))
+			.Justification(ETextJustify::Center)
+			.AutoWrapText(true)
+			.WrapTextAt(1040.f));
+	}
+	DaisPlate = MakePart(TEXT("Cube"), SignPlateColour);
+	if (DaisPlate)
+	{
+		DaisPlate->SetVisibility(false);
+	}
+	GlyphAnchor = NewObject<USceneComponent>(this, TEXT("GlyphAnchor"));
+	if (GlyphAnchor)
+	{
+		GlyphAnchor->SetupAttachment(GetRootComponent());
+		GlyphAnchor->RegisterComponent();
+	}
+	UMaterialInterface* Pass = LoadObject<UMaterialInterface>(nullptr,
+		TEXT("/Engine/EngineMaterials/Widget3DPassThrough_Translucent.Widget3DPassThrough_Translucent"));
+	UStaticMesh* PlaneMesh = Greybox::LoadShape(TEXT("Plane"));
+	if (Pass)
+	{
+		GlyphMaterial = UMaterialInstanceDynamic::Create(Pass, this);
+	}
+	if (PlaneMesh && GlyphAnchor)
+	{
+		UMaterialInterface* GlyphMat = GlyphMaterial
+			? static_cast<UMaterialInterface*>(GlyphMaterial)
+			: Greybox::Tint(Greybox::UnlitOpaqueMaterial(), this, FLinearColor::White);
+		GlyphPlane = Greybox::MakeMesh(this, PlaneMesh, GlyphMat);
+		if (GlyphPlane)
+		{
+			GlyphPlane->AttachToComponent(GlyphAnchor, FAttachmentTransformRules::KeepRelativeTransform);
+			// Engine plane faces local +Z. Point that at the seated player (anchor -X).
+			GlyphPlane->SetRelativeRotation(FRotationMatrix::MakeFromZ(FVector(-1.0, 0.0, 0.0)).Rotator());
+			GlyphPlane->SetRelativeScale3D(FVector(0.82, 0.82, 1.0));
+			GlyphPlane->SetVisibility(false);
+		}
+	}
+	GlyphBack = MakePart(TEXT("Cube"), GlyphPlateColour);
+	if (GlyphBack && GlyphAnchor)
+	{
+		GlyphBack->AttachToComponent(GlyphAnchor, FAttachmentTransformRules::KeepRelativeTransform);
+		GlyphBack->SetRelativeLocation(FVector(3.0, 0.0, 0.0));
+		Greybox::SetSized(GlyphBack, FVector(3.0, 92.0, 92.0));
+		GlyphBack->SetVisibility(false);
+	}
+	// Greybox of A03 sigil-line1 (circle, then the bar) if the mask plane does not draw.
+	for (int32 Index = 0; Index < 18; ++Index)
+	{
+		UStaticMeshComponent* Bead = MakePart(TEXT("Cube"), FLinearColor::White);
+		if (!Bead || !GlyphAnchor)
+		{
+			continue;
+		}
+		const double Angle = 2.0 * PI * static_cast<double>(Index) / 18.0;
+		Bead->AttachToComponent(GlyphAnchor, FAttachmentTransformRules::KeepRelativeTransform);
+		Bead->SetRelativeLocation(FVector(1.5, FMath::Cos(Angle) * 34.0, FMath::Sin(Angle) * 34.0));
+		Greybox::SetSized(Bead, FVector(5.0, 8.0, 8.0));
+		Bead->SetVisibility(false);
+		GlyphStrokes.Add(Bead);
+	}
+	if (UStaticMeshComponent* Bar = MakePart(TEXT("Cube"), FLinearColor::White))
+	{
+		if (GlyphAnchor)
+		{
+			Bar->AttachToComponent(GlyphAnchor, FAttachmentTransformRules::KeepRelativeTransform);
+			Bar->SetRelativeLocation(FVector(1.5, 0.0, 4.0));
+			Greybox::SetSized(Bar, FVector(5.0, 7.0, 40.0));
+			Bar->SetVisibility(false);
+			GlyphStrokes.Add(Bar);
+		}
+	}
+	for (int32 Index = 0; Index < 20; ++Index)
+	{
+		if (UStaticMeshComponent* Bead = MakePart(TEXT("Cube"), FLinearColor::White))
+		{
+			Bead->SetVisibility(false);
+			PerfectRingParts.Add(Bead);
+		}
+	}
+	FString GlyphPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../art/glyphs/mask/sigil-line1-512.png"));
+	FPaths::CollapseRelativeDirectories(GlyphPath);
+	if (UTexture2D* Glyph = LoadPng(TEXT("glyph-sigil-line1"), GlyphPath))
+	{
+		if (GlyphMaterial)
+		{
+			TArray<FMaterialParameterInfo> Infos;
+			TArray<FGuid> Ids;
+			GlyphMaterial->GetAllTextureParameterInfo(Infos, Ids);
+			for (const FMaterialParameterInfo& Info : Infos)
+			{
+				GlyphMaterial->SetTextureParameterValueByInfo(Info, Glyph);
+			}
+		}
+	}
+}
+
+void ASessionPresentation::SyncTeachVisuals(const FArenaSession& Session, const FActor* Player)
+{
+	EnsureTeachVisuals();
+	const FVector Forward = PadForward(Session);
+	const FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal();
+	const FVector Pad = Session.KernelToUnrealCm(Session.PadKernel(Session.GetActivePad()));
+	const FString Prompt = Session.GetPromptText();
+	// Centred on the seated forward axis, 220 cm ahead and 162 cm above the pad.
+	// From the eye that is about 15° above the view centre. The 196 cm plate is
+	// atan(98/220) ≈ 24° either side, inside ±30°. The cuff is camera-locked at
+	// the lower left, and sigils are drawn in front of the hands, so the plaque
+	// sits above both and above the dummy.
+	const FVector Sign = Pad + Forward * 220.0 + FVector(0.0, 0.0, 162.0);
+	const FRotator Facing = Forward.Rotation();
+	if (DaisWidget)
+	{
+		const bool bShow = !Prompt.IsEmpty();
+		DaisWidget->SetVisibility(bShow);
+		DaisWidget->SetWorldLocation(Sign - Forward * 8.0);
+		DaisWidget->SetWorldRotation((-Forward).Rotation());
+		DaisWidget->SetWorldScale3D(FVector(0.16f));
+		if (bShow)
+		{
+			if (TSharedPtr<STextBlock> Label = StaticCastSharedPtr<STextBlock>(DaisWidget->GetSlateWidget()))
+			{
+				Label->SetText(FText::FromString(Prompt));
+			}
+			DaisWidget->RequestRenderUpdate();
+		}
+	}
+	if (DaisPlate)
+	{
+		DaisPlate->SetVisibility(!Prompt.IsEmpty());
+		DaisPlate->SetWorldLocation(Sign + Forward * 2.0);
+		DaisPlate->SetWorldRotation(Facing);
+		Greybox::SetSized(DaisPlate, FVector(4.0, 196.0, 36.0));
+	}
+	const bool bGlyph = Session.GetGlyphId() == TEXT("sigil-line1");
+	if (GlyphAnchor)
+	{
+		GlyphAnchor->SetVisibility(bGlyph, true);
+		if (bGlyph)
+		{
+			const FVector At = Pad + Forward * 230.0 + Right * 78.0 + FVector(0.0, 0.0, 88.0);
+			GlyphAnchor->SetWorldLocation(At);
+			GlyphAnchor->SetWorldRotation(Facing);
+		}
+	}
+	if (GlyphPlane)
+	{
+		GlyphPlane->SetVisibility(bGlyph);
+	}
+	if (GlyphBack)
+	{
+		GlyphBack->SetVisibility(bGlyph);
+	}
+	for (UStaticMeshComponent* Stroke : GlyphStrokes)
+	{
+		if (Stroke)
+		{
+			// The mask plane already draws the circle and the bar. The beads would double it.
+			Stroke->SetVisibility(false);
+		}
+	}
+	const bool bRing = Session.IsPerfectRingVisible() && Player;
+	FVector RingCentre = Pad + Forward * 90.0 + FVector(0.0, 0.0, 120.0);
+	if (bThreatCm)
+	{
+		RingCentre = ThreatCm;
+	}
+	const int32 RingCount = PerfectRingParts.Num();
+	for (int32 Index = 0; Index < RingCount; ++Index)
+	{
+		UStaticMeshComponent* Bead = PerfectRingParts[Index];
+		if (!Bead)
+		{
+			continue;
+		}
+		Bead->SetVisibility(bRing);
+		if (!bRing)
+		{
+			continue;
+		}
+		const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
+		const FVector Offset = (Right * FMath::Cos(Angle) + FVector::UpVector * FMath::Sin(Angle)) * 72.0;
+		const FVector Radial = Offset.GetSafeNormal();
+		const FVector Tangent = FVector::CrossProduct(Radial, Forward).GetSafeNormal();
+		Bead->SetWorldLocation(RingCentre + Offset);
+		Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+		Greybox::SetSized(Bead, FVector(8.0, 10.0, 24.0));
+	}
 }
 
 void ASessionPresentation::EnsureDome()
@@ -629,24 +899,33 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 
 	for (const FActor& Actor : Games.State.Actors)
 	{
-		if (!Actor.Enemy.IsSet() || Actor.bDown)
+		if (Actor.Id == Games.PlayerId || Actor.bDown)
 		{
 			continue;
 		}
-		const bool bSlinger = Actor.Enemy->Id == TEXT("slinger");
+		if (!Actor.Enemy.IsSet() && !Actor.bDummy)
+		{
+			continue;
+		}
+		const bool bSlinger = Actor.Enemy.IsSet() && Actor.Enemy->Id == TEXT("slinger");
 		FBody& Body = BodyFor(Actor.Id, bSlinger);
 		LiveBodies.Add(Actor.Id);
 		const float Height = bSlinger ? 150.f : 176.f;
 		const float Width = bSlinger ? 42.f : 48.f;
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
 		Centre.Z += Height * 0.5f;
+		const FLinearColor BodyColour = Actor.bDummy ? TrainingDummyColour : (bSlinger ? SlingerColour : ConscriptColour);
 		if (Body.Mesh)
 		{
 			Body.Mesh->SetVisibility(true);
 			Body.Mesh->SetWorldLocation(Centre);
 			Greybox::SetSized(Body.Mesh, FVector(Width, Width, Height));
+			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Body.Mesh->GetMaterial(0)))
+			{
+				Mid->SetVectorParameterValue(TEXT("Color"), BodyColour);
+			}
 			const FVector To = Centre - CamLoc;
-			if (Camera && FVector::DotProduct(To.GetSafeNormal(), CamFwd) > 0.45f)
+			if (!Actor.bDummy && Camera && FVector::DotProduct(To.GetSafeNormal(), CamFwd) > 0.45f)
 			{
 				++EnemiesOnScreen;
 			}
@@ -732,6 +1011,12 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			}
 		}
 		Shot.LastCm = At;
+		Shot.bOwned = bPlayerOwned;
+		if (!bPlayerOwned)
+		{
+			bThreatCm = true;
+			ThreatCm = At;
+		}
 		if (Shot.Mesh)
 		{
 			Shot.Mesh->SetVisibility(true);
@@ -749,9 +1034,28 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			Shot.Mesh->SetVisibility(true);
 			Shot.Mesh->SetWorldLocation(Shot.LastCm);
+			if (!Shot.bOwned)
+			{
+				bThreatCm = true;
+				ThreatCm = Shot.LastCm;
+			}
 		}
 	}
 
+	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
+	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
+	{
+		if (!Mesh || !Shape)
+		{
+			return;
+		}
+		if (Mesh->GetStaticMesh() != Shape)
+		{
+			Mesh->SetStaticMesh(Shape);
+			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
+		}
+	};
 	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
 	{
 		if (Telegraph.OwnerId == Games.PlayerId)
@@ -760,6 +1064,47 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 		FRing& Ring = RingFor(Telegraph.Id);
 		LiveRings.Add(Telegraph.Id);
+		// A ring under the seat sits below the seated view. A lane is a strip the eye can see.
+		if (Telegraph.Kind == TEXT("lane"))
+		{
+			FVector From = Session.KernelToUnrealCm(Telegraph.Origin);
+			FVector To = Session.KernelToUnrealCm(Telegraph.Target);
+			From.Z += 8.0;
+			To.Z += 8.0;
+			const FVector Delta = To - From;
+			const double Length = FMath::Max(Delta.Size(), 50.0);
+			const FVector Dir = Delta.GetSafeNormal();
+			const FRotator Rot = Dir.Rotation();
+			const FVector Mid = From + Dir * (Length * 0.5);
+			const double Width = FMath::Max(FMath::Clamp(Telegraph.WidthM, 0.5, 3.0), 1.8) * 100.0;
+			UseMesh(Ring.Mesh, CubeMesh, UnblockableBody);
+			UseMesh(Ring.Rim, CubeMesh, UnblockableRim);
+			if (Ring.Mesh)
+			{
+				Ring.Mesh->SetVisibility(true);
+				Ring.Mesh->SetWorldLocation(Mid);
+				Ring.Mesh->SetWorldRotation(Rot);
+				Greybox::SetSized(Ring.Mesh, FVector(Length, Width, 8.0));
+				if (UMaterialInstanceDynamic* MidMat = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
+				{
+					MidMat->SetVectorParameterValue(TEXT("Color"), UnblockableBody);
+				}
+			}
+			if (Ring.Rim)
+			{
+				Ring.Rim->SetVisibility(true);
+				Ring.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 3.0));
+				Ring.Rim->SetWorldRotation(Rot);
+				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
+				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
+				{
+					RimMat->SetVectorParameterValue(TEXT("Color"), UnblockableRim);
+				}
+			}
+			continue;
+		}
+		UseMesh(Ring.Mesh, CylinderMesh, SteelColour);
+		UseMesh(Ring.Rim, CylinderMesh, UnblockableRim);
 		const double Span = FMath::Max(1.0, static_cast<double>(Telegraph.ResolveTick - Telegraph.StartTick));
 		const double Left = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick));
 		const double Alpha = 1.0 - Left / Span;
@@ -773,6 +1118,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			Ring.Mesh->SetVisibility(true);
 			Ring.Mesh->SetWorldLocation(At);
+			Ring.Mesh->SetWorldRotation(FRotator::ZeroRotator);
 			Greybox::SetSized(Ring.Mesh, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
 			{
@@ -785,6 +1131,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			if (bUnblockable)
 			{
 				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, 1.0));
+				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
 				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
 			}
 		}
@@ -826,11 +1173,13 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Slot->Mesh->SetVisibility(true);
 				Slot->Mesh->SetWorldLocation(At);
 				Greybox::SetSized(Slot->Mesh, FVector(46.0));
-				Slot->Until = Now + 0.16;
+				const bool bTeachFlash = Session.GetStage() == TEXT("teach") || Target->bDummy;
+				Slot->Until = Now + (bTeachFlash ? 1.2 : 0.16);
 			}
 		}
 		SyncCuff(Session, *Player, bPaused);
 	}
+	SyncTeachVisuals(Session, Player);
 	EventCursor = Games.State.Events.Num();
 
 	TSet<int32> LiveAll = LiveBodies;

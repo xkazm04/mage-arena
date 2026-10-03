@@ -34,6 +34,12 @@ public:
 	void ResumeHold();
 	/** Yaw the emitted hand around seated +Z. Zero keeps the clip's authored facing. */
 	void SetAimYaw(double YawRadians);
+	/**
+	 * Clip-level tracking loss. A playing clip keeps its pose and reports confidence 0.
+	 * While nothing is playing, Step emits an untracked frame (confidence 0, no joints)
+	 * so a drop is visible on the hand pipeline without a separate session flag.
+	 */
+	void SetTrackingDropped(bool bDropped);
 
 	/** First sample of the settled palm pose. Ward-raise's hold lives there. */
 	static double FindPlateauStart(const FHandClip& Clip, EControllerHand Hand);
@@ -56,6 +62,7 @@ public:
 
 private:
 	void EmitSample(double SampleAt, double StampTime);
+	void EmitUntracked(double StampTime);
 	void ApplyAimYaw(FHandFrame& Frame) const;
 	void RefreshTick();
 
@@ -74,6 +81,7 @@ private:
 	bool bHoldClip = false;
 	bool bHasLeft = false;
 	bool bHasRight = false;
+	bool bTrackingDropped = false;
 	FHandFrame LatestLeft;
 	FHandFrame LatestRight;
 	FOnHandSourceFrame FrameDelegate;

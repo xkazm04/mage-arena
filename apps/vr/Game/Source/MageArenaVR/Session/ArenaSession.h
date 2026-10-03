@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Gestures/BlinkDetector.h"
 #include "Greybox/ArenaLayout.h"
+#include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
@@ -27,7 +28,52 @@ class UHandInputSubsystem;
 class USigilRecognizerSubsystem;
 class UStaffDetectorSubsystem;
 class UWardDetectorSubsystem;
+class UTeachCaptureDriver;
 class UWave1CaptureDriver;
+
+/**
+ * Teach timings from data/vr/teach.json. These values are the fallback when that
+ * file fails to load; LoadTeachData logs that case.
+ */
+struct FTeachTuning
+{
+	double ColdHoldS = 1.5;
+	double AbsorbLeadS = 0.55;
+	double PerfectLeadS = 0.22;
+	double WardDistanceM = 8.0;
+	double GlobSpeedMps = 4.0;
+	double WardWindupS = 1.0;
+	double GlobDamage = 12.0;
+	double GlobRadiusM = 0.28;
+	/** Telegraph marker before the glob exists, and the extra metres on its range. */
+	double GlobMarkerWidthM = 0.6;
+	double GlobRangeMarginM = 4.0;
+	/** Grace after the scheduled impact before a miss is judged. */
+	double GlobSettleS = 0.80;
+	/** How long the white perfect ring stays up. */
+	double PerfectRingS = 1.1;
+	double BeatAfterAbsorbS = 1.6;
+	double BeatAfterWardS = 16.0;
+	int32 PerfectTries = 3;
+	double DummyHp = 200.0;
+	double DummyDistanceM = 6.0;
+	double SigilPromptS = 8.0;
+	double SigilRetryS = 8.0;
+	double BeatAfterSigilS = 14.0;
+	double BlinkWindupS = 1.4;
+	double BlinkWidthM = 1.2;
+	double BlinkRangeM = 8.0;
+	double BlinkDamage = 18.0;
+	double BlinkLeadS = 0.40;
+	/** Grace after the lane resolves before a miss is judged. */
+	double BlinkSettleS = 0.50;
+	double BeatAfterBlinkS = 14.0;
+	double TrackingLossS = 1.5;
+	double CountStepS = 1.0;
+	int32 CountSteps = 3;
+	double OfferHoldS = 0.40;
+	bool bLoaded = false;
+};
 
 /**
  * Owns one Tiro bout. Gestures become kernel inputs. Kernel actors stay in kernel
@@ -59,6 +105,34 @@ public:
 	void SetScripted(bool bInScripted);
 	void SetPaused(bool bInPaused);
 	void TogglePause();
+	// Freezes the kernel for a capture still. Unlike pause, it does not change the prompt or arm resume.
+	void SetFrameHold(bool bHold) { bFrameHold = bHold; }
+
+	/**
+	 * Cold start, then the teach, then Wave 1. Start() stays the bout launcher so the
+	 * design tests that call it directly keep their timing.
+	 */
+	bool BeginArc(uint32 Seed);
+	void SkipTeach();
+	void NotifyFocusLost();
+	void NotifyHeadsetRemoved();
+	void NotifyQuit();
+	void SetSaveDirectory(const FString& Directory);
+
+	FString GetStage() const;
+	FString GetTeachStep() const;
+	double GetTeachClock() const { return TeachClock; }
+	double GetTeachSeconds() const { return TeachElapsed; }
+	FString GetPromptText() const;
+	FString GetGlyphId() const;
+	FString GetWristCue() const;
+	double GetScheduledImpactS() const;
+	FString GetStateHash() const;
+	bool IsResumeCounting() const { return bResumeCounting; }
+	int32 GetResumeCount() const;
+	int32 GetBoutIndex() const { return BoutWave; }
+	const FTeachTuning& GetTuning() const { return Tuning; }
+	bool IsPerfectRingVisible() const;
 
 	bool IsPaused() const { return bPaused; }
 	bool IsRunning() const { return bRunning; }
@@ -125,6 +199,56 @@ private:
 	void SeatOnActivePad(FActor& Player) const;
 	void CheckEnd();
 
+	enum class ETeachStep : uint8
+	{
+		None,
+		Ward,
+		Gap,
+		Perfect,
+		WardBeat,
+		Sigil,
+		SigilBeat,
+		Blink,
+		BlinkBeat,
+		Done
+	};
+
+	bool LoadTeachData();
+	bool LoadStrings();
+	bool MakeQuietArena(uint32 Seed);
+	void AdvanceArc(double DeltaSeconds);
+	void DecideCold();
+	void DecideTeach();
+	void EnterTeach();
+	void EnterTeachStep(ETeachStep Step);
+	void ArmThreat();
+	void MaybeSpawnGlob();
+	void StepTeachTick();
+	void ObserveTeach();
+	void FinishTeach();
+	void RefundTeachPlayer(FActor& Player, double BaseHp, double BaseDamage) const;
+	void FreezeTeachClock(FActor& Player) const;
+	void NoteHandFrame(const FHandFrame& Frame);
+	void PollTracking(double DeltaSeconds);
+	void UpdateResume(double DeltaSeconds);
+	bool IsTiroWave(int32 Wave) const;
+	void HoldPause(const TCHAR* Reason);
+	bool BothPalmsRaised() const;
+	bool IsBothPalmsClip() const;
+	FString TeachString(const TCHAR* Key) const;
+	FString SaveFilePath() const;
+	int32 ReadSavedBout() const;
+	void WriteSavedBout(int32 Bout) const;
+	void ClearSavedBout() const;
+	void ContinueOffer();
+	void SnapshotTeach();
+	double GlobImpactS() const;
+	double BlinkImpactS() const;
+	bool HasLane() const;
+	void ClearThreats();
+	void PlaceDummy(double DistanceM);
+	FSimVec TeachAim() const;
+
 	UHandInputSubsystem* Hands = nullptr;
 	USigilRecognizerSubsystem* Sigils = nullptr;
 	UWardDetectorSubsystem* Wards = nullptr;
@@ -137,12 +261,14 @@ private:
 	FDelegateHandle BoltHandle;
 	FDelegateHandle StaffPlantHandle;
 	FDelegateHandle StaffLiftHandle;
+	FDelegateHandle HandFrameHandle;
 
 	FGames Games;
 	FArenaLayout Layout;
 	bool bHasLayout = false;
 	bool bRunning = false;
 	bool bPaused = false;
+	bool bFrameHold = false;
 	bool bScripted = false;
 	bool bLoggedEnd = false;
 	double Accumulator = 0.0;
@@ -190,6 +316,50 @@ private:
 	TOptional<FVrRuleset> RulesOverride;
 
 	TArray<FString> Chain;
+
+	FTeachTuning Tuning;
+	TMap<FString, FString> Strings;
+	ETeachStep TeachStep = ETeachStep::None;
+	double TeachClock = 0.0;
+	double TeachElapsed = 0.0;
+	double ArcClock = 0.0;
+	double OfferHold = 0.0;
+	int32 DummyId = 0;
+	int32 PerfectTryCount = 0;
+	int32 StepPad = 1;
+	// A blink leaves the lit pad before the lane resolves. The snapshot at the
+	// end of that tick would forget the move, so the escape is latched until
+	// the step changes.
+	bool bBlinkEscaped = false;
+	int32 GlobSpawnTick = 0;
+	bool bGlobLive = false;
+	bool bCuePlayed = false;
+	bool bColdRaised = false;
+	bool bColdPlayed = false;
+	bool bOfferContinue = false;
+	bool bKeepChain = false;
+	bool bResumeGate = false;
+	bool bResumeCounting = false;
+	double ResumeElapsed = 0.0;
+	double LostTrackingS = 0.0;
+	bool bHandLeftSeen = false;
+	bool bHandRightSeen = false;
+	bool bHandLeftTracked = false;
+	bool bHandRightTracked = false;
+	double PerfectRingUntil = -1.0;
+	double WristUntil = -1.0;
+	FString WristText;
+	bool bFlowCue = false;
+	bool bClockCue = false;
+	uint32 BoutSeed = 1;
+	FString SaveDir;
+	double SnapHp = 0.0;
+	double SnapDamage = 0.0;
+	double SnapDummyHp = 0.0;
+	int32 SnapBlocks = 0;
+	int32 SnapPerfects = 0;
+	int32 SnapHits = 0;
+	int32 SnapRolls = 0;
 };
 
 /** Steps the bout on the game world and pushes presentation. Auto-starts in -game. */
@@ -208,6 +378,7 @@ public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 
 	bool Start(uint32 Seed, bool bScripted);
+	bool BeginArc(uint32 Seed, bool bScripted);
 	void TogglePause();
 	FArenaSession& GetSession() { return Session; }
 	const FArenaSession& GetSession() const { return Session; }
@@ -216,14 +387,23 @@ public:
 private:
 	void ApplyCamera();
 	void ApplyViewAim();
+	void PollPlatform();
+	void OnAppDeactivate();
 
 	FArenaSession Session;
 	bool bRunning = false;
 	bool bBegan = false;
+	bool bFocusLatched = false;
+	bool bHaveWorn = false;
+	int32 LastWorn = -1;
+	FDelegateHandle FocusHandle;
 
 	UPROPERTY()
 	TObjectPtr<ASessionPresentation> Presentation;
 
 	UPROPERTY()
 	TObjectPtr<UWave1CaptureDriver> Capture;
+
+	UPROPERTY()
+	TObjectPtr<UTeachCaptureDriver> TeachCapture;
 };

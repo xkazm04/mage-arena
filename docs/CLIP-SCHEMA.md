@@ -15,7 +15,7 @@ There is no second gesture path.
   (`corpus/`, `templates/`, `mouse/`, `noise/`, `impostors/`). A folder may hold many drawings of one
   class, so those files may be `<action>.<variant>.<id>.jsonl`. `<id>` is a seed or token
   (`[A-Za-z0-9_-]+`). The header `action` and `variant` are still the first two name parts.
-  The 33 quick-action clips in `apps/vr/Game/Clips` itself keep the unsuffixed name.
+  The 36 quick-action clips in `apps/vr/Game/Clips` itself keep the unsuffixed name.
 - Positions are metres. The Unreal loader multiplies positions by 100 and stores centimetres.
   Quaternions are not scaled.
 
@@ -27,7 +27,7 @@ Key order is part of the synthetic bytes (recorders may use this same order).
 |---|---|
 | `schema` | Exactly `mage-arena/hand-clip@1`. |
 | `name` | Non-empty string. Synthetic clips use the action id. |
-| `action` | Non-empty string. The eleven desktop actions are below. |
+| `action` | Non-empty string. The twelve desktop actions are below. |
 | `variant` | `normal`, `slow`, or `sloppy`. |
 | `hands` | Non-empty subset of `["L","R"]`. `L` before `R` when both are present. No duplicates. |
 | `hz` | `72`. Schema v1 is the Quest sample rate. |
@@ -94,6 +94,7 @@ Synthetic anchors (metres), before a sloppy distortion:
 - Mudra: both hands meet in front of the chest, palms facing each other, fingers up, and hold for `0.60` s. Thumb and index rest together (pinch about `0.85`).
 - Bolt: the right index flicks forward (`+X`) about 18 cm.
 - Ward: the left palm rises from the lap to chest height, palm normal `+X` (facing forward), in `0.25` s, then holds `1.00` s.
+- Both palms: each palm rises the same way, left at `y = -0.14` and right at `y = 0.14`, in `0.25` s, then holds `0.80` s. This is the resume gesture.
 - Blink: the right index flicks about 16 cm toward a pad at yaw `-60` (left), `+60` (right), or `180` (back).
 - Staff plant: both hands grip (pinch `0.90`, palms facing each other) and thrust down about 25 cm, from about chest-and-a-half to the lap, then hold. Staff lift is that thrust reversed.
 

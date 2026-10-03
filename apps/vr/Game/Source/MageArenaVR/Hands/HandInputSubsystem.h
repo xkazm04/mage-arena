@@ -33,6 +33,13 @@ public:
 	bool IsWardHeld() const { return bWardHeld; }
 
 	void Step(double DeltaSeconds);
+	/**
+	 * Desktop F9 and tests. Playing clips keep their pose and emit confidence 0.
+	 * With no clip playing, each Step emits an untracked frame so the session can
+	 * see the loss on the hand pipeline.
+	 */
+	void SetTrackingDropped(bool bDropped);
+	bool IsTrackingDropped() const { return bTrackingDropped; }
 	/** Stops both lanes. A fresh player that is not playing stays idle. */
 	void StopAll();
 	bool GetLatest(EControllerHand Hand, FHandFrame& Out) const;
@@ -62,5 +69,6 @@ private:
 
 	FOnHandSourceFrame FrameDelegate;
 	bool bWardHeld = false;
+	bool bTrackingDropped = false;
 	EClipVariant HeldVariant = EClipVariant::Normal;
 };

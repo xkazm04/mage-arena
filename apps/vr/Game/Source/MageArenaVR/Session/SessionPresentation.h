@@ -10,6 +10,8 @@ class UMaterialInstanceDynamic;
 class USceneComponent;
 class UStaticMesh;
 class UStaticMeshComponent;
+class UTextRenderComponent;
+class UWidgetComponent;
 class UTexture2D;
 
 /** Greybox bodies, projectiles, telegraphs, hit flashes, HP bars, and the wrist cuff. */
@@ -41,6 +43,7 @@ private:
 		FVector LastCm = FVector::ZeroVector;
 		double GhostUntil = 0.0;
 		bool bLive = false;
+		bool bOwned = false;
 		// A thrown spear is a cylinder. A bolt or a stone stays a sphere. Recycle only the matching mesh.
 		bool bSpear = false;
 	};
@@ -70,6 +73,9 @@ private:
 	void SyncCuff(const FArenaSession& Session, const struct FActor& Player, bool bPaused);
 	void ShowMask(const TCHAR* Name);
 	UTexture2D* LoadMask(const FString& Name);
+	UTexture2D* LoadPng(const FString& Name, const FString& Path);
+	void EnsureTeachVisuals();
+	void SyncTeachVisuals(const FArenaSession& Session, const struct FActor* Player);
 	UCameraComponent* FindCamera() const;
 
 	UPROPERTY()
@@ -113,6 +119,9 @@ private:
 	TObjectPtr<UStaticMeshComponent> ClockBar;
 
 	UPROPERTY()
+	TObjectPtr<UTextRenderComponent> CuffCue;
+
+	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> CuffMaterial;
 
 	UPROPERTY()
@@ -136,4 +145,32 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> WallSlats;
 
 	bool bDomeBuilt = false;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> DaisWidget;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> DaisPlate;
+
+	UPROPERTY()
+	TObjectPtr<USceneComponent> GlyphAnchor;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> GlyphPlane;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> GlyphBack;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> GlyphMaterial;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> GlyphStrokes;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> PerfectRingParts;
+
+	bool bTeachVisuals = false;
+	bool bThreatCm = false;
+	FVector ThreatCm = FVector::ZeroVector;
 };

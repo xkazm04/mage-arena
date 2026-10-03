@@ -42,7 +42,7 @@ void UHandClipPlayer::Stop()
 	bHoldEmitting = false;
 	bLowering = false;
 	bHoldClip = false;
-	SetTickableTickType(ETickableTickType::Never);
+	RefreshTick();
 }
 
 void UHandClipPlayer::BeginHold(double InHoldPoseTime)
@@ -105,9 +105,32 @@ void UHandClipPlayer::SetAimYaw(double YawRadians)
 	AimYawRadians = YawRadians;
 }
 
+void UHandClipPlayer::SetTrackingDropped(bool bDropped)
+{
+	bTrackingDropped = bDropped;
+	if (bDropped && GetWorld() != nullptr)
+	{
+		SetTickableTickType(ETickableTickType::Always);
+	}
+	else
+	{
+		RefreshTick();
+	}
+}
+
 void UHandClipPlayer::Step(double DeltaSeconds)
 {
-	if (!bHasClip || !(DeltaSeconds > 0.0) || !bPlaying)
+	if (!(DeltaSeconds > 0.0))
+	{
+		return;
+	}
+	if (bTrackingDropped && !bPlaying)
+	{
+		TimeSeconds += DeltaSeconds;
+		EmitUntracked(TimeSeconds);
+		return;
+	}
+	if (!bHasClip || !bPlaying)
 	{
 		return;
 	}
@@ -129,7 +152,7 @@ void UHandClipPlayer::Step(double DeltaSeconds)
 			bPlaying = false;
 			bLowering = false;
 			bHoldClip = false;
-			SetTickableTickType(ETickableTickType::Never);
+			RefreshTick();
 		}
 		return;
 	}
@@ -150,7 +173,7 @@ void UHandClipPlayer::Step(double DeltaSeconds)
 		TimeSeconds = Duration;
 		EmitSample(Duration, Duration);
 		bPlaying = false;
-		SetTickableTickType(ETickableTickType::Never);
+		RefreshTick();
 		return;
 	}
 
@@ -169,6 +192,10 @@ void UHandClipPlayer::EmitSample(double SampleAt, double StampTime)
 			continue;
 		}
 		Frame.TimeSeconds = StampTime;
+		if (bTrackingDropped)
+		{
+			Frame.Confidence = 0.0f;
+		}
 		ApplyAimYaw(Frame);
 		if (Hand == EControllerHand::Left)
 		{
@@ -189,6 +216,35 @@ void UHandClipPlayer::EmitSample(double SampleAt, double StampTime)
 	}
 }
 
+void UHandClipPlayer::EmitUntracked(double StampTime)
+{
+	auto Emit = [this, StampTime](EControllerHand Hand)
+	{
+		FHandFrame Frame;
+		Frame.Hand = Hand;
+		Frame.TimeSeconds = StampTime;
+		Frame.Confidence = 0.0f;
+		if (Hand == EControllerHand::Left)
+		{
+			LatestLeft = Frame;
+			bHasLeft = true;
+		}
+		else if (Hand == EControllerHand::Right)
+		{
+			LatestRight = Frame;
+			bHasRight = true;
+		}
+		else
+		{
+			return;
+		}
+		++Sequence;
+		FrameDelegate.Broadcast(Frame);
+	};
+	Emit(EControllerHand::Left);
+	Emit(EControllerHand::Right);
+}
+
 void UHandClipPlayer::ApplyAimYaw(FHandFrame& Frame) const
 {
 	if (FMath::Abs(AimYawRadians) <= 1.0e-8)
@@ -205,7 +261,7 @@ void UHandClipPlayer::ApplyAimYaw(FHandFrame& Frame) const
 
 void UHandClipPlayer::RefreshTick()
 {
-	if (bPlaying && GetWorld() != nullptr)
+	if ((bPlaying || bTrackingDropped) && GetWorld() != nullptr)
 	{
 		SetTickableTickType(ETickableTickType::Always);
 	}
@@ -285,7 +341,7 @@ TStatId UHandClipPlayer::GetStatId() const
 
 bool UHandClipPlayer::IsTickable() const
 {
-	return bPlaying && GetWorld() != nullptr;
+	return GetWorld() != nullptr && (bPlaying || bTrackingDropped);
 }
 
 UWorld* UHandClipPlayer::GetTickableGameObjectWorld() const

@@ -16,7 +16,10 @@ public class MageArenaVR : ModuleRules
 			"InputCore",
 			"EnhancedInput",
 			"Json",
-			"HeadMountedDisplay"
+			"HeadMountedDisplay",
+			"UMG",
+			"Slate",
+			"SlateCore"
 		});
 		PrivateDependencyModuleNames.AddRange(new[]
 		{

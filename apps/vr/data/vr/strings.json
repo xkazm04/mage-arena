@@ -1,0 +1,15 @@
+{
+  "cold.start": "Raise your palm to begin.",
+  "offer.continue": "Raise your palm to continue. Both palms to start over.",
+  "offer.restart": "Both palms to start over.",
+  "teach.ward": "Raise your palm.",
+  "teach.ward.perfect": "Raise as it arrives.",
+  "teach.sigil": "Circle, then the bar.",
+  "teach.blink": "Blink off the pad.",
+  "pause": "Paused",
+  "resume.3": "3",
+  "resume.2": "2",
+  "resume.1": "1",
+  "wave.flow": "Flow is rising.",
+  "wave.clock": "The clock advanced."
+}

@@ -1,6 +1,6 @@
 # T13 - The first minute (teach) and pause / resume
 
-Status: open
+Status: done after retry 1 (verified 2026-10-04: MageArena. 134/134, teach 63.306 s, design gates unchanged; orchestrator fixed the F9 tick drop and two tautological checks, mutation-proven)
 Max turns: 320
 
 ## Goal
@@ -68,3 +68,38 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArenaDesign.Session;Quit" -unattended -nullrhi -nosplash -log   # unchanged: lost 23.25 s
 <the capture command you add>                   # screenshots in runs/T13/shots/
 ```
+
+## Retry 1 (orchestrator, 2026-10-04)
+
+Verified: clips 618/0, conformance byte-identical, pin OK, live overlay and proposal untouched, build green,
+`MageArena.` 133/133, teach 63.306 s, design gates unchanged (Wave1Seated lost 23.25 s; FireSeated red). Resume
+(both palms + full count, no free hits, teach-step resume) and the one-pipeline rule passed review. Fix these; do not
+weaken checks; do not touch combat numbers.
+
+1. **Dais plaque is off-centre and oversized** (`SessionPresentation.cpp:~637` lateral offset `Right * 46`, `~660`
+   width 270 cm at ~160 cm): in every still it runs off the right edge of the view and covers the wrist cuff and the
+   drawn sigil trail. Centre it on the seated forward axis, size it so it sits fully inside about +/-30 degrees
+   horizontally, and place it so it does not overlap the cuff (lower-left) or the space in front of the hands where
+   sigils are drawn (e.g. a little lower and farther on the dais, or above the dummy line). Re-capture all six stills.
+2. **Tracking-loss pause reads only the synthetic flag** (`SessionFlow.cpp:~343` `IsTrackingDropped()`): derive it from
+   the hand pipeline's real frames (no fresh tracked frame for either hand, or zero confidence) so a headset losing
+   hands triggers it; keep `F9` and the test drop as ways to produce such frames, not as a separate flag. Test: the clip
+   player feeding untracked frames for 1.5 s in combat pauses; 1.4 s does not.
+3. **Save file can crash** (`SessionFlow.cpp:~161-174`, `~285-290`): `bout=999` (or negative, or junk) reaches
+   `checkf` in `Games.cpp:41`. Validate against the Tiro wave range and fall back to the teach start on anything
+   invalid; test missing, corrupt, out-of-range and valid files.
+4. **Teach numbers in code** (`SessionFlow.cpp:~657-658` glob marker width 0.6 and range margin +4.0, `~912/929` +0.80 s,
+   `~986` +0.50 s, `~936` and `ArenaSession.cpp:~1326` perfect ring 1.1 s; `ArenaSession.h:~34-63` duplicated defaults):
+   move them into `teach.json`; the C++ defaults may stay only as a fallback when the file fails to load, and the
+   loader must log that.
+5. **Weak tests** (`TeachTests.cpp`): `~392` compares two local constants (always true) - assert against the loaded
+   tuning and the kernel absorb window instead; `~106-114/196-199/409` and `~204-207` copy `GlobImpactS` /
+   `BlinkImpactS` - replace with hand-computed literals from `teach.json` (state the arithmetic in a comment).
+6. Update `runs/T13/REPORT.md` with a Retry 1 section. Do not end your turn while a build, test or capture is running.
+
+## Orchestrator fix (2026-10-04, after Retry 1)
+Focused review: `UHandClipPlayer` set its tick type to Never when a clip stopped or finished, even while tracking was
+dropped, so F9 in `-game` stopped emitting untracked frames after the next clip; `Stop`, both finish paths and
+`RefreshTick` now keep ticking while `bTrackingDropped`. Tests: the teach impact check reads the session's scheduled
+impact instead of a local literal; `TrackingLoss` asserts not-paused at 89 frames and paused at 90 instead of a
+constant-only expression. Mutation: `trackingLossS` 1.45 makes the 89-frame assertion fail. Regular suite 134/134.

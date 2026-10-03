@@ -23,7 +23,7 @@ Mouse draw (Oct)   -> fingertip path --------+         (sigil / ward / blink)
 |---|---|---|
 | **L1 Gesture clips (quick actions)** | Each key replays a saved hand clip through the pipeline: a sigil drawn by a hand, a palm raise, a flick. Clips are data files, authored synthetically now and re-recorded from a real Quest later. Variants per clip (fast, slow, sloppy) test robustness. | Playing the game on PC; automated tests; demo capture |
 | **L2 Mouse drawing** | Hold the left mouse button and draw on a plane in front of the camera; the path goes to the sigil recognizer as a fingertip path. The right mouse button raises the ward toward the cursor. | Feeling the drawing mechanic and tuning the recognizer without a headset |
-| **L3 Debug intents** | Direct commands for designers (`F1-F4`), clearly marked debug, never used by tests that claim to cover gestures. | Balance iteration only |
+| **L3 Debug intents** | Direct commands for designers (`F1-F4`, pad snaps `F5-F7`, headset-off `F8`, tracking drop `F9`). Never a clip, and never used by tests that claim to cover gestures. | Balance iteration and pause triggers on the desktop |
 
 ## Default bindings (draft; owner tunes)
 
@@ -36,7 +36,8 @@ Mouse draw (Oct)   -> fingertip path --------+         (sigil / ward / blink)
 | Perfect ward | fresh raise within 0.15 s of impact | tap `Space` on time | press RMB on time |
 | Blink to pad left / right / back | finger flick toward the pad | `A` / `D` / `S` | - |
 | Planted staff | both hands grip and thrust the staff down; the same key lifts it | `F` | - |
-| Pause / resume | palm-up menu gesture | `Esc` | - |
+| Pause / resume | palm-up menu gesture | `Esc` (instant). Safety pauses resume with `R` | - |
+| Both palms (resume) | both palms raised toward the arena | `R` | - |
 
 Clip variants are selected with a modifier (`Shift` = sloppy, `Ctrl` = slow) so the desktop player can feel what an
 imperfect hand does to recognition.

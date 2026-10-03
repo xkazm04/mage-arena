@@ -66,6 +66,7 @@ const ACTIONS = [
   ['mudra', { kind: 'mudra', hands: ['L', 'R'], approach: 0.30, hold: 0.60 }],
   ['bolt', { kind: 'flick', hands: ['R'], yaw: 0, windup: 0.10, flick: 0.12, recover: 0.20, distance: 0.18 }],
   ['ward-raise', { kind: 'ward', hands: ['L'], rise: 0.25, hold: 1.00 }],
+  ['both-palms', { kind: 'palms', hands: ['L', 'R'], rise: 0.25, hold: 0.80 }],
   ['blink-left', { kind: 'flick', hands: ['R'], yaw: -60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
   ['blink-right', { kind: 'flick', hands: ['R'], yaw: 60, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
   ['blink-back', { kind: 'flick', hands: ['R'], yaw: 180, windup: 0.08, flick: 0.12, recover: 0.18, distance: 0.16 }],
@@ -277,7 +278,7 @@ function durationOf(spec, scale) {
   if (spec.kind === 'mudra') {
     return (spec.approach + spec.hold) * scale;
   }
-  if (spec.kind === 'ward') {
+  if (spec.kind === 'ward' || spec.kind === 'palms') {
     return (spec.rise + spec.hold) * scale;
   }
   if (spec.kind === 'staff') {
@@ -601,6 +602,29 @@ function sampleFlick(spec, t, timeScale, params) {
   return [{ side: 'R', palm, normal, finger, curls, pinch }];
 }
 
+function samplePalms(spec, t, timeScale, params) {
+  const rise = spec.rise * timeScale;
+  const u = t <= rise ? ballistic(t / rise, params.overshoot) : 1;
+  const endNormal = v3(1, 0, 0);
+  const endFinger = v3(0, 0, 1);
+  return ['L', 'R'].map((side) => {
+    const start = restPose(side);
+    const endPos = v3(0.36, side === 'L' ? -0.14 : 0.14, 0.36);
+    const turned = slerpAxes(start.normal, start.finger, endNormal, endFinger, u);
+    return {
+      side,
+      // The right hand's mirrored metacarpals flip the joint-cross normal. Build it
+      // with the left layout so both palms face +X the way the ward detector measures.
+      build: 'L',
+      palm: distortAround(lerp(start.pos, endPos, u), start.pos, params),
+      normal: turned.normal,
+      finger: turned.finger,
+      curls: CURLS.open,
+      pinch: 0,
+    };
+  });
+}
+
 function sampleWard(spec, t, timeScale, params) {
   const rise = spec.rise * timeScale;
   const start = restPose('L');
@@ -754,6 +778,9 @@ function sampleAction(spec, t, timeScale, params) {
   if (spec.kind === 'ward') {
     return sampleWard(spec, t, timeScale, params);
   }
+  if (spec.kind === 'palms') {
+    return samplePalms(spec, t, timeScale, params);
+  }
   if (spec.kind === 'staff') {
     return sampleStaff(spec, t, timeScale, params);
   }
@@ -769,7 +796,7 @@ function buildClip(action, spec, variant) {
     const t = i / HZ;
     const hands = sampleAction(spec, t, params.slow, params);
     for (const hand of hands) {
-      const posed = poseHand(hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+      const posed = poseHand(hand.build || hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
       applyJitter(posed.world, t, params);
       const quats = jointQuats(posed.world, posed.palmNormal);
       const joints = posed.world.map((p, j) => [p.x, p.y, p.z, quats[j].x, quats[j].y, quats[j].z, quats[j].w]);
@@ -857,7 +884,7 @@ function renderClip({ action, variant, hands, seed, source, params, duration, sa
     const t = i / HZ;
     const posedHands = sampleAt(Math.min(t, duration));
     for (const hand of posedHands) {
-      const posed = poseHand(hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+      const posed = poseHand(hand.build || hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
       applyJitter(posed.world, t, params);
       const quats = jointQuats(posed.world, posed.palmNormal);
       const joints = posed.world.map((p, j) => [p.x, p.y, p.z, quats[j].x, quats[j].y, quats[j].z, quats[j].w]);
@@ -978,6 +1005,8 @@ function assertClip(action, spec, variant, clip) {
     checkFlick(action, spec, right);
   } else if (spec.kind === 'ward') {
     checkWard(left);
+  } else if (spec.kind === 'palms') {
+    checkPalms(left, right);
   } else if (spec.kind === 'staff') {
     checkStaff(action, spec, left, right);
   } else {
@@ -1080,6 +1109,21 @@ function checkWard(frames) {
   }
   if (drift > 0.005) {
     throw new Error(`ward hold drift ${drift}`);
+  }
+}
+
+function checkPalms(left, right) {
+  if (left.length === 0 || right.length === 0) {
+    throw new Error('both-palms needs both hands');
+  }
+  checkWard(left);
+  checkWard(right);
+  if (!isDetectorRaised(left[left.length - 1]) || !isDetectorRaised(right[right.length - 1])) {
+    throw new Error('both-palms end pose is not a raised palm');
+  }
+  const gap = Math.abs(framePalm(left[left.length - 1]).y - framePalm(right[right.length - 1]).y);
+  if (gap < 0.20) {
+    throw new Error(`both-palms hands only ${gap.toFixed(3)} m apart`);
   }
 }
 

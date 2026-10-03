@@ -124,6 +124,14 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 	UE_LOG(LogMageArena, Log, TEXT("Ward hold released"));
 }
 
+void UHandInputSubsystem::SetTrackingDropped(bool bDropped)
+{
+	EnsurePlayers();
+	bTrackingDropped = bDropped;
+	WardPlayer->SetTrackingDropped(bDropped);
+	ActionPlayer->SetTrackingDropped(bDropped);
+}
+
 void UHandInputSubsystem::SetAimYaw(double YawRadians)
 {
 	EnsurePlayers();
