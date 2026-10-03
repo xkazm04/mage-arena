@@ -1,0 +1,63 @@
+{
+  "card": "A04",
+  "purpose": "style-neutral model and animation reference sheets (risk R0: 3D models and animation)",
+  "style_block": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers.",
+  "items": [
+    {
+      "asset": "01-fire-mage-key-poses",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Five full-body key poses of the same broad, bearded fire mage of the Roman era in a wool tunic and cloak, leather arm wraps and a prisoner's collar, side by side at the same scale, front three-quarter view: 1 idle stance, weight settled; 2 cast wind-up, right arm drawn back with fingers curled; 3 cast release, right arm thrust forward, palm open, body leaning in; 4 hit reaction, torso twisted back, one arm raised to shield; 5 defeat, kneeling and collapsing forward. Muted orange accent only on the casting hand.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/01-fire-mage-key-poses.jpg"
+    },
+    {
+      "asset": "02-fire-mage-cast-sequence",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. An animation timing sheet of the same fire mage throwing a fireball, six evenly spaced frames left to right from anticipation to follow-through: stand, crouch and draw back, peak wind-up, release with arm extended, follow-through over-rotation, recover to stance. Same scale, same camera, side view. A small muted orange sphere marks the fireball in frames four to six.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/02-fire-mage-cast-sequence.jpg"
+    },
+    {
+      "asset": "03-conscript-turnaround",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Turnaround of a Roman conscript foot soldier with a curved rectangular shield, short sword, mail shirt, helmet with cheek guards and sandals: front, side and back full-body views side by side in a neutral A-pose at the same scale, shield and sword shown resting at the sides.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/03-conscript-turnaround.jpg"
+    },
+    {
+      "asset": "04-slinger-turnaround",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Turnaround of a lightly armoured slinger in a short tunic with a leather sling, a shoulder bag of stones and wrapped shins: front, side and back full-body views side by side in a neutral A-pose at the same scale.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/04-slinger-turnaround.jpg"
+    },
+    {
+      "asset": "05-cinder-hound-turnaround",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Turnaround of a lean dog-like hound whose body is made of cracked embers and cinders, long legs, narrow skull, glowing seams: side view, front view and top view of the whole animal at the same scale, standing neutral. Muted orange accent only in the glowing seams.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/05-cinder-hound-turnaround.jpg"
+    },
+    {
+      "asset": "06-mire-maw-turnaround",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Turnaround of a squat swamp beast with a huge wide mouth of mud and reeds, short thick legs, a mossy back and small eyes: front, side and back views of the whole creature at the same scale, mouth closed in a neutral pose.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/06-mire-maw-turnaround.jpg"
+    },
+    {
+      "asset": "07-cinder-hound-key-poses",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. Four key poses of the same ember hound side by side at the same scale, side view: 1 idle, low and watchful; 2 lunge, body stretched mid-air, jaws open; 3 hit reaction, recoiling sideways; 4 death, body breaking apart into falling embers. Muted orange accent only in the glowing seams and embers.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/07-cinder-hound-key-poses.jpg"
+    },
+    {
+      "asset": "08-hand-gestures-first-person",
+      "aspect": "16:9",
+      "prompt": "Style: clean production model sheet for a 3D modeller and animator, neutral grey clay-like shading with soft even studio light, light grey background with a faint square measurement grid, orthographic views, consistent scale across views, no stylisation, no colour except a single muted accent where noted, no text, no labels, no numbers. First-person reference sheet of a seated player's own bare hands seen from the eyes, four panels side by side: 1 right index finger extended, tracing a circle in the air in front of the chest; 2 left palm raised forward at chest height, fingers together, facing outward like a shield; 3 right index and middle finger flicking sideways; 4 both hands together forming a seal, thumbs and index fingers touching to make a ring. Natural human hands with five fingers each, forearms visible, no gloves, no devices.",
+      "negative": "text, letters, numbers, captions, labels, watermark, logo, signature, perspective distortion, cropped figure, extra limbs, extra fingers, fused fingers, motion blur, busy background, scenery, colour grading",
+      "path": "apps/vr/art/model-sheets/08-hand-gestures-first-person.jpg"
+    }
+  ]
+}
