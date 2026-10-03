@@ -1141,12 +1141,16 @@ function lerpRaised(frames, sourceT) {
   return angleToForwardDeg(normal) <= 35 && palm.z >= 0.20;
 }
 
-// Mirrors FWardDetector::FindOnset, including the lower-time bound.
+// Mirrors FWardDetector::FindOnset, including the lower-time bound and the
+// elevated-only bridge. The fast walk stays height-free: the rise starts in the lap.
 function findOnset(history, tail, bound) {
   let index = history.length - 1;
   const confirm = history[index].time;
+  const lowerH = 0.16;
   while (index > 0
     && history[index].speed < 0.30
+    && history[index].height >= lowerH
+    && history[index - 1].height >= lowerH
     && (confirm - history[index].time) <= tail
     && history[index - 1].time >= bound - 1e-9) {
     index -= 1;
@@ -1183,7 +1187,7 @@ function warpedTrial(frames, latency, tail, geoOnset, confirmSource) {
         speed = len(sub(palm, history[history.length - 1].palm)) / dt;
       }
     }
-    history.push({ time: output, palm, speed, raised: lerpRaised(frames, source) });
+    history.push({ time: output, palm, height: palm.z, speed, raised: lerpRaised(frames, source) });
   };
   push(0, 0);
   let output = 0;

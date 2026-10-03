@@ -429,6 +429,105 @@ bool PrepareRules(FAutomationTestBase& Test, FAbsorbResolver& Resolver, FWardDet
 	Report.bHasRules = true;
 	return true;
 }
+
+FHandFrame AtTime(const FHandFrame& Source, double Time)
+{
+	FHandFrame Out = Source;
+	Out.TimeSeconds = Time;
+	Out.Hand = EControllerHand::Left;
+	return Out;
+}
+
+FHandFrame Moved(const FHandFrame& Source, double Time, const FVector& DeltaCm)
+{
+	FHandFrame Out = AtTime(Source, Time);
+	for (FHandJointPose& Joint : Out.Joints)
+	{
+		Joint.Location += DeltaCm;
+	}
+	return Out;
+}
+
+struct FLapPrelude
+{
+	double LoweredTime = -1.0;
+	double TwitchTime = -1.0;
+	double Time = -1.0;
+	bool bOk = false;
+};
+
+/** Raise on the hold, drop to the lap, twitch at lowered+0.06, then sit still for 0.25 s. */
+bool PreludeLapTwitch(FAutomationTestBase& Test, FWardDetector& Detector, const FHandFrame& Hold, const FHandFrame& Lap, double Dt, FLapPrelude& Out)
+{
+	double T = 0.0;
+	Detector.Ingest(AtTime(Hold, T));
+	if (!Detector.GetState().bRaised)
+	{
+		Test.AddError(TEXT("hold pose did not raise"));
+		return false;
+	}
+	T += Dt;
+	Detector.Ingest(AtTime(Hold, T));
+	T += Dt;
+	Detector.Ingest(AtTime(Lap, T));
+	if (Detector.GetState().bRaised)
+	{
+		Test.AddError(TEXT("lap pose did not lower the ward"));
+		return false;
+	}
+	Out.LoweredTime = Detector.GetLoweredTime();
+	const double TwitchAt = Out.LoweredTime + 0.06;
+	while (T + Dt < TwitchAt - 1.0e-9)
+	{
+		T += Dt;
+		Detector.Ingest(AtTime(Lap, T));
+	}
+	T += Dt;
+	if (T + 1.0e-9 < TwitchAt)
+	{
+		T = TwitchAt;
+	}
+	Detector.Ingest(Moved(Lap, T, FVector(0.0, 4.0, 0.0)));
+	Out.TwitchTime = T;
+	T += Dt;
+	Detector.Ingest(AtTime(Lap, T));
+	const double StillUntil = Out.TwitchTime + 0.25;
+	while (T + Dt < StillUntil - 1.0e-9)
+	{
+		T += Dt;
+		Detector.Ingest(AtTime(Lap, T));
+	}
+	Out.Time = T;
+	Out.bOk = !Detector.GetState().bRaised;
+	if (!Out.bOk)
+	{
+		Test.AddError(TEXT("lap stillness raised the ward"));
+	}
+	return Out.bOk;
+}
+
+FHandFrame PalmUpFrame(double Time, double HeightM)
+{
+	FHandFrame Frame;
+	Frame.TimeSeconds = Time;
+	Frame.Hand = EControllerHand::Left;
+	Frame.Confidence = 1.0f;
+	Frame.Joints.SetNum(MageHandJointCount);
+	const double Z = HeightM * MageClipMetresToCentimetres;
+	const FVector Palm(22.0, -20.0, Z);
+	for (FHandJointPose& Joint : Frame.Joints)
+	{
+		Joint.Location = Palm;
+	}
+	const int32 Wrist = static_cast<int32>(EHandKeypoint::Wrist);
+	const int32 Index = static_cast<int32>(EHandKeypoint::IndexMetacarpal);
+	const int32 Little = static_cast<int32>(EHandKeypoint::LittleMetacarpal);
+	Frame.Joints[Wrist].Location = FVector(16.0, -20.0, Z);
+	Frame.Joints[Index].Location = FVector(22.0, -24.0, Z);
+	Frame.Joints[Little].Location = FVector(22.0, -16.0, Z);
+	Frame.Joints[static_cast<int32>(EHandKeypoint::Palm)].Location = Palm;
+	return Frame;
+}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardOnset, "MageArena.Ward.OnsetCompensation",
@@ -1610,6 +1709,368 @@ bool FMageArenaWardChord::RunTest(const FString& Parameters)
 	UE_LOG(LogMageArena, Log, TEXT("Ward chord raises=%d lowers=%d spaceConsumes=%d"), Raises, Lowers, bSpaceConsumes ? 1 : 0);
 	AddInfo(FString::Printf(TEXT("chord raises %d lowers %d spaceConsumes %d"), Raises, Lowers, bSpaceConsumes ? 1 : 0));
 	Rig.Finish();
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardLapStill, "MageArena.Ward.LapStillOnset",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaWardLapStill::RunTest(const FString& Parameters)
+{
+	bool bPass = false;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.LapStillOnset"), bPass);
+	FAbsorbResolver Resolver;
+	FWardDetector Detector;
+	if (!PrepareRules(*this, Resolver, Detector))
+	{
+		return false;
+	}
+	FHandClip Clip;
+	FString Error;
+	if (!LoadWard(Clip, Error))
+	{
+		AddError(Error);
+		return false;
+	}
+	const FHandClipTrack* Track = LeftTrack(Clip);
+	if (Track == nullptr || Clip.Hz <= 0.0)
+	{
+		AddError(TEXT("ward-raise.normal has no left-hand track"));
+		return false;
+	}
+	const double Dt = 1.0 / Clip.Hz;
+	const double Geo = GeometricOnset(*Track);
+	const double Plateau = UHandClipPlayer::FindPlateauStart(Clip, EControllerHand::Left);
+	FHandFrame Hold;
+	FHandFrame Lap;
+	if (!Clip.Sample(EControllerHand::Left, Plateau, Hold) || !Clip.Sample(EControllerHand::Left, 0.0, Lap))
+	{
+		AddError(TEXT("ward-raise.normal has no hold or lap pose"));
+		return false;
+	}
+	bPass = TestTrue(TEXT("clip onset is a real speed crossing"), Geo > 0.0);
+	if (!bPass)
+	{
+		return false;
+	}
+
+	FLapPrelude Prelude;
+	if (!PreludeLapTwitch(*this, Detector, Hold, Lap, Dt, Prelude))
+	{
+		bPass = false;
+		return false;
+	}
+	const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+	double TwitchStepM = 0.0;
+	{
+		FHandFrame Twitch = Moved(Lap, Prelude.TwitchTime, FVector(0.0, 4.0, 0.0));
+		TwitchStepM = FVector::Distance(Twitch.Joints[Palm].Location, Lap.Joints[Palm].Location) / MageClipMetresToCentimetres;
+	}
+	bPass &= TestTrue(*FString::Printf(TEXT("lap twitch speed %.2f m/s clears the onset"), TwitchStepM / Dt),
+		TwitchStepM / Dt >= FWardThresholds::OnsetSpeedMps);
+
+	double T = Prelude.Time;
+	double Source = 0.0;
+	double Stamp0 = -1.0;
+	int32 Guard = 0;
+	while (!Detector.GetState().bRaised && Source <= Clip.GetDuration() && Guard < 80)
+	{
+		T += Dt;
+		FHandFrame Frame;
+		if (!Clip.Sample(EControllerHand::Left, Source, Frame))
+		{
+			break;
+		}
+		Frame.TimeSeconds = T;
+		Frame.Hand = EControllerHand::Left;
+		if (Stamp0 < 0.0)
+		{
+			Stamp0 = T;
+		}
+		Detector.Ingest(Frame);
+		if (Detector.GetState().bRaised)
+		{
+			break;
+		}
+		Source += Dt;
+		++Guard;
+	}
+	const double Expected = Stamp0 + Geo;
+	const FWardEvent Raised = Detector.GetLastRaise();
+	const double Gap = Raised.OnsetTime - Prelude.LoweredTime;
+	bPass &= TestTrue(TEXT("twitch-then-still raised again"), Detector.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("onset %.4f is the raise (%.4f), not the twitch %.4f"), Raised.OnsetTime, Expected, Prelude.TwitchTime),
+		Detector.GetState().bRaised && FMath::Abs(Raised.OnsetTime - Expected) <= Dt + 1.0e-6);
+	bPass &= TestTrue(*FString::Printf(TEXT("onset %.4f is after the twitch %.4f"), Raised.OnsetTime, Prelude.TwitchTime),
+		Raised.OnsetTime > Prelude.TwitchTime + 0.10);
+	bPass &= TestTrue(*FString::Printf(TEXT("gap %.4f stays above the release minimum"), Gap), Gap > Resolver.Rules().MinReleaseS);
+	bPass &= TestTrue(TEXT("the raise after the lap twitch is fresh"), Raised.bFresh);
+	UE_LOG(LogMageArena, Log, TEXT("Ward lap still fast onset=%.4f expected=%.4f twitch=%.4f gap=%.4f fresh=%d"),
+		Raised.OnsetTime, Expected, Prelude.TwitchTime, Gap, Raised.bFresh ? 1 : 0);
+	AddInfo(FString::Printf(TEXT("lap still fast onset %.4f expected %.4f gap %.4f fresh %d"),
+		Raised.OnsetTime, Expected, Gap, Raised.bFresh ? 1 : 0));
+
+	// A later arrival whose average palm speed stays under the onset threshold. Bridging that
+	// slow sample lands in the lap and expires the perfect window before the hand is up.
+	FWardDetector Slow;
+	if (!Slow.Init(Error))
+	{
+		AddError(Error);
+		bPass = false;
+		return false;
+	}
+	FLapPrelude SlowPrelude;
+	if (!PreludeLapTwitch(*this, Slow, Hold, Lap, Dt, SlowPrelude))
+	{
+		bPass = false;
+		return false;
+	}
+	const double GapS = 1.20;
+	const double ArrivalT = SlowPrelude.Time + GapS;
+	const double DistM = FVector::Distance(Hold.Joints[Palm].Location, Lap.Joints[Palm].Location) / MageClipMetresToCentimetres;
+	const double ArrivalSpeed = DistM / GapS;
+	bPass &= TestTrue(*FString::Printf(TEXT("slow arrival %.3f m/s stays under the onset"), ArrivalSpeed),
+		ArrivalSpeed < FWardThresholds::OnsetSpeedMps);
+	FHandFrame Arrival = AtTime(Hold, ArrivalT);
+	Slow.Ingest(Arrival);
+	const FWardEvent SlowRaise = Slow.GetLastRaise();
+	const double SlowGap = SlowRaise.OnsetTime - SlowPrelude.LoweredTime;
+	bPass &= TestTrue(TEXT("slow arrival reached the pose"), Slow.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("slow onset %.4f is the arrival %.4f, not the lap"), SlowRaise.OnsetTime, ArrivalT),
+		Slow.GetState().bRaised && FMath::Abs(SlowRaise.OnsetTime - ArrivalT) <= 1.0e-4);
+	bPass &= TestTrue(*FString::Printf(TEXT("slow gap %.4f is past the release minimum"), SlowGap), SlowGap > Resolver.Rules().MinReleaseS);
+	bPass &= TestTrue(TEXT("slow arrival is fresh"), SlowRaise.bFresh);
+	UE_LOG(LogMageArena, Log, TEXT("Ward lap still slow onset=%.4f arrival=%.4f lap=%.4f gap=%.4f fresh=%d"),
+		SlowRaise.OnsetTime, ArrivalT, SlowPrelude.Time, SlowGap, SlowRaise.bFresh ? 1 : 0);
+	AddInfo(FString::Printf(TEXT("lap still slow onset %.4f arrival %.4f gap %.4f"), SlowRaise.OnsetTime, ArrivalT, SlowGap));
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardFirstFidget, "MageArena.Ward.FirstRaiseFidget",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaWardFirstFidget::RunTest(const FString& Parameters)
+{
+	bool bPass = false;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.FirstRaiseFidget"), bPass);
+	FAbsorbResolver Resolver;
+	FWardDetector Detector;
+	if (!PrepareRules(*this, Resolver, Detector))
+	{
+		return false;
+	}
+	FHandClip Clip;
+	FString Error;
+	if (!LoadWard(Clip, Error))
+	{
+		AddError(Error);
+		return false;
+	}
+	const FHandClipTrack* Track = LeftTrack(Clip);
+	if (Track == nullptr || Clip.Hz <= 0.0)
+	{
+		AddError(TEXT("ward-raise.normal has no left-hand track"));
+		return false;
+	}
+	const double Dt = 1.0 / Clip.Hz;
+	const double Geo = GeometricOnset(*Track);
+	FHandFrame Lap;
+	if (!Clip.Sample(EControllerHand::Left, 0.0, Lap) || Geo <= 0.0)
+	{
+		AddError(TEXT("ward-raise.normal has no lap onset"));
+		return false;
+	}
+
+	double T = 0.0;
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		Detector.Ingest(AtTime(Lap, T));
+		T += Dt;
+	}
+	const double FidgetTime = T;
+	Detector.Ingest(Moved(Lap, T, FVector(0.0, 4.0, 0.0)));
+	T += Dt;
+	Detector.Ingest(AtTime(Lap, T));
+	const double StillUntil = FidgetTime + 0.20;
+	while (T < StillUntil - 1.0e-9)
+	{
+		T += Dt;
+		Detector.Ingest(AtTime(Lap, T));
+	}
+	bPass = TestFalse(TEXT("a lap fidget does not raise"), Detector.GetState().bRaised);
+	bPass &= TestTrue(TEXT("the fidget was seen down"), Detector.HasSeenLowered());
+
+	double Source = 0.0;
+	double Stamp0 = -1.0;
+	int32 Guard = 0;
+	while (!Detector.GetState().bRaised && Source <= Clip.GetDuration() && Guard < 80)
+	{
+		T += Dt;
+		FHandFrame Frame;
+		if (!Clip.Sample(EControllerHand::Left, Source, Frame))
+		{
+			break;
+		}
+		Frame.TimeSeconds = T;
+		Frame.Hand = EControllerHand::Left;
+		if (Stamp0 < 0.0)
+		{
+			Stamp0 = T;
+		}
+		Detector.Ingest(Frame);
+		if (Detector.GetState().bRaised)
+		{
+			break;
+		}
+		Source += Dt;
+		++Guard;
+	}
+	const double Expected = Stamp0 + Geo;
+	const FWardEvent First = Detector.GetLastRaise();
+	bPass &= TestTrue(TEXT("first raise after the fidget reached the pose"), Detector.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("first onset %.4f is the raise %.4f, not the fidget %.4f"), First.OnsetTime, Expected, FidgetTime),
+		Detector.GetState().bRaised && FMath::Abs(First.OnsetTime - Expected) <= Dt + 1.0e-6);
+	bPass &= TestTrue(*FString::Printf(TEXT("first onset %.4f is after the fidget"), First.OnsetTime), First.OnsetTime > FidgetTime + 0.05);
+	bPass &= TestTrue(TEXT("first raise from an observed lap is fresh"), First.bFresh);
+	bPass &= TestEqual(TEXT("the fidget was not a previous lower"), Detector.GetLowerCount(), 0);
+	UE_LOG(LogMageArena, Log, TEXT("Ward first fidget onset=%.4f expected=%.4f fidget=%.4f fresh=%d"),
+		First.OnsetTime, Expected, FidgetTime, First.bFresh ? 1 : 0);
+	AddInfo(FString::Printf(TEXT("first fidget onset %.4f expected %.4f fresh %d"), First.OnsetTime, Expected, First.bFresh ? 1 : 0));
+
+	// Motion before the hand is ever in the lap is outside the first-raise bound.
+	// Kept fast the whole way, so a walk with no bound latches onto that fidget.
+	FWardDetector Bound;
+	if (!Bound.Init(Error))
+	{
+		AddError(Error);
+		bPass = false;
+		return false;
+	}
+	const double Plateau = UHandClipPlayer::FindPlateauStart(Clip, EControllerHand::Left);
+	FHandFrame Hold;
+	if (!Clip.Sample(EControllerHand::Left, Plateau, Hold))
+	{
+		AddError(TEXT("ward plateau missing for the bound case"));
+		bPass = false;
+		return false;
+	}
+	const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+	FHandFrame Current = Moved(Lap, 0.0, FVector(0.0, 0.0, 20.0));
+	T = 0.0;
+	double FirstLow = -1.0;
+	auto Feed = [&](FHandFrame Frame)
+	{
+		Frame.TimeSeconds = T;
+		Frame.Hand = EControllerHand::Left;
+		const double Height = FWardDetector::PalmHeightMetres(Frame);
+		if (FirstLow < 0.0 && Height < FWardThresholds::LowerHeightM)
+		{
+			FirstLow = T;
+		}
+		Bound.Ingest(Frame);
+		T += Dt;
+	};
+	Feed(Current);
+	for (int32 Index = 0; Index < 4; ++Index)
+	{
+		Current = Moved(Current, T, FVector(0.0, 4.0, 0.0));
+		Feed(Current);
+	}
+	bPass &= TestFalse(TEXT("the chest fidget is not already a ward"), Bound.GetState().bRaised);
+	Guard = 0;
+	while (FWardDetector::PalmHeightMetres(Current) > 0.12 && Guard < 12)
+	{
+		Current = Moved(Current, T, FVector(0.0, 1.0, -5.0));
+		Feed(Current);
+		++Guard;
+	}
+	bPass &= TestTrue(*FString::Printf(TEXT("pre-lap fidget ends before the lap sample %.4f"), FirstLow),
+		FirstLow > 4.0 * Dt);
+	Guard = 0;
+	while (!Bound.GetState().bRaised && Guard < 40)
+	{
+		const double DistCm = FVector::Distance(Current.Joints[Palm].Location, Hold.Joints[Palm].Location);
+		if (DistCm <= 5.0)
+		{
+			Feed(AtTime(Hold, T));
+			break;
+		}
+		const double StepCm = FMath::Min(3.0, DistCm - 5.0);
+		if (StepCm < 1.0)
+		{
+			Feed(AtTime(Hold, T));
+			break;
+		}
+		Current = Moved(Current, T, (Hold.Joints[Palm].Location - Current.Joints[Palm].Location).GetSafeNormal() * StepCm);
+		Feed(Current);
+		++Guard;
+	}
+	const FWardEvent Bounded = Bound.GetLastRaise();
+	bPass &= TestTrue(TEXT("continuous fidget still reaches a first raise"), Bound.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("onset %.4f is at or after the first lap sample %.4f"), Bounded.OnsetTime, FirstLow),
+		Bound.GetState().bRaised && FirstLow >= 0.0 && Bounded.OnsetTime + 1.0e-9 >= FirstLow);
+	bPass &= TestTrue(TEXT("motion before the lap is not a fresh-window thief"), Bounded.bFresh);
+	bPass &= TestEqual(TEXT("no lower before the first raise"), Bound.GetLowerCount(), 0);
+	UE_LOG(LogMageArena, Log, TEXT("Ward first bound onset=%.4f lap=%.4f fresh=%d"),
+		Bounded.OnsetTime, FirstLow, Bounded.bFresh ? 1 : 0);
+	AddInfo(FString::Printf(TEXT("first bound onset %.4f lap %.4f"), Bounded.OnsetTime, FirstLow));
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardElevatedFacing, "MageArena.Ward.ElevatedThreatFacing",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaWardElevatedFacing::RunTest(const FString& Parameters)
+{
+	bool bPass = false;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.ElevatedThreatFacing"), bPass);
+	FString Error;
+	FWardDetector Detector;
+	if (!Detector.Init(Error))
+	{
+		AddError(Error);
+		return false;
+	}
+	const FVector Threat(0.3, 0.4, 1.0);
+	Detector.SetThreatFacing(Threat, true);
+	const FHandFrame PalmUp = PalmUpFrame(0.0, 0.30);
+	const FVector Normal = FWardDetector::PalmNormal(PalmUp);
+	const double Angle = FWardDetector::AngleToFacingDeg(Normal, Threat.GetSafeNormal());
+	const double Height = FWardDetector::PalmHeightMetres(PalmUp);
+	bPass = TestTrue(*FString::Printf(TEXT("palm-up normal is vertical (%.3f, %.3f, %.3f)"), Normal.X, Normal.Y, Normal.Z),
+		FVector(Normal.X, Normal.Y, 0.0).IsNearlyZero(1.0e-3) && Normal.Z > 0.9);
+	bPass &= TestTrue(*FString::Printf(TEXT("palm-up faces the elevated threat (%.1f deg, height %.2f)"), Angle, Height),
+		Angle <= FWardThresholds::RaiseAngleDeg && Height >= FWardThresholds::RaiseHeightM);
+	if (!bPass)
+	{
+		return false;
+	}
+
+	const double Dt = 1.0 / 72.0;
+	Detector.Ingest(PalmUp);
+	FHandFrame Next = PalmUp;
+	Next.TimeSeconds = Dt;
+	Detector.Ingest(Next);
+	const FVector Flat(Threat.X, Threat.Y, 0.0);
+	const FVector FlatNormal = Flat.GetSafeNormal();
+	const FVector Facing = Detector.GetLastRaise().Facing;
+	bPass &= TestTrue(TEXT("elevated threat raised the palm-up ward"), Detector.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("facing (%.3f, %.3f, %.3f) is flat"), Facing.X, Facing.Y, Facing.Z),
+		FMath::Abs(Facing.Z) <= 1.0e-4);
+	bPass &= TestTrue(*FString::Printf(TEXT("facing matches the threat yaw (%.3f, %.3f)"), FlatNormal.X, FlatNormal.Y),
+		Facing.Equals(FlatNormal, 1.0e-3));
+	bPass &= TestTrue(TEXT("held palm-up keeps the flat facing"), Detector.GetState().Facing.Equals(FlatNormal, 1.0e-3));
+
+	Detector.ResetStream();
+	Detector.SetThreatFacing(FVector(0.0, 0.0, 1.0), true);
+	Detector.Ingest(PalmUpFrame(0.0, 0.30));
+	const FVector StraightUp = Detector.GetLastRaise().Facing;
+	bPass &= TestTrue(TEXT("a vertical threat still raises palm-up"), Detector.GetState().bRaised);
+	bPass &= TestTrue(*FString::Printf(TEXT("a vertical threat flattens to +X, got (%.3f, %.3f, %.3f)"), StraightUp.X, StraightUp.Y, StraightUp.Z),
+		StraightUp.Equals(FVector::ForwardVector, 1.0e-3));
+	UE_LOG(LogMageArena, Log, TEXT("Ward elevated facing (%.3f, %.3f, %.3f) vertical (%.3f, %.3f, %.3f)"),
+		Facing.X, Facing.Y, Facing.Z, StraightUp.X, StraightUp.Y, StraightUp.Z);
+	AddInfo(FString::Printf(TEXT("elevated facing (%.3f, %.3f, %.3f)"), Facing.X, Facing.Y, Facing.Z));
 	return bPass;
 }
 

@@ -18,6 +18,10 @@ class UHandInputSubsystem;
  * <= 60 ms, puts the shortest working tail just over 28 frames. 29 frames is the next sample.
  * The 60 ms confirm-to-last-fast gap on the settle clip is 30 frames; the walk only has to land
  * on the first slow sample, and the fast-region walk does the rest.
+ *
+ * Sub-threshold frames are bridged only while the palm stays above LowerHeightM. Stillness in
+ * the lap is not the settle, and stepping onto it would pull the onset back into an earlier
+ * twitch. The fast walk is not height-gated: a real rise starts below this line.
  */
 struct FWardThresholds
 {
@@ -74,6 +78,7 @@ private:
 		double Time = 0.0;
 		FVector PalmCm = FVector::ZeroVector;
 		double SpeedMps = 0.0;
+		double HeightM = 0.0;
 	};
 
 	FVector ReferenceFacing() const;
@@ -90,6 +95,8 @@ private:
 	FVector ThreatFacing = FVector::ForwardVector;
 	double LastTime = 0.0;
 	double LoweredTime = -1.0e9;
+	/** First sample whose palm was in the lap. The first raise cannot see a lower, so this is its walk bound. */
+	double LapBoundTime = -1.0e9;
 	int32 RaiseCount = 0;
 	int32 LowerCount = 0;
 	bool bReady = false;
@@ -97,6 +104,7 @@ private:
 	bool bHasTime = false;
 	bool bEverLowered = false;
 	bool bSeenLowered = false;
+	bool bHasLapBound = false;
 	bool bThreatTargeted = false;
 };
 

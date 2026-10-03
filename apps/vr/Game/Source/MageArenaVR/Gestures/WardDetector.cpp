@@ -85,6 +85,8 @@ void FWardDetector::ResetStream()
 	bHasTime = false;
 	bEverLowered = false;
 	bSeenLowered = false;
+	bHasLapBound = false;
+	LapBoundTime = -1.0e9;
 }
 
 void FWardDetector::SetAimFacing(const FVector& Facing)
@@ -108,7 +110,14 @@ FVector FWardDetector::PalmFacing(const FVector& Normal) const
 	FVector Facing(Normal.X, Normal.Y, 0.0);
 	if (Facing.IsNearlyZero())
 	{
-		Facing = ReferenceFacing();
+		// A palm that is straight up has no yaw. Fall back to the aim, but an elevated
+		// threat must not leak its vertical component into the ward arc.
+		const FVector Reference = ReferenceFacing();
+		Facing = FVector(Reference.X, Reference.Y, 0.0);
+		if (Facing.IsNearlyZero())
+		{
+			Facing = FVector::ForwardVector;
+		}
 	}
 	return Facing.GetSafeNormal();
 }
@@ -122,11 +131,25 @@ double FWardDetector::FindOnset() const
 	}
 	int32 Index = Last;
 	const double ConfirmTime = History[Last].Time;
-	// Do not walk into the stroke that lowered the ward. LoweredTime stays far in the past
-	// until a lower is observed, so the first raise is unbounded.
-	const double Bound = LoweredTime;
+	// A re-raise stops at the lowering. The first raise has no lower: LoweredTime is still
+	// far in the past, so a fidget before the hand was seen in the lap would be the onset.
+	// Bound that walk at the first in-lap sample, and never earlier than the buffer.
+	double Bound = History[0].Time;
+	if (bEverLowered)
+	{
+		Bound = LoweredTime;
+	}
+	else if (bHasLapBound)
+	{
+		Bound = FMath::Max(LapBoundTime, History[0].Time);
+	}
+	// Bridge sub-threshold frames only while the palm is up. Stepping onto a lap frame
+	// would keep walking through the stillness into an earlier twitch. Do not height-gate
+	// the fast walk: the rise that this tail is measured on starts below LowerHeightM.
 	while (Index > 0
 		&& History[Index].SpeedMps < FWardThresholds::OnsetSpeedMps
+		&& History[Index].HeightM >= FWardThresholds::LowerHeightM
+		&& History[Index - 1].HeightM >= FWardThresholds::LowerHeightM
 		&& (ConfirmTime - History[Index].Time) <= FWardThresholds::OnsetTailS
 		&& History[Index - 1].Time >= Bound - 1.0e-9)
 	{
@@ -164,7 +187,9 @@ void FWardDetector::NoteRewind()
 	bHasTime = false;
 	bEverLowered = false;
 	bSeenLowered = false;
+	bHasLapBound = false;
 	LoweredTime = -1.0e9;
+	LapBoundTime = -1.0e9;
 }
 
 void FWardDetector::Ingest(const FHandFrame& Frame)
@@ -207,7 +232,13 @@ void FWardDetector::Ingest(const FHandFrame& Frame)
 	Sample.Time = Frame.TimeSeconds;
 	Sample.PalmCm = PalmCm;
 	Sample.SpeedMps = Speed;
+	Sample.HeightM = HeightM;
 	History.Add(Sample);
+	if (!bHasLapBound && HeightM < FWardThresholds::LowerHeightM)
+	{
+		LapBoundTime = Frame.TimeSeconds;
+		bHasLapBound = true;
+	}
 
 	const bool bWasRaised = bRaised;
 	const bool bNowRaised = bWasRaised
