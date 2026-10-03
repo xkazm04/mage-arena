@@ -8,10 +8,12 @@
 #include "Gestures/SigilRecognizerSubsystem.h"
 #include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/MageArenaPawn.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "InputTriggers.h"
 #include "MageArenaVR.h"
+#include "Misc/Parse.h"
 
 namespace
 {
@@ -102,6 +104,41 @@ void AMageArenaPlayerController::ReceivedPlayer()
 void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
+	// F5/F6/F7 are L3 debug snaps. They are not quick actions and they do not play a blink clip.
+	if (PlayerInput)
+	{
+		if (AMageArenaPawn* Mage = Cast<AMageArenaPawn>(GetPawn()))
+		{
+			if (WasInputKeyJustPressed(EKeys::F5))
+			{
+				Mage->BlinkToPad(0);
+			}
+			else if (WasInputKeyJustPressed(EKeys::F6))
+			{
+				Mage->BlinkToPad(1);
+			}
+			else if (WasInputKeyJustPressed(EKeys::F7))
+			{
+				Mage->BlinkToPad(2);
+			}
+
+			const bool bDrawing = IsInputKeyDown(EKeys::LeftMouseButton) || IsInputKeyDown(EKeys::RightMouseButton);
+			float DX = 0.f;
+			float DY = 0.f;
+			GetInputMouseDelta(DX, DY);
+			// The capture sequence owns the camera. A hidden cursor delta must not drag the scripted shots.
+			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
+			if (!bDrawing && !Mage->IsBlinkBusy() && !bCapture)
+			{
+				FRotator Rot = GetControlRotation();
+				const float Sensitivity = Mage->GetLookSensitivity();
+				Rot.Yaw += DX * Sensitivity;
+				Rot.Pitch = AMageArenaPawn::SeatedPitchFromMouse(
+					Rot.Pitch, DY, Sensitivity, Mage->GetPitchDownDegrees(), Mage->GetPitchUpDegrees());
+				SetControlRotation(Mage->ClampLookRotation(Rot));
+			}
+		}
+	}
 	if (MouseCapture)
 	{
 		MouseCapture->Sample(this, DeltaTime);

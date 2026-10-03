@@ -1,6 +1,6 @@
 # A02 - Greybox arena, seated desktop view, visible hands, threat-colour placeholders, screenshots
 
-Status: retry 1 dispatched 2026-10-03
+Status: done after retry 1 (verified 2026-10-03; notes in BACKLOG)
 Max turns: 260
 
 ## Goal

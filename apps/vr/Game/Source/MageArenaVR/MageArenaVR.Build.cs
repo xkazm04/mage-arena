@@ -18,5 +18,10 @@ public class MageArenaVR : ModuleRules
 			"Json",
 			"HeadMountedDisplay"
 		});
+		PrivateDependencyModuleNames.AddRange(new[]
+		{
+			"RHI",
+			"ImageWrapper"
+		});
 	}
 }

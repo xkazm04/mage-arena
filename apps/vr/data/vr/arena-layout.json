@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "units": "metres",
+  "axes": "+X from the dais toward the arena centre, +Y to the seated player's right, +Z up. These are Unreal axes. Clip space is the same axes, seated-origin, centimetres at runtime.",
+  "origin": "Centre of the sand ellipse, on the sand surface (z = 0).",
+  "arenaCentreM": [0, 0, 0],
+
+  "floor": {
+    "shape": "ellipse",
+    "radiusXM": 16,
+    "radiusYM": 10,
+    "thicknessM": 0.2,
+    "_note": "Oval sand 32 m by 20 m, the plan's 32 x 20 m ground. A cylinder scaled on X and Y. The top is z = 0; the mesh centre is half the thickness below that."
+  },
+
+  "wall": {
+    "heightM": 3,
+    "thicknessM": 0.45,
+    "segments": 32,
+    "merlonEvery": 0,
+    "merlonSizeM": [0.42, 0.42, 0.36],
+    "_note": "Ring wall on the ellipse, about 3 m high, with a plain parapet. merlonEvery is 0 and the greybox does not spawn crenellations."
+  },
+
+  "stands": {
+    "tiers": 3,
+    "depthM": 1.55,
+    "gapOutsideWallM": 0.2,
+    "firstTopAboveWallM": 0.5,
+    "stepRiseM": 0.85,
+    "_note": "Three stepped tiers outside the wall, the cavea from the stands kit. The first tread top sits just above the 3 m wall so the far stands are visible from the dais. Each tier is a ring of boxes, taller and further out than the one inside it."
+  },
+
+  "dais": {
+    "centreM": [-11.7, 0, 0.3],
+    "sizeM": [5.2, 8.8, 0.6],
+    "heightM": 0.6,
+    "_note": "Raised platform at the -X end of the oval. heightM is the top above the sand. centreM is the box centre, so the top is at z = 0.6. Darker than the sand and the ring wall."
+  },
+
+  "pads": {
+    "arcRadiusM": 12,
+    "spacingM": 3,
+    "discRadiusM": 0.58,
+    "ringRadiusM": 0.78,
+    "ringWidthM": 0.16,
+    "ringHeightM": 0.07,
+    "ringSegments": 16,
+    "_note": "Three rune pads on a circular arc centred on the arena centre. Chord spacing is 3 m (inside the 2.5-3.5 m test). Index 0 is the player's left (-Y), 1 is centre, 2 is the player's right. positionM is the pad top, which is the dais top. The ring is the carved groove from the prop sheet, built from boxes.",
+    "items": [
+      { "id": "left", "index": 0, "positionM": [-11.625, -2.97647, 0.6] },
+      { "id": "centre", "index": 1, "positionM": [-12, 0, 0.6] },
+      { "id": "right", "index": 2, "positionM": [-11.625, 2.97647, 0.6] }
+    ]
+  },
+
+  "seat": {
+    "sizeM": [0.5, 0.46, 0.42],
+    "_note": "Backless low stone block centred on each pad, from the prop sheet's seat with the back omitted. sizeM is full X (toward the arena), Y (across), Z (up). The eye line is measured from the pad top, not from the seat top."
+  },
+
+  "seatedEyeHeightAbovePadM": 1.2,
+  "eyeForwardOfSeatedOriginM": 0.08,
+  "eyeAboveSeatedOriginM": 0.62,
+  "cameraFovDeg": 90,
+  "lookTargetM": [0, 0, 0.9],
+  "_viewNote": "The camera sits 1.2 m above the active pad's top and looks at lookTargetM. The seated origin (clip hip) is 0.62 m below the eyes and 0.08 m behind them, which is the offset the hand clips were authored against. Hands are drawn in that clip space, parented to the body, so mouse look turns the head and not the hands.",
+
+  "mouseLook": {
+    "yawLimitDeg": 100,
+    "pitchDownDeg": 32,
+    "pitchUpDeg": 18,
+    "sensitivityDegPerPixel": 0.08,
+    "_note": "Yaw is clamped around the pad facing (toward the arena centre). The plan's flank limit is +/-100 degrees; nothing is authored behind the seat. Pitch is relative to the horizon, positive up. Look is suppressed while a mouse button is down so sigil drawing and ward aiming keep the view still."
+  },
+
+  "blink": {
+    "fadeOutS": 0.12,
+    "fadeInS": 0.2,
+    "vignettePeak": 1.15,
+    "keys": { "F5": "left", "F6": "centre", "F7": "right" },
+    "_note": "L3 debug only. BlinkToPad snaps during a camera fade and raises the comfort vignette. A, D and S stay on the blink hand clips. They must not call BlinkToPad. Blink detection is a later card."
+  },
+
+  "spawnArc": {
+    "origin": "centre pad",
+    "forward": "from the centre pad toward the arena centre, horizontal",
+    "limitDeg": 70,
+    "distancesM": [8, 15],
+    "positiveBearing": "player's right, +Y when the centre pad faces +X",
+    "_note": "Enemy spawn markers. Distance is horizontal metres from the centre pad. Bearing is degrees from that pad's forward. Both distances and every bearing sit inside the plan's +/-70 degree threat arc."
+  },
+
+  "spawnMarkers": [
+    { "id": "near-centre", "distanceM": 8, "bearingDeg": 0, "positionM": [-4, 0, 0] },
+    { "id": "near-left", "distanceM": 8, "bearingDeg": -50, "positionM": [-6.8577, -6.12836, 0] },
+    { "id": "near-right", "distanceM": 8, "bearingDeg": 50, "positionM": [-6.8577, 6.12836, 0] },
+    { "id": "far-centre", "distanceM": 15, "bearingDeg": 0, "positionM": [3, 0, 0] },
+    { "id": "far-left", "distanceM": 15, "bearingDeg": -35, "positionM": [0.28728, -8.60365, 0] },
+    { "id": "far-right", "distanceM": 15, "bearingDeg": 35, "positionM": [0.28728, 8.60365, 0] }
+  ],
+
+  "markerPost": {
+    "radiusM": 0.1,
+    "heightM": 0.45,
+    "_note": "A short dark post at each spawn marker so the markers are visible before a threat is launched. Not a threat colour."
+  },
+
+  "braziers": [
+    { "positionM": [6, 6], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
+    { "positionM": [6, -6], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
+    { "positionM": [-2, 7.2], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
+    { "positionM": [-2, -7.2], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 }
+  ],
+
+  "banners": [
+    { "positionM": [-9.4, 4.6], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] },
+    { "positionM": [-9.4, -4.6], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] },
+    { "positionM": [9.5, 4.2], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] },
+    { "positionM": [9.5, -4.2], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] }
+  ],
+  "_propNote": "Braziers are the iron bowl on a stand from the prop sheet: cylinder stand, cylinder bowl, cone flame. Banners are a pole, a crossbar and a hanging cloth. clothSizeM is thickness, width, height. Four of each, inside the oval, off the centre flight line.",
+
+  "colours": {
+    "_note": "Linear RGB, 0 to 1. Flat colours on BasicShapeMaterial. No textures.",
+    "sand": [0.58, 0.47, 0.31],
+    "stone": [0.46, 0.45, 0.43],
+    "dais": [0.22, 0.22, 0.24],
+    "padRing": [0.64, 0.56, 0.4],
+    "seat": [0.4, 0.39, 0.37],
+    "marker": [0.15, 0.15, 0.16],
+    "brazier": [0.18, 0.16, 0.15],
+    "flame": [0.95, 0.35, 0.06],
+    "bannerCloth": [0.64, 0.59, 0.5],
+    "bannerPole": [0.3, 0.24, 0.16],
+    "hand": [0.75, 0.64, 0.54],
+    "castFlash": [0.12, 0.82, 0.2],
+    "rejectFlash": [0.5, 0.5, 0.5],
+    "wardArc": [0.45, 0.75, 0.95],
+    "wardArcAlpha": 0.72
+  },
+
+  "threats": {
+    "_note": "Visual only, no damage. Launch order is the combat threat language: element colour (absorb), white/steel (dodge), black core with a red rim (leave). Projectiles fly at chest height toward the active pad. Each has a shrinking ground ring at its landing point. Ring colour matches the element. The unblockable ring is red. Flight times meet combat.json reactionBands: positional telegraph >= 0.40 s, unblockable >= 0.80 s. staggerS spaces the launches so a later frame can catch all four in the air.",
+    "chestHeightAboveSandM": 1.35,
+    "staggerS": 0.2,
+    "telegraphStartRadiusM": 1.7,
+    "telegraphEndRadiusM": 0.28,
+    "telegraphSegments": 10,
+    "telegraphHeightM": 0.05,
+    "telegraphWidthM": 0.14,
+    "rimScale": 1.18,
+    "rimTubeScale": 0.22,
+    "order": [
+      {
+        "kind": "water",
+        "colourClass": "turquoise",
+        "body": [0.009721, 0.745404, 0.745404],
+        "rim": [0.009721, 0.745404, 0.745404],
+        "telegraph": [0.009721, 0.745404, 0.745404],
+        "elongated": false,
+        "rimmed": false,
+        "marker": "far-centre",
+        "flightS": 1.6,
+        "landingForwardM": 3.6,
+        "landingRightM": 0,
+        "radiusM": 0.38,
+        "lengthM": 0.38
+      },
+      {
+        "kind": "fire",
+        "colourClass": "vermilion",
+        "body": [0.760525, 0.05448, 0.013702],
+        "rim": [0.760525, 0.05448, 0.013702],
+        "telegraph": [0.760525, 0.05448, 0.013702],
+        "elongated": false,
+        "rimmed": false,
+        "marker": "near-right",
+        "flightS": 1.2,
+        "landingForwardM": 2.7,
+        "landingRightM": 1.25,
+        "radiusM": 0.22,
+        "lengthM": 0.22
+      },
+      {
+        "kind": "steel",
+        "colourClass": "steel",
+        "body": [0.68, 0.68, 0.68],
+        "rim": [0.68, 0.68, 0.68],
+        "telegraph": [0.68, 0.68, 0.68],
+        "elongated": true,
+        "rimmed": false,
+        "marker": "near-left",
+        "flightS": 1.2,
+        "landingForwardM": 2.7,
+        "landingRightM": -1.25,
+        "radiusM": 0.11,
+        "lengthM": 1.7
+      },
+      {
+        "kind": "unblockable",
+        "colourClass": "black-core-red-rim",
+        "body": [0.006995, 0.006995, 0.008023],
+        "rim": [0.745404, 0.014444, 0.009134],
+        "telegraph": [0.745404, 0.014444, 0.009134],
+        "elongated": false,
+        "rimmed": true,
+        "marker": "far-right",
+        "flightS": 2,
+        "landingForwardM": 4.4,
+        "landingRightM": 1.5,
+        "radiusM": 0.46,
+        "lengthM": 0.46
+      }
+    ]
+  },
+
+  "hands": {
+    "jointRadiusM": 0.012,
+    "boneRadiusM": 0.0045,
+    "flashRadiusM": 0.085,
+    "flashSegments": 16,
+    "flashDurationS": 0.65,
+    "wardArcDeg": 140,
+    "wardArcInnerM": 0.48,
+    "wardArcOuterM": 0.52,
+    "wardArcHeightM": 0.04,
+    "wardArcSegments": 14,
+    "_note": "26 joint spheres and a capsule bone per parent-child link, in clip centimetres on the seated origin. A cast flashes a green ring in front of the casting hand. A reject flashes grey. The ward draws a translucent 140 degree ribbon about 0.5 m in front of the off hand, which these clips put on the left hand."
+  },
+
+  "lighting": {
+    "directionalIntensityLux": 8,
+    "directionalPitchDeg": -12,
+    "directionalYawDeg": 180,
+    "directionalColour": [1.0, 0.48, 0.16],
+    "skyIntensity": 1.4,
+    "skyLightColour": [0.4, 0.5, 0.75],
+    "skyHorizon": [0.55, 0.2, 0.05],
+    "skyUpper": [0.05, 0.07, 0.16],
+    "skyZenith": [0.015, 0.018, 0.06],
+    "castShadows": false,
+    "_note": "Dusk. One warm directional light low in front of the dais, and one sky light. The visible sky is an unlit gradient dome. Shadows stay off. No height fog, so threat colours stay readable. Brazier flames are colour only."
+  }
+}
