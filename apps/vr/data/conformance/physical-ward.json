@@ -1,0 +1,1273 @@
+{
+  "name": "physical-ward",
+  "note": "A physical training shot is reduced by the ward and is never perfect.",
+  "seed": 5,
+  "driver": "training",
+  "trainingKind": "physical",
+  "checkpointEvery": 60,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 360,
+  "replaySetup": false,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 12,
+        "y": 10,
+        "label": "Cassia",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 12,
+        "y": 3,
+        "label": "Training target",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": true,
+        "hp": 10000,
+        "maxHp": 10000,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [
+    {
+      "tick": 1,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12,
+            "y": 3
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    }
+  ],
+  "ops": [],
+  "events": [
+    {
+      "tick": 117,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 4.8999999999999995
+    },
+    {
+      "tick": 297,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 7
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 3,
+      "stateHash": "047bf733",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 60,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 4,
+      "stateHash": "78a07269",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 95,
+          "mana": 70.37499999999983,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 26.99999999999997,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 3,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "physical",
+          "tier": 0,
+          "damage": 7,
+          "resolveTick": 90,
+          "startTick": 60,
+          "ox": 12,
+          "oy": 3,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 14,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 120,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 5,
+      "stateHash": "55027d25",
+      "eventCount": 1,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 90.1,
+          "mana": 50.87499999999966,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 1,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 4.8999999999999995,
+            "manaDrained": 54.0000000000001,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 4.8999999999999995,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 180,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 5,
+      "stateHash": "6f74418c",
+      "eventCount": 1,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 90.1,
+          "mana": 31.374999999999496,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 1,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 4.8999999999999995,
+            "manaDrained": 81.00000000000027,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 4.8999999999999995,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 240,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 6,
+      "stateHash": "9c9e9cff",
+      "eventCount": 1,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 90.1,
+          "mana": 11.874999999999538,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 1,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 4.8999999999999995,
+            "manaDrained": 108.00000000000044,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 4.8999999999999995,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 5,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "physical",
+          "tier": 0,
+          "damage": 7,
+          "resolveTick": 270,
+          "startTick": 240,
+          "ox": 12,
+          "oy": 3,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 14,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 300,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 7,
+      "stateHash": "718c5283",
+      "eventCount": 2,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 83.1,
+          "mana": 2.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 1,
+            "hits": 2,
+            "damageDealt": 0,
+            "damageTaken": 11.899999999999999,
+            "manaDrained": 124.50000000000009,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 11.899999999999999,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 360,
+      "when": "pre-ops",
+      "rng": 5,
+      "nextId": 7,
+      "stateHash": "957a19a1",
+      "eventCount": 2,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 0,
+          "fy": -1,
+          "hp": 83.1,
+          "mana": 10.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 1,
+            "hits": 2,
+            "damageDealt": 0,
+            "damageTaken": 11.899999999999999,
+            "manaDrained": 124.50000000000009,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 12,
+          "y": 3,
+          "px": 12,
+          "py": 3,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 11.899999999999999,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    }
+  ]
+}

@@ -193,7 +193,8 @@ bool FAbsorbRules::LoadFromPinnedFile(FString& OutError)
 	Parsed.SourcePath = Path;
 	if (!RequireNumber(Absorb, TEXT("arcDeg"), Parsed.ArcDeg, Path, OutError)
 		|| !RequireNumber(Absorb, TEXT("raiseCostMana"), Parsed.RaiseCostMana, Path, OutError)
-		|| !RequireNumber(Absorb, TEXT("minReleaseBeforeReRaiseS"), Parsed.MinReleaseS, Path, OutError))
+		|| !RequireNumber(Absorb, TEXT("minReleaseBeforeReRaiseS"), Parsed.MinReleaseS, Path, OutError)
+		|| !RequireNumber(Absorb, TEXT("moveSpeedWhileHeldMult"), Parsed.MoveSpeedWhileHeldMult, Path, OutError))
 	{
 		return false;
 	}
@@ -336,20 +337,11 @@ FAbsorbResult FAbsorbResolver::Resolve(double HitTime, EAbsorbHitKind Kind, int3
 	// One frame is about 1.4e-2 s, so this is not a wider design window.
 	constexpr double WindowEpsilonS = 1.0e-6;
 	const bool bInWindow = SinceOnset >= -WindowEpsilonS && SinceOnset <= LoadedRules.WindowS + WindowEpsilonS;
-	const bool bPerfect = bGuarded && WardState.bFresh && bInWindow && !LoadedRules.BlocksPerfect(Kind);
-	if (!bGuarded)
-	{
-		Result.Reduction = LoadedRules.ReductionOutsideArc;
-		return Result;
-	}
-	if (!bPerfect)
-	{
-		Result.Reduction = LoadedRules.ReductionFor(Kind);
-		return Result;
-	}
-	Result.Reduction = LoadedRules.PerfectReduction;
-	Result.bPerfect = true;
-	Result.ManaReturned = LoadedRules.ManaForPerfect(IncomingTier, NerveRank);
-	Result.TierClockAdvanceS = LoadedRules.TierClockAdvanceS;
+	// Ground-plane arc stays here. A vertical or zero hit is outside. The kernel's 2D arc is a different caller.
+	const FAbsorbVerdict Verdict = EvaluateAbsorb(LoadedRules, bGuarded, WardState.bFresh && bInWindow, Kind, IncomingTier, NerveRank);
+	Result.Reduction = Verdict.Reduction;
+	Result.bPerfect = Verdict.bPerfect;
+	Result.ManaReturned = Verdict.ManaReturned;
+	Result.TierClockAdvanceS = Verdict.TierClockAdvanceS;
 	return Result;
 }

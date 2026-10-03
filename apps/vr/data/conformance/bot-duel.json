@@ -1,0 +1,4103 @@
+{
+  "name": "bot-duel",
+  "note": "Two mages cast Rain Needle until one is down.",
+  "seed": 4,
+  "driver": "arena",
+  "trainingKind": null,
+  "checkpointEvery": 60,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 710,
+  "replaySetup": true,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 10,
+        "y": 10,
+        "label": "Cassia",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 16,
+        "y": 10,
+        "label": "Foe",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [
+    {
+      "tick": 1,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": true,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        },
+        "2": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 10,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 8,
+      "inputs": {
+        "2": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 10,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": true,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    }
+  ],
+  "ops": [],
+  "events": [
+    {
+      "tick": 1,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 8,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 16,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 17,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 23,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 24,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 31,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 32,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 38,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 39,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 46,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 47,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 53,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 54,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 61,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 62,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 68,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 69,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 76,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 77,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 83,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 84,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 91,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 92,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 98,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 99,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 106,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 107,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 113,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 114,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 121,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 122,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 128,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 129,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 136,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 137,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 143,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 144,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 151,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 152,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 158,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 159,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 166,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 167,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 173,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 174,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 181,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 182,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 188,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 189,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 196,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 197,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 203,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 204,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 211,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 212,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 218,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 219,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 226,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 227,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 233,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 234,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 241,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 242,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 248,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 249,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 256,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 257,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 263,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 264,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 271,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 272,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 278,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 279,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 286,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 287,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 293,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 294,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 301,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 302,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 308,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 309,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 316,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 317,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 323,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 324,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 331,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 332,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 338,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 339,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 346,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 347,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 353,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 354,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 361,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 362,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 368,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 369,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 376,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 377,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 383,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 384,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 391,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 392,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 398,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 399,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 406,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 407,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 413,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 414,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 421,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 422,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 428,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 429,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 436,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 437,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 443,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 444,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 451,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 452,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 458,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 459,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 466,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 467,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 473,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 474,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 481,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 482,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 488,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 489,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 496,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 497,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 503,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 504,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 511,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 512,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 518,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 519,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 526,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 527,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 533,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 534,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 541,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 542,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 548,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 549,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 556,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 557,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 563,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 564,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 571,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 572,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 578,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 579,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 586,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 587,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 593,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 594,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 601,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 602,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 608,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 609,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 616,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 617,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 623,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 624,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 631,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 632,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 638,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 639,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 646,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 647,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 653,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 654,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 661,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 662,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 668,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 669,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 676,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 677,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 683,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 684,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 691,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 692,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 698,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 699,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 706,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 707,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 0.7000000000000774
+    },
+    {
+      "tick": 707,
+      "kind": "down",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 3,
+      "stateHash": "e7574a4b",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 60,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 19,
+      "stateHash": "eb886ae0",
+      "eventCount": 14,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 88.85000000000001,
+          "mana": 90.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 61
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 6.1499999999999995,
+            "damageTaken": 6.1499999999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 4,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 88.85000000000001,
+          "mana": 89.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 68
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 6.1499999999999995,
+            "damageTaken": 6.1499999999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 4,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 16,
+          "ownerId": 1,
+          "activationId": 15,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 18,
+          "ownerId": 2,
+          "activationId": 17,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 120,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 35,
+      "stateHash": "928310f9",
+      "eventCount": 30,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 80.65000000000002,
+          "mana": 85.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 121
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 14.350000000000001,
+            "damageTaken": 14.350000000000001,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 8,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 80.65000000000002,
+          "mana": 85,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 128
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 14.350000000000001,
+            "damageTaken": 14.350000000000001,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 8,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 32,
+          "ownerId": 1,
+          "activationId": 31,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 34,
+          "ownerId": 2,
+          "activationId": 33,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 180,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 51,
+      "stateHash": "1b5d3cbf",
+      "eventCount": 46,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 72.45000000000003,
+          "mana": 81.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 181
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 11,
+            "damageDealt": 22.550000000000004,
+            "damageTaken": 22.550000000000004,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 12,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 72.45000000000003,
+          "mana": 80.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 188
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 11,
+            "damageDealt": 22.550000000000004,
+            "damageTaken": 22.550000000000004,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 12,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 48,
+          "ownerId": 1,
+          "activationId": 47,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 50,
+          "ownerId": 2,
+          "activationId": 49,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 240,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 67,
+      "stateHash": "4238ff7b",
+      "eventCount": 62,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 64.25000000000004,
+          "mana": 76.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 241
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 15,
+            "damageDealt": 30.750000000000007,
+            "damageTaken": 30.750000000000007,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 16,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 64.25000000000004,
+          "mana": 76,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 248
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 15,
+            "damageDealt": 30.750000000000007,
+            "damageTaken": 30.750000000000007,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 16,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 64,
+          "ownerId": 1,
+          "activationId": 63,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 66,
+          "ownerId": 2,
+          "activationId": 65,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 300,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 83,
+      "stateHash": "309ef11c",
+      "eventCount": 78,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 56.050000000000054,
+          "mana": 72.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 301
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 19,
+            "damageDealt": 38.949999999999996,
+            "damageTaken": 38.949999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 20,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 56.050000000000054,
+          "mana": 71.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 308
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 19,
+            "damageDealt": 38.949999999999996,
+            "damageTaken": 38.949999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 20,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 80,
+          "ownerId": 1,
+          "activationId": 79,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 82,
+          "ownerId": 2,
+          "activationId": 81,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 360,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 99,
+      "stateHash": "85462ab7",
+      "eventCount": 94,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 47.850000000000065,
+          "mana": 67.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 361
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 23,
+            "damageDealt": 47.149999999999984,
+            "damageTaken": 47.149999999999984,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 24,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 47.850000000000065,
+          "mana": 67,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 368
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 23,
+            "damageDealt": 47.149999999999984,
+            "damageTaken": 47.149999999999984,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 24,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 96,
+          "ownerId": 1,
+          "activationId": 95,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 98,
+          "ownerId": 2,
+          "activationId": 97,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 420,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 115,
+      "stateHash": "17ce729e",
+      "eventCount": 110,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 39.65000000000008,
+          "mana": 63.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 421
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 27,
+            "damageDealt": 55.34999999999997,
+            "damageTaken": 55.34999999999997,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 28,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 39.65000000000008,
+          "mana": 62.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 428
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 27,
+            "damageDealt": 55.34999999999997,
+            "damageTaken": 55.34999999999997,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 28,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 112,
+          "ownerId": 1,
+          "activationId": 111,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 114,
+          "ownerId": 2,
+          "activationId": 113,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 480,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 131,
+      "stateHash": "296f1b5a",
+      "eventCount": 126,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 31.450000000000085,
+          "mana": 58.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 481
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 31,
+            "damageDealt": 63.54999999999996,
+            "damageTaken": 63.54999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 32,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 31.450000000000085,
+          "mana": 58,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 488
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 31,
+            "damageDealt": 63.54999999999996,
+            "damageTaken": 63.54999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 32,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 128,
+          "ownerId": 1,
+          "activationId": 127,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 130,
+          "ownerId": 2,
+          "activationId": 129,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 540,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 147,
+      "stateHash": "39c7db8c",
+      "eventCount": 142,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 23.25000000000008,
+          "mana": 54.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 541
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 35,
+            "damageDealt": 71.74999999999996,
+            "damageTaken": 71.74999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 36,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 23.25000000000008,
+          "mana": 53.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 548
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 35,
+            "damageDealt": 71.74999999999996,
+            "damageTaken": 71.74999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 36,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 144,
+          "ownerId": 1,
+          "activationId": 143,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 146,
+          "ownerId": 2,
+          "activationId": 145,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 600,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 163,
+      "stateHash": "250c29cf",
+      "eventCount": 158,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 15.050000000000079,
+          "mana": 49.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 601
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 39,
+            "damageDealt": 79.94999999999995,
+            "damageTaken": 79.94999999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 40,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 15.050000000000079,
+          "mana": 49,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 608
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 39,
+            "damageDealt": 79.94999999999995,
+            "damageTaken": 79.94999999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 40,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 160,
+          "ownerId": 1,
+          "activationId": 159,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 162,
+          "ownerId": 2,
+          "activationId": 161,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 660,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 179,
+      "stateHash": "af81b0d4",
+      "eventCount": 174,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 6.850000000000077,
+          "mana": 45.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 661
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 43,
+            "damageDealt": 88.14999999999993,
+            "damageTaken": 88.14999999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 44,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 6.850000000000077,
+          "mana": 44.5,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 668
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 43,
+            "damageDealt": 88.14999999999993,
+            "damageTaken": 88.14999999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 44,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 176,
+          "ownerId": 1,
+          "activationId": 175,
+          "x": 15.000000000000009,
+          "y": 10,
+          "px": 14.666666666666675,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 178,
+          "ownerId": 2,
+          "activationId": 177,
+          "x": 13.333333333333329,
+          "y": 10,
+          "px": 13.666666666666663,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 9.333333333333329,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 710,
+      "when": "pre-ops",
+      "rng": 4,
+      "nextId": 193,
+      "stateHash": "0838e9c8",
+      "eventCount": 189,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 0.7000000000000774,
+          "mana": 39.625,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 721
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 46,
+            "damageDealt": 95,
+            "damageTaken": 94.29999999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 48,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 16,
+          "y": 10,
+          "px": 16,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 0,
+          "mana": 41.375,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 713
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 47,
+            "damageDealt": 94.29999999999993,
+            "damageTaken": 95,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 47,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 190,
+          "ownerId": 2,
+          "activationId": 189,
+          "x": 11.666666666666659,
+          "y": 10,
+          "px": 11.999999999999993,
+          "py": 10,
+          "vx": -20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 7.666666666666661,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 192,
+          "ownerId": 1,
+          "activationId": 191,
+          "x": 11.66666666666667,
+          "y": 10,
+          "px": 11.333333333333336,
+          "py": 10,
+          "vx": 20,
+          "vy": 0,
+          "damage": 2.05,
+          "remainingM": 10.33333333333333,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    }
+  ]
+}

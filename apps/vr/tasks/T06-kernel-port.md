@@ -1,6 +1,6 @@
 # T06 - Port the calibrated arena kernel to C++, proven by conformance vectors from the TypeScript original
 
-Status: open
+Status: done (verified 2026-10-03, agy review: no defects)
 Max turns: 320
 
 ## Goal

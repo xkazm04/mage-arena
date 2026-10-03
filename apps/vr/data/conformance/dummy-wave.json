@@ -1,0 +1,8072 @@
+{
+  "name": "dummy-wave",
+  "note": "A training dummy completes a wave of magic attacks while the timing bot perfects them.",
+  "seed": 7,
+  "driver": "training",
+  "trainingKind": "magic",
+  "checkpointEvery": 60,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 720,
+  "replaySetup": false,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 12,
+        "y": 10,
+        "label": "Cassia",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 23,
+        "y": 10,
+        "label": "Training target",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": true,
+        "hp": 10000,
+        "maxHp": 10000,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [
+    {
+      "tick": 1,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 23,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 103,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.85,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 104,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.700000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 105,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.550000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 106,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.400000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 107,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.250000000000007,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 108,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.10000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 109,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.95000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 110,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.80000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 111,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.650000000000013,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 112,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.500000000000014,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 113,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.350000000000016,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 114,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.200000000000017,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 115,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.05000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 116,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.90000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 117,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.75000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 118,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.600000000000023,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 119,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.450000000000024,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 120,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.300000000000026,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 121,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.150000000000027,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 122,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.00000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 123,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.85000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 124,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.70000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 125,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.550000000000033,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 126,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.400000000000034,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 127,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.250000000000036,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 128,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.100000000000037,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 129,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.95000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 130,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.80000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 131,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.65000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 132,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.500000000000043,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 133,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.350000000000044,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 134,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.200000000000045,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 135,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.050000000000047,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 136,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.90000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 137,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.75000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 138,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.60000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 139,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.450000000000053,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 140,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.300000000000054,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 141,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.150000000000055,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 142,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.000000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 143,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 144,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 145,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 146,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.400000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 147,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.250000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 148,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.100000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 149,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.950000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 150,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.800000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 151,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.650000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 152,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.500000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 153,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.350000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 154,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.200000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 155,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.050000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 156,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.900000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 157,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.750000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 158,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.600000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 159,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.450000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 160,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.300000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 161,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.15000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 162,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.00000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 163,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 164,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 165,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 166,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.400000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 167,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.250000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 168,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.100000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 169,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.950000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 170,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.800000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 171,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.650000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 172,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.500000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 173,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 23,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 283,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.85,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 284,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.700000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 285,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.550000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 286,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.400000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 287,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.250000000000007,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 288,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.10000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 289,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.95000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 290,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.80000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 291,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.650000000000013,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 292,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.500000000000014,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 293,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.350000000000016,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 294,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.200000000000017,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 295,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.05000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 296,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.90000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 297,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.75000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 298,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.600000000000023,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 299,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.450000000000024,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 300,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.300000000000026,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 301,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.150000000000027,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 302,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.00000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 303,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.85000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 304,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.70000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 305,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.550000000000033,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 306,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.400000000000034,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 307,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.250000000000036,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 308,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.100000000000037,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 309,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.95000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 310,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.80000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 311,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.65000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 312,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.500000000000043,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 313,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.350000000000044,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 314,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.200000000000045,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 315,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.050000000000047,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 316,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.90000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 317,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.75000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 318,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.60000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 319,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.450000000000053,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 320,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.300000000000054,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 321,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.150000000000055,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 322,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.000000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 323,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 324,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 325,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 326,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.400000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 327,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.250000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 328,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.100000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 329,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.950000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 330,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.800000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 331,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.650000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 332,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.500000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 333,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.350000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 334,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.200000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 335,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.050000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 336,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.900000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 337,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.750000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 338,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.600000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 339,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.450000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 340,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.300000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 341,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.15000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 342,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.00000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 343,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 344,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 345,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 346,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.400000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 347,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.250000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 348,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.100000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 349,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.950000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 350,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.800000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 351,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.650000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 352,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.500000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 353,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 23,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 463,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.85,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 464,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.700000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 465,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.550000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 466,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.400000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 467,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.250000000000007,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 468,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.10000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 469,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.95000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 470,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.80000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 471,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.650000000000013,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 472,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.500000000000014,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 473,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.350000000000016,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 474,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.200000000000017,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 475,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.05000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 476,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.90000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 477,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.75000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 478,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.600000000000023,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 479,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.450000000000024,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 480,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.300000000000026,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 481,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.150000000000027,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 482,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.00000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 483,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.85000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 484,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.70000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 485,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.550000000000033,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 486,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.400000000000034,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 487,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.250000000000036,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 488,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.100000000000037,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 489,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.95000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 490,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.80000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 491,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.65000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 492,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.500000000000043,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 493,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.350000000000044,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 494,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.200000000000045,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 495,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.050000000000047,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 496,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.90000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 497,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.75000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 498,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.60000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 499,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.450000000000053,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 500,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.300000000000054,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 501,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.150000000000055,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 502,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.000000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 503,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 504,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 505,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 506,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.400000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 507,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.250000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 508,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.100000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 509,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.950000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 510,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.800000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 511,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.650000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 512,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.500000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 513,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.350000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 514,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.200000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 515,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.050000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 516,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.900000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 517,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.750000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 518,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.600000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 519,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.450000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 520,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.300000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 521,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.15000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 522,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.00000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 523,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 524,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 525,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 526,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.400000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 527,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.250000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 528,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.100000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 529,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.950000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 530,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.800000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 531,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.650000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 532,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.500000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 533,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 23,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 643,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.85,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 644,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.700000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 645,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.550000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 646,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.400000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 647,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.250000000000007,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 648,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 22.10000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 649,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.95000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 650,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.80000000000001,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 651,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.650000000000013,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 652,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.500000000000014,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 653,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.350000000000016,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 654,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.200000000000017,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 655,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 21.05000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 656,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.90000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 657,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.75000000000002,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 658,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.600000000000023,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 659,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.450000000000024,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 660,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.300000000000026,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 661,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.150000000000027,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 662,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 20.00000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 663,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.85000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 664,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.70000000000003,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 665,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.550000000000033,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 666,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.400000000000034,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 667,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.250000000000036,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 668,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 19.100000000000037,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 669,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.95000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 670,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.80000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 671,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.65000000000004,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 672,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.500000000000043,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 673,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.350000000000044,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 674,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.200000000000045,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 675,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 18.050000000000047,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 676,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.90000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 677,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.75000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 678,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.60000000000005,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 679,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.450000000000053,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 680,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.300000000000054,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 681,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.150000000000055,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 682,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 17.000000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 683,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 684,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 685,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 686,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.400000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 687,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.250000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 688,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 16.100000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 689,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.950000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 690,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.800000000000065,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 691,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.650000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 692,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.500000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 693,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.350000000000064,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 694,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.200000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 695,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 15.050000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 696,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.900000000000063,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 697,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.750000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 698,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.600000000000062,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 699,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.450000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 700,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.300000000000061,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 701,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.15000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 702,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 14.00000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 703,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.85000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 704,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.70000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 705,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.55000000000006,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 706,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.400000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 707,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.250000000000059,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 708,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.100000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 709,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.950000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 710,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.800000000000058,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 711,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.650000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 712,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 12.500000000000057,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 713,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 23,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    }
+  ],
+  "ops": [],
+  "events": [
+    {
+      "tick": 172,
+      "kind": "perfect",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 7.725000000000023
+    },
+    {
+      "tick": 172,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    },
+    {
+      "tick": 352,
+      "kind": "perfect",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 7.725000000000023
+    },
+    {
+      "tick": 352,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    },
+    {
+      "tick": 532,
+      "kind": "perfect",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 7.725000000000023
+    },
+    {
+      "tick": 532,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    },
+    {
+      "tick": 540,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 712,
+      "kind": "perfect",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 7.725000000000023
+    },
+    {
+      "tick": 712,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 3,
+      "stateHash": "fff261fb",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 60,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 4,
+      "stateHash": "d2dda010",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 3,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "magic",
+          "tier": 1,
+          "damage": 14,
+          "resolveTick": 102,
+          "startTick": 60,
+          "ox": 23,
+          "oy": 10,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 9,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 120,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 5,
+      "stateHash": "33d034da",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 4,
+          "ownerId": 2,
+          "activationId": 3,
+          "x": 20.150000000000027,
+          "y": 10,
+          "px": 20.300000000000026,
+          "py": 10,
+          "vx": -9,
+          "vy": 0,
+          "damage": 14,
+          "remainingM": 29.150000000000027,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 180,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 5,
+      "stateHash": "1196e6f7",
+      "eventCount": 2,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 165,
+          "releaseTick": 173,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 120,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 1,
+            "blocks": 0,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 3.6000000000000005,
+            "manaRaised": 5,
+            "manaReturned": 7.725000000000023,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 240,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 6,
+      "stateHash": "a20773c5",
+      "eventCount": 2,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 165,
+          "releaseTick": 173,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 120,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 1,
+            "blocks": 0,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 3.6000000000000005,
+            "manaRaised": 5,
+            "manaReturned": 7.725000000000023,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 5,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "magic",
+          "tier": 1,
+          "damage": 14,
+          "resolveTick": 282,
+          "startTick": 240,
+          "ox": 23,
+          "oy": 10,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 9,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 300,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 7,
+      "stateHash": "a6f40045",
+      "eventCount": 2,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 165,
+          "releaseTick": 173,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 120,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 1,
+            "blocks": 0,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 3.6000000000000005,
+            "manaRaised": 5,
+            "manaReturned": 7.725000000000023,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 6,
+          "ownerId": 2,
+          "activationId": 5,
+          "x": 20.150000000000027,
+          "y": 10,
+          "px": 20.300000000000026,
+          "py": 10,
+          "vx": -9,
+          "vy": 0,
+          "damage": 14,
+          "remainingM": 29.150000000000027,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 360,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 7,
+      "stateHash": "a4e33c1d",
+      "eventCount": 4,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 345,
+          "releaseTick": 353,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 240,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 2,
+            "blocks": 0,
+            "hits": 2,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 7.200000000000002,
+            "manaRaised": 10,
+            "manaReturned": 15.450000000000045,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 420,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 8,
+      "stateHash": "3df54cdf",
+      "eventCount": 4,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 345,
+          "releaseTick": 353,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 240,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 2,
+            "blocks": 0,
+            "hits": 2,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 7.200000000000002,
+            "manaRaised": 10,
+            "manaReturned": 15.450000000000045,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 7,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "magic",
+          "tier": 1,
+          "damage": 14,
+          "resolveTick": 462,
+          "startTick": 420,
+          "ox": 23,
+          "oy": 10,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 9,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 480,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 9,
+      "stateHash": "a3f7f1f2",
+      "eventCount": 4,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 345,
+          "releaseTick": 353,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 240,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 2,
+            "blocks": 0,
+            "hits": 2,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 7.200000000000002,
+            "manaRaised": 10,
+            "manaReturned": 15.450000000000045,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 8,
+          "ownerId": 2,
+          "activationId": 7,
+          "x": 20.150000000000027,
+          "y": 10,
+          "px": 20.300000000000026,
+          "py": 10,
+          "vx": -9,
+          "vy": 0,
+          "damage": 14,
+          "remainingM": 29.150000000000027,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 540,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 9,
+      "stateHash": "64b8dd87",
+      "eventCount": 7,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 525,
+          "releaseTick": 533,
+          "tier": 2,
+          "lastUnlockTick": 540,
+          "clockAdvanceTicks": 360,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            540
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 3,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 10.799999999999997,
+            "manaRaised": 15,
+            "manaReturned": 23.175000000000068,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 600,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 10,
+      "stateHash": "b2564ac0",
+      "eventCount": 7,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 525,
+          "releaseTick": 533,
+          "tier": 2,
+          "lastUnlockTick": 540,
+          "clockAdvanceTicks": 360,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            540
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 3,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 10.799999999999997,
+            "manaRaised": 15,
+            "manaReturned": 23.175000000000068,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 9,
+          "ownerId": 2,
+          "kind": "projectile",
+          "family": "magic",
+          "tier": 1,
+          "damage": 14,
+          "resolveTick": 642,
+          "startTick": 600,
+          "ox": 23,
+          "oy": 10,
+          "tx": 12,
+          "ty": 10,
+          "speedMps": 9,
+          "rangeM": 32,
+          "widthM": 2,
+          "survives": false
+        }
+      ],
+      "zones": []
+    },
+    {
+      "tick": 660,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 11,
+      "stateHash": "870ff2ba",
+      "eventCount": 7,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 525,
+          "releaseTick": 533,
+          "tier": 2,
+          "lastUnlockTick": 540,
+          "clockAdvanceTicks": 360,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            540
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 3,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 10.799999999999997,
+            "manaRaised": 15,
+            "manaReturned": 23.175000000000068,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 10,
+          "ownerId": 2,
+          "activationId": 9,
+          "x": 20.150000000000027,
+          "y": 10,
+          "px": 20.300000000000026,
+          "py": 10,
+          "vx": -9,
+          "vy": 0,
+          "damage": 14,
+          "remainingM": 29.150000000000027,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 720,
+      "when": "pre-ops",
+      "rng": 7,
+      "nextId": 11,
+      "stateHash": "780ebae6",
+      "eventCount": 9,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12,
+          "y": 10,
+          "px": 12,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 705,
+          "releaseTick": 713,
+          "tier": 2,
+          "lastUnlockTick": 540,
+          "clockAdvanceTicks": 480,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            540
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 4,
+            "blocks": 0,
+            "hits": 4,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 14.399999999999991,
+            "manaRaised": 20,
+            "manaReturned": 30.90000000000009,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Training target",
+          "x": 23,
+          "y": 10,
+          "px": 23,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 10000,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": true,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    }
+  ]
+}

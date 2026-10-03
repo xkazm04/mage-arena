@@ -43,6 +43,7 @@ struct FAbsorbRules
 	double WindowS = 0.0;
 	double PerfectReduction = 0.0;
 	double TierClockAdvanceS = 0.0;
+	double MoveSpeedWhileHeldMult = 0.0;
 	double DrainBase = 0.0;
 	double DrainSubtractPerRank = 0.0;
 	double ManaPerTier = 0.0;
@@ -79,3 +80,32 @@ private:
 	FAbsorbRules LoadedRules;
 	bool bReady = false;
 };
+
+/** Shared absorb decision. Callers decide guarded and fresh; this applies reduction, perfect, mana and the clock reward. */
+struct FAbsorbVerdict
+{
+	double Reduction = 0.0;
+	bool bPerfect = false;
+	double ManaReturned = 0.0;
+	double TierClockAdvanceS = 0.0;
+};
+
+inline FAbsorbVerdict EvaluateAbsorb(const FAbsorbRules& Rules, bool bGuarded, bool bFreshWindow, EAbsorbHitKind Kind, int32 IncomingTier, double NerveRank)
+{
+	FAbsorbVerdict Verdict;
+	if (!bGuarded)
+	{
+		Verdict.Reduction = Rules.ReductionOutsideArc;
+		return Verdict;
+	}
+	if (!(bFreshWindow && !Rules.BlocksPerfect(Kind)))
+	{
+		Verdict.Reduction = Rules.ReductionFor(Kind);
+		return Verdict;
+	}
+	Verdict.Reduction = Rules.PerfectReduction;
+	Verdict.bPerfect = true;
+	Verdict.ManaReturned = Rules.ManaForPerfect(IncomingTier, NerveRank);
+	Verdict.TierClockAdvanceS = Rules.TierClockAdvanceS;
+	return Verdict;
+}

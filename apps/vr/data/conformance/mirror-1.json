@@ -1,0 +1,563 @@
+{
+  "name": "mirror-1",
+  "note": "Mirror I Sheen increases the mana a perfect absorb returns.",
+  "seed": 11,
+  "driver": "arena",
+  "trainingKind": null,
+  "checkpointEvery": 30,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 19,
+  "replaySetup": true,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 10,
+        "y": 10,
+        "label": "Caster",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 1000000000,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Probe",
+          "lines": [
+            "mirror",
+            "tide_orb",
+            "lash"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 13.51,
+        "y": 10,
+        "label": "Foe",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [
+    {
+      "tick": 1,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.51,
+            "y": 10
+          },
+          "slot": 1,
+          "cast": true,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        },
+        "2": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 10,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 2,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.51,
+            "y": 10
+          },
+          "slot": 1,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 8,
+      "inputs": {
+        "1": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 13.51,
+            "y": 10
+          },
+          "slot": 1,
+          "cast": false,
+          "absorb": true,
+          "roll": false,
+          "sprint": false
+        },
+        "2": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 10,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": true,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    },
+    {
+      "tick": 9,
+      "inputs": {
+        "2": {
+          "move": {
+            "x": 0,
+            "y": 0
+          },
+          "aim": {
+            "x": 10,
+            "y": 10
+          },
+          "slot": 0,
+          "cast": false,
+          "absorb": false,
+          "roll": false,
+          "sprint": false
+        }
+      }
+    }
+  ],
+  "ops": [],
+  "events": [
+    {
+      "tick": 1,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 8,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 17,
+      "kind": "perfect",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 6
+    },
+    {
+      "tick": 17,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 11,
+      "nextId": 3,
+      "stateHash": "18557018",
+      "eventCount": 0,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Caster",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 1000000000,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Probe",
+            "lines": [
+              "mirror",
+              "tide_orb",
+              "lash"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 13.51,
+          "y": 10,
+          "px": 13.51,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    },
+    {
+      "tick": 19,
+      "when": "pre-ops",
+      "rng": 11,
+      "nextId": 6,
+      "stateHash": "8c778bb0",
+      "eventCount": 4,
+      "randomDraws": 0,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Caster",
+          "x": 10,
+          "y": 10,
+          "px": 10,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 84.84999999999997,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 8,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 1000000000,
+          "clockAdvanceTicks": 120,
+          "flow": 1,
+          "stored": 1.025,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 187,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Probe",
+            "lines": [
+              "mirror",
+              "tide_orb",
+              "lash"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "mirror": 481
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 1,
+            "blocks": 0,
+            "hits": 1,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 5.400000000000001,
+            "manaRaised": 5,
+            "manaReturned": 6,
+            "casts": 1,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Foe",
+          "x": 13.51,
+          "y": 10,
+          "px": 13.51,
+          "py": 10,
+          "fx": -1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 93.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {
+            "bolt": 23
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 1,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": []
+    }
+  ]
+}
