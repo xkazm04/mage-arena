@@ -275,7 +275,7 @@ This spec is the VR game; in October the desktop feeds the same pipeline (`DESKT
 | Time | Beat |
 |---|---|
 | 0:00-0:15 | Cold start to the dais at dusk. "Raise your palm to begin." |
-| 0:15-1:30 | **Teach (first 60-80 s, in the arena, no menus):**<br>1. A slow water glob comes from the front: raise your palm (ward). A second glob is timed for a perfect, shown by a white ring and a bell.<br>2. Draw the circle, then the dot: Tide Orb hits a dummy.<br>3. A black-core lane lights your pad: flick to blink.<br>Flow and the clock are taught by one wrist cue each, during Wave 1. Each step repeats until done, with no fail state. |
+| 0:15-1:30 | **Teach (first 60-80 s, in the arena, no menus):**<br>1. A slow water glob comes from the front: raise your palm (ward). A second glob is timed for a perfect, shown by a white ring and a bell.<br>2. Draw the circle, then the bar: Tide Orb hits a dummy (owner 2026-10-03: circle + bar is canonical).<br>3. A black-core lane lights your pad: flick to blink.<br>Flow and the clock are taught by one wrist cue each, during Wave 1. Each step repeats until done, with no fail state. |
 | 1:30-2:40 | **Bout 1, soldiers** (Tiro wave 1: conscripts and slingers, tuned HP). Steel teaches the blink. |
 | 2:40-3:00 | Intermission: heal 30% of missing HP, refill, clock reset (`betweenWaves`); pick the Tide Orb IV branch. |
 | 3:00-4:20 | **Bout 2, creatures** (3 cinder hounds whose death bursts are perfect practice, plus 1 mire maw). |

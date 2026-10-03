@@ -2,6 +2,23 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-03 - Sigil shape, and all four schools in every kernel
+
+> "c. circle + bar"
+
+- The canonical sigil is **a circle plus a bar**; the bar's angle selects the line (vertical / horizontal / diagonal),
+  as the recognizer, the glyphs and `DESKTOP-INPUT.md` already do. The plan's teach step is corrected.
+
+> "d. all kernels need all 4 schools - I would start on your side"
+
+- Every channel's kernel will implement **all four schools** (Water, Fire, Earth, Air), not only Water. The pinned
+  desktop/TV kernel has Water only (its duels are water proxies).
+- **VR starts:** the C++ kernel implements the missing schools first, data-driven from the shared data files, and each
+  school is offered back to the desktop/TV channel as a change request with its rules, data and test scenarios.
+  Fire (with Heat) comes first because the competition slice ends with the Fire mage duel; Earth and Air follow.
+- Consequence for conformance: for the new schools the C++ kernel is the reference until the desktop/TV channel ports
+  them; their scenarios are kept separate from the TS-generated vectors so the existing 45 stay byte-identical.
+
 ## 2026-10-02 - One repository for all channels
 
 > "try to at some point merge the codebases so we don't split folder for each subproject"
