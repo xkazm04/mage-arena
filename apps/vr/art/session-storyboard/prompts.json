@@ -1,0 +1,115 @@
+{
+  "card": "A09",
+  "purpose": "design storyboard of the 10-minute session (risk R0: game design) - style-neutral sketch frames",
+  "style_block": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers.",
+  "items": [
+    {
+      "asset": "01-cold-start",
+      "time": "0:00",
+      "beat": "Cold start at dusk",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. The arena is empty and quiet at dusk, torches lit along the wall, both hands resting on the knees, a faint glow on the bronze cuff on the left wrist inviting the player to raise a palm.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/01-cold-start.jpg"
+    },
+    {
+      "asset": "02-teach-ward",
+      "time": "0:20",
+      "beat": "Teach 1: raise the palm",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. A slow, large turquoise water glob drifts toward the player from straight ahead; the left palm is raised and a curved translucent water shield arc forms in front of it.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/02-teach-ward.jpg"
+    },
+    {
+      "asset": "03-teach-perfect",
+      "time": "0:35",
+      "beat": "Teach 1b: the perfect absorb",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. A second water glob meets the freshly raised palm at the exact moment of impact: a bright white ring flashes around the shield and droplets stream back into the palm.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/03-teach-perfect.jpg"
+    },
+    {
+      "asset": "04-teach-sigil",
+      "time": "0:50",
+      "beat": "Teach 2: draw a spell",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. The right index finger traces a glowing turquoise circle crossed by a bar in the air; a water orb flies from it and splashes against a wooden training dummy in the sand.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/04-teach-sigil.jpg"
+    },
+    {
+      "asset": "05-teach-blink",
+      "time": "1:10",
+      "beat": "Teach 3: blink away",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. A dark lane glows on the stone pad under the player's seat as a black spell with a red rim gathers ahead; the right hand flicks toward one of two other glowing pads to the side.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/05-teach-blink.jpg"
+    },
+    {
+      "asset": "06-bout-soldiers",
+      "time": "1:45",
+      "beat": "Bout 1: soldiers",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. Roman conscripts with rectangular shields and slingers advance across the sand; a steel spear is in flight toward the player, grey and sharp against the sky.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/06-bout-soldiers.jpg"
+    },
+    {
+      "asset": "07-intermission",
+      "time": "2:45",
+      "beat": "Intermission: choose a branch",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. A quiet moment between bouts: the left forearm is raised, the bronze cuff glowing with lit runes, and two small floating sigil choices hover above the open right palm.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/07-intermission.jpg"
+    },
+    {
+      "asset": "08-bout-creatures",
+      "time": "3:15",
+      "beat": "Bout 2: creatures",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. Three lean hounds made of embers charge across the sand, one bursting into sparks against the player's raised water shield; a squat mud beast with a huge mouth lurks behind them.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/08-bout-creatures.jpg"
+    },
+    {
+      "asset": "09-fire-mage-entrance",
+      "time": "4:25",
+      "beat": "The Fire mage enters",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. Through a gate under the stands, a broad bearded fire mage in a crimson cloak walks into the arena, flames curling around his hands, the crowd on its feet.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/09-fire-mage-entrance.jpg"
+    },
+    {
+      "asset": "10-duel-sunfall",
+      "time": "5:15",
+      "beat": "Duel: the unstoppable spell",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. The fire mage hurls a huge black sphere with a jagged red rim high into the sky above the player; a red ring marks the player's pad; the player's hand flicks to blink to a side pad.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/10-duel-sunfall.jpg"
+    },
+    {
+      "asset": "11-finisher",
+      "time": "6:15",
+      "beat": "The finisher",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. Both hands press together in a seal; a vast orb of water surges forward toward the fire mage in a frozen slow-motion moment, the crowd blurred and roaring.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/11-finisher.jpg"
+    },
+    {
+      "asset": "12-victory",
+      "time": "6:35",
+      "beat": "Victory",
+      "aspect": "16:9",
+      "prompt": "Style: rough film storyboard frame, loose confident pencil lines with grey marker wash on off-white paper, only the magic is coloured (turquoise for water, vermilion for fire, black with a red rim for the unstoppable spell), clear staging, readable at a glance, no panel border, no text, no captions, no letters, no numbers. First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands in the lower foreground. The fire mage kneels defeated on the steaming sand, the bronze cuff on the player's wrist fully lit with four runes, the arena quiet and golden in the last light.",
+      "negative": "text, letters, numbers, captions, speech bubbles, watermark, logo, signature, panel borders, VR headset, controllers, gloves, extra fingers, photorealistic render",
+      "path": "apps/vr/art/session-storyboard/12-victory.jpg"
+    }
+  ]
+}

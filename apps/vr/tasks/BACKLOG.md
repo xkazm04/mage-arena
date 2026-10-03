@@ -8,3 +8,4 @@
 - [ ] Fire mage hair is inconsistent between model sheets (01 key poses: short hair; 02 cast sequence: bald). Settle the head when modelling starts.
 - [ ] SFX loudness is only peak-normalised (all cues -1 dBFS peak); balance relative loudness (e.g. ui-pause, flow-stack quieter than impacts) when audio is wired in Unreal. Crowd loop join may click softly (A05 report). From A05 review 2026-10-03.
 - [ ] Environment kit (A07) wall pieces carry medieval crenellations - not Roman amphitheatre; drop them when modelling. The "low stone seat" came out as a bench with a backrest; the player seat should be a backless low block. From A07 review 2026-10-03.
+- [ ] OWNER: the plan's teach step says "draw the circle, then the dot" (PROJECT-PLAN section 6 session table) but the recognizer, the glyphs and DESKTOP-INPUT use circle + bar for the three lines. Decide which is canonical; the session storyboard (A09) shows circle + bar.
