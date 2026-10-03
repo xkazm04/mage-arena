@@ -1,0 +1,111 @@
+{
+  "card": "A06",
+  "purpose": "VFX concept frames per shortlisted style for the style pick and the Niagara work",
+  "styles": [
+    {
+      "id": "13-screen-print",
+      "name": "Screen-Print Poster",
+      "palette": "paper #F1E7CF, teal #1E6F73, sunset orange #E8743B, deep plum #3B2340, mustard #E2B33C",
+      "items": [
+        {
+          "asset": "01-water-bolt",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. A single small water projectile in flight across an arena, seen from a seated first-person view: a tight turquoise orb with a short swirling tail and droplets, crisp silhouette against the background, clearly readable at a distance of eight metres. No characters except the casting hand at the lower edge. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/vfx-concepts/13-screen-print/01-water-bolt.jpg"
+        },
+        {
+          "asset": "02-ward-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. First-person view of a raised left palm projecting a curved translucent water shield shaped like a 140-degree arc in front of the player; an incoming vermilion fire bolt hits the shield and is swallowed in a ring-shaped splash and ripple across the arc. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/vfx-concepts/13-screen-print/02-ward-absorb.jpg"
+        },
+        {
+          "asset": "03-perfect-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. The instant of a perfect magical block in first person: the water shield in front of a raised palm flashes into a bright crystalline ring that bursts outward, droplets turning to sparkles that stream back into the palm, a bronze cuff on the wrist with one rune lighting up. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/vfx-concepts/13-screen-print/03-perfect-absorb.jpg"
+        },
+        {
+          "asset": "04-unblockable-telegraph",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. An unstoppable spell gathering across the arena, seen from a seated first-person view: a dark projectile with a black core and a jagged red rim forming in front of an enemy mage, a thin red ground ring marking where it will land near the player, an ominous warning read at a glance. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/vfx-concepts/13-screen-print/04-unblockable-telegraph.jpg"
+        }
+      ]
+    },
+    {
+      "id": "25-moonlit-silver",
+      "name": "Moonlit Silver Nocturne",
+      "palette": "moon silver #C9D3DE, slate #4C5A6E, night blue #1A2235, water #19E0E0, fire #FF3B1F",
+      "items": [
+        {
+          "asset": "01-water-bolt",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. A single small water projectile in flight across an arena, seen from a seated first-person view: a tight turquoise orb with a short swirling tail and droplets, crisp silhouette against the background, clearly readable at a distance of eight metres. No characters except the casting hand at the lower edge. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/01-water-bolt.jpg"
+        },
+        {
+          "asset": "02-ward-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. First-person view of a raised left palm projecting a curved translucent water shield shaped like a 140-degree arc in front of the player; an incoming vermilion fire bolt hits the shield and is swallowed in a ring-shaped splash and ripple across the arc. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/02-ward-absorb.jpg"
+        },
+        {
+          "asset": "03-perfect-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. The instant of a perfect magical block in first person: the water shield in front of a raised palm flashes into a bright crystalline ring that bursts outward, droplets turning to sparkles that stream back into the palm, a bronze cuff on the wrist with one rune lighting up. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/03-perfect-absorb.jpg"
+        },
+        {
+          "asset": "04-unblockable-telegraph",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. An unstoppable spell gathering across the arena, seen from a seated first-person view: a dark projectile with a black core and a jagged red rim forming in front of an enemy mage, a thin red ground ring marking where it will land near the player, an ominous warning read at a glance. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/04-unblockable-telegraph.jpg"
+        }
+      ]
+    },
+    {
+      "id": "30-chalk-slate",
+      "name": "Chalk & Slate",
+      "palette": "slate #2A2F33, chalk white #EDEDE8, chalk blue #7CC4E8, chalk red #F06A4D, chalk yellow #F2D06B",
+      "items": [
+        {
+          "asset": "01-water-bolt",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. A single small water projectile in flight across an arena, seen from a seated first-person view: a tight turquoise orb with a short swirling tail and droplets, crisp silhouette against the background, clearly readable at a distance of eight metres. No characters except the casting hand at the lower edge. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/vfx-concepts/30-chalk-slate/01-water-bolt.jpg"
+        },
+        {
+          "asset": "02-ward-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. First-person view of a raised left palm projecting a curved translucent water shield shaped like a 140-degree arc in front of the player; an incoming vermilion fire bolt hits the shield and is swallowed in a ring-shaped splash and ripple across the arc. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/vfx-concepts/30-chalk-slate/02-ward-absorb.jpg"
+        },
+        {
+          "asset": "03-perfect-absorb",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. The instant of a perfect magical block in first person: the water shield in front of a raised palm flashes into a bright crystalline ring that bursts outward, droplets turning to sparkles that stream back into the palm, a bronze cuff on the wrist with one rune lighting up. Five-fingered hand, no gloves, no devices. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/vfx-concepts/30-chalk-slate/03-perfect-absorb.jpg"
+        },
+        {
+          "asset": "04-unblockable-telegraph",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. An unstoppable spell gathering across the arena, seen from a seated first-person view: a dark projectile with a black core and a jagged red rim forming in front of an enemy mage, a thin red ground ring marking where it will land near the player, an ominous warning read at a glance. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/vfx-concepts/30-chalk-slate/04-unblockable-telegraph.jpg"
+        }
+      ]
+    }
+  ]
+}
