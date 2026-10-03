@@ -1,6 +1,6 @@
 # T09 - Fire school and Heat in the C++ kernel (VR-first), with an independent test oracle
 
-Status: open (queued after T08 - both touch the kernel; one Unreal build at a time)
+Status: dispatched 2026-10-03
 Max turns: 300
 
 ## Goal
@@ -49,3 +49,6 @@ node apps/vr/tools/conformance/generate.mjs     # 45 TS vectors byte-identical
 powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
 ```
+
+## Note from the orchestrator (2026-10-03)
+The design gate `MageArenaDesign.Session.Wave1Seated` is red on purpose (DF-001, owner decision pending). Acceptance means the regular `MageArena.*` suite green; do not touch the design gate or its numbers.
