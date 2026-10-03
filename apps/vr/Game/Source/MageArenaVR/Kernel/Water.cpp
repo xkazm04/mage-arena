@@ -374,6 +374,9 @@ void ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Pr
 	Hit.Tier = Projectile.Tier;
 	Hit.Source = Target.Pos;
 	Hit.bBolt = Projectile.bBolt;
+	Hit.HeatOnHit = Projectile.HeatOnHit;
+	Hit.bSuppressPerfect = Projectile.bSuppressPerfect;
+	Hit.bPierceShields = Projectile.bPierceShields;
 	FProjectile& Reflected = SpawnProjectile(State, Hit, Target.Pos, Direction, Speed, Range);
 	Reflected.bReflected = true;
 	Reflected.BurstRadiusM = Burst;

@@ -1,6 +1,6 @@
 # T09 - Fire school and Heat in the C++ kernel (VR-first), with an independent test oracle
 
-Status: dispatched 2026-10-03
+Status: done (verified 2026-10-03, agy review: no defects; balance finding DF-002)
 Max turns: 300
 
 ## Goal

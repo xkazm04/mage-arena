@@ -62,8 +62,9 @@ void SpawnWave(FGames& Games)
 			}
 			else
 			{
-				// games.ts labels the duelists as water proxies. The pinned machine has no fire resolver.
-				Id = AddMage(Games.State, 1, Pos, TEXT("Tiro entrant \u00B7 Water proxy")).Id;
+				// games.ts labels the duelists as water proxies. Fire duels opt in and keep that preset attached.
+				const TCHAR* Label = Games.bFireMages ? TEXT("Tiro entrant \u00B7 Ember mage") : TEXT("Tiro entrant \u00B7 Water proxy");
+				Id = AddMage(Games.State, 1, Pos, Label).Id;
 				const int32 PresetIndex = Games.Wave - 2;
 				checkf(Data.OpponentPresets.IsValidIndex(PresetIndex), TEXT("no opponent preset for Tiro wave %d"), Games.Wave);
 				const FComposition* Preset = FindPreset(Data.OpponentPresets[PresetIndex]);
@@ -71,8 +72,14 @@ void SpawnWave(FGames& Games)
 				FActor* Actor = SimFindActor(Games.State, Id);
 				check(Actor);
 				Actor->Water = NewWaterState(Preset);
+				if (Games.bFireMages)
+				{
+					Actor->Fire.bSchool = true;
+				}
 				AttachMageAI(*Actor, Spawn.Competence, Games.State.Tick);
-				Kind = FString::Printf(TEXT("Water proxy %s"), *JsNumber(Spawn.Competence));
+				Kind = Games.bFireMages
+					? FString::Printf(TEXT("Ember mage %s"), *JsNumber(Spawn.Competence))
+					: FString::Printf(TEXT("Water proxy %s"), *JsNumber(Spawn.Competence));
 			}
 			FSpawnRecord Record;
 			Record.Wave = Games.Wave + 1;
@@ -102,7 +109,7 @@ bool FiniteActor(const FActor& Actor)
 }
 }
 
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer)
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer, bool bFireMages)
 {
 	const FKernelData& Data = KernelData();
 	if (Data.ArenaTiers.Num() == 0 || Data.Presets.Num() == 0)
@@ -116,6 +123,7 @@ bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, i
 	}
 	const FComposition* Used = Composition ? Composition : &Data.Presets[0];
 	Out = FGames();
+	Out.bFireMages = bFireMages;
 	Out.State = CreateArena(Seed);
 	Out.PlayerId = AddMage(Out.State, 0, Data.PlayerSpawn, TEXT("Cassia")).Id;
 	FActor* Player = SimFindActor(Out.State, Out.PlayerId);

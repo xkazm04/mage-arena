@@ -2,6 +2,7 @@
 
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
+#include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
 #include "Kernel/Water.h"
 
@@ -108,7 +109,8 @@ TArray<FThreat> CollectThreats(const FArenaState& State, const FActor& Self)
 		}
 		const FPendingCast& Pending = Enemy.Pending.GetValue();
 		const FSpell* Spell = Pending.SpellId.IsSet() ? FindSpellById(Pending.SpellId.GetValue()) : nullptr;
-		if (Spell && (Spell->Kind == TEXT("self") || Spell->Kind == TEXT("passive")))
+		// A dash is mobility. It is not a blow the defender has to answer.
+		if (Spell && (Spell->Kind == TEXT("self") || Spell->Kind == TEXT("passive") || Spell->Kind == TEXT("dash")))
 		{
 			continue;
 		}
@@ -128,6 +130,12 @@ TArray<FThreat> CollectThreats(const FArenaState& State, const FActor& Self)
 			bAimed = SimDistance(Centre, Self.Pos) <= Spell->RangeM + Self.Radius
 				&& SimInArc(SimSub(Pending.Aim, Enemy.Pos), SimSub(Self.Pos, Centre), Spell->ArcDeg);
 		}
+		else if (Spell && (Spell->Kind == TEXT("line") || Spell->Kind == TEXT("beam")))
+		{
+			const FSimVec Beam = SimUnit(SimSub(Pending.Aim, Enemy.Pos));
+			const FSimVec End = SimAdd(Enemy.Pos, SimScale(Beam, Spell->RangeM));
+			bAimed = SimSegmentHit(Enemy.Pos, End, Self.Pos, Self.Radius).IsSet();
+		}
 		int32 Impact = Pending.ReleaseTick;
 		if (Spell && Spell->Kind == TEXT("projectile") && Spell->SpeedMps > 0.0)
 		{
@@ -139,6 +147,22 @@ TArray<FThreat> CollectThreats(const FArenaState& State, const FActor& Self)
 		Threat.Origin = Centre;
 		Threat.ImpactTick = Impact;
 		Threat.bAimed = bAimed;
+		Result.Add(Threat);
+	}
+	for (const FActor& Enemy : State.Actors)
+	{
+		if (Enemy.Team == Self.Team || Enemy.bDown || !Enemy.Fire.Channel.IsSet() || !HasLineOfSight(State, Self.Pos, Enemy.Pos))
+		{
+			continue;
+		}
+		const FFireChannel& Channel = Enemy.Fire.Channel.GetValue();
+		const FSimVec End = SimAdd(Enemy.Pos, SimScale(Enemy.Facing, Channel.RangeM));
+		FThreat Threat;
+		Threat.Id = -Enemy.Id;
+		Threat.Family = Channel.Family;
+		Threat.Origin = Enemy.Pos;
+		Threat.ImpactTick = Channel.NextTick;
+		Threat.bAimed = SimSegmentHit(Enemy.Pos, End, Self.Pos, Self.Radius).IsSet();
 		Result.Add(Threat);
 	}
 	return Result;
@@ -202,8 +226,131 @@ bool Useful(const FSpell& Spell, const FActor& Self, const TArray<FThreat>& Seen
 	return Spell.Kind == TEXT("zone") || Spell.Effect == TEXT("decoy") || Spell.Effect == TEXT("sheen") || Spell.Effect == TEXT("encase");
 }
 
+struct FFireChoice
+{
+	int32 Slot = 0;
+	const FFireSpell* Spell = nullptr;
+};
+
+bool FireOfferable(const FArenaState& State, const FActor& Self, const FFireSpell& Spell, double Distance)
+{
+	if (Spell.Tier > Self.Tier)
+	{
+		return false;
+	}
+	if (FireCooldownUntil(Self, Spell.Id) > State.Tick + 1)
+	{
+		return false;
+	}
+	if (Spell.Mana > Self.Mana)
+	{
+		return false;
+	}
+	// Cinder Step is a dash, not a ranged attack, so distance does not bar it. Self spells have no reach.
+	if (Spell.Kind != TEXT("dash") && Spell.Kind != TEXT("self") && Spell.RangeM > 0.0 && Distance > Spell.RangeM)
+	{
+		return false;
+	}
+	return true;
+}
+
+bool FireUseful(const FFireSpell& Spell)
+{
+	return Spell.Damage > 0.0 || Spell.Kind == TEXT("zone");
+}
+
+void ChooseFireSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance)
+{
+	const TArray<FFireSpell>& Spells = KernelData().FireSpells;
+	int32 SunSlot = INDEX_NONE;
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		if (Spells[Slot].Id == TEXT("fire_sunfall"))
+		{
+			SunSlot = Slot;
+		}
+	}
+	const bool bOpening = Self.Tier >= 4 && !Self.Fire.bSunfallLoosed && Spells.IsValidIndex(SunSlot);
+	const FFireSpell* Sun = bOpening ? &Spells[SunSlot] : nullptr;
+	// Session beat, on top of the competence curve: the first Sunfall is the cast and does not draw the spell random.
+	// Marked for the owner in docs/schools/FIRE.md. An interrupt leaves the flag clear, so the next decision tries again.
+	if (Sun && FireOfferable(State, Self, *Sun, Distance))
+	{
+		Brain.Input.Slot = SunSlot;
+		Brain.Input.bCast = true;
+		return;
+	}
+	// Short of Sunfall's mana, only a spell that leaves that cost behind may be cast. Otherwise withhold and regen.
+	const bool bBank = Sun && Self.Mana < Sun->Mana;
+	TArray<FFireChoice> Available;
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		const FFireSpell& Spell = Spells[Slot];
+		if (!FireOfferable(State, Self, Spell, Distance))
+		{
+			continue;
+		}
+		if (bBank && Self.Mana - Spell.Mana < Sun->Mana)
+		{
+			continue;
+		}
+		Available.Add({Slot, &Spell});
+	}
+	if (Available.Num() == 0)
+	{
+		return;
+	}
+	TArray<FFireChoice> UsefulChoices;
+	for (const FFireChoice& Choice : Available)
+	{
+		if (FireUseful(*Choice.Spell))
+		{
+			UsefulChoices.Add(Choice);
+		}
+	}
+	const TArray<FFireChoice>& Choices = UsefulChoices.Num() > 0 ? UsefulChoices : Available;
+	const FFireChoice* Picked = &Choices[0];
+	if (Profile.Level < 2.0)
+	{
+		const double Roll = ArenaRandom(State, FString::Printf(TEXT("mage %d spell"), Self.Id));
+		const int32 Index = static_cast<int32>(std::floor(Roll * static_cast<double>(Choices.Num())));
+		Picked = &Choices[Index];
+	}
+	else
+	{
+		TArray<FFireChoice> Ordered = Choices;
+		std::stable_sort(Ordered.GetData(), Ordered.GetData() + Ordered.Num(), [&](const FFireChoice& Left, const FFireChoice& Right)
+		{
+			const bool bCounterLeft = Profile.Level >= 3.0 && Target.bAbsorb && Left.Spell->Family == TEXT("unblockable");
+			const bool bCounterRight = Profile.Level >= 3.0 && Target.bAbsorb && Right.Spell->Family == TEXT("unblockable");
+			if (bCounterLeft != bCounterRight)
+			{
+				return bCounterLeft;
+			}
+			const double LeftValue = Left.Spell->Damage;
+			const double RightValue = Right.Spell->Damage;
+			if (LeftValue != RightValue)
+			{
+				return LeftValue > RightValue;
+			}
+			return Left.Slot < Right.Slot;
+		});
+		Picked = &Ordered[0];
+		Brain.Input.Slot = Picked->Slot;
+		Brain.Input.bCast = true;
+		return;
+	}
+	Brain.Input.Slot = Picked->Slot;
+	Brain.Input.bCast = true;
+}
+
 void ChooseSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance, const TArray<FThreat>& Seen)
 {
+	if (Self.Fire.bSchool)
+	{
+		ChooseFireSpell(State, Self, Brain, Profile, Target, Distance);
+		return;
+	}
 	const FKernelData& Data = KernelData();
 	TArray<FChoice> Available;
 	for (int32 Slot = 0; Slot <= Data.LineSlots; ++Slot)
@@ -441,7 +588,15 @@ FInputFrame MageInput(FArenaState& State, FActor& Self)
 				}
 				const FSimVec AimPoint = Target->Water.Decoy.IsSet() ? Target->Water.Decoy->Pos : Target->Pos;
 				const FSimVec Velocity = SimSub(Target->Pos, Target->PreviousPos);
-				const double Lead = Distance / Data.BoltSpeedMps * Data.SimStepHz * Data.MageAimLeadFraction;
+				double BoltSpeed = Data.BoltSpeedMps;
+				if (Self.Fire.bSchool)
+				{
+					if (const FFireSpell* Bolt = FindFireSpell(TEXT("fire_bolt")))
+					{
+						BoltSpeed = Bolt->SpeedMps;
+					}
+				}
+				const double Lead = Distance / BoltSpeed * Data.SimStepHz * Data.MageAimLeadFraction;
 				const FSimVec Prediction = Target->Water.Decoy.IsSet() ? AimPoint : SimAdd(AimPoint, SimScale(Velocity, Lead));
 				const double Error = (ArenaRandom(State, FString::Printf(TEXT("mage %d aim"), Self.Id)) * 2.0 - 1.0) * Profile.AimErrorDeg * SimPi / 180.0;
 				const FSimVec AimDirection = SimRotate(SimSub(Prediction, Self.Pos), Error);

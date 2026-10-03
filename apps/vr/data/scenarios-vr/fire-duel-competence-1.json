@@ -1,0 +1,16 @@
+{
+  "seed": 40000,
+  "wave": 2,
+  "outcome": "loss",
+  "phase": "lost",
+  "ticks": 960,
+  "durationS": 16.0,
+  "hash": "aadba881",
+  "sunfallCast": 0,
+  "sunfallRelease": 0,
+  "sunfall": 0,
+  "hp": 0.0,
+  "mana": 20.875,
+  "wavesCleared": 0,
+  "kind": "Ember mage 1"
+}

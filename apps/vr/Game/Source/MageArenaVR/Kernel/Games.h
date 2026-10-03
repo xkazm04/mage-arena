@@ -33,6 +33,8 @@ struct FGames
 	int32 WaveStartTick = 0;
 	TOptional<FGamesResult> Result;
 	TArray<FSpawnRecord> SpawnLog;
+	// False keeps the pinned water-proxy duelists. Fire scenarios opt in.
+	bool bFireMages = false;
 };
 
 struct FFightReport
@@ -55,7 +57,7 @@ struct FFightReport
 };
 
 // False when the wave index is outside Tiro. Does not checkf: the caller is a test.
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false);
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false, bool bFireMages = false);
 void StepGames(FGames& Games, const FInputFrame* PlayerInput = nullptr);
 // False unless the phase is intermission.
 bool TryAdvanceGames(FGames& Games);

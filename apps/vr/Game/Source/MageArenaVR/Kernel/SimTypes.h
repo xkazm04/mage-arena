@@ -130,6 +130,66 @@ struct FHit
 	bool bBolt = false;
 	bool bReaction = false;
 	FString Delivery;
+	// Fire spells copy these. Water hits leave them at the defaults, so absorb and shields stay as they were.
+	double HeatOnHit = 0.0;
+	bool bSuppressPerfect = false;
+	bool bPierceShields = false;
+};
+
+struct FFireCooldown
+{
+	FString SpellId;
+	int32 Until = 0;
+};
+
+// A cinder trail is the segment the dash actually traveled. Ticks dedup per sim tick and target.
+struct FFireTrail
+{
+	FSimVec From;
+	FSimVec To;
+	int32 Until = 0;
+	int32 NextTick = 0;
+	int32 IntervalTicks = 1;
+	double Damage = 0.0;
+	double HeatOnHit = 0.0;
+	int32 Tier = 0;
+	FString Family;
+	FString SpellId;
+};
+
+struct FFireChannel
+{
+	FString SpellId;
+	int32 Until = 0;
+	int32 NextTick = 0;
+	int32 IntervalTicks = 1;
+	int32 TicksDone = 0;
+	double Damage = 0.0;
+	double HeatOnHit = 0.0;
+	double RangeM = 0.0;
+	int32 Tier = 0;
+	FString Family;
+	bool bPierceShields = false;
+	bool bPerfectOnlyFirstTick = false;
+};
+
+// Heat exists only while bSchool is set. Water actors keep the zeros.
+struct FFireState
+{
+	bool bSchool = false;
+	double Heat = 0.0;
+	double MaxHeat = 0.0;
+	int32 LastGainTick = NeverTick;
+	int32 LockUntil = 0;
+	double LockValue = 0.0;
+	double AbsorbDrainSpellMult = 1.0;
+	int32 AbsorbDrainSpellUntil = 0;
+	int32 SunfallCastTick = 0;
+	int32 SunfallTick = 0;
+	bool bSunfallLoosed = false;
+	TArray<FFireCooldown> Cooldowns;
+	TArray<FFireTrail> Trails;
+	TOptional<FFireChannel> Channel;
 };
 
 struct FEnemyBrain
@@ -213,6 +273,7 @@ struct FActor
 	int32 ReleaseTick = NeverTick;
 	bool bAbsorbExhausted = false;
 	FWaterState Water;
+	FFireState Fire;
 	TOptional<FEnemyBrain> Enemy;
 	TOptional<FMageBrain> MageAI;
 	TOptional<double> SpeedMps;
@@ -253,6 +314,9 @@ struct FProjectile
 	double BurstRadiusM = 0.0;
 	bool bPiercing = false;
 	bool bReflected = false;
+	double HeatOnHit = 0.0;
+	bool bSuppressPerfect = false;
+	bool bPierceShields = false;
 };
 
 struct FZone
@@ -288,6 +352,11 @@ struct FTelegraph
 	double PullM = 0.0;
 	bool bSurvivesOwner = false;
 	double WallStunS = 0.0;
+	double HeatOnHit = 0.0;
+	bool bSuppressPerfect = false;
+	bool bPierceShields = false;
+	// Set once a cast has finished releasing. Interrupt keeps these; it still clears a windup.
+	bool bCommitted = false;
 };
 
 struct FArenaEvent

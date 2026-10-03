@@ -2,6 +2,7 @@
 
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
+#include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
 #include "Kernel/Water.h"
 
@@ -115,7 +116,11 @@ void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	}
 	if (Actor.bAbsorb)
 	{
-		const double Cost = Data.Absorb.DrainPerSecond(Actor.Ranks.Nerve) * WardDrainMult(State, Actor) * SimDt();
+		double Cost = Data.Absorb.DrainPerSecond(Actor.Ranks.Nerve) * WardDrainMult(State, Actor) * SimDt();
+		if (Actor.Fire.bSchool)
+		{
+			Cost *= FireAbsorbDrainMult(State, Actor);
+		}
 		const double Paid = std::min(Actor.Mana, Cost);
 		Actor.Mana -= Paid;
 		Actor.Metrics.ManaDrained += Paid;
@@ -133,7 +138,8 @@ void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	const FKernelData& Data = KernelData();
 	Actor.PreviousPos = Actor.Pos;
 	const bool bRooted = State.Tick < Actor.Water.RootUntil
-		|| (Actor.Pending.IsSet() && Actor.Pending->SpellId.IsSet() && Actor.Pending->SpellId.GetValue() == TEXT("mend:4:base"));
+		|| (Actor.Pending.IsSet() && Actor.Pending->SpellId.IsSet() && Actor.Pending->SpellId.GetValue() == TEXT("mend:4:base"))
+		|| FireCastRoots(Actor);
 	if (!bRooted && Input.bRoll && !Actor.LastInput.bRoll && State.Tick >= Actor.RollUntil && State.Tick >= Actor.RecoveryUntil
 		&& Actor.Stamina >= Data.RollStaminaCost)
 	{
@@ -193,6 +199,11 @@ void ReleaseCast(FArenaState& State, FActor& Actor)
 		ReleaseSpell(State, Actor);
 		return;
 	}
+	if (Actor.Pending->Kind == TEXT("fire"))
+	{
+		ReleaseFire(State, Actor);
+		return;
+	}
 	const FKernelData& Data = KernelData();
 	const FPendingCast Pending = Actor.Pending.GetValue();
 	Actor.Pending.Reset();
@@ -239,7 +250,7 @@ void ReleaseCast(FArenaState& State, FActor& Actor)
 
 void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 {
-	if (!Input.bCast || Actor.Pending.IsSet() || Actor.bAbsorb || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
+	if (!Input.bCast || Actor.Pending.IsSet() || FireChannelBusy(Actor) || Actor.bAbsorb || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
 	{
 		return;
 	}
@@ -273,6 +284,14 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 		Pending.ActivationId = State.NextId++;
 		Actor.Pending = Pending;
 		Actor.CooldownUntil = Pending.ReleaseTick + SimTicks(Data.StaffRecoveryS);
+	}
+	else if (Actor.Fire.bSchool)
+	{
+		if (TryFireCast(State, Actor, Input))
+		{
+			ReleaseCast(State, Actor);
+		}
+		return;
 	}
 	else
 	{
@@ -321,6 +340,9 @@ void UpdateTelegraphs(FArenaState& State)
 			Hit.Tier = Telegraph.Tier;
 			Hit.Source = Telegraph.Source;
 			Hit.bBolt = Telegraph.bBolt;
+			Hit.HeatOnHit = Telegraph.HeatOnHit;
+			Hit.bSuppressPerfect = Telegraph.bSuppressPerfect;
+			Hit.bPierceShields = Telegraph.bPierceShields;
 			SpawnProjectile(State, Hit, Telegraph.Origin, Direction, Telegraph.SpeedMps, Telegraph.RangeM);
 		}
 		else
@@ -359,6 +381,9 @@ void UpdateTelegraphs(FArenaState& State)
 				Hit.Tier = Telegraph.Tier;
 				Hit.Source = Telegraph.Kind == TEXT("area") ? Telegraph.Target : Telegraph.Source;
 				Hit.bBolt = Telegraph.bBolt;
+				Hit.HeatOnHit = Telegraph.HeatOnHit;
+				Hit.bSuppressPerfect = Telegraph.bSuppressPerfect;
+				Hit.bPierceShields = Telegraph.bPierceShields;
 				Hit.Delivery = Telegraph.Kind == TEXT("melee") ? TEXT("melee") : TEXT("area");
 				const FSimHitResult Result = ResolveHit(State, Target, Hit);
 				if (!bImmune && !Result.bPerfect && !Target.bDown)
@@ -427,6 +452,9 @@ void UpdateProjectiles(FArenaState& State)
 			Hit.Source = Projectile.Source;
 			Hit.bBolt = Projectile.bBolt;
 			Hit.bReaction = Projectile.bReaction;
+			Hit.HeatOnHit = Projectile.HeatOnHit;
+			Hit.bSuppressPerfect = Projectile.bSuppressPerfect;
+			Hit.bPierceShields = Projectile.bPierceShields;
 			Hit.Delivery = (Projectile.BurstRadiusM > 0.0 || Projectile.bPiercing) ? TEXT("area") : TEXT("projectile");
 			const FSimHitResult Result = ResolveHit(State, *First, Hit);
 			Projectile.HitIds.Add(First->Id);
@@ -573,7 +601,8 @@ void Interrupt(FArenaState& State, FActor& Actor)
 	}
 	const bool bHadCast = Actor.Pending.IsSet() || bOwned;
 	Actor.Pending.Reset();
-	State.Telegraphs.RemoveAll([&Actor](const FTelegraph& Telegraph) { return Telegraph.OwnerId == Actor.Id; });
+	CancelFireChannel(Actor);
+	State.Telegraphs.RemoveAll([&Actor](const FTelegraph& Telegraph) { return Telegraph.OwnerId == Actor.Id && !Telegraph.bCommitted; });
 	if (bHadCast)
 	{
 		Emit(State, TEXT("interrupt"), Actor);
@@ -590,13 +619,13 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit)
 	const FKernelData& Data = KernelData();
 	const FEnemySpec* Spec = Target.Enemy.IsSet() ? EnemySpecFor(Target) : nullptr;
 	const bool bShielded = Spec && Spec->FrontBlockDeg.IsSet() && Spec->FrontBlockDeg.GetValue() != 0.0
-		&& Hit.Delivery != TEXT("area") && Hit.Family != TEXT("unblockable")
+		&& Hit.Delivery != TEXT("area") && Hit.Family != TEXT("unblockable") && !Hit.bPierceShields
 		&& SimInArc(Target.Facing, SimSub(Hit.Source, Target.Pos), Spec->FrontBlockDeg.GetValue());
 	const double Armour = Hit.bBolt ? (Spec && Spec->ArmourMultVsBolt.IsSet() ? Spec->ArmourMultVsBolt.GetValue() : 1.0) : 1.0;
 	const double Block = bShielded ? (Spec->FrontBlockMult.IsSet() ? Spec->FrontBlockMult.GetValue() : 1.0) : 1.0;
 	const double Incoming = Hit.Damage * Armour * Block;
 	const bool bGuarded = Target.bAbsorb && SimInArc(Target.Facing, SimSub(Hit.Source, Target.Pos), Data.Absorb.ArcDeg);
-	const bool bFreshWindow = State.Tick - Target.AbsorbFreshTick <= SimTicks(Data.Absorb.WindowS);
+	const bool bFreshWindow = !Hit.bSuppressPerfect && State.Tick - Target.AbsorbFreshTick <= SimTicks(Data.Absorb.WindowS);
 	const FAbsorbVerdict Verdict = EvaluateAbsorb(Data.Absorb, bGuarded, bFreshWindow, KindFromFamily(Hit.Family), Hit.Tier, static_cast<double>(Target.Ranks.Nerve));
 	Result.Damage = Incoming * (1.0 - Verdict.Reduction);
 	Result.bPerfect = Verdict.bPerfect;
@@ -624,6 +653,7 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit)
 	{
 		Owner->Metrics.DamageDealt += Removed;
 	}
+	FireOnHitResolved(State, Target, Hit, Incoming, Verdict.Reduction);
 	Target.Metrics.Hits++;
 	Emit(State, TEXT("hit"), Target, Removed, Hit.OwnerId);
 	if (Target.Hp == 0.0)
@@ -648,6 +678,9 @@ FProjectile& SpawnProjectile(FArenaState& State, const FHit& Hit, const FSimVec&
 	Projectile.Source = Origin;
 	Projectile.bBolt = Hit.bBolt;
 	Projectile.bReaction = Hit.bReaction;
+	Projectile.HeatOnHit = Hit.HeatOnHit;
+	Projectile.bSuppressPerfect = Hit.bSuppressPerfect;
+	Projectile.bPierceShields = Hit.bPierceShields;
 	Projectile.Delivery = TEXT("projectile");
 	Projectile.Id = State.NextId++;
 	Projectile.Pos = Origin;
@@ -688,14 +721,21 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
 			continue;
 		}
 		UpdateWater(State, Actor);
+		UpdateFireResource(State, Actor);
 		Actor.Mana = std::min(Actor.MaxMana, Actor.Mana + Maximum(Data.ManaRegenBase, Data.ManaRegenPerRank, Actor.Ranks.Focus) * SimDt());
 		if (State.Tick - Actor.StaminaUsedTick >= SimTicks(Data.StaminaRegenDelayS))
 		{
-			Actor.Stamina = std::min(Actor.MaxStamina, Actor.Stamina + Data.StaminaRegenPerSecond * SimDt());
+			double Regen = Data.StaminaRegenPerSecond * SimDt();
+			if (Actor.Fire.bSchool)
+			{
+				Regen *= FireStaminaRegenMult(Actor);
+			}
+			Actor.Stamina = std::min(Actor.MaxStamina, Actor.Stamina + Regen);
 		}
 		if (State.Tick < Actor.Water.EncasedUntil)
 		{
 			Actor.PreviousPos = Actor.Pos;
+			UpdateFireOngoing(State, Actor);
 			continue;
 		}
 		const FInputFrame* Found = Inputs.Find(Actor.Id);
@@ -706,6 +746,7 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs)
 		ReleaseCast(State, Actor);
 		StartCast(State, Actor, Input);
 		Actor.LastInput = Input;
+		UpdateFireOngoing(State, Actor);
 	}
 	UpdateTelegraphs(State);
 	UpdateProjectiles(State);
@@ -750,6 +791,7 @@ void ResetWave(FArenaState& State, FActor& Actor)
 	State.Telegraphs.Reset();
 	State.Zones.Reset();
 	ResetWater(Actor);
+	ResetFire(Actor);
 }
 
 FString StateHash(const FArenaState& State)
@@ -776,6 +818,10 @@ FString StateHash(const FArenaState& State)
 		MixInt(Hash, Actor.ClockAdvanceTicks);
 		MixInt(Hash, Actor.Water.Flow);
 		MixDouble(Hash, Actor.Water.Stored);
+		MixBool(Hash, Actor.Fire.bSchool);
+		MixDouble(Hash, Actor.Fire.Heat);
+		MixInt(Hash, Actor.Fire.LockUntil);
+		MixInt(Hash, Actor.Fire.SunfallTick);
 		MixInt(Hash, Actor.Pending.IsSet() ? 1 : 0);
 	}
 	for (const FProjectile& Projectile : State.Projectiles)

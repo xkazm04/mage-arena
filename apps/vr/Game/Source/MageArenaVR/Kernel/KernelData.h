@@ -122,7 +122,18 @@ struct FArenaTier
 	int32 RequiresMastery = 0;
 };
 
-// spells-fire.csv row. B/1 shape text stays on the row; the pinned kernel does not resolve it.
+// How a fire row's heat_gain cell is paid. Parsed, not a second copy of the numbers.
+enum class EFireHeatMode : uint8
+{
+	None,
+	Hit,
+	Target,
+	Tick,
+	Instant,
+	Lock
+};
+
+// spells-fire.csv row. Shape, damage text, heat_gain and notes are parsed into the fields below.
 struct FFireSpell
 {
 	FString Id;
@@ -140,6 +151,54 @@ struct FFireSpell
 	double RangeM = 0.0;
 	FString HeatGain;
 	FString Notes;
+
+	FString Kind;
+	double SpeedMps = 0.0;
+	double RadiusM = 0.0;
+	double ArcDeg = 360.0;
+	double DurationS = 0.0;
+	double TickS = 0.0;
+	double KnockbackM = 0.0;
+	double DashM = 0.0;
+	EFireHeatMode HeatMode = EFireHeatMode::None;
+	double InstantHeat = 0.0;
+	double HeatAmount = 0.0;
+	double HeatLockValue = 0.0;
+	double HeatLockS = 0.0;
+	// "doubled" in the notes is read as 2. Stacks with the Blazing threshold multiplier.
+	double AbsorbDrainMult = 1.0;
+	bool bPierceShields = false;
+	bool bRootDuringCast = false;
+	bool bSequentialTelegraph = false;
+	bool bPerfectOnlyFirstTick = false;
+	bool bBolt = false;
+};
+
+// schools.json fire.combatIdentity. One effect per threshold; a higher band replaces a lower one.
+struct FHeatThreshold
+{
+	double At = 0.0;
+	FString Name;
+	bool bSpellDamage = false;
+	double SpellDamageMult = 1.0;
+	bool bAbsorbDrain = false;
+	double AbsorbDrainMult = 1.0;
+	bool bStaminaRegen = false;
+	double StaminaRegenMult = 1.0;
+};
+
+struct FHeatRules
+{
+	double Min = 0.0;
+	double Max = 0.0;
+	double PerBoltHit = 0.0;
+	double PerFlickTarget = 0.0;
+	double PerHitTakenUnabsorbed = 0.0;
+	double PerSecondPerEnemyWithin = 0.0;
+	double EnemyWithinM = 0.0;
+	double DecayPerSecond = 0.0;
+	double DecayAfterNoGainS = 0.0;
+	TArray<FHeatThreshold> Thresholds;
 };
 
 // Pinned combat, stats, spells, enemies, runtime and the scale contract. Loaded once.
@@ -287,6 +346,9 @@ struct FKernelData
 	FMageCaps MageCaps;
 	TArray<FArenaTier> ArenaTiers;
 	TArray<FFireSpell> FireSpells;
+	// Same FSpell records the threat scan looks up by id. Not part of the water spell list.
+	TArray<FSpell> FireCatalog;
+	FHeatRules Heat;
 };
 
 const FFireSpell* FindFireSpell(const FString& Id);
