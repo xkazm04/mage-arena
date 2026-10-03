@@ -621,7 +621,265 @@ bool LoadEnemies(const FJsonObject& Root, FKernelData& Data, const FString& Path
 		}
 		return true;
 	};
-	return Consume(*Soldiers) && Consume(*Creatures);
+	if (!Consume(*Soldiers) || !Consume(*Creatures))
+	{
+		return false;
+	}
+	const FJsonObject* Mages = nullptr;
+	const FJsonObject* Caps = nullptr;
+	const TArray<TSharedPtr<FJsonValue>>* Rows = nullptr;
+	if (!NeedObject(Root, TEXT("mages"), Mages, Path, Data) || !Mages->TryGetArrayField(TEXT("competence"), Rows) || Rows->Num() == 0
+		|| !NeedObject(*Mages, TEXT("caps"), Caps, Path, Data)
+		|| !NeedNumber(*Caps, TEXT("reactionDelayMinS"), Data.MageCaps.ReactionDelayMinS, Path, Data)
+		|| !NeedNumber(*Caps, TEXT("perfectAbsorbChanceMax"), Data.MageCaps.PerfectAbsorbChanceMax, Path, Data))
+	{
+		if (Data.Error.IsEmpty())
+		{
+			Fail(Data, Path + TEXT(" is missing mages.competence"));
+		}
+		return false;
+	}
+	for (const TSharedPtr<FJsonValue>& Value : *Rows)
+	{
+		const TSharedPtr<FJsonObject>* Object = nullptr;
+		if (!Value.IsValid() || !Value->TryGetObject(Object) || Object == nullptr)
+		{
+			return Fail(Data, Path + TEXT(" competence row is not an object"));
+		}
+		FMageCompetenceRow Row;
+		if (!NeedNumber(**Object, TEXT("level"), Row.Level, Path, Data)
+			|| !NeedNumber(**Object, TEXT("reactionDelayS"), Row.ReactionDelayS, Path, Data)
+			|| !NeedNumber(**Object, TEXT("absorbChanceVsAbsorbable"), Row.AbsorbChance, Path, Data)
+			|| !NeedNumber(**Object, TEXT("perfectAbsorbChance"), Row.PerfectChance, Path, Data)
+			|| !NeedNumber(**Object, TEXT("aimErrorDeg"), Row.AimErrorDeg, Path, Data)
+			|| !NeedNumber(**Object, TEXT("decisionCadenceS"), Row.DecisionCadenceS, Path, Data))
+		{
+			return false;
+		}
+		Data.MageCompetence.Add(Row);
+	}
+	return true;
+}
+
+bool LoadArenaTiers(FKernelData& Data)
+{
+	const FString Path = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/arena-tiers.json"));
+	TSharedPtr<FJsonObject> Root;
+	if (!LoadJson(Path, Root, Data))
+	{
+		return false;
+	}
+	const TArray<TSharedPtr<FJsonValue>>* Tiers = nullptr;
+	if (!Root->TryGetArrayField(TEXT("tiers"), Tiers) || Tiers->Num() == 0)
+	{
+		return Fail(Data, Path + TEXT(" is missing tiers"));
+	}
+	for (const TSharedPtr<FJsonValue>& TierValue : *Tiers)
+	{
+		const TSharedPtr<FJsonObject>* TierObject = nullptr;
+		if (!TierValue.IsValid() || !TierValue->TryGetObject(TierObject) || TierObject == nullptr)
+		{
+			return Fail(Data, Path + TEXT(" tier is not an object"));
+		}
+		FArenaTier Tier;
+		const TArray<TSharedPtr<FJsonValue>>* Waves = nullptr;
+		const TArray<TSharedPtr<FJsonValue>>* Gold = nullptr;
+		const TArray<TSharedPtr<FJsonValue>>* Renown = nullptr;
+		if (!NeedString(**TierObject, TEXT("id"), Tier.Id, Path, Data)
+			|| !NeedString(**TierObject, TEXT("name"), Tier.Name, Path, Data)
+			|| !NeedInt(**TierObject, TEXT("requiresMastery"), Tier.RequiresMastery, Path, Data)
+			|| !(*TierObject)->TryGetArrayField(TEXT("waves"), Waves) || Waves->Num() == 0
+			|| !(*TierObject)->TryGetArrayField(TEXT("payoutGold"), Gold)
+			|| !(*TierObject)->TryGetArrayField(TEXT("renown"), Renown))
+		{
+			if (Data.Error.IsEmpty())
+			{
+				Fail(Data, Path + TEXT(" tier is missing waves or payouts"));
+			}
+			return false;
+		}
+		for (const TSharedPtr<FJsonValue>& WaveValue : *Waves)
+		{
+			const TSharedPtr<FJsonObject>* WaveObject = nullptr;
+			if (!WaveValue.IsValid() || !WaveValue->TryGetObject(WaveObject) || WaveObject == nullptr)
+			{
+				return Fail(Data, Path + TEXT(" wave is not an object"));
+			}
+			FArenaWave Wave;
+			const TArray<TSharedPtr<FJsonValue>>* Spawns = nullptr;
+			if (!NeedInt(**WaveObject, TEXT("n"), Wave.N, Path, Data) || !NeedString(**WaveObject, TEXT("kind"), Wave.Kind, Path, Data)
+				|| !(*WaveObject)->TryGetArrayField(TEXT("spawns"), Spawns) || Spawns->Num() == 0)
+			{
+				if (Data.Error.IsEmpty())
+				{
+					Fail(Data, Path + TEXT(" wave is missing spawns"));
+				}
+				return false;
+			}
+			const TArray<TSharedPtr<FJsonValue>>* Band = nullptr;
+			if ((*WaveObject)->TryGetArrayField(TEXT("targetDurationS"), Band) && Band && Band->Num() == 2)
+			{
+				double Min = 0.0;
+				double Max = 0.0;
+				if (!(*Band)[0].IsValid() || !(*Band)[0]->TryGetNumber(Min) || !(*Band)[1].IsValid() || !(*Band)[1]->TryGetNumber(Max))
+				{
+					return Fail(Data, Path + TEXT(" targetDurationS is not a pair of numbers"));
+				}
+				Wave.TargetMinS = Min;
+				Wave.TargetMaxS = Max;
+			}
+			for (const TSharedPtr<FJsonValue>& SpawnValue : *Spawns)
+			{
+				const TSharedPtr<FJsonObject>* SpawnObject = nullptr;
+				if (!SpawnValue.IsValid() || !SpawnValue->TryGetObject(SpawnObject) || SpawnObject == nullptr)
+				{
+					return Fail(Data, Path + TEXT(" spawn is not an object"));
+				}
+				FWaveSpawn Spawn;
+				double Count = 0.0;
+				if ((*SpawnObject)->TryGetNumberField(TEXT("count"), Count))
+				{
+					Spawn.Count = static_cast<int32>(std::llround(Count));
+				}
+				double Echo = 0.0;
+				if ((*SpawnObject)->TryGetNumberField(TEXT("orEchoFromLoop"), Echo))
+				{
+					Spawn.EchoFromLoop = static_cast<int32>(std::llround(Echo));
+				}
+				if ((*SpawnObject)->TryGetStringField(TEXT("enemy"), Spawn.EnemyId))
+				{
+					Spawn.bEnemy = true;
+				}
+				else if ((*SpawnObject)->TryGetStringField(TEXT("mage"), Spawn.MageId))
+				{
+					Spawn.bEnemy = false;
+					if (!NeedNumber(**SpawnObject, TEXT("competence"), Spawn.Competence, Path, Data))
+					{
+						return false;
+					}
+				}
+				else
+				{
+					return Fail(Data, Path + TEXT(" spawn is neither an enemy nor a mage"));
+				}
+				Wave.Spawns.Add(Spawn);
+			}
+			Tier.Waves.Add(MoveTemp(Wave));
+		}
+		for (const TSharedPtr<FJsonValue>& Value : *Gold)
+		{
+			double Number = 0.0;
+			if (!Value.IsValid() || !Value->TryGetNumber(Number))
+			{
+				return Fail(Data, Path + TEXT(" payoutGold entry is not a number"));
+			}
+			Tier.PayoutGold.Add(static_cast<int32>(std::llround(Number)));
+		}
+		for (const TSharedPtr<FJsonValue>& Value : *Renown)
+		{
+			double Number = 0.0;
+			if (!Value.IsValid() || !Value->TryGetNumber(Number))
+			{
+				return Fail(Data, Path + TEXT(" renown entry is not a number"));
+			}
+			Tier.Renown.Add(static_cast<int32>(std::llround(Number)));
+		}
+		Data.ArenaTiers.Add(MoveTemp(Tier));
+	}
+	return true;
+}
+
+bool LoadFireSpells(FKernelData& Data)
+{
+	// The notes column contains commas and is not quoted. Split the first twelve fields and keep the tail.
+	const FString Path = PinnedPath(TEXT("docs/design/reference-the-ledger/design/data/spells-fire.csv"));
+	FString Text;
+	if (!LoadText(Path, Text, Data))
+	{
+		return false;
+	}
+	TArray<FString> Lines;
+	Text.ParseIntoArrayLines(Lines, false);
+	if (Lines.Num() < 2)
+	{
+		return Fail(Data, Path + TEXT(" has no fire spells"));
+	}
+	for (int32 Index = 1; Index < Lines.Num(); ++Index)
+	{
+		if (Lines[Index].TrimStartAndEnd().IsEmpty())
+		{
+			continue;
+		}
+		TArray<FString> Values;
+		Lines[Index].ParseIntoArray(Values, TEXT(","), false);
+		if (Values.Num() < 13)
+		{
+			return Fail(Data, FString::Printf(TEXT("kernel data: short fire-spell row in %s: %s"), *Path, *Lines[Index]));
+		}
+		FString Notes = Values[12];
+		for (int32 Extra = 13; Extra < Values.Num(); ++Extra)
+		{
+			Notes += TEXT(",");
+			Notes += Values[Extra];
+		}
+		const FString& Damage = Values[7];
+		FFireSpell Spell;
+		Spell.Id = Values[0];
+		Spell.Name = Values[1];
+		Spell.Tier = FCString::Atoi(*Values[2]);
+		Spell.Shape = Values[3];
+		Spell.CastS = FCString::Atod(*Values[4]);
+		Spell.CooldownS = FCString::Atod(*Values[5]);
+		Spell.Mana = FCString::Atod(*Values[6]);
+		Spell.DamageText = Damage;
+		Spell.Damage = (!Damage.IsEmpty() && FChar::IsDigit(Damage[0])) ? FCString::Atod(*Damage) : 0.0;
+		Spell.Blockable = Values[8];
+		Spell.Family = Spell.Blockable == TEXT("UNBLOCKABLE") ? TEXT("unblockable") : Spell.Blockable == TEXT("absorbable") ? TEXT("magic") : Spell.Blockable;
+		Spell.TelegraphS = FCString::Atod(*Values[9]);
+		Spell.RangeM = FCString::Atod(*Values[10]);
+		Spell.HeatGain = Values[11];
+		Spell.Notes = Notes;
+		Data.FireSpells.Add(MoveTemp(Spell));
+	}
+	if (Data.FireSpells.Num() == 0)
+	{
+		return Fail(Data, Path + TEXT(" has no fire spells"));
+	}
+	return true;
+}
+
+bool LoadGamesTuning(const FJsonObject& Games, FKernelData& Data, const FString& Path)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Preferred = nullptr;
+	const TArray<TSharedPtr<FJsonValue>>* Opponents = nullptr;
+	if (!NeedVec(Games, TEXT("playerSpawn"), Data.PlayerSpawn, Path, Data)
+		|| !Games.TryGetArrayField(TEXT("magePreferredDistanceM"), Preferred) || Preferred->Num() != 2
+		|| !(*Preferred)[0].IsValid() || !(*Preferred)[0]->TryGetNumber(Data.MagePreferredMinM)
+		|| !(*Preferred)[1].IsValid() || !(*Preferred)[1]->TryGetNumber(Data.MagePreferredMaxM)
+		|| !NeedNumber(Games, TEXT("mageStrafePeriodS"), Data.MageStrafePeriodS, Path, Data)
+		|| !NeedNumber(Games, TEXT("mageAimLeadFraction"), Data.MageAimLeadFraction, Path, Data)
+		|| !NeedNumber(Games, TEXT("mageDefenceHoldS"), Data.MageDefenceHoldS, Path, Data)
+		|| !NeedNumber(Games, TEXT("referenceCompetence"), Data.ReferenceCompetence, Path, Data)
+		|| !NeedString(Games, TEXT("referencePreset"), Data.ReferencePreset, Path, Data)
+		|| !Games.TryGetArrayField(TEXT("opponentPresets"), Opponents) || Opponents->Num() == 0
+		|| !NeedNumber(Games, TEXT("fightTimeoutS"), Data.FightTimeoutS, Path, Data))
+	{
+		if (Data.Error.IsEmpty())
+		{
+			Fail(Data, Path + TEXT(" games tuning is incomplete"));
+		}
+		return false;
+	}
+	for (const TSharedPtr<FJsonValue>& Value : *Opponents)
+	{
+		FString Name;
+		if (!Value.IsValid() || !Value->TryGetString(Name))
+		{
+			return Fail(Data, Path + TEXT(" opponent preset is not a string"));
+		}
+		Data.OpponentPresets.Add(Name);
+	}
+	return true;
 }
 
 FKernelData Load()
@@ -672,6 +930,7 @@ FKernelData Load()
 	const FJsonObject* Crest = nullptr;
 	const FJsonObject* Bands = nullptr;
 	const FJsonObject* Waves = nullptr;
+	const FJsonObject* Pacing = nullptr;
 	if (!NeedNumber(*Combat, TEXT("simStepHz"), Data.SimStepHz, CombatPath, Data)
 		|| !NeedObject(*Combat, TEXT("movement"), Movement, CombatPath, Data)
 		|| !NeedNumber(*Movement, TEXT("walkMps"), Data.WalkMps, CombatPath, Data)
@@ -715,7 +974,9 @@ FKernelData Load()
 		|| !NeedObject(*Combat, TEXT("betweenWaves"), Waves, CombatPath, Data)
 		|| !NeedNumber(*Waves, TEXT("healFractionOfMissingHp"), Data.HealFraction, CombatPath, Data)
 		|| !NeedNumber(*Waves, TEXT("manaRefill"), Data.ManaRefill, CombatPath, Data)
-		|| !NeedNumber(*Waves, TEXT("staminaRefill"), Data.StaminaRefill, CombatPath, Data))
+		|| !NeedNumber(*Waves, TEXT("staminaRefill"), Data.StaminaRefill, CombatPath, Data)
+		|| !NeedObject(*Combat, TEXT("pacingTargets"), Pacing, CombatPath, Data)
+		|| !NeedNumber(*Pacing, TEXT("deadAirBucketS"), Data.DeadAirBucketS, CombatPath, Data))
 	{
 		return Data;
 	}
@@ -901,6 +1162,10 @@ FKernelData Load()
 	{
 		return Data;
 	}
+	if (!LoadGamesTuning(*Games, Data, RuntimePath))
+	{
+		return Data;
+	}
 	const TArray<TSharedPtr<FJsonValue>>* Presets = nullptr;
 	if (!Water->TryGetArrayField(TEXT("presets"), Presets) || Presets->Num() == 0)
 	{
@@ -950,13 +1215,25 @@ FKernelData Load()
 		return Data;
 	}
 	TSharedPtr<FJsonObject> Enemies;
-	if (!LoadJson(EnemyPath, Enemies, Data) || !LoadEnemies(*Enemies, Data, EnemyPath))
+	if (!LoadJson(EnemyPath, Enemies, Data) || !LoadEnemies(*Enemies, Data, EnemyPath) || !LoadArenaTiers(Data) || !LoadFireSpells(Data))
 	{
 		return Data;
 	}
 	Data.bReady = true;
 	return Data;
 }
+}
+
+const FFireSpell* FindFireSpell(const FString& Id)
+{
+	for (const FFireSpell& Spell : KernelData().FireSpells)
+	{
+		if (Spell.Id == Id)
+		{
+			return &Spell;
+		}
+	}
+	return nullptr;
 }
 
 const FKernelData& KernelData()

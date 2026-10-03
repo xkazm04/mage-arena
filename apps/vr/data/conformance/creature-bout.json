@@ -1,0 +1,7446 @@
+{
+  "name": "creature-bout",
+  "note": "Reference player fights the cinder hounds and the mire maw. A death burst is checkpointed.",
+  "seed": 40003,
+  "driver": "games",
+  "trainingKind": null,
+  "checkpointEvery": 300,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 3276,
+  "replaySetup": false,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 8,
+        "y": 10,
+        "label": "Cassia",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Rotation",
+          "lines": [
+            "tide_orb",
+            "lash",
+            "mirror"
+          ],
+          "branches": {
+            "lash": "B",
+            "mirror": "B",
+            "tide_orb": "B"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 23.3611264962703,
+        "y": 6.572627890482545,
+        "label": "Cinder hound",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 25,
+        "maxHp": 25,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": "cinder_hound",
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 3,
+        "team": 1,
+        "x": 23.72340910769999,
+        "y": 14.495747565478087,
+        "label": "Cinder hound",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 25,
+        "maxHp": 25,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": "cinder_hound",
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 4,
+        "team": 1,
+        "x": 31.880801983922723,
+        "y": 6.188453687727452,
+        "label": "Cinder hound",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 25,
+        "maxHp": 25,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": "cinder_hound",
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 5,
+        "team": 1,
+        "x": 32.17855666168034,
+        "y": 13.071797989308834,
+        "label": "Mire maw",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 100,
+        "maxHp": 100,
+        "mana": 95,
+        "composition": {
+          "name": "Undertow",
+          "lines": [
+            "lash",
+            "tide_orb",
+            "mire"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "A"
+          }
+        },
+        "enemy": "mire_maw",
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [],
+  "ops": [],
+  "events": [
+    {
+      "tick": 1,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 25,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 49,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 64,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 64,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 65,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 7.42
+    },
+    {
+      "tick": 76,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 97,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 103,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 112,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 117,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 121,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 127,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 8.48
+    },
+    {
+      "tick": 145,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 148,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 0.6539999999999999
+    },
+    {
+      "tick": 148,
+      "kind": "down",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 160,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 169,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 193,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 211,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 7.42
+    },
+    {
+      "tick": 217,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 222,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 232,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 236,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 241,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 247,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 8.48
+    },
+    {
+      "tick": 265,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 267,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 273,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 288,
+      "kind": "hit",
+      "actorId": 3,
+      "targetId": 1,
+      "value": 0.4080000000000008
+    },
+    {
+      "tick": 288,
+      "kind": "interrupt",
+      "actorId": 3,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 288,
+      "kind": "down",
+      "actorId": 3,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 306,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 315,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 337,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 343,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 352,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 357,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 361,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 367,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 8.48
+    },
+    {
+      "tick": 385,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 395,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 7.840000000000001
+    },
+    {
+      "tick": 409,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 424,
+      "kind": "hit",
+      "actorId": 4,
+      "targetId": 1,
+      "value": 2.5299999999999967
+    },
+    {
+      "tick": 424,
+      "kind": "down",
+      "actorId": 4,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 481,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 625,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 649,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 664,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 665,
+      "kind": "roll",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 695,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 721,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 736,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 769,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 784,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 793,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 817,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 832,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 834,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 837,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 7.42
+    },
+    {
+      "tick": 849,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 865,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 884,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 900,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 900,
+      "kind": "unlock",
+      "actorId": 5,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 938,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 953,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 959,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 961,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 975,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 985,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1000,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1033,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1048,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1052,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1068,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1081,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1096,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1129,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1144,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1177,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1192,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1195,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1210,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1225,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1240,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1244,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1259,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1273,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1288,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1293,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1308,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1369,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1384,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1417,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1432,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1465,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1480,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1505,
+      "kind": "roll",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1537,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1552,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1585,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1600,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1604,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1619,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1633,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1648,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1681,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1696,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1703,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1718,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1729,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1744,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1752,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1763,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1777,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1792,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1800,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 3
+    },
+    {
+      "tick": 1800,
+      "kind": "unlock",
+      "actorId": 5,
+      "targetId": null,
+      "value": 3
+    },
+    {
+      "tick": 1825,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1840,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1845,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1860,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1873,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1888,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1894,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1909,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1921,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1936,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1969,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1984,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2017,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2032,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2065,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2080,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2113,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2128,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2135,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2150,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2161,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2176,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2209,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2224,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2257,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2272,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2305,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2320,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2353,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2368,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2375,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2391,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2401,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2416,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2449,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2464,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2468,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2484,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2497,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2512,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2517,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2532,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2545,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2560,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2593,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2608,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2616,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2627,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2641,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2656,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2660,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2675,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2689,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2700,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2700,
+      "kind": "unlock",
+      "actorId": 5,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2704,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2708,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2724,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2737,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2752,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2785,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2800,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2807,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2822,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2833,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2848,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2881,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2896,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2929,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2944,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2977,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2992,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2999,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3014,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3025,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3040,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3047,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3059,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3073,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3088,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3121,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3136,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3169,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3184,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3185,
+      "kind": "roll",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3215,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3241,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3241,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3256,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3261,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3276,
+      "kind": "hit",
+      "actorId": 5,
+      "targetId": 1,
+      "value": 0.08400000000006358
+    },
+    {
+      "tick": 3276,
+      "kind": "down",
+      "actorId": 5,
+      "targetId": null,
+      "value": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 1767664619,
+      "nextId": 6,
+      "stateHash": "2946e447",
+      "eventCount": 0,
+      "randomDraws": 8,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 8,
+          "y": 10,
+          "px": 8,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 23.3611264962703,
+          "y": 6.572627890482545,
+          "px": 23.3611264962703,
+          "py": 6.572627890482545,
+          "fx": 1,
+          "fy": 0,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 23.72340910769999,
+          "y": 14.495747565478087,
+          "px": 23.72340910769999,
+          "py": 14.495747565478087,
+          "fx": 1,
+          "fy": 0,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 31.880801983922723,
+          "y": 6.188453687727452,
+          "px": 31.880801983922723,
+          "py": 6.188453687727452,
+          "fx": 1,
+          "fy": 0,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 32.17855666168034,
+          "y": 13.071797989308834,
+          "px": 32.17855666168034,
+          "py": 13.071797989308834,
+          "fx": 1,
+          "fy": 0,
+          "hp": 100,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 148,
+      "when": "pre-ops",
+      "rng": 1703723422,
+      "nextId": 23,
+      "stateHash": "24e1265f",
+      "eventCount": 16,
+      "randomDraws": 15,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 7.8457698369945845,
+          "y": 3.759860145058484,
+          "px": 7.91122528619025,
+          "py": 3.79647413378675,
+          "fx": 0.8821409005064815,
+          "fy": 0.4709855960150095,
+          "hp": 95,
+          "mana": 72.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 2,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 187,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 481,
+            "tide_orb": 175,
+            "bolt": 160,
+            "lash": 241
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 25,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 8,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 11.491092077190311,
+          "y": 6.598609056620414,
+          "px": 11.569837238540423,
+          "py": 6.660246703914457,
+          "fx": -0.7874516135011177,
+          "fy": -0.6163764729404316,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 17.242200483519888,
+          "y": 6.081090931710679,
+          "px": 17.33933146512798,
+          "py": 6.1048726980842725,
+          "fx": -0.9713098160809355,
+          "fy": -0.2378176637359369,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 29.680206386756602,
+          "y": 12.286364728238974,
+          "px": 29.70349775499309,
+          "py": 12.295448348974798,
+          "fx": -0.9316547294595285,
+          "fy": -0.36334482943299534,
+          "hp": 100,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 215,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 10,
+          "ownerId": 5,
+          "activationId": 7,
+          "x": 16.90967470234142,
+          "y": 11.066497316569222,
+          "px": 17.058397245895925,
+          "py": 11.086032030252257,
+          "vx": -8.923352613270348,
+          "vy": -1.1720828209820469,
+          "damage": 14,
+          "remainingM": 8.700000000000058,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [
+        {
+          "id": 22,
+          "ownerId": 2,
+          "kind": "area",
+          "family": "magic",
+          "tier": 0,
+          "damage": 5,
+          "resolveTick": 184,
+          "startTick": 148,
+          "ox": 9.458528805992017,
+          "oy": 4.661993419490154,
+          "tx": 9.458528805992017,
+          "ty": 4.661993419490154,
+          "speedMps": 0,
+          "rangeM": 1.5,
+          "widthM": 1.5,
+          "survives": true
+        }
+      ],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 300,
+      "when": "pre-ops",
+      "rng": 4103183708,
+      "nextId": 37,
+      "stateHash": "fc672af1",
+      "eventCount": 32,
+      "randomDraws": 21,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": -0.3574364704515287,
+          "y": -2.9628451748273967,
+          "px": -0.3945721939549627,
+          "py": -2.897684312034793,
+          "fx": 0.7595659360269452,
+          "fy": 0.6504303105079825,
+          "hp": 95,
+          "mana": 61.375,
+          "stamina": 58,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 2,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 187,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 481,
+            "tide_orb": 343,
+            "bolt": 280,
+            "lash": 361
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 49.99999999999999,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 15,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 3.3533355193541143,
+          "y": 0.08457970678686975,
+          "px": 3.431585718674828,
+          "py": 0.14684451471453078,
+          "fx": -0.7825019932071408,
+          "fy": -0.6226480792766103,
+          "hp": 25,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": false
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 26.203360439900127,
+          "y": 10.755981504321344,
+          "px": 26.22560122303031,
+          "py": 10.767398490165087,
+          "fx": -0.8896313252072668,
+          "fy": -0.45667943374971726,
+          "hp": 100,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 215,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [
+        {
+          "id": 36,
+          "ownerId": 3,
+          "kind": "area",
+          "family": "magic",
+          "tier": 0,
+          "damage": 5,
+          "resolveTick": 324,
+          "startTick": 288,
+          "ox": 0.34500511411986945,
+          "oy": -1.366208869217962,
+          "tx": 0.34500511411986945,
+          "ty": -1.366208869217962,
+          "speedMps": 0,
+          "rangeM": 1.5,
+          "widthM": 1.5,
+          "survives": true
+        }
+      ],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 600,
+      "when": "pre-ops",
+      "rng": 312169688,
+      "nextId": 50,
+      "stateHash": "61c2016a",
+      "eventCount": 46,
+      "randomDraws": 33,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 7.398340025934291,
+          "y": 0.9849492717945992,
+          "px": 7.331474285329869,
+          "py": 0.9509790976204486,
+          "fx": 0.943956875326689,
+          "fy": 0.33006880725611404,
+          "hp": 95,
+          "mana": 63.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 3,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 535,
+            "bolt": 367,
+            "lash": 481
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 74.99999999999999,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 22,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 19.61060693864669,
+          "y": 7.189215168441526,
+          "px": 19.632895518848166,
+          "py": 7.20053855983291,
+          "fx": -0.8915432080589626,
+          "fy": -0.4529356556553409,
+          "hp": 100,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 215,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 900,
+      "when": "pre-ops",
+      "rng": 2647688777,
+      "nextId": 77,
+      "stateHash": "b9e742a7",
+      "eventCount": 65,
+      "randomDraws": 46,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.735133307987407,
+          "y": 6.510520270687596,
+          "px": 11.743157863946776,
+          "py": 6.547151630226317,
+          "fx": 0.9994986423235968,
+          "fy": 0.03166171178706016,
+          "hp": 95,
+          "mana": 35.12499999999993,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": true,
+          "absorbFreshTick": 876,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 943,
+            "bolt": 880,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 88.81599999999999,
+            "damageTaken": 0,
+            "manaDrained": 11.249999999999996,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 34,
+            "rolls": 1
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9994986423235968,
+          "fy": -0.03166171178706016,
+          "hp": 86.184,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 4,
+            "damageDealt": 0,
+            "damageTaken": 13.815999999999999,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 1058,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 3,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 76,
+          "ownerId": 5,
+          "activationId": 73,
+          "x": 17.136600961660903,
+          "y": 6.817318441430256,
+          "px": 17.286539917072837,
+          "py": 6.813039463751173,
+          "vx": -8.996337324716036,
+          "vy": 0.2567386607449822,
+          "damage": 14,
+          "remainingM": 22.350000000000016,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1200,
+      "when": "pre-ops",
+      "rng": 3783477723,
+      "nextId": 104,
+      "stateHash": "a0413111",
+      "eventCount": 83,
+      "randomDraws": 56,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.97257914312269,
+          "y": 9.8609005393715,
+          "px": 13.024549998496745,
+          "py": 9.914974841879152,
+          "fx": 0.9064372668133878,
+          "fy": -0.4223404803376955,
+          "hp": 95,
+          "mana": 3.9749999999999233,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 876,
+          "releaseTick": 938,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 1207,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 99.06599999999997,
+            "damageTaken": 0,
+            "manaDrained": 27.89999999999997,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 47,
+            "rolls": 1
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.8777575470993386,
+          "fy": 0.4791050913005958,
+          "hp": 75.93400000000001,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 9,
+            "damageDealt": 0,
+            "damageTaken": 24.066000000000003,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 1268,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 4,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 103,
+          "ownerId": 1,
+          "activationId": 102,
+          "x": 16.00333030941389,
+          "y": 8.823169489034514,
+          "px": 15.712776495714028,
+          "py": 8.986538985745426,
+          "vx": 17.433228821991776,
+          "vy": -9.802169802654678,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1500,
+      "when": "pre-ops",
+      "rng": 1824029516,
+      "nextId": 127,
+      "stateHash": "5392c692",
+      "eventCount": 98,
+      "randomDraws": 69,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.569513448189337,
+          "y": 7.498717117621487,
+          "px": 11.49489267995333,
+          "py": 7.506249776373085,
+          "fx": 0.9999559698435492,
+          "fy": 0.009383942361656017,
+          "hp": 95,
+          "mana": 3.774999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 1495,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 109.31599999999996,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 57,
+            "rolls": 1
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9798252358652799,
+          "fy": 0.19985621621943217,
+          "hp": 65.68400000000003,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 14,
+            "damageDealt": 0,
+            "damageTaken": 34.316,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 1688,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 6,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 126,
+          "ownerId": 1,
+          "activationId": 125,
+          "x": 17.65895489547125,
+          "y": 6.473641260490044,
+          "px": 17.335415797552233,
+          "py": 6.5538507563671455,
+          "vx": 19.412345875141128,
+          "vy": -4.812569752626069,
+          "damage": 2.05,
+          "remainingM": 4.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [
+        {
+          "id": 124,
+          "ownerId": 5,
+          "kind": "lane",
+          "family": "physical",
+          "tier": 0,
+          "damage": 4,
+          "resolveTick": 1538,
+          "startTick": 1478,
+          "ox": 18.78592947119217,
+          "oy": 6.770249686960345,
+          "tx": 10.936097442852343,
+          "ty": 8.371390043134856,
+          "speedMps": 0,
+          "rangeM": 10,
+          "widthM": 0.7,
+          "survives": false
+        }
+      ],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1800,
+      "when": "pre-ops",
+      "rng": 496416979,
+      "nextId": 153,
+      "stateHash": "c2ea7a32",
+      "eventCount": 119,
+      "randomDraws": 80,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.95301262089768,
+          "y": 7.560959606475183,
+          "px": 11.980829931464127,
+          "py": 7.630610142961629,
+          "fx": 0.9999110684344295,
+          "fy": -0.013336237187366538,
+          "hp": 95,
+          "mana": 5.274999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 1807,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 121.61599999999994,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 69,
+            "rolls": 2
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9921024336751446,
+          "fy": 0.12543030373819375,
+          "hp": 53.38400000000004,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 20,
+            "damageDealt": 0,
+            "damageTaken": 46.615999999999985,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 1898,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 7,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 146,
+          "ownerId": 5,
+          "activationId": 141,
+          "x": 8.530521871036445,
+          "y": 9.642376939480316,
+          "px": 8.674964231602019,
+          "py": 9.60192444296595,
+          "vx": -8.666541633934427,
+          "vy": 2.427149790861948,
+          "damage": 14,
+          "remainingM": 13.350000000000069,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 150,
+          "ownerId": 1,
+          "activationId": 149,
+          "x": 20.349722138202285,
+          "y": 7.2058000967172,
+          "px": 20.02651749760744,
+          "py": 7.287346840423292,
+          "vx": 19.39227843569079,
+          "vy": -4.892804622365577,
+          "damage": 2.05,
+          "remainingM": 3.999999999999997,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 152,
+          "ownerId": 1,
+          "activationId": 151,
+          "x": 15.164834781226048,
+          "y": 7.86482004978382,
+          "px": 14.832692150581961,
+          "py": 7.892969366293034,
+          "vx": 19.92855783864529,
+          "vy": -1.6889589905528437,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2100,
+      "when": "pre-ops",
+      "rng": 2831936068,
+      "nextId": 178,
+      "stateHash": "a08de71c",
+      "eventCount": 135,
+      "randomDraws": 93,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.47153430034683,
+          "y": 4.747756156279873,
+          "px": 11.460260173879798,
+          "py": 4.821903941630518,
+          "fx": 0.9576958451418762,
+          "fy": 0.28778232780695123,
+          "hp": 95,
+          "mana": 6.774999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 2095,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 129.81599999999995,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 81,
+            "rolls": 2
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9664044004229894,
+          "fy": -0.25702633103066025,
+          "hp": 45.184000000000054,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 24,
+            "damageDealt": 0,
+            "damageTaken": 54.815999999999974,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 2108,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 8,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 177,
+          "ownerId": 1,
+          "activationId": 176,
+          "x": 18.319611476682063,
+          "y": 7.227791392821146,
+          "px": 17.989647098246383,
+          "py": 7.1805196245586025,
+          "vx": 19.79786270614069,
+          "vy": 2.836306095752645,
+          "damage": 2.05,
+          "remainingM": 4.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2400,
+      "when": "pre-ops",
+      "rng": 3335889344,
+      "nextId": 205,
+      "stateHash": "377a9a92",
+      "eventCount": 151,
+      "randomDraws": 105,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.614314879064322,
+          "y": 5.307030285350049,
+          "px": 12.54133789345573,
+          "py": 5.289728274730375,
+          "fx": 0.978480191774703,
+          "fy": 0.20634077227862685,
+          "hp": 95,
+          "mana": 8.274999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 2383,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 138.016,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 93,
+            "rolls": 2
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9730264747812323,
+          "fy": -0.23069347492897982,
+          "hp": 36.984000000000066,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 28,
+            "damageDealt": 0,
+            "damageTaken": 63.01599999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 2528,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 10,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2700,
+      "when": "pre-ops",
+      "rng": 1376441137,
+      "nextId": 233,
+      "stateHash": "c1c1447e",
+      "eventCount": 174,
+      "randomDraws": 118,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.923953399402661,
+          "y": 4.885202232640086,
+          "px": 11.913392321291282,
+          "py": 4.9594549337971845,
+          "fx": 0.956743946827448,
+          "fy": 0.2909312980912115,
+          "hp": 95,
+          "mana": 6.774999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 2704,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 154.41600000000008,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 106,
+            "rolls": 2
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.9669971879668117,
+          "fy": -0.254787045322714,
+          "hp": 20.584000000000067,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 36,
+            "damageDealt": 0,
+            "damageTaken": 79.41599999999994,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 2738,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 11,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 222,
+          "ownerId": 5,
+          "activationId": 217,
+          "x": -0.8460517753438159,
+          "y": 7.61156552281395,
+          "px": -0.6961893230801822,
+          "py": 7.605143264524991,
+          "vx": -8.991747135818024,
+          "vy": 0.38533549733750677,
+          "damage": 14,
+          "remainingM": 4.350000000000048,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 232,
+          "ownerId": 1,
+          "activationId": 231,
+          "x": 15.735749874012631,
+          "y": 6.457670219981688,
+          "px": 15.40841917952637,
+          "py": 6.394696197097228,
+          "vx": 19.639841669175716,
+          "vy": 3.7784413730676283,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3000,
+      "when": "pre-ops",
+      "rng": 1880394413,
+      "nextId": 262,
+      "stateHash": "14ca8d4f",
+      "eventCount": 192,
+      "randomDraws": 130,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.324304541081956,
+          "y": 2.1937540995979266,
+          "px": 12.296004512555161,
+          "py": 2.2632099012662,
+          "fx": 0.7889225866050906,
+          "fy": 0.6144925974691097,
+          "hp": 95,
+          "mana": 5.274999999999922,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 3007,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 164.66600000000014,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 119,
+            "rolls": 2
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.8213612225022278,
+          "fy": -0.5704083994557286,
+          "hp": 10.334000000000064,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 41,
+            "damageDealt": 0,
+            "damageTaken": 89.66599999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 3158,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 13,
+            "deathQueued": false
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 259,
+          "ownerId": 5,
+          "activationId": 256,
+          "x": 17.14453915479133,
+          "y": 6.601911250393978,
+          "px": 17.293756456282317,
+          "py": 6.617214744627284,
+          "vx": -8.95303808945903,
+          "vy": -0.9182096539983765,
+          "damage": 14,
+          "remainingM": 22.350000000000016,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 261,
+          "ownerId": 1,
+          "activationId": 260,
+          "x": 14.578124597775163,
+          "y": 4.437152668425778,
+          "px": 14.302544566118767,
+          "py": 4.249624651150038,
+          "vx": 16.53480189938381,
+          "vy": 11.25168103654443,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3276,
+      "when": "pre-ops",
+      "rng": 552781876,
+      "nextId": 285,
+      "stateHash": "17fb39f5",
+      "eventCount": 211,
+      "randomDraws": 141,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.773908477412666,
+          "y": 2.3388168665334206,
+          "px": 12.73700786264591,
+          "py": 2.4041111590086093,
+          "fx": 0.7918727952548651,
+          "fy": 0.6106860700353712,
+          "hp": 95,
+          "mana": 6.774999999999922,
+          "stamina": 59.66666666666677,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 1354,
+          "releaseTick": 1360,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1201,
+            "bolt": 3271,
+            "lash": 481
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 175.00000000000026,
+            "damageTaken": 0,
+            "manaDrained": 30.599999999999966,
+            "manaRaised": 10,
+            "manaReturned": 0,
+            "casts": 130,
+            "rolls": 3
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 9.458528805992017,
+          "y": 4.661993419490154,
+          "px": 9.545802738252906,
+          "py": 4.710812071127841,
+          "fx": -0.8727393226088798,
+          "fy": -0.4881865163768798,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 0,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 0,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 3,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": 0.34500511411986945,
+          "y": -1.366208869217962,
+          "px": 0.34500511411986945,
+          "py": -1.366208869217962,
+          "fx": -0.8155251117304435,
+          "fy": -0.5787216879788138,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 7,
+            "damageDealt": 0,
+            "damageTaken": 25,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 331,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 4,
+          "team": 1,
+          "label": "Cinder hound",
+          "x": -2.92619314929298,
+          "y": -6.061873310854456,
+          "px": -2.8700540614970693,
+          "py": -6.144628388169647,
+          "fx": -0.5613908779591037,
+          "fy": 0.8275507731518995,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 6,
+            "damageDealt": 0,
+            "damageTaken": 24.999999999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "cinder_hound",
+            "readyTick": 436,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 1,
+            "deathQueued": true
+          },
+          "speedMps": 6,
+          "decoy": null
+        },
+        {
+          "id": 5,
+          "team": 1,
+          "label": "Mire maw",
+          "x": 18.78592947119217,
+          "y": 6.770249686960345,
+          "px": 18.78592947119217,
+          "py": 6.770249686960345,
+          "fx": -0.8108399825697608,
+          "fy": -0.5852679067455091,
+          "hp": 0,
+          "mana": 95,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Undertow",
+            "lines": [
+              "lash",
+              "tide_orb",
+              "mire"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "A"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 47,
+            "damageDealt": 0,
+            "damageTaken": 99.99999999999997,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": {
+            "id": "mire_maw",
+            "readyTick": 3368,
+            "backoffUntil": 0,
+            "stunnedUntil": 0,
+            "attackIndex": 14,
+            "deathQueued": true
+          },
+          "speedMps": 1.5,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 1,
+        "phase": "intermission",
+        "wavesCleared": 2,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    }
+  ],
+  "games": {
+    "startWave": 1,
+    "referencePlayer": true,
+    "preset": "Rotation",
+    "autoAdvance": false
+  }
+}

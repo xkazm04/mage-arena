@@ -17,12 +17,16 @@ const catalog = await import(pathToFileURL(join(cacheRoot, 'catalog.ts')).href);
 const trainingMod = await import(pathToFileURL(join(cacheRoot, 'training.ts')).href);
 const enemies = await import(pathToFileURL(join(cacheRoot, 'enemies.ts')).href);
 const water = await import(pathToFileURL(join(cacheRoot, 'water.ts')).href);
+const gamesMod = await import(pathToFileURL(join(cacheRoot, 'games.ts')).href);
+const mageAi = await import(pathToFileURL(join(cacheRoot, 'mage-ai.ts')).href);
 
 const {
   addMage, combat, createArena, drainPerSecond, DT, perfectReturn, resetWave, runtime, stateHash, stepArena, ticks,
 } = kernel;
 const { idleInput } = await import(pathToFileURL(join(cacheRoot, 'types.ts')).href);
-const { newWaterState, spellFor } = catalog;
+const { newWaterState, presets, spellFor } = catalog;
+const { advanceGames, createGames, stepGames } = gamesMod;
+const { attachMageAI, mageInput } = mageAi;
 const { createTraining, stepTraining, timingBot } = trainingMod;
 const { addEnemy, enemyInputs, queueDeathEffects } = enemies;
 const { hasLineOfSight } = water;
@@ -230,10 +234,40 @@ function exportEvents(state) {
   }));
 }
 
+function exportGames(games) {
+  const result = games.result ?? null;
+  return {
+    wave: games.wave,
+    phase: games.phase,
+    wavesCleared: games.wavesCleared,
+    playerId: games.player.id,
+    resultKind: result ? result.kind : null,
+    gold: result ? result.gold : null,
+    renown: result ? result.renown : null,
+    finalReached: result ? result.finalReached : null,
+    finalWon: result ? result.finalWon : null,
+  };
+}
+
 function drive(spec, ctx, inputs) {
   if (spec.driver === 'training') {
     const input = inputs[ctx.training.player.id] ?? idleInput(ctx.training.dummy.pos);
     stepTraining(ctx.training, input);
+    return;
+  }
+  if (spec.driver === 'games') {
+    const overlay = inputs[ctx.games.player.id];
+    stepGames(ctx.games, overlay);
+    if (spec.autoAdvance && ctx.games.phase === 'intermission') advanceGames(ctx.games);
+    return;
+  }
+  if (spec.driver === 'mage') {
+    const merged = {};
+    for (const actor of ctx.state.actors) {
+      if (actor.mageAI && !actor.down) merged[actor.id] = mageInput(ctx.state, actor);
+    }
+    for (const [id, input] of Object.entries(inputs)) merged[Number(id)] = input;
+    stepArena(ctx.state, merged);
     return;
   }
   if (spec.driver === 'enemies') {
@@ -246,7 +280,23 @@ function drive(spec, ctx, inputs) {
   stepArena(ctx.state, inputs);
 }
 
-function applyOp(state, op) {
+function applyOp(ctx, op) {
+  if (op.op === 'advanceGames') {
+    advanceGames(ctx.games);
+    return;
+  }
+  if (op.op === 'clearWave') {
+    for (const actor of ctx.games.state.actors) {
+      if (actor.id === ctx.games.player.id) continue;
+      actor.down = true;
+      actor.hp = 0;
+      if (actor.enemy) actor.enemy.deathQueued = true;
+    }
+    ctx.games.state.projectiles = [];
+    ctx.games.state.telegraphs = [];
+    return;
+  }
+  const state = ctx.state;
   const actor = state.actors.find((candidate) => candidate.id === op.actorId);
   if (!actor) fail(op.op, `missing actor ${op.actorId}`);
   if (op.op === 'resetWave') resetWave(state, actor);
@@ -267,7 +317,9 @@ function runScenario(spec) {
   let stopAt = spec.ticks;
 
   const pushCheckpoint = (tick, when) => {
-    ctx.checkpoints.push({ tick, when, ...snapshot(ctx.state) });
+    const row = { tick, when, ...snapshot(ctx.state) };
+    if (ctx.games) row.games = exportGames(ctx.games);
+    ctx.checkpoints.push(row);
   };
   pushCheckpoint(0, 'pre-ops');
 
@@ -290,9 +342,10 @@ function runScenario(spec) {
     drive(spec, ctx, inputs);
     if (spec.until && spec.until(ctx)) stopAt = Math.min(stopAt, tick + (spec.tail ?? 0));
     const ops = (spec.ops ?? []).filter((op) => op.afterTick === tick);
-    const want = tick % checkpointEvery === 0 || tick === stopAt || checkpointAt.has(tick) || ops.length > 0;
+    const sampled = typeof spec.sample === 'function' && spec.sample(ctx, tick);
+    const want = tick % checkpointEvery === 0 || tick === stopAt || checkpointAt.has(tick) || ops.length > 0 || sampled;
     if (want) pushCheckpoint(tick, 'pre-ops');
-    for (const op of ops) applyOp(ctx.state, op);
+    for (const op of ops) applyOp(ctx, op);
     if (ops.length) pushCheckpoint(tick, 'post-ops');
     if (tick === stopAt) break;
   }
@@ -310,7 +363,7 @@ function runScenario(spec) {
     };
     writeFileSync(join(cacheRoot, 'sample-state.json'), JSON.stringify(sample, null, 2));
   }
-  return {
+  const vector = {
     name: spec.name,
     note: spec.note,
     seed: spec.seed,
@@ -319,13 +372,25 @@ function runScenario(spec) {
     checkpointEvery,
     tolerance: TOLERANCE,
     ticks: stopAt,
-    replaySetup: spec.driver !== 'training',
+    replaySetup: spec.driver !== 'training' && spec.driver !== 'games',
     setup,
     frames,
     ops: spec.ops ?? [],
     events: exportEvents(ctx.state),
     checkpoints: ctx.checkpoints,
   };
+  if (spec.driver === 'games') {
+    vector.games = {
+      startWave: spec.startWave ?? 0,
+      referencePlayer: !!spec.referencePlayer,
+      preset: spec.preset ?? null,
+      autoAdvance: !!spec.autoAdvance,
+    };
+    if (spec.playerHp !== undefined) vector.games.playerHp = spec.playerHp;
+    if (spec.playerMana !== undefined) vector.games.playerMana = spec.playerMana;
+  }
+  if (spec.mageAttachments) vector.mageAttachments = spec.mageAttachments;
+  return vector;
 }
 
 function boltHitTick(distance) {
@@ -1273,6 +1338,214 @@ add({
   },
 });
 
+function referenceComposition() {
+  const preset = presets.find((candidate) => candidate.name === runtime.games.referencePreset);
+  if (!preset) fail('reference', runtime.games.referencePreset);
+  return preset;
+}
+
+function addDuel(name, note, seed, startWave) {
+  add({
+    name,
+    note,
+    seed,
+    driver: 'games',
+    startWave,
+    referencePlayer: true,
+    preset: runtime.games.referencePreset,
+    ticks: ticks(runtime.games.fightTimeoutS),
+    checkpointEvery: 300,
+    create() {
+      const games = createGames(seed, referenceComposition(), startWave, true);
+      return { games, state: games.state };
+    },
+    inputFor() { return {}; },
+    until(ctx) { return ctx.games.phase !== 'active'; },
+    expect(ctx, scenario) {
+      if (ctx.games.phase === 'active') fail(scenario, 'timed out');
+      if (ctx.state.randomLog.length === 0) fail(scenario, 'no rng');
+    },
+  });
+}
+
+addDuel('duel-competence-1', 'Reference Rotation versus the competence-1 Tiro semifinal, to a result.', 40000, 2);
+addDuel('duel-competence-1-5', 'Reference Rotation versus the competence-1.5 Tiro final, to a result.', 40001, 3);
+
+add({
+  name: 'tiro-sequence',
+  note: 'Reference player clears every Tiro wave, advancing as soon as a bout ends.',
+  seed: 40015,
+  driver: 'games',
+  startWave: 0,
+  referencePlayer: true,
+  preset: runtime.games.referencePreset,
+  autoAdvance: true,
+  ticks: ticks(runtime.games.fightTimeoutS) * 4,
+  checkpointEvery: 300,
+  create() {
+    const games = createGames(40015, referenceComposition(), 0, true);
+    return { games, state: games.state };
+  },
+  inputFor() { return {}; },
+  until(ctx) { return ctx.games.phase === 'complete' || ctx.games.phase === 'lost'; },
+  expect(ctx, name) {
+    if (ctx.games.phase !== 'complete' || ctx.games.wavesCleared !== 4) fail(name, `phase ${ctx.games.phase} waves ${ctx.games.wavesCleared}`);
+    if (!ctx.games.result || ctx.games.result.kind !== 'champion') fail(name, 'not champion');
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+  },
+});
+
+add({
+  name: 'creature-bout',
+  note: 'Reference player fights the cinder hounds and the mire maw. A death burst is checkpointed.',
+  seed: 40003,
+  driver: 'games',
+  startWave: 1,
+  referencePlayer: true,
+  preset: runtime.games.referencePreset,
+  ticks: ticks(runtime.games.fightTimeoutS),
+  checkpointEvery: 300,
+  create() {
+    const games = createGames(40003, referenceComposition(), 1, true);
+    return { games, state: games.state };
+  },
+  inputFor() { return {}; },
+  sample(ctx) {
+    if (this.sawBurst) return false;
+    if (ctx.state.telegraphs.some((telegraph) => telegraph.survivesOwner)) {
+      this.sawBurst = true;
+      return true;
+    }
+    return false;
+  },
+  until(ctx) { return ctx.games.phase !== 'active'; },
+  expect(ctx, name) {
+    if (ctx.games.phase === 'active') fail(name, 'timed out');
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+    const burst = ctx.checkpoints.some((row) => row.telegraphs.some((telegraph) => telegraph.survives));
+    if (!burst) fail(name, 'no death burst');
+  },
+});
+
+add({
+  name: 'soldiers-bout',
+  note: 'Reference player fights the opening soldier wave through to a result.',
+  seed: 40004,
+  driver: 'games',
+  startWave: 0,
+  referencePlayer: true,
+  preset: runtime.games.referencePreset,
+  ticks: ticks(runtime.games.fightTimeoutS),
+  checkpointEvery: 300,
+  create() {
+    const games = createGames(40004, referenceComposition(), 0, true);
+    return { games, state: games.state };
+  },
+  inputFor() { return {}; },
+  until(ctx) { return ctx.games.phase !== 'active'; },
+  expect(ctx, name) {
+    if (ctx.games.phase === 'active') fail(name, 'timed out');
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+  },
+});
+
+add({
+  name: 'wave-reset',
+  note: 'A wounded player clears the soldier wave. Advance heals once and spawns creatures.',
+  seed: 3,
+  driver: 'games',
+  startWave: 0,
+  referencePlayer: false,
+  preset: presets[0].name,
+  playerHp: 45,
+  playerMana: 2,
+  ticks: 2,
+  checkpointEvery: 1,
+  create() {
+    const games = createGames(3, presets[0], 0, false);
+    games.player.hp = 45;
+    games.player.mana = 2;
+    return { games, state: games.state };
+  },
+  inputFor() { return {}; },
+  ops: [
+    { afterTick: 1, op: 'clearWave' },
+    { afterTick: 2, op: 'advanceGames' },
+  ],
+  expect(ctx, name) {
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+    if (ctx.games.wave !== 1 || ctx.games.phase !== 'active') fail(name, `phase ${ctx.games.phase} wave ${ctx.games.wave}`);
+    const hounds = ctx.state.actors.filter((actor) => actor.enemy?.id === 'cinder_hound').length;
+    const maws = ctx.state.actors.filter((actor) => actor.enemy?.id === 'mire_maw').length;
+    if (hounds !== 3 || maws !== 1) fail(name, `hounds ${hounds} maws ${maws}`);
+    const before = ctx.checkpoints.find((row) => row.tick === 2 && row.when === 'pre-ops');
+    const prior = before.actors.find((actor) => actor.id === ctx.games.player.id);
+    const player = ctx.games.player;
+    const healed = prior.hp + (player.maxHp - prior.hp) * combat.betweenWaves.healFractionOfMissingHp;
+    if (player.hp !== healed) fail(name, `hp ${player.hp} wanted ${healed}`);
+    if (player.mana !== player.maxMana || player.tier !== 1) fail(name, `mana ${player.mana} tier ${player.tier}`);
+  },
+});
+
+add({
+  name: 'tiro-ladder',
+  note: 'Scripted clears of all four Tiro waves. One champion payout, not a sum.',
+  seed: 11,
+  driver: 'games',
+  startWave: 0,
+  referencePlayer: false,
+  preset: presets[0].name,
+  ticks: 8,
+  checkpointEvery: 1,
+  create() {
+    const games = createGames(11, presets[0], 0, false);
+    return { games, state: games.state };
+  },
+  inputFor() { return {}; },
+  ops: [
+    { afterTick: 1, op: 'clearWave' },
+    { afterTick: 2, op: 'advanceGames' },
+    { afterTick: 3, op: 'clearWave' },
+    { afterTick: 4, op: 'advanceGames' },
+    { afterTick: 5, op: 'clearWave' },
+    { afterTick: 6, op: 'advanceGames' },
+    { afterTick: 7, op: 'clearWave' },
+  ],
+  expect(ctx, name) {
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+    if (ctx.games.phase !== 'complete' || ctx.games.wavesCleared !== 4) fail(name, `phase ${ctx.games.phase} waves ${ctx.games.wavesCleared}`);
+    const result = ctx.games.result;
+    const tier = gamesMod.tiro;
+    if (!result || result.kind !== 'champion' || result.gold !== tier.payoutGold[3] || result.renown !== tier.renown[3]) {
+      fail(name, `result ${JSON.stringify(result)}`);
+    }
+    if (!result.finalReached || !result.finalWon) fail(name, 'final flags');
+  },
+});
+
+add({
+  name: 'mage-react',
+  note: 'A competence-1 mage draws aim RNG while the other mage casts a bolt.',
+  seed: 100,
+  driver: 'mage',
+  ticks: 2,
+  mageAttachments: [{ actorId: 1, competence: 1 }],
+  create() {
+    const state = createArena(100);
+    const mage = addMage(state, 0, { x: 10, y: 10 }, 'Cassia');
+    const foe = addMage(state, 1, { x: 20, y: 10 }, 'Foe');
+    attachMageAI(mage, 1, state.tick);
+    return { state, mage, foe };
+  },
+  inputFor(tick, ctx) {
+    return { [ctx.foe.id]: frame(ctx.mage.pos, { slot: 0, cast: tick === 1 }) };
+  },
+  expect(ctx, name) {
+    if (ctx.state.randomLog.length === 0) fail(name, 'no rng');
+    if (!ctx.state.randomLog.some((draw) => draw.purpose === 'mage 1 aim')) fail(name, 'no aim draw');
+  },
+});
+
 mkdirSync(outDir, { recursive: true });
 for (const name of readdirSync(outDir)) {
   if (name.endsWith('.json')) rmSync(join(outDir, name));
@@ -1292,4 +1565,4 @@ for (const spec of scenarios) {
 console.log(`${written.length} scenarios`);
 for (const line of written) console.log(line);
 
-if (written.length < 20) fail('scenarios', `only ${written.length}`);
+if (written.length < 45) fail('scenarios', `only ${written.length}`);

@@ -39,3 +39,7 @@ inline constexpr uint32 FnvPrime = 16777619u;
 inline constexpr double SimPi = 3.141592653589793;
 // kernel.ts:57 treats only family "magic" as perfectable. The loader checks notAgainst is exactly the other two.
 inline constexpr int32 AbsorbNotAgainstCount = 2;
+// enemies.ts:58 — stop and let the windup play once inside this fraction of the attack range.
+inline constexpr double EnemyStopRangeFactor = 0.8;
+// mage-ai.ts attachMageAI — plannedRaiseTick starts at 1e9 so a fresh brain is not already absorbing.
+inline constexpr int32 MagePlanSentinelTick = 1000000000;

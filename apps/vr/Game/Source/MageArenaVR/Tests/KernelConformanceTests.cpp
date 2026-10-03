@@ -6,6 +6,8 @@
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
+#include "Kernel/Games.h"
+#include "Kernel/MageAI.h"
 #include "Kernel/Training.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -662,7 +664,9 @@ bool CompareEvents(FCheck& Check, const TArray<TSharedPtr<FJsonValue>>& Expected
 	return !Check.bFailed;
 }
 
-bool CompareCheckpoint(FCheck& Check, const FJsonObject& Json, const FArenaState& State, const TArray<TSharedPtr<FJsonValue>>& Events)
+bool CompareGames(FCheck& Check, const FJsonObject& Json, const FGames& Games);
+
+bool CompareCheckpoint(FCheck& Check, const FJsonObject& Json, const FArenaState& State, const TArray<TSharedPtr<FJsonValue>>& Events, const FGames* Games)
 {
 	if (!Check.WantInt(Json, TEXT("tick"), State.Tick, TEXT("state")) || !Check.WantUInt(Json, TEXT("rng"), State.Rng, TEXT("state"))
 		|| !Check.WantInt(Json, TEXT("nextId"), State.NextId, TEXT("state")) || !Check.WantInt(Json, TEXT("eventCount"), State.Events.Num(), TEXT("state"))
@@ -822,14 +826,97 @@ bool CompareCheckpoint(FCheck& Check, const FJsonObject& Json, const FArenaState
 			return false;
 		}
 	}
+	const TSharedPtr<FJsonObject>* GamesJson = nullptr;
+	if (Json.TryGetObjectField(TEXT("games"), GamesJson) && GamesJson && GamesJson->IsValid())
+	{
+		if (!Games)
+		{
+			return Check.Fail(TEXT("games"), TEXT("replay has no games state"));
+		}
+		if (!CompareGames(Check, **GamesJson, *Games))
+		{
+			return false;
+		}
+	}
 	return !Check.bFailed;
 }
 
-bool ApplyOp(FCheck& Check, FArenaState& State, const FJsonObject& Op)
+bool CompareGames(FCheck& Check, const FJsonObject& Json, const FGames& Games)
 {
-	double ActorId = 0.0;
+	if (!Check.WantInt(Json, TEXT("wave"), Games.Wave, TEXT("games"))
+		|| !Check.WantString(Json, TEXT("phase"), Games.Phase, TEXT("games"))
+		|| !Check.WantInt(Json, TEXT("wavesCleared"), Games.WavesCleared, TEXT("games"))
+		|| !Check.WantInt(Json, TEXT("playerId"), Games.PlayerId, TEXT("games")))
+	{
+		return false;
+	}
+	FString Kind;
+	if (!Json.TryGetStringField(TEXT("resultKind"), Kind))
+	{
+		if (Games.Result.IsSet())
+		{
+			return Check.Fail(TEXT("games.result"), TEXT("expected none"));
+		}
+		return true;
+	}
+	if (!Games.Result.IsSet())
+	{
+		return Check.Fail(TEXT("games.result"), TEXT("missing"));
+	}
+	if (Games.Result->Kind != Kind)
+	{
+		return Check.Fail(TEXT("games.resultKind"), FString::Printf(TEXT("expected %s got %s"), *Kind, *Games.Result->Kind));
+	}
+	if (!Check.WantInt(Json, TEXT("gold"), Games.Result->Gold, TEXT("games"))
+		|| !Check.WantInt(Json, TEXT("renown"), Games.Result->Renown, TEXT("games"))
+		|| !Check.WantBool(Json, TEXT("finalReached"), Games.Result->bFinalReached, TEXT("games"))
+		|| !Check.WantBool(Json, TEXT("finalWon"), Games.Result->bFinalWon, TEXT("games")))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool ApplyOp(FCheck& Check, FArenaState& State, FGames* Games, const FJsonObject& Op)
+{
 	FString Name;
-	if (!Op.TryGetStringField(TEXT("op"), Name) || !Op.TryGetNumberField(TEXT("actorId"), ActorId))
+	if (!Op.TryGetStringField(TEXT("op"), Name))
+	{
+		return Check.Fail(TEXT("op"), TEXT("missing op"));
+	}
+	if (Name == TEXT("advanceGames"))
+	{
+		if (!Games || !TryAdvanceGames(*Games))
+		{
+			return Check.Fail(TEXT("op.advanceGames"), TEXT("not an intermission"));
+		}
+		return true;
+	}
+	if (Name == TEXT("clearWave"))
+	{
+		if (!Games)
+		{
+			return Check.Fail(TEXT("op.clearWave"), TEXT("no games state"));
+		}
+		for (FActor& Actor : Games->State.Actors)
+		{
+			if (Actor.Id == Games->PlayerId)
+			{
+				continue;
+			}
+			Actor.bDown = true;
+			Actor.Hp = 0.0;
+			if (Actor.Enemy.IsSet())
+			{
+				Actor.Enemy->bDeathQueued = true;
+			}
+		}
+		Games->State.Projectiles.Reset();
+		Games->State.Telegraphs.Reset();
+		return true;
+	}
+	double ActorId = 0.0;
+	if (!Op.TryGetNumberField(TEXT("actorId"), ActorId))
 	{
 		return Check.Fail(TEXT("op"), TEXT("missing op or actor"));
 	}
@@ -876,13 +963,40 @@ bool ApplyOp(FCheck& Check, FArenaState& State, const FJsonObject& Op)
 	return Check.Fail(TEXT("op"), Name + TEXT(" is unknown"));
 }
 
-void Drive(const FString& Driver, FArenaState& State, FTraining* Training, const TMap<int32, FInputFrame>& Held)
+void Drive(const FString& Driver, FArenaState& State, FTraining* Training, FGames* Games, bool bAutoAdvance, const TMap<int32, FInputFrame>& Held)
 {
 	if (Driver == TEXT("training") && Training)
 	{
 		const FInputFrame* Found = Held.Find(Training->PlayerId);
 		const FInputFrame Input = Found ? *Found : SimIdleInput(SimFindActor(Training->State, Training->DummyId)->Pos);
 		StepTraining(*Training, Input);
+		return;
+	}
+	if (Driver == TEXT("games") && Games)
+	{
+		const FInputFrame* Overlay = Held.Find(Games->PlayerId);
+		StepGames(*Games, Overlay);
+		if (bAutoAdvance && Games->Phase == TEXT("intermission"))
+		{
+			TryAdvanceGames(*Games);
+		}
+		return;
+	}
+	if (Driver == TEXT("mage"))
+	{
+		TMap<int32, FInputFrame> Merged;
+		for (FActor& Actor : State.Actors)
+		{
+			if (Actor.MageAI.IsSet() && !Actor.bDown)
+			{
+				Merged.Add(Actor.Id, MageInput(State, Actor));
+			}
+		}
+		for (const TPair<int32, FInputFrame>& Pair : Held)
+		{
+			Merged.FindOrAdd(Pair.Key) = Pair.Value;
+		}
+		StepArena(State, Merged);
 		return;
 	}
 	if (Driver == TEXT("enemies"))
@@ -946,8 +1060,11 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 	const uint32 Seed = static_cast<uint32>(std::llround(SeedNumber));
 	const int32 StopAt = static_cast<int32>(std::llround(TickNumber));
 	FTraining Training;
+	FGames Games;
 	FArenaState Arena;
 	const bool bTraining = Driver == TEXT("training");
+	const bool bGames = Driver == TEXT("games");
+	bool bAutoAdvance = false;
 	if (bTraining)
 	{
 		FString Kind;
@@ -957,6 +1074,54 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 			return false;
 		}
 		Training = CreateTraining(Kind, Seed);
+	}
+	else if (bGames)
+	{
+		const TSharedPtr<FJsonObject>* GamesJson = nullptr;
+		if (!Root->TryGetObjectField(TEXT("games"), GamesJson) || !GamesJson || !GamesJson->IsValid())
+		{
+			Test.AddError(TEXT("games vector is missing games"));
+			return false;
+		}
+		double StartWave = 0.0;
+		bool bReference = false;
+		(*GamesJson)->TryGetNumberField(TEXT("startWave"), StartWave);
+		(*GamesJson)->TryGetBoolField(TEXT("referencePlayer"), bReference);
+		(*GamesJson)->TryGetBoolField(TEXT("autoAdvance"), bAutoAdvance);
+		const FComposition* Preset = nullptr;
+		FString PresetName;
+		if ((*GamesJson)->TryGetStringField(TEXT("preset"), PresetName))
+		{
+			for (const FComposition& Candidate : KernelData().Presets)
+			{
+				if (Candidate.Name == PresetName)
+				{
+					Preset = &Candidate;
+					break;
+				}
+			}
+			if (!Preset)
+			{
+				Test.AddError(TEXT("unknown preset ") + PresetName);
+				return false;
+			}
+		}
+		if (!TryCreateGames(Games, Seed, Preset, static_cast<int32>(std::llround(StartWave)), bReference))
+		{
+			Test.AddError(TEXT("TryCreateGames failed"));
+			return false;
+		}
+		FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+		double PlayerHp = 0.0;
+		double PlayerMana = 0.0;
+		if (Player && (*GamesJson)->TryGetNumberField(TEXT("playerHp"), PlayerHp))
+		{
+			Player->Hp = PlayerHp;
+		}
+		if (Player && (*GamesJson)->TryGetNumberField(TEXT("playerMana"), PlayerMana))
+		{
+			Player->Mana = PlayerMana;
+		}
 	}
 	else
 	{
@@ -973,10 +1138,47 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 				return false;
 			}
 		}
+		if (Driver == TEXT("mage"))
+		{
+			const TArray<TSharedPtr<FJsonValue>>* Attachments = nullptr;
+			if (!Root->TryGetArrayField(TEXT("mageAttachments"), Attachments) || !Attachments)
+			{
+				Test.AddError(TEXT("mage vector is missing mageAttachments"));
+				return false;
+			}
+			for (const TSharedPtr<FJsonValue>& Value : *Attachments)
+			{
+				const TSharedPtr<FJsonObject>* Attachment = nullptr;
+				double ActorId = 0.0;
+				double Competence = 0.0;
+				if (!Value.IsValid() || !Value->TryGetObject(Attachment) || !Attachment || !Attachment->IsValid()
+					|| !(*Attachment)->TryGetNumberField(TEXT("actorId"), ActorId)
+					|| !(*Attachment)->TryGetNumberField(TEXT("competence"), Competence))
+				{
+					Test.AddError(TEXT("mage attachment is incomplete"));
+					return false;
+				}
+				FActor* Actor = SimFindActor(Arena, static_cast<int32>(std::llround(ActorId)));
+				if (!Actor)
+				{
+					Test.AddError(TEXT("mage attachment actor is missing"));
+					return false;
+				}
+				AttachMageAI(*Actor, Competence, Arena.Tick);
+			}
+		}
 	}
 	auto StateOf = [&]() -> FArenaState&
 	{
-		return bTraining ? Training.State : Arena;
+		if (bTraining)
+		{
+			return Training.State;
+		}
+		if (bGames)
+		{
+			return Games.State;
+		}
+		return Arena;
 	};
 	const TArray<TSharedPtr<FJsonValue>>* Frames = nullptr;
 	const TArray<TSharedPtr<FJsonValue>>* Ops = nullptr;
@@ -1018,7 +1220,7 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 		{
 			return Check.Fail(TEXT("checkpoint"), FString::Printf(TEXT("next vector row is tick %d %s"), ExpectedTick, *CheckpointWhen));
 		}
-		if (!CompareCheckpoint(Check, **Checkpoint, StateOf(), *Events))
+		if (!CompareCheckpoint(Check, **Checkpoint, StateOf(), *Events, bGames ? &Games : nullptr))
 		{
 			return false;
 		}
@@ -1070,7 +1272,7 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 		}
 		Check.Tick = Tick;
 		Check.When = TEXT("step");
-		Drive(Driver, StateOf(), bTraining ? &Training : nullptr, Held);
+		Drive(Driver, StateOf(), bTraining ? &Training : nullptr, bGames ? &Games : nullptr, bAutoAdvance, Held);
 		if (!Consume(Tick, TEXT("pre-ops")))
 		{
 			return false;
@@ -1084,7 +1286,7 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 				Test.AddError(TEXT("bad op"));
 				return false;
 			}
-			if (static_cast<int32>(std::llround(After)) == Tick && !ApplyOp(Check, StateOf(), **Op))
+			if (static_cast<int32>(std::llround(After)) == Tick && !ApplyOp(Check, StateOf(), bGames ? &Games : nullptr, **Op))
 			{
 				return false;
 			}

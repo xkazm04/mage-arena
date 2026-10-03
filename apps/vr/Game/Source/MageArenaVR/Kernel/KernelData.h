@@ -75,6 +75,73 @@ struct FEnemySpec
 	TOptional<FDeathSpec> OnDeath;
 };
 
+// enemies.json mages.competence. The dial is interpolated; caps clamp the result.
+struct FMageCompetenceRow
+{
+	double Level = 0.0;
+	double ReactionDelayS = 0.0;
+	double AbsorbChance = 0.0;
+	double PerfectChance = 0.0;
+	double AimErrorDeg = 0.0;
+	double DecisionCadenceS = 0.0;
+};
+
+struct FMageCaps
+{
+	double ReactionDelayMinS = 0.0;
+	double PerfectAbsorbChanceMax = 0.0;
+};
+
+// arena-tiers.json spawn. Either an enemy pack or one mage.
+struct FWaveSpawn
+{
+	bool bEnemy = false;
+	FString EnemyId;
+	FString MageId;
+	double Competence = 0.0;
+	int32 Count = 1;
+	TOptional<int32> EchoFromLoop;
+};
+
+struct FArenaWave
+{
+	int32 N = 0;
+	FString Kind;
+	TArray<FWaveSpawn> Spawns;
+	TOptional<double> TargetMinS;
+	TOptional<double> TargetMaxS;
+};
+
+struct FArenaTier
+{
+	FString Id;
+	FString Name;
+	TArray<FArenaWave> Waves;
+	TArray<int32> PayoutGold;
+	TArray<int32> Renown;
+	int32 RequiresMastery = 0;
+};
+
+// spells-fire.csv row. B/1 shape text stays on the row; the pinned kernel does not resolve it.
+struct FFireSpell
+{
+	FString Id;
+	FString Name;
+	int32 Tier = 0;
+	FString Shape;
+	double CastS = 0.0;
+	double CooldownS = 0.0;
+	double Mana = 0.0;
+	double Damage = 0.0;
+	FString DamageText;
+	FString Blockable;
+	FString Family;
+	double TelegraphS = 0.0;
+	double RangeM = 0.0;
+	FString HeatGain;
+	FString Notes;
+};
+
 // Pinned combat, stats, spells, enemies, runtime and the scale contract. Loaded once.
 struct FKernelData
 {
@@ -201,11 +268,28 @@ struct FKernelData
 	double ConscriptBackoffM = 0.0;
 	double SeparationM = 0.0;
 	double SeparationWeight = 0.0;
+	FSimVec PlayerSpawn;
+	double MagePreferredMinM = 0.0;
+	double MagePreferredMaxM = 0.0;
+	double MageStrafePeriodS = 0.0;
+	double MageAimLeadFraction = 0.0;
+	double MageDefenceHoldS = 0.0;
+	double ReferenceCompetence = 0.0;
+	FString ReferencePreset;
+	TArray<FString> OpponentPresets;
+	double FightTimeoutS = 0.0;
+	double DeadAirBucketS = 0.0;
 
 	double MaxFrameDeltaS = 0.0;
 
 	TArray<FEnemySpec> Enemies;
+	TArray<FMageCompetenceRow> MageCompetence;
+	FMageCaps MageCaps;
+	TArray<FArenaTier> ArenaTiers;
+	TArray<FFireSpell> FireSpells;
 };
+
+const FFireSpell* FindFireSpell(const FString& Id);
 
 const FKernelData& KernelData();
 

@@ -142,17 +142,26 @@ struct FEnemyBrain
 	bool bDeathQueued = false;
 };
 
-// Attachment point for mage-ai.ts. This port does not write it. See Kernel/Seams.h.
+// mage-ai.ts MageBrain. Observed ids stay until the activation leaves the threat list.
+struct FMageObservation
+{
+	int32 Id = 0;
+	int32 FirstSeenTick = 0;
+	bool bReacted = false;
+};
+
 struct FMageBrain
 {
 	double Competence = 0.0;
 	int32 NextDecisionTick = 0;
 	FInputFrame Input;
+	TArray<FMageObservation> Observed;
 	int32 DefendUntil = 0;
-	int32 PlannedRaiseTick = 0;
+	int32 PlannedRaiseTick = MagePlanSentinelTick;
 	int32 PlannedReleaseTick = 0;
 	FSimVec TargetPoint;
-	int32 DecisionCount = 0;
+	TArray<int32> DecisionTicks;
+	TArray<int32> ReactionAges;
 };
 
 struct FPendingCast

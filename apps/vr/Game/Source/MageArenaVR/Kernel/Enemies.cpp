@@ -263,7 +263,7 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State)
 		{
 			Desired = Distance < Data.ConscriptBackoffM ? FSimVec{-Toward.X, -Toward.Y} : FSimVec{0.0, 0.0};
 		}
-		else if (Distance < AttackRange * 0.8)
+		else if (Distance < AttackRange * EnemyStopRangeFactor)
 		{
 			Desired = FSimVec{0.0, 0.0};
 		}

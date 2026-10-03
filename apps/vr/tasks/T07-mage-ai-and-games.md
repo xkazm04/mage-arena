@@ -1,6 +1,6 @@
 # T07 - Port the mage AI and the games phase machine; vectors that exercise the RNG
 
-Status: open
+Status: done (verified 2026-10-03, agy review: no defects)
 Max turns: 300
 
 ## Goal

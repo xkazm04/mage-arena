@@ -1,0 +1,6910 @@
+{
+  "name": "duel-competence-1-5",
+  "note": "Reference Rotation versus the competence-1.5 Tiro final, to a result.",
+  "seed": 40001,
+  "driver": "games",
+  "trainingKind": null,
+  "checkpointEvery": 300,
+  "tolerance": {
+    "relative": 0.000001,
+    "absolute": 1e-9
+  },
+  "ticks": 4479,
+  "replaySetup": false,
+  "setup": {
+    "actors": [
+      {
+        "id": 1,
+        "team": 0,
+        "x": 8,
+        "y": 10,
+        "label": "Cassia",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Rotation",
+          "lines": [
+            "tide_orb",
+            "lash",
+            "mirror"
+          ],
+          "branches": {
+            "lash": "B",
+            "mirror": "B",
+            "tide_orb": "B"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      },
+      {
+        "id": 2,
+        "team": 1,
+        "x": 24.515542325377464,
+        "y": 9.831219352781773,
+        "label": "Tiro entrant · Water proxy",
+        "ranks": {
+          "vigor": 1,
+          "focus": 1,
+          "nerve": 1
+        },
+        "tier": 1,
+        "lastUnlockTick": 0,
+        "dummy": false,
+        "hp": 95,
+        "maxHp": 95,
+        "mana": 95,
+        "composition": {
+          "name": "Mirror tide",
+          "lines": [
+            "mirror",
+            "mend",
+            "tide_orb"
+          ],
+          "branches": {
+            "lash": "A",
+            "mirror": "A",
+            "tide_orb": "B"
+          }
+        },
+        "enemy": null,
+        "facing": {
+          "x": 1,
+          "y": 0
+        },
+        "clockAdvanceTicks": 0,
+        "absorb": false,
+        "absorbFreshTick": -1000000000,
+        "releaseTick": -1000000000,
+        "absorbExhausted": false,
+        "flow": 0
+      }
+    ]
+  },
+  "frames": [],
+  "ops": [],
+  "events": [
+    {
+      "tick": 1,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 1,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 28,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 49,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 55,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 70,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 73,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 82,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 86,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 86,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 88,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 109,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 121,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 124,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 127,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.296
+    },
+    {
+      "tick": 136,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 140,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 163,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 169,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 178,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 184,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 195,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 217,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 217,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 232,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 241,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 244,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 256,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 261,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 270,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 271,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 286,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 289,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 303,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 304,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 325,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 337,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 340,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 352,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 379,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 385,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 394,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 400,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 406,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 409,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 416,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 424,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 433,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 448,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 449,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.296
+    },
+    {
+      "tick": 457,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 467,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 472,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 481,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 487,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 500,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 502,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 505,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 514,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 520,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 541,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 553,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 568,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 577,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 583,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 592,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 595,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 611,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 622,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 625,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 637,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 640,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 673,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 676,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 688,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 689,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 691,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 707,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 721,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 730,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 745,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 745,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 757,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 757,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 7.42
+    },
+    {
+      "tick": 760,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 762,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.296
+    },
+    {
+      "tick": 784,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 793,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 799,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 805,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.296
+    },
+    {
+      "tick": 808,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 838,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 841,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 853,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 856,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 889,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 1
+    },
+    {
+      "tick": 892,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 900,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 900,
+      "kind": "unlock",
+      "actorId": 2,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 907,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 913,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 919,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 922,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 928,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 928,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 7.42
+    },
+    {
+      "tick": 946,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 961,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 961,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 966,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.296
+    },
+    {
+      "tick": 976,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 982,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1000,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1009,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1015,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1024,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1044,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1054,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1057,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 1069,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1081,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1086,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1096,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1108,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1123,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1129,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1144,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1159,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1162,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1175,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1177,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1177,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1192,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1196,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1216,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1225,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1231,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1240,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1270,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1273,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1285,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1288,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1297,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 1321,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1324,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1336,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1339,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1369,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1378,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 2
+    },
+    {
+      "tick": 1384,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1391,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1405,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1417,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1420,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1432,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1459,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1465,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1474,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1480,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1513,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1513,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1528,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1528,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1534,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1548,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1561,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1567,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1576,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1582,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1609,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1621,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1624,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1627,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1636,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1640,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1657,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1672,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1675,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1679,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1690,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1692,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1696,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1705,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1705,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 1718,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1720,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1729,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1737,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1744,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1753,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1768,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1783,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1784,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1798,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1800,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 3
+    },
+    {
+      "tick": 1800,
+      "kind": "unlock",
+      "actorId": 2,
+      "targetId": null,
+      "value": 3
+    },
+    {
+      "tick": 1801,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1816,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1837,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1849,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1852,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1864,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1866,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1891,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1897,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1906,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1912,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1919,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1931,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 1945,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1945,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1960,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1960,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1993,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 1999,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2008,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2014,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2041,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2053,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2056,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2068,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2089,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2104,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2107,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2108,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2122,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2128,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2137,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2144,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2152,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2155,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2161,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2167,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2176,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2177,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2185,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2195,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2200,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2215,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2230,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2233,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2248,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2269,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2281,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2284,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2296,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2323,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2329,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2338,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2344,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2377,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2377,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2392,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2392,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2397,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2397,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2407,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2408,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2425,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2431,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2440,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2442,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2446,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2451,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2473,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2485,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2488,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2500,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2521,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2536,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2539,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2540,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2554,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2569,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2584,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2593,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 3
+    },
+    {
+      "tick": 2617,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2620,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2632,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2635,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2637,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2665,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2674,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2680,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2689,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2694,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2700,
+      "kind": "unlock",
+      "actorId": 1,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2700,
+      "kind": "unlock",
+      "actorId": 2,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2701,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2713,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2728,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2737,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2752,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2755,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 2761,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2776,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2782,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2797,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2809,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2812,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 9.540000000000001
+    },
+    {
+      "tick": 2824,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2828,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2836,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2838,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2851,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2853,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2857,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2872,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2890,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2905,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2905,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2909,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 2920,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2944,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2953,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2959,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2968,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 2973,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2983,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 2998,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3001,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3013,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3016,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3034,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3049,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3052,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3064,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3067,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3072,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3097,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3106,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3112,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3121,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3124,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3145,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3160,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3160,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3175,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3193,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3208,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3214,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3229,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3241,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3256,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3268,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3283,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3289,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3304,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3322,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 3337,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3349,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3364,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3366,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0
+    },
+    {
+      "tick": 3368,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 0.34440000000000004
+    },
+    {
+      "tick": 3381,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3403,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3409,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3418,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3423,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3424,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3457,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3457,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3472,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3472,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3505,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3511,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3520,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3526,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3553,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3565,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3568,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3580,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3601,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3616,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3619,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3621,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3634,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3649,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3664,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3673,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3688,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3697,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3712,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3727,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3742,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3745,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3757,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3760,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3781,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3793,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3796,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3808,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3835,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3841,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3850,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3856,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3889,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3889,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3904,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3904,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3908,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3908,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 3919,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 3937,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3943,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3952,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3958,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3985,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 3997,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4000,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4012,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4033,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4048,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4051,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4066,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4081,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4096,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4099,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 4105,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4120,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4129,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4144,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4159,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4174,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4176,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 4177,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4192,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4197,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 4210,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 4213,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4225,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4228,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4240,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4267,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4273,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4282,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4288,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4288,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 4298,
+      "kind": "hit",
+      "actorId": 1,
+      "targetId": 2,
+      "value": 2.05
+    },
+    {
+      "tick": 4303,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 4321,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4321,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4336,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4336,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4369,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4375,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4384,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4386,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.05
+    },
+    {
+      "tick": 4390,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4402,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 4
+    },
+    {
+      "tick": 4417,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4429,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4432,
+      "kind": "cast",
+      "actorId": 1,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4444,
+      "kind": "cast",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    },
+    {
+      "tick": 4451,
+      "kind": "hit",
+      "actorId": 2,
+      "targetId": 1,
+      "value": 2.0140000000000446
+    },
+    {
+      "tick": 4451,
+      "kind": "down",
+      "actorId": 2,
+      "targetId": null,
+      "value": 0
+    }
+  ],
+  "checkpoints": [
+    {
+      "tick": 0,
+      "when": "pre-ops",
+      "rng": 3663171627,
+      "nextId": 3,
+      "stateHash": "9e1c22e1",
+      "eventCount": 0,
+      "randomDraws": 2,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 8,
+          "y": 10,
+          "px": 8,
+          "py": 10,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 24.515542325377464,
+          "y": 9.831219352781773,
+          "px": 24.515542325377464,
+          "py": 9.831219352781773,
+          "fx": 1,
+          "fy": 0,
+          "hp": 95,
+          "mana": 95,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 0,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {},
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 0,
+            "damageDealt": 0,
+            "damageTaken": 0,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 0,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 300,
+      "when": "pre-ops",
+      "rng": 880064159,
+      "nextId": 52,
+      "stateHash": "b7c766cb",
+      "eventCount": 33,
+      "randomDraws": 38,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.890465342892782,
+          "y": 10.965997591747659,
+          "px": 12.900258650404712,
+          "py": 11.040355450296548,
+          "fx": 0.999249812736855,
+          "fy": -0.03872740302886678,
+          "hp": 88.604,
+          "mana": 77.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 187,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 481,
+            "tide_orb": 367,
+            "bolt": 304
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 3,
+            "damageDealt": 8.692,
+            "damageTaken": 6.396,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 12,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 19.92626266065775,
+          "y": 11.317789580984268,
+          "px": 19.92523188695886,
+          "py": 11.24279666461491,
+          "fx": -0.9727124335664596,
+          "fy": -0.23201405471482903,
+          "hp": 86.30799999999999,
+          "mana": 62.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 187,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 481,
+            "mend": 508,
+            "bolt": 301,
+            "tide_orb": 394
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 4,
+            "damageDealt": 6.396,
+            "damageTaken": 8.692,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 14,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 43,
+          "ownerId": 2,
+          "activationId": 42,
+          "x": 9.62064798779549,
+          "y": 10.064072529627474,
+          "px": 9.819335236459882,
+          "py": 10.086949968692506,
+          "vx": -11.92123491986349,
+          "vy": -1.3726463439019252,
+          "damage": 7.42,
+          "remainingM": 2.4000000000000092,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 47,
+          "ownerId": 2,
+          "activationId": 46,
+          "x": 7.988166443558422,
+          "y": 10.526483863247941,
+          "px": 8.321229609923407,
+          "py": 10.539901699215097,
+          "vx": -19.983789981899097,
+          "vy": -0.8050701580293349,
+          "damage": 2.296,
+          "remainingM": 1.999999999999996,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 49,
+          "ownerId": 2,
+          "activationId": 48,
+          "x": 14.106980988701956,
+          "y": 10.780785802306882,
+          "px": 14.439921309642349,
+          "py": 10.796967699699325,
+          "vx": -19.976419256423558,
+          "vy": -0.9709138435465177,
+          "damage": 2.05,
+          "remainingM": 6.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 51,
+          "ownerId": 1,
+          "activationId": 50,
+          "x": 16.95511966543512,
+          "y": 11.198510019920977,
+          "px": 16.62537567044253,
+          "py": 11.24729535457635,
+          "vx": 19.784639699555512,
+          "vy": -2.9271200793223406,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 600,
+      "when": "pre-ops",
+      "rng": 1192193844,
+      "nextId": 104,
+      "stateHash": "272a9b6f",
+      "eventCount": 67,
+      "randomDraws": 71,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.638947221233527,
+          "y": 9.774898685431971,
+          "px": 11.606269112381872,
+          "py": 9.842405286604592,
+          "fx": 0.7846162232335467,
+          "fy": 0.6199817596016234,
+          "hp": 76.058,
+          "mana": 53.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 703,
+            "bolt": 607
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 9,
+            "damageDealt": 8.692,
+            "damageTaken": 18.942,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 26,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 17.452773987028085,
+          "y": 13.619833723657797,
+          "px": 17.485721975016354,
+          "py": 13.552458430801106,
+          "fx": -0.7843844057446536,
+          "fy": -0.6202750228927542,
+          "hp": 95,
+          "mana": 29.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 1,
+          "lastUnlockTick": 0,
+          "clockAdvanceTicks": 0,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 1021,
+            "bolt": 598,
+            "tide_orb": 745
+          },
+          "unlocks": [
+            0
+          ],
+          "pendingKind": "spell",
+          "pendingSpell": "tide_orb:1:base",
+          "pendingRelease": 604,
+          "pendingDamageMult": 1.06,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 4,
+            "damageDealt": 18.942,
+            "damageTaken": 8.692,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 28,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 94,
+          "ownerId": 1,
+          "activationId": 93,
+          "x": 18.08686164792434,
+          "y": 15.102593453579578,
+          "px": 17.92169382041107,
+          "py": 14.989812299326989,
+          "vx": 9.910069650796258,
+          "vy": 6.766869255155366,
+          "damage": 7.42,
+          "remainingM": 4.200000000000011,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 96,
+          "ownerId": 2,
+          "activationId": 95,
+          "x": 6.222928831345879,
+          "y": 10.75075733168576,
+          "px": 6.533288873022965,
+          "py": 10.872362247874657,
+          "vx": -18.621602500625137,
+          "vy": -7.2962949713338565,
+          "damage": 2.4189999999999996,
+          "remainingM": 0.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 98,
+          "ownerId": 1,
+          "activationId": 97,
+          "x": 18.160212648509905,
+          "y": 14.66003897218459,
+          "px": 17.857176734723886,
+          "py": 14.521185286360327,
+          "vx": 18.182154827161135,
+          "vy": 8.331221149455876,
+          "damage": 2.296,
+          "remainingM": 3.9999999999999973,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 100,
+          "ownerId": 2,
+          "activationId": 99,
+          "x": 11.289657926876718,
+          "y": 12.578284270037939,
+          "px": 11.61516804418261,
+          "py": 12.650077547178732,
+          "vx": -19.530607038353594,
+          "vy": -4.307596628447584,
+          "damage": 2.05,
+          "remainingM": 5.999999999999996,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 102,
+          "ownerId": 1,
+          "activationId": 101,
+          "x": 13.863542620817128,
+          "y": 11.994148688467096,
+          "px": 13.58731814632859,
+          "py": 11.807571222505523,
+          "vx": 16.573468469312267,
+          "vy": 11.194647957694436,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 900,
+      "when": "pre-ops",
+      "rng": 3967725012,
+      "nextId": 153,
+      "stateHash": "81c2f685",
+      "eventCount": 99,
+      "randomDraws": 103,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10.286679610176698,
+          "y": 10.120329709958542,
+          "px": 10.215126946190578,
+          "py": 10.097852693330676,
+          "fx": 0.9505045801983316,
+          "fy": 0.31071054539875725,
+          "hp": 73.762,
+          "mana": 41.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 1,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1039,
+            "bolt": 871
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 10,
+            "damageDealt": 24.558,
+            "damageTaken": 21.238,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 38,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 16.916498879485253,
+          "y": 12.399302133252975,
+          "px": 16.987482482807778,
+          "py": 12.423516345182136,
+          "fx": -0.906995517508419,
+          "fy": -0.42114027499116613,
+          "hp": 79.134,
+          "mana": 24.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 1021,
+            "bolt": 907,
+            "tide_orb": 907
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 9,
+            "damageDealt": 21.238,
+            "damageTaken": 24.558,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 40,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 151,
+          "ownerId": 2,
+          "activationId": 150,
+          "x": 14.754027680997664,
+          "y": 11.349937654349318,
+          "px": 15.057398794894084,
+          "py": 11.488057451497868,
+          "vx": -18.202266833785206,
+          "vy": -8.28718782891296,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 152,
+          "ownerId": 1,
+          "activationId": 149,
+          "x": 10.713896908116102,
+          "y": 10.26174118416931,
+          "px": 10.523789366145554,
+          "py": 10.199619348347143,
+          "vx": 11.406452518232909,
+          "vy": 3.7273101493299627,
+          "damage": 7.42,
+          "remainingM": 11.400000000000002,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 1,
+          "bolt": false,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1200,
+      "when": "pre-ops",
+      "rng": 616723071,
+      "nextId": 203,
+      "stateHash": "b228722d",
+      "eventCount": 133,
+      "randomDraws": 134,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 11.594770412040475,
+          "y": 8.600328966536551,
+          "px": 11.58166057896405,
+          "py": 8.674174293245208,
+          "fx": 0.8652452065781516,
+          "fy": 0.5013489129274459,
+          "hp": 65.316,
+          "mana": 26.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1297,
+            "bolt": 1207
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 14,
+            "damageDealt": 40.17799999999999,
+            "damageTaken": 29.684,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 51,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 17.98928070324635,
+          "y": 12.307302040363412,
+          "px": 18.01001082426603,
+          "py": 12.235223873887637,
+          "fx": -0.8499634543970912,
+          "fy": -0.5268416519119988,
+          "hp": 63.51400000000001,
+          "mana": 12.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 1021,
+            "bolt": 1192,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 14,
+            "damageDealt": 29.684,
+            "damageTaken": 40.17799999999999,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 52,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 200,
+          "ownerId": 2,
+          "activationId": 199,
+          "x": 9.534214116693388,
+          "y": 10.060596140089446,
+          "px": 9.862499313126396,
+          "py": 10.118388362006002,
+          "vx": -19.697111785980486,
+          "vy": -3.4675333149933225,
+          "damage": 2.05,
+          "remainingM": 3.999999999999997,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 202,
+          "ownerId": 1,
+          "activationId": 201,
+          "x": 14.185192853637282,
+          "y": 10.508419157869309,
+          "px": 13.885714952947481,
+          "py": 10.362049427017809,
+          "vx": 17.96867404138807,
+          "vy": 8.782183851090032,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1500,
+      "when": "pre-ops",
+      "rng": 4024089909,
+      "nextId": 250,
+      "stateHash": "7c453aef",
+      "eventCount": 158,
+      "randomDraws": 164,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.417182669337919,
+          "y": 7.165864144452639,
+          "px": 12.369452101661032,
+          "py": 7.223715617288188,
+          "fx": 0.6288828958711346,
+          "fy": 0.7775000342641379,
+          "hp": 65.316,
+          "mana": 12.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 1495
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 14,
+            "damageDealt": 42.22799999999999,
+            "damageTaken": 29.684,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 64,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 16.23634944134966,
+          "y": 12.647633684291193,
+          "px": 16.279952534760092,
+          "py": 12.58661098158932,
+          "fx": -0.6738806752937754,
+          "fy": -0.7388401961626109,
+          "hp": 61.46400000000001,
+          "mana": 5.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 2,
+          "lastUnlockTick": 900,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 2098,
+            "bolt": 1489,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 15,
+            "damageDealt": 29.684,
+            "damageTaken": 42.22799999999999,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 63,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 247,
+          "ownerId": 2,
+          "activationId": 246,
+          "x": 9.538198507937363,
+          "y": 8.135711826977605,
+          "px": 9.839751140496027,
+          "py": 8.27775801984475,
+          "vx": -18.093157953519874,
+          "vy": -8.522771572028699,
+          "damage": 2.05,
+          "remainingM": 2.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 249,
+          "ownerId": 1,
+          "activationId": 248,
+          "x": 18.080161242351576,
+          "y": 11.159992981630102,
+          "px": 17.77335989942685,
+          "py": 11.02967012449945,
+          "vx": 18.408080575483506,
+          "vy": 7.819371427839124,
+          "damage": 2.05,
+          "remainingM": 4.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 1800,
+      "when": "pre-ops",
+      "rng": 1304923638,
+      "nextId": 298,
+      "stateHash": "beaccf22",
+      "eventCount": 195,
+      "randomDraws": 193,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 10.095053937718163,
+          "y": 3.472861314895847,
+          "px": 10.0501175715066,
+          "py": 3.53290898755433,
+          "fx": 0.6458517682197622,
+          "fy": 0.7634628304556853,
+          "hp": 55.06600000000002,
+          "mana": 13.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 1783
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 19,
+            "damageDealt": 54.52799999999997,
+            "damageTaken": 39.93399999999999,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 76,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 13.070706373086328,
+          "y": 9.75929406515336,
+          "px": 13.120768548607789,
+          "py": 9.703448039492992,
+          "fx": -0.6004256220062908,
+          "fy": -0.7996806065163508,
+          "hp": 49.16400000000003,
+          "mana": 6.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 2098,
+            "bolt": 1813,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 21,
+            "damageDealt": 39.93399999999999,
+            "damageTaken": 54.52799999999997,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 75,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 295,
+          "ownerId": 2,
+          "activationId": 294,
+          "x": 9.495963874014954,
+          "y": 4.758702064261071,
+          "px": 9.741841623066966,
+          "py": 4.983769262298072,
+          "vx": -14.75266494312072,
+          "vy": -13.504031882220096,
+          "damage": 2.05,
+          "remainingM": 5.999999999999996,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 297,
+          "ownerId": 2,
+          "activationId": 296,
+          "x": 12.561380347130452,
+          "y": 8.854777797517288,
+          "px": 12.764530472796718,
+          "py": 9.119052536289066,
+          "vx": -12.189007539975922,
+          "vy": -15.8564843263067,
+          "damage": 2.05,
+          "remainingM": 10.999999999999998,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2100,
+      "when": "pre-ops",
+      "rng": 2880724663,
+      "nextId": 344,
+      "stateHash": "4427e1b3",
+      "eventCount": 221,
+      "randomDraws": 222,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.147973727432428,
+          "y": 0.8630479399119894,
+          "px": 12.07638546465191,
+          "py": 0.8854113169393423,
+          "fx": 0.014260755622037689,
+          "fy": 0.9998983102541419,
+          "hp": 55.06600000000002,
+          "mana": 12.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 2104
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 19,
+            "damageDealt": 60.67799999999996,
+            "damageTaken": 39.93399999999999,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 89,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 12.461166948091604,
+          "y": 7.881876388597014,
+          "px": 12.529675547020519,
+          "py": 7.851354726243907,
+          "fx": -0.03858156793572129,
+          "fy": -0.9992554541335371,
+          "hp": 43.01400000000004,
+          "mana": 14.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 2098,
+            "bolt": 2083,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 24,
+            "damageDealt": 39.93399999999999,
+            "damageTaken": 60.67799999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 85,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 341,
+          "ownerId": 2,
+          "activationId": 340,
+          "x": 10.299590630299994,
+          "y": -3.520213340140098,
+          "px": 10.426271963593132,
+          "py": -3.2118905370486237,
+          "vx": -7.600879997588264,
+          "vy": -18.49936818548846,
+          "damage": 2.05,
+          "remainingM": 0.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 343,
+          "ownerId": 1,
+          "activationId": 342,
+          "x": 11.839277695845809,
+          "y": 5.080288549201877,
+          "px": 11.799379790929219,
+          "py": 4.749351594036127,
+          "vx": 2.393874294995325,
+          "vy": 19.85621730994503,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2400,
+      "when": "pre-ops",
+      "rng": 161558392,
+      "nextId": 394,
+      "stateHash": "5f3515b3",
+      "eventCount": 255,
+      "randomDraws": 251,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 13.740060231631821,
+          "y": 1.581232924420706,
+          "px": 13.756073942053803,
+          "py": 1.5079624591668197,
+          "fx": -0.19536196143286594,
+          "fy": 0.9807312088564856,
+          "hp": 44.81600000000003,
+          "mana": 10.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 2407
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 24,
+            "damageDealt": 68.87799999999996,
+            "damageTaken": 50.183999999999976,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 102,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 12.617909474248856,
+          "y": 6.7156150202524625,
+          "px": 12.601895763826874,
+          "py": 6.7888854855063485,
+          "fx": 0.2483710232975083,
+          "fy": -0.9686649755132828,
+          "hp": 34.81400000000005,
+          "mana": 15.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 3,
+          "lastUnlockTick": 1800,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 994,
+            "mend": 2098,
+            "bolt": 2407,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900,
+            1800
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 28,
+            "damageDealt": 50.183999999999976,
+            "damageTaken": 68.87799999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 97,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 391,
+          "ownerId": 1,
+          "activationId": 390,
+          "x": 13.278547070723697,
+          "y": 3.936556054561228,
+          "px": 13.344060720088583,
+          "py": 3.6097241820977155,
+          "vx": -3.930818961893234,
+          "vy": 19.60991234781075,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 393,
+          "ownerId": 2,
+          "activationId": 392,
+          "x": 13.228128249558619,
+          "y": 4.394052639794716,
+          "px": 13.146091754149106,
+          "py": 4.717133317849031,
+          "vx": 4.922189724570814,
+          "vy": -19.3848406832589,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 2700,
+      "when": "pre-ops",
+      "rng": 3568925230,
+      "nextId": 439,
+      "stateHash": "66adebc1",
+      "eventCount": 287,
+      "randomDraws": 281,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 15.631700826080664,
+          "y": -1.3270183788169398,
+          "px": 15.557000405980592,
+          "py": -1.3337151867784154,
+          "fx": -0.8749291677944907,
+          "fy": 0.484250917750746,
+          "hp": 38.66600000000004,
+          "mana": 12.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 2695
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 27,
+            "damageDealt": 77.07799999999995,
+            "damageTaken": 56.33399999999997,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 114,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 13.189196883008965,
+          "y": 6.226037750933515,
+          "px": 13.262452766380713,
+          "py": 6.209957466376809,
+          "fx": 0.2674032166990419,
+          "fy": -0.963584723674574,
+          "hp": 26.61400000000005,
+          "mana": 3.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 3313,
+            "mend": 2098,
+            "bolt": 2704,
+            "tide_orb": 1159
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 32,
+            "damageDealt": 56.33399999999997,
+            "damageTaken": 77.07799999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 108,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": {
+            "x": 11.541152452196858,
+            "y": 0.7086263576063248,
+            "until": 2785
+          }
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 436,
+          "ownerId": 1,
+          "activationId": 435,
+          "x": 8.18411266133662,
+          "y": 2.409515658367591,
+          "px": 8.468709949039695,
+          "py": 2.235977492700311,
+          "vx": -17.0758372621845,
+          "vy": 10.412289940036795,
+          "damage": 2.05,
+          "remainingM": 4.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 438,
+          "ownerId": 2,
+          "activationId": 437,
+          "x": 14.72014349895535,
+          "y": 2.1154307198146887,
+          "px": 14.659715840717254,
+          "py": 2.4432410448976105,
+          "vx": 3.625659494285796,
+          "vy": -19.668619504975315,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3000,
+      "when": "pre-ops",
+      "rng": 3881054915,
+      "nextId": 492,
+      "stateHash": "257dd04a",
+      "eventCount": 319,
+      "randomDraws": 314,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 13.924092215408752,
+          "y": -1.6181179462862192,
+          "px": 13.893399813635579,
+          "py": -1.5496856697392989,
+          "fx": -0.5063882730623308,
+          "fy": 0.8623055820907981,
+          "hp": 25.02600000000004,
+          "mana": 13.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 2983
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 30,
+            "damageDealt": 85.27799999999993,
+            "damageTaken": 69.97399999999996,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 126,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 9.500966850685005,
+          "y": 3.8766865905286796,
+          "px": 9.560528415616012,
+          "py": 3.922265313448146,
+          "fx": 0.7021322753975768,
+          "fy": -0.7120465348873074,
+          "hp": 18.414000000000048,
+          "mana": 27.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 3313,
+            "mend": 4501,
+            "bolt": 3013,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 36,
+            "damageDealt": 69.97399999999996,
+            "damageTaken": 85.27799999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 121,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 491,
+          "ownerId": 2,
+          "activationId": 490,
+          "x": 10.315138174477447,
+          "y": 3.248880888414916,
+          "px": 10.083455443167304,
+          "py": 3.488535271065815,
+          "vx": 13.900963878608557,
+          "vy": -14.379262959053921,
+          "damage": 2.05,
+          "remainingM": 10.999999999999998,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3300,
+      "when": "pre-ops",
+      "rng": 1161888644,
+      "nextId": 540,
+      "stateHash": "e4e7999f",
+      "eventCount": 346,
+      "randomDraws": 343,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 13.433541472177165,
+          "y": -1.9062039263254935,
+          "px": 13.36128484722442,
+          "py": -1.9263031837853712,
+          "fx": -0.432663602145475,
+          "fy": 0.9015554377732421,
+          "hp": 18.876000000000037,
+          "mana": 12.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": -1000000000,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 3304
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 33,
+            "damageDealt": 85.27799999999993,
+            "damageTaken": 76.12399999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 139,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 10.338355222381216,
+          "y": 4.581815010819873,
+          "px": 10.409555572850595,
+          "py": 4.60538427243405,
+          "fx": 0.5768865592209929,
+          "fy": -0.8168242759554613,
+          "hp": 18.414000000000048,
+          "mana": 32.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 3313,
+            "mend": 4501,
+            "bolt": 3298,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 36,
+            "damageDealt": 76.12399999999995,
+            "damageTaken": 85.27799999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 132,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 535,
+          "ownerId": 2,
+          "activationId": 534,
+          "x": 12.349755329440253,
+          "y": -8.120201362769915,
+          "px": 12.303698514884095,
+          "py": -7.790065207609577,
+          "vx": 2.7634088733694977,
+          "vy": -19.80816930962028,
+          "damage": 2.05,
+          "remainingM": 0.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 537,
+          "ownerId": 2,
+          "activationId": 536,
+          "x": 11.505517284085089,
+          "y": -2.058836105768159,
+          "px": 11.465920265776772,
+          "py": -1.727863014335937,
+          "vx": 2.375821098499013,
+          "vy": -19.858385485933315,
+          "damage": 2.05,
+          "remainingM": 5.999999999999996,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 539,
+          "ownerId": 1,
+          "activationId": 538,
+          "x": 11.280281606303587,
+          "y": 1.6349707048550068,
+          "px": 11.393484688919703,
+          "py": 1.321448499585077,
+          "vx": -6.792184956966953,
+          "vy": 18.811332316195784,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3600,
+      "when": "pre-ops",
+      "rng": 274288186,
+      "nextId": 582,
+      "stateHash": "c94fb1e1",
+      "eventCount": 371,
+      "randomDraws": 373,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 12.375926311419565,
+          "y": 2.8532023916593783,
+          "px": 12.425736184945237,
+          "py": 2.7971312181443126,
+          "fx": -0.8060690984272351,
+          "fy": 0.5918214330021382,
+          "hp": 14.431600000000035,
+          "mana": 5.424999999999997,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 3350,
+          "releaseTick": 3371,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0.9757999999999999,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 3583
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 2,
+            "hits": 37,
+            "damageDealt": 85.27799999999993,
+            "damageTaken": 80.56839999999994,
+            "manaDrained": 9.45,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 149,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 6.59954631002056,
+          "y": 6.694864824947721,
+          "px": 6.647780609739864,
+          "py": 6.75229697910015,
+          "fx": 0.8342578279371261,
+          "fy": -0.5513745338022316,
+          "hp": 18.414000000000048,
+          "mana": 19.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 4402,
+            "mend": 4501,
+            "bolt": 3595,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 36,
+            "damageDealt": 80.56839999999994,
+            "damageTaken": 85.27799999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 143,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 579,
+          "ownerId": 1,
+          "activationId": 578,
+          "x": 8.535965023389638,
+          "y": 11.391083301296494,
+          "px": 8.671129486048503,
+          "py": 11.086383975492758,
+          "vx": -8.109867759531893,
+          "vy": 18.281959548224176,
+          "damage": 2.05,
+          "remainingM": 0.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 581,
+          "ownerId": 2,
+          "activationId": 580,
+          "x": 13.212999065560606,
+          "y": 3.2359339223313226,
+          "px": 12.952988139748179,
+          "py": 3.4445134744673735,
+          "vx": 15.600655548745635,
+          "vy": -12.514773128163055,
+          "damage": 2.05,
+          "remainingM": 4.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 3900,
+      "when": "pre-ops",
+      "rng": 3681655024,
+      "nextId": 630,
+      "stateHash": "987260d7",
+      "eventCount": 397,
+      "randomDraws": 403,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 13.06414127222687,
+          "y": 4.866448819547361,
+          "px": 13.13815048709096,
+          "py": 4.854298259263936,
+          "fx": -0.9886343445034086,
+          "fy": 0.15034005743086443,
+          "hp": 12.381600000000034,
+          "mana": 3.924999999999997,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 3350,
+          "releaseTick": 3371,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0.9757999999999999,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 3904
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 2,
+            "hits": 38,
+            "damageDealt": 87.32799999999993,
+            "damageTaken": 82.61839999999994,
+            "manaDrained": 9.45,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 162,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 6.323839127625997,
+          "y": 5.9730467977433035,
+          "px": 6.249829912761909,
+          "py": 5.985197358026729,
+          "fx": 0.9841791063172872,
+          "fy": -0.17717642814016132,
+          "hp": 16.364000000000047,
+          "mana": 24.375,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 4402,
+            "mend": 4501,
+            "bolt": 3904,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 37,
+            "damageDealt": 82.61839999999994,
+            "damageTaken": 87.32799999999993,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 154,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 627,
+          "ownerId": 1,
+          "activationId": 626,
+          "x": 9.924299366127388,
+          "y": 5.33804683506012,
+          "px": 10.253794638594426,
+          "py": 5.287608986840917,
+          "vx": -19.769716348022296,
+          "vy": 3.026270893152172,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 629,
+          "ownerId": 2,
+          "activationId": 628,
+          "x": 9.4473645122569,
+          "y": 5.403072665631385,
+          "px": 9.119228949912245,
+          "py": 5.461708523567185,
+          "vx": 19.688133740679383,
+          "vy": -3.518151476147967,
+          "damage": 2.05,
+          "remainingM": 7.999999999999994,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 4200,
+      "when": "pre-ops",
+      "rng": 3425890236,
+      "nextId": 678,
+      "stateHash": "1761694b",
+      "eventCount": 427,
+      "randomDraws": 431,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 13.136351574339393,
+          "y": -0.00832920807158595,
+          "px": 13.1800741035663,
+          "py": 0.05260797629069248,
+          "fx": -0.6870173223188873,
+          "fy": 0.726641038500982,
+          "hp": 8.281600000000033,
+          "mana": 2.424999999999997,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 3350,
+          "releaseTick": 3371,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0.9757999999999999,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 4207
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 2,
+            "hits": 40,
+            "damageDealt": 95.52799999999992,
+            "damageTaken": 86.71839999999993,
+            "manaDrained": 9.45,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 175,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 8.256559912524073,
+          "y": 5.596717867670363,
+          "px": 8.199341609600436,
+          "py": 5.645205657994722,
+          "fx": 0.5790853477515916,
+          "fy": -0.8152669256258457,
+          "hp": 8.164000000000044,
+          "mana": 28.875,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 4402,
+            "mend": 4501,
+            "bolt": 4189,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 41,
+            "damageDealt": 86.71839999999993,
+            "damageTaken": 95.52799999999992,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 165,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [
+        {
+          "id": 673,
+          "ownerId": 2,
+          "activationId": 672,
+          "x": 15.210049410818705,
+          "y": 0.3659014133892489,
+          "px": 14.945553307236281,
+          "py": 0.5687632439558357,
+          "vx": 15.869766214945464,
+          "vy": -12.171709833995205,
+          "damage": 2.05,
+          "remainingM": 2.9999999999999964,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        },
+        {
+          "id": 677,
+          "ownerId": 1,
+          "activationId": 676,
+          "x": 11.297093740925469,
+          "y": 2.5305366735789625,
+          "px": 11.540320192839822,
+          "py": 2.3026068506064825,
+          "vx": -14.593587114861169,
+          "vy": 13.675789378348808,
+          "damage": 2.05,
+          "remainingM": 8.999999999999995,
+          "radius": 0.12,
+          "family": "magic",
+          "tier": 0,
+          "bolt": true,
+          "reflected": false,
+          "piercing": false,
+          "burst": 0,
+          "delivery": "projectile",
+          "hitIds": []
+        }
+      ],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "active",
+        "wavesCleared": 0,
+        "playerId": 1,
+        "resultKind": null,
+        "gold": null,
+        "renown": null,
+        "finalReached": null,
+        "finalWon": null
+      }
+    },
+    {
+      "tick": 4479,
+      "when": "pre-ops",
+      "rng": 3801961118,
+      "nextId": 720,
+      "stateHash": "0d126fdd",
+      "eventCount": 455,
+      "randomDraws": 457,
+      "actors": [
+        {
+          "id": 1,
+          "team": 0,
+          "label": "Cassia",
+          "x": 15.972660492161726,
+          "y": -0.725300112377151,
+          "px": 15.972660492161726,
+          "py": -0.725300112377151,
+          "fx": -0.809841800753219,
+          "fy": 0.5866483254495691,
+          "hp": 4.181600000000033,
+          "mana": 7.299999999999997,
+          "stamina": 70,
+          "down": false,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": 3350,
+          "releaseTick": 3371,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0.9757999999999999,
+          "crests": 0,
+          "healing": 0,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 0,
+          "sheenUntil": 667,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Rotation",
+            "lines": [
+              "tide_orb",
+              "lash",
+              "mirror"
+            ],
+            "branches": {
+              "lash": "B",
+              "mirror": "B",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 961,
+            "tide_orb": 1537,
+            "bolt": 4447
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 2,
+            "hits": 42,
+            "damageDealt": 103.69199999999995,
+            "damageTaken": 90.81839999999993,
+            "manaDrained": 9.45,
+            "manaRaised": 5,
+            "manaReturned": 0,
+            "casts": 185,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        },
+        {
+          "id": 2,
+          "team": 1,
+          "label": "Tiro entrant · Water proxy",
+          "x": 9.292700639635752,
+          "y": 0.9405351661819239,
+          "px": 9.22665858286468,
+          "py": 0.9760801621369998,
+          "fx": 0.9091880040295843,
+          "fy": -0.41638584669594697,
+          "hp": 0,
+          "mana": 10.25,
+          "stamina": 70,
+          "down": true,
+          "dummy": false,
+          "absorb": false,
+          "absorbFreshTick": -1000000000,
+          "releaseTick": 926,
+          "tier": 4,
+          "lastUnlockTick": 2700,
+          "clockAdvanceTicks": 0,
+          "flow": 0,
+          "stored": 0,
+          "crests": 0,
+          "healing": 8.692000000000007,
+          "controlTicks": 0,
+          "rootUntil": 0,
+          "encasedUntil": 0,
+          "slowUntil": 0,
+          "slowMult": 1,
+          "wardUntil": 1630,
+          "sheenUntil": 700,
+          "hotUntil": 0,
+          "hotPerTick": 0,
+          "composition": {
+            "name": "Mirror tide",
+            "lines": [
+              "mirror",
+              "mend",
+              "tide_orb"
+            ],
+            "branches": {
+              "lash": "A",
+              "mirror": "A",
+              "tide_orb": "B"
+            }
+          },
+          "cooldowns": {
+            "mirror": 5482,
+            "mend": 4501,
+            "bolt": 4459,
+            "tide_orb": 3355
+          },
+          "unlocks": [
+            0,
+            900,
+            1800,
+            2700
+          ],
+          "pendingKind": null,
+          "pendingSpell": null,
+          "pendingRelease": null,
+          "pendingDamageMult": null,
+          "metrics": {
+            "perfects": 0,
+            "blocks": 0,
+            "hits": 45,
+            "damageDealt": 90.81839999999993,
+            "damageTaken": 103.69199999999995,
+            "manaDrained": 0,
+            "manaRaised": 0,
+            "manaReturned": 0,
+            "casts": 176,
+            "rolls": 0
+          },
+          "enemy": null,
+          "speedMps": null,
+          "decoy": null
+        }
+      ],
+      "projectiles": [],
+      "telegraphs": [],
+      "zones": [],
+      "games": {
+        "wave": 3,
+        "phase": "complete",
+        "wavesCleared": 4,
+        "playerId": 1,
+        "resultKind": "champion",
+        "gold": 100,
+        "renown": 25,
+        "finalReached": true,
+        "finalWon": true
+      }
+    }
+  ],
+  "games": {
+    "startWave": 3,
+    "referencePlayer": true,
+    "preset": "Rotation",
+    "autoAdvance": false
+  }
+}
