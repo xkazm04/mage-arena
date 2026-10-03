@@ -13,6 +13,8 @@
 	],
 	"Plugins": [
 		{ "Name": "EnhancedInput", "Enabled": true },
-		{ "Name": "ModelingToolsEditorMode", "Enabled": true, "TargetAllowList": [ "Editor" ] }
+		{ "Name": "ModelingToolsEditorMode", "Enabled": true, "TargetAllowList": [ "Editor" ] },
+		{ "Name": "OculusXR", "Enabled": true, "Optional": true },
+		{ "Name": "OculusInteraction", "Enabled": true, "Optional": true }
 	]
 }

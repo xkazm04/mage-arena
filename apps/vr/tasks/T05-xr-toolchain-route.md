@@ -1,6 +1,6 @@
 # T05 - XR toolchain route: Meta XR v207 on UE 5.8, Android APK, Quest 3 simulator boot
 
-Status: open
+Status: done (route R-A verified 2026-10-03; APK waits on the owner enabling Android in the Epic launcher)
 Max turns: 260
 
 ## Goal

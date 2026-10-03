@@ -6,6 +6,10 @@ apps/vr/Game/DerivedDataCache/
 apps/vr/Game/Build/
 apps/vr/Game/Plugins/*/Binaries/
 apps/vr/Game/Plugins/*/Intermediate/
+# Meta XR v207 payloads are recreated by apps/vr/tools/install-xr.ps1. Do not commit binaries or the download.
+apps/vr/Game/Plugins/MetaXR/
+apps/vr/Game/Plugins/MetaXRInteraction/
+apps/vr/.cache/
 *.sln
 *.suo
 *.opensdf
