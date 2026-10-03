@@ -1,6 +1,6 @@
 # T10 - Seated threat geometry: enemies fight from the floor, nothing reaches the dais (DF-001 option A)
 
-Status: open (queued after T09 - one Unreal build at a time)
+Status: dispatched 2026-10-03
 Max turns: 260
 
 ## Goal
