@@ -2,6 +2,22 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-03 - Seated balance: calibrate with every knob, and invent school-specific defences
+
+> Calibration may use: wave composition, enemy pressure, player spell power, defence (ward/blink). And: "Invent class
+> specific defense mechanisms. We can have designs: A. One hand holds magic barrier, second casts weaker spells. B. Earth
+> class can cast stone form (invulnerability to cast the heaviest spell) C. Fire class can cast fire wall first to protect
+> against enemies and projectiles D. Air class can take air form with high percentage of dodge mechanism E. Mages wielding
+> staff can put staff into ground with magical barrier and cast two handed destructive spells"
+
+- The seated balance calibration (DF-001, DF-002) may move all four knob families, VR overlay only; the owner signs off the
+  final numbers.
+- New design direction: **each school gets its own seated defence**, turned into concrete mechanics in
+  `docs/design/SCHOOL-DEFENCES.md` (gesture, rule, cost, how it is measured). Water - the competition slice - gets A
+  (one-hand barrier + one-hand weaker casting) and E (planted staff: a standing barrier that frees both hands for a
+  two-handed spell); Fire gets C (fire wall, also used by the Fire mage AI); Earth B (stone form); Air D (air form).
+- These are game-design additions for every channel, built VR-first like the schools, and offered back via change requests.
+
 ## 2026-10-03 - Seated combat: enemies fight from the floor, nothing reaches the dais (DF-001)
 
 > Option "A: ranged from the dais" for DF-001 (`docs/design-findings/DF-001-seated-wave1.md`).
