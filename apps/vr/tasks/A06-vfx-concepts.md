@@ -1,6 +1,6 @@
 # A06 - VFX concept frames in the three shortlisted styles (images, no Unreal build)
 
-Status: open
+Status: done (images reviewed by orchestrator 2026-10-03)
 Max turns: 120
 
 ## Goal

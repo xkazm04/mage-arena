@@ -1,0 +1,171 @@
+{
+  "card": "A06",
+  "generated": "2026-10-03",
+  "note": "seconds is the wall-clock of the batch that returned the kept image. The first eight Grok frames were requested just after 04:02:41 and written at 04:03:41, about 60 seconds. The four Chalk first passes were written at 04:04:20, about 40 seconds after that, which is an upper bound because the request sat inside that gap. The Grok regeneration batch was requested at 04:07:55 and written by 04:08:02, about 7 seconds. The agy ward was 33 seconds of shell wall-clock (the tool reported duration_seconds 24). The image tool has no negative-prompt field; each negative list was appended as 'Avoid: …'. Successful Grok calls did not echo a model id and this run had no rate-limit body, so model is null for those. approximate_cost is null because neither tool reported one. Where a later pass was worse, an earlier pass was kept; regen_reasons names the rejected passes.",
+  "items": [
+    {
+      "style": "13-screen-print",
+      "asset": "01-water-bolt",
+      "path": "apps/vr/art/vfx-concepts/13-screen-print/01-water-bolt.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "02-ward-absorb",
+      "path": "apps/vr/art/vfx-concepts/13-screen-print/02-ward-absorb.jpg",
+      "tool": "agy",
+      "model": "gemini-3.8-flash-high (Antigravity image tool)",
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1376x768",
+      "regen_reasons": [
+        "pass 1 drew a flat oval disc and a lightning bolt, not a 140-degree water arc",
+        "pass 2 still drew a flat disc; the arc was ignored twice, so the third pass used the agy fallback"
+      ],
+      "seconds": 33
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "03-perfect-absorb",
+      "path": "apps/vr/art/vfx-concepts/13-screen-print/03-perfect-absorb.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 put a Latin R on the bronze cuff"
+      ],
+      "seconds": 7
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "04-unblockable-telegraph",
+      "path": "apps/vr/art/vfx-concepts/13-screen-print/04-unblockable-telegraph.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "01-water-bolt",
+      "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/01-water-bolt.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "02-ward-absorb",
+      "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/02-ward-absorb.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "03-perfect-absorb",
+      "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/03-perfect-absorb.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "04-unblockable-telegraph",
+      "path": "apps/vr/art/vfx-concepts/25-moonlit-silver/04-unblockable-telegraph.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 60
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "01-water-bolt",
+      "path": "apps/vr/art/vfx-concepts/30-chalk-slate/01-water-bolt.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 40
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "02-ward-absorb",
+      "path": "apps/vr/art/vfx-concepts/30-chalk-slate/02-ward-absorb.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 40
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "03-perfect-absorb",
+      "path": "apps/vr/art/vfx-concepts/30-chalk-slate/03-perfect-absorb.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 put letter-like marks in the chalk field and an A-like glyph on the cuff, and the hand was a photograph on the slate",
+        "pass 3 (agy) wrote the English words VECTORS, FLOW and ABSORPTION and still drew an R on the cuff; pass 2 kept"
+      ],
+      "seconds": 7
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "04-unblockable-telegraph",
+      "path": "apps/vr/art/vfx-concepts/30-chalk-slate/04-unblockable-telegraph.jpg",
+      "tool": "grok",
+      "model": null,
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "pass 1 put feathered wings in the foreground and letter-like glyphs on the mage's robe"
+      ],
+      "seconds": 7
+    }
+  ],
+  "totals": {
+    "images": 12,
+    "by_tool": {
+      "grok": 11,
+      "agy": 1
+    },
+    "failures": 0,
+    "regenerations": 6,
+    "approximate_cost": null
+  }
+}
