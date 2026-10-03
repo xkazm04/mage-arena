@@ -1,0 +1,28 @@
+{
+  "card": "A05",
+  "purpose": "greybox SFX starter pack so the 18 Oct mechanics gate can judge feel with audio; style-neutral, replaced or remixed after the style pick",
+  "provider": "ElevenLabs sound generation (owner-approved paid service)",
+  "common": "Clean, close-miked game sound effect, no music, no voice, no speech, no words, no reverb tail longer than needed, no background noise.",
+  "cues": [
+    {"id": "sigil-draw-loop", "seconds": 2.0, "loop": true, "text": "A soft shimmering trail of flowing water and faint glassy sparkle, continuous and even, as a fingertip draws a glowing line in the air."},
+    {"id": "sigil-complete", "seconds": 1.2, "loop": false, "text": "A bright, clean magical chime with a splash of water, a spell sigil snapping into place, satisfying and short."},
+    {"id": "sigil-reject", "seconds": 0.8, "loop": false, "text": "A dull short fizzle, water spell fizzling out like a drop on hot stone, clearly a failure but not harsh."},
+    {"id": "cast-bolt", "seconds": 0.6, "loop": false, "text": "A quick small water projectile launched from a hand, tight whoosh with a wet snap."},
+    {"id": "cast-tide-orb", "seconds": 1.0, "loop": false, "text": "A heavy orb of water launched forward, deep rushing swell and a rolling whoosh."},
+    {"id": "ward-raise", "seconds": 0.7, "loop": false, "text": "A curved shield of water forming in front of a raised palm, fast rising rush of water locking into a hum."},
+    {"id": "ward-hold-loop", "seconds": 3.0, "loop": true, "text": "A low steady rippling hum of a water barrier being held, gentle and continuous, seamless loop."},
+    {"id": "ward-absorb", "seconds": 0.8, "loop": false, "text": "A projectile hitting a water shield and being absorbed, muffled splash with a soft thud."},
+    {"id": "perfect-absorb", "seconds": 1.5, "loop": false, "text": "A perfect magical block: a crystalline ring and a rising shimmering chime over a water splash, rewarding and bright."},
+    {"id": "hit-taken", "seconds": 0.6, "loop": false, "text": "A magical blow striking a person, short heavy thud with a hiss, no voice."},
+    {"id": "blink", "seconds": 0.5, "loop": false, "text": "A quick airy displacement, a soft pop and a short swoosh of someone teleporting a few steps."},
+    {"id": "fire-bolt-incoming", "seconds": 1.2, "loop": false, "text": "A fireball flying toward the listener, crackling roaring whoosh that grows louder."},
+    {"id": "fire-impact", "seconds": 1.0, "loop": false, "text": "A fireball exploding on sand, a short burst of flame and scattering embers."},
+    {"id": "unblockable-telegraph", "seconds": 1.6, "loop": false, "text": "An ominous deep rising tone with a dark rumble, warning that something unstoppable is coming."},
+    {"id": "tier-unlock", "seconds": 0.9, "loop": false, "text": "A bronze rune clicking into place with a warm metallic ring and a soft glow swell."},
+    {"id": "flow-stack", "seconds": 0.5, "loop": false, "text": "A single soft ascending water note, a small pleasant pluck."},
+    {"id": "crest", "seconds": 2.0, "loop": false, "text": "A great wave cresting and crashing, powerful rising rush of water ending in a bright magical burst."},
+    {"id": "hound-snarl", "seconds": 1.2, "loop": false, "text": "A creature made of embers snarling, a crackling fiery growl, no human voice."},
+    {"id": "arena-crowd-loop", "seconds": 10.0, "loop": true, "text": "Distant murmur of a large crowd in an open stone arena, steady and seamless, no individual words."},
+    {"id": "ui-pause", "seconds": 0.5, "loop": false, "text": "A soft muted low tone for pausing, gentle and quiet."}
+  ]
+}
