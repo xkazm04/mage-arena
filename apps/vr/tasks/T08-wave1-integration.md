@@ -1,6 +1,6 @@
 # T08 - Wave 1 end to end: gestures drive the kernel, the kernel drives the greybox, the cuff shows the clock
 
-Status: retry 1 dispatched 2026-10-03
+Status: done after retry 1 - integration verified; seated Wave 1 loses (design finding DF-001, owner decision)
 Max turns: 320
 
 ## Goal

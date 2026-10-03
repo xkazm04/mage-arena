@@ -156,6 +156,28 @@ void AMageArenaPawn::BlinkToPad(int32 PadIndex)
 	{
 		return;
 	}
+	StartBlinkFade(PadIndex);
+}
+
+void AMageArenaPawn::PresentBlink(int32 PadIndex)
+{
+	UE_LOG(LogMageArena, Log, TEXT("Gesture blink to pad %d"), PadIndex);
+	if (!bHasLayout || !Layout.FindPad(PadIndex))
+	{
+		return;
+	}
+	// Fade-out has not seated yet, so the pending pad is the one it will seat.
+	// Fade-in has already seated. A new blink fades out again instead of snapping.
+	if (bBlinkBusy && BlinkPhase == EBlinkPhase::FadeOut)
+	{
+		PendingPad = PadIndex;
+		return;
+	}
+	StartBlinkFade(PadIndex);
+}
+
+void AMageArenaPawn::StartBlinkFade(int32 PadIndex)
+{
 	APlayerController* Player = Cast<APlayerController>(GetController());
 	APlayerCameraManager* Manager = Player ? Player->PlayerCameraManager : nullptr;
 	if (!Manager || Layout.BlinkFadeOutS <= 0.0)

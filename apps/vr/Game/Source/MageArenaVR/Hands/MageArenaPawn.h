@@ -29,6 +29,13 @@ public:
 	/** L3 debug. 0 left, 1 centre, 2 right. Snaps during a fade. Ignores a second call while busy. */
 	void BlinkToPad(int32 PadIndex);
 
+	/**
+	 * Gesture blink. Same fade as the debug snap. Logs separately from BlinkToPad.
+	 * A second call during fade-out retargets the pad that fade will seat.
+	 * A call during fade-in starts a new fade. It does not snap the pawn into place.
+	 */
+	void PresentBlink(int32 PadIndex);
+
 	void ConfigureFromLayout(const FArenaLayout& InLayout);
 	void LookAtArena();
 	/** Pitch in degrees, positive up, clamped to the layout. Yaw stays inside the facing limit. */
@@ -66,6 +73,7 @@ private:
 		FadeIn
 	};
 
+	void StartBlinkFade(int32 PadIndex);
 	void SeatOnPad(int32 PadIndex);
 	void ApplyLook();
 	void SetVignette(double Intensity);

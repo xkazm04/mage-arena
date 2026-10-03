@@ -9,6 +9,7 @@
 #include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
+#include "Session/ArenaSession.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "InputTriggers.h"
@@ -127,7 +128,8 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 			float DY = 0.f;
 			GetInputMouseDelta(DX, DY);
 			// The capture sequence owns the camera. A hidden cursor delta must not drag the scripted shots.
-			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
+			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"))
+				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
 			if (!bDrawing && !Mage->IsBlinkBusy() && !bCapture)
 			{
 				FRotator Rot = GetControlRotation();
@@ -184,7 +186,21 @@ void AMageArenaPlayerController::SetupInputComponent()
 		{
 			Enhanced->BindActionValueLambda(Action, ETriggerEvent::Triggered, [this](const FInputActionValue&)
 			{
-				UE_LOG(LogMageArena, Log, TEXT("Pause reserved (Esc); no clip played"));
+				UGameInstance* Instance = GetGameInstance();
+				UArenaSessionSubsystem* Session = nullptr;
+				if (Instance)
+				{
+					if (UWorld* World = GetWorld())
+					{
+						Session = World->GetSubsystem<UArenaSessionSubsystem>();
+					}
+				}
+				if (!Session)
+				{
+					UE_LOG(LogMageArena, Log, TEXT("Pause reserved (Esc); no clip played"));
+					return;
+				}
+				Session->TogglePause();
 			});
 			continue;
 		}
