@@ -1,0 +1,198 @@
+{
+  "card": "A01",
+  "purpose": "style studies for the 19 Oct style pick; same asset scenes across the three shortlisted styles",
+  "styles": [
+    {
+      "id": "13-screen-print",
+      "name": "Screen-Print Poster",
+      "palette": "paper #F1E7CF, teal #1E6F73, sunset orange #E8743B, deep plum #3B2340, mustard #E2B33C",
+      "style_block": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures.",
+      "items": [
+        {
+          "asset": "01-vr-duel",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. First-person view from a seated player's eyes inside an open oval Roman-era sand arena, wide 100-degree field of view, eye height of a seated adult. In the lower foreground, the player's own two bare hands, no gloves, no devices: the right index finger traces a glowing circular sigil of water-light in the air, two concentric rings with one bold inner stroke, droplets trailing the fingertip; the left palm is raised forward, projecting a curved translucent ward shaped like a 140-degree arc of rippling water. A bronze prisoner's cuff on the left wrist has four inlaid runes, two of them lit. Three faint rune circles are set in the sand around the player's seat, within arm's reach. Eight metres ahead, a broad bearded fire mage in scorched crimson wool with a bronze collar hurls a vermilion fireball; a thin shrinking ring telegraphs where it will land. Tiered stone stands with a watching crowd, banners, and grey-robed arcane wardens on the wall. Clear readable silhouettes, the hands and the incoming spell are the focal points.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/01-vr-duel.jpg"
+        },
+        {
+          "asset": "02-key-art",
+          "aspect": "2:3",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. Key art for an original Roman-era elemental-mage arena game. Cassia, a sharp-featured water mage woman in her thirties, dark hair bound with sea-blue cord, layered sea-blue and undyed linen robes, a bronze prisoner's collar with four inlaid runes, stands braced on arena sand drawing a large luminous sigil of concentric water rings with one hand while her other palm holds back a wave of vermilion fire thrown by a bearded fire mage in crimson. Behind them, towering stands, Roman standards, and grey-robed wardens watching from the wall. Dramatic, heroic, poster composition, strong silhouette.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/02-key-art.jpg"
+        },
+        {
+          "asset": "03-sigil-glyphs",
+          "aspect": "1:1",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. A clean sheet of four magic sigils in a two-by-two grid on a plain background: top left, two concentric rings crossed by one vertical bar; top right, two concentric rings crossed by one horizontal bar; bottom left, two concentric rings crossed by one diagonal bar from lower left to upper right; bottom right, a two-handed seal of two interlocking rings with a small eight-pointed star between them. Each sigil centred, bold, readable at small size, drawn as glowing water magic. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/03-sigil-glyphs.jpg"
+        },
+        {
+          "asset": "04-fire-mage-turnaround",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. Character turnaround sheet for a 3D modeller: a broad, bearded fire mage of the Roman era in a scorched crimson wool tunic and cloak, leather arm wraps, a bronze prisoner's collar with four inlaid runes, sandalled feet. Three full-body views side by side at the same scale - front, side, back - standing in a neutral A-pose, plain background, even lighting, the whole figure visible head to toe. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/04-fire-mage-turnaround.jpg"
+        },
+        {
+          "asset": "05-arena-wide",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. Wide establishing view of an open oval Roman-era sand arena seen from a low stone seat at the arena's edge: tiered stone stands with a watching crowd, banners, grey-robed arcane wardens on the wall, three faint rune circles set in the sand around the seat in the foreground, late afternoon light. No fighting characters, no text.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/05-arena-wide.jpg"
+        },
+        {
+          "asset": "06-cuff-hud",
+          "aspect": "1:1",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. First-person close-up of a seated player's left forearm and open palm raised forward: a bronze prisoner's cuff on the wrist with four inlaid runes, two glowing and two dark, a faint turquoise water glow gathering in the palm, the arena sand softly visible beyond. A natural human hand with five fingers. No text, no numbers, no interface panels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/06-cuff-hud.jpg"
+        },
+        {
+          "asset": "07-threat-language",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. A readability sheet of six incoming projectiles side by side on a plain background, each clearly distinct in colour and silhouette: a turquoise water orb, a vermilion fire bolt, an ochre stone shard, a pale air blade, a steel-grey thrown spear, and one dark projectile with a black core and a jagged red rim. Even spacing, same scale. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/07-threat-language.jpg"
+        },
+        {
+          "asset": "08-enemy-lineup",
+          "aspect": "16:9",
+          "prompt": "Style: vintage screen-print poster, flat bold shapes, four colours only plus paper, visible halftone dots in the shadows, slight misregistration, strong graphic composition, sun disc and long shadows, heroic simplified figures. Lineup sheet of four arena enemies at the same scale, front three-quarter view, plain background: a Roman conscript foot soldier with a rectangular shield and short sword, a slinger with a leather sling and a pouch of stones, a lean dog-like hound made of glowing embers and cinders, and a squat swamp beast with a huge mouth of mud and reeds. Whole bodies visible. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, noisy",
+          "path": "apps/vr/art/style-studies/13-screen-print/08-enemy-lineup.jpg"
+        }
+      ]
+    },
+    {
+      "id": "25-moonlit-silver",
+      "name": "Moonlit Silver Nocturne",
+      "palette": "moon silver #C9D3DE, slate #4C5A6E, night blue #1A2235, water #19E0E0, fire #FF3B1F",
+      "style_block": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant.",
+      "items": [
+        {
+          "asset": "01-vr-duel",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. First-person view from a seated player's eyes inside an open oval Roman-era sand arena, wide 100-degree field of view, eye height of a seated adult. In the lower foreground, the player's own two bare hands, no gloves, no devices: the right index finger traces a glowing circular sigil of water-light in the air, two concentric rings with one bold inner stroke, droplets trailing the fingertip; the left palm is raised forward, projecting a curved translucent ward shaped like a 140-degree arc of rippling water. A bronze prisoner's cuff on the left wrist has four inlaid runes, two of them lit. Three faint rune circles are set in the sand around the player's seat, within arm's reach. Eight metres ahead, a broad bearded fire mage in scorched crimson wool with a bronze collar hurls a vermilion fireball; a thin shrinking ring telegraphs where it will land. Tiered stone stands with a watching crowd, banners, and grey-robed arcane wardens on the wall. Clear readable silhouettes, the hands and the incoming spell are the focal points.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/01-vr-duel.jpg"
+        },
+        {
+          "asset": "02-key-art",
+          "aspect": "2:3",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. Key art for an original Roman-era elemental-mage arena game. Cassia, a sharp-featured water mage woman in her thirties, dark hair bound with sea-blue cord, layered sea-blue and undyed linen robes, a bronze prisoner's collar with four inlaid runes, stands braced on arena sand drawing a large luminous sigil of concentric water rings with one hand while her other palm holds back a wave of vermilion fire thrown by a bearded fire mage in crimson. Behind them, towering stands, Roman standards, and grey-robed wardens watching from the wall. Dramatic, heroic, poster composition, strong silhouette.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/02-key-art.jpg"
+        },
+        {
+          "asset": "03-sigil-glyphs",
+          "aspect": "1:1",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. A clean sheet of four magic sigils in a two-by-two grid on a plain background: top left, two concentric rings crossed by one vertical bar; top right, two concentric rings crossed by one horizontal bar; bottom left, two concentric rings crossed by one diagonal bar from lower left to upper right; bottom right, a two-handed seal of two interlocking rings with a small eight-pointed star between them. Each sigil centred, bold, readable at small size, drawn as glowing water magic. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/03-sigil-glyphs.jpg"
+        },
+        {
+          "asset": "04-fire-mage-turnaround",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. Character turnaround sheet for a 3D modeller: a broad, bearded fire mage of the Roman era in a scorched crimson wool tunic and cloak, leather arm wraps, a bronze prisoner's collar with four inlaid runes, sandalled feet. Three full-body views side by side at the same scale - front, side, back - standing in a neutral A-pose, plain background, even lighting, the whole figure visible head to toe. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/04-fire-mage-turnaround.jpg"
+        },
+        {
+          "asset": "05-arena-wide",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. Wide establishing view of an open oval Roman-era sand arena seen from a low stone seat at the arena's edge: tiered stone stands with a watching crowd, banners, grey-robed arcane wardens on the wall, three faint rune circles set in the sand around the seat in the foreground, late afternoon light. No fighting characters, no text.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/05-arena-wide.jpg"
+        },
+        {
+          "asset": "06-cuff-hud",
+          "aspect": "1:1",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. First-person close-up of a seated player's left forearm and open palm raised forward: a bronze prisoner's cuff on the wrist with four inlaid runes, two glowing and two dark, a faint turquoise water glow gathering in the palm, the arena sand softly visible beyond. A natural human hand with five fingers. No text, no numbers, no interface panels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/06-cuff-hud.jpg"
+        },
+        {
+          "asset": "07-threat-language",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. A readability sheet of six incoming projectiles side by side on a plain background, each clearly distinct in colour and silhouette: a turquoise water orb, a vermilion fire bolt, an ochre stone shard, a pale air blade, a steel-grey thrown spear, and one dark projectile with a black core and a jagged red rim. Even spacing, same scale. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/07-threat-language.jpg"
+        },
+        {
+          "asset": "08-enemy-lineup",
+          "aspect": "16:9",
+          "prompt": "Style: moonlit nocturne in blue-silver monochrome, cool silver highlights on stone and cloth, soft blue shadows, the entire world colourless except the magic, which glows in pure saturated colour, turquoise water and vermilion fire, quiet, dreamlike, elegant. Lineup sheet of four arena enemies at the same scale, front three-quarter view, plain background: a Roman conscript foot soldier with a rectangular shield and short sword, a slinger with a leather sling and a pouch of stones, a lean dog-like hound made of glowing embers and cinders, and a squat swamp beast with a huge mouth of mud and reeds. Whole bodies visible. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, sepia, warm daylight",
+          "path": "apps/vr/art/style-studies/25-moonlit-silver/08-enemy-lineup.jpg"
+        }
+      ]
+    },
+    {
+      "id": "30-chalk-slate",
+      "name": "Chalk & Slate",
+      "palette": "slate #2A2F33, chalk white #EDEDE8, chalk blue #7CC4E8, chalk red #F06A4D, chalk yellow #F2D06B",
+      "style_block": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly.",
+      "items": [
+        {
+          "asset": "01-vr-duel",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. First-person view from a seated player's eyes inside an open oval Roman-era sand arena, wide 100-degree field of view, eye height of a seated adult. In the lower foreground, the player's own two bare hands, no gloves, no devices: the right index finger traces a glowing circular sigil of water-light in the air, two concentric rings with one bold inner stroke, droplets trailing the fingertip; the left palm is raised forward, projecting a curved translucent ward shaped like a 140-degree arc of rippling water. A bronze prisoner's cuff on the left wrist has four inlaid runes, two of them lit. Three faint rune circles are set in the sand around the player's seat, within arm's reach. Eight metres ahead, a broad bearded fire mage in scorched crimson wool with a bronze collar hurls a vermilion fireball; a thin shrinking ring telegraphs where it will land. Tiered stone stands with a watching crowd, banners, and grey-robed arcane wardens on the wall. Clear readable silhouettes, the hands and the incoming spell are the focal points.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/01-vr-duel.jpg"
+        },
+        {
+          "asset": "02-key-art",
+          "aspect": "2:3",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. Key art for an original Roman-era elemental-mage arena game. Cassia, a sharp-featured water mage woman in her thirties, dark hair bound with sea-blue cord, layered sea-blue and undyed linen robes, a bronze prisoner's collar with four inlaid runes, stands braced on arena sand drawing a large luminous sigil of concentric water rings with one hand while her other palm holds back a wave of vermilion fire thrown by a bearded fire mage in crimson. Behind them, towering stands, Roman standards, and grey-robed wardens watching from the wall. Dramatic, heroic, poster composition, strong silhouette.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/02-key-art.jpg"
+        },
+        {
+          "asset": "03-sigil-glyphs",
+          "aspect": "1:1",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. A clean sheet of four magic sigils in a two-by-two grid on a plain background: top left, two concentric rings crossed by one vertical bar; top right, two concentric rings crossed by one horizontal bar; bottom left, two concentric rings crossed by one diagonal bar from lower left to upper right; bottom right, a two-handed seal of two interlocking rings with a small eight-pointed star between them. Each sigil centred, bold, readable at small size, drawn as glowing water magic. No text, no letters, no numbers.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/03-sigil-glyphs.jpg"
+        },
+        {
+          "asset": "04-fire-mage-turnaround",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. Character turnaround sheet for a 3D modeller: a broad, bearded fire mage of the Roman era in a scorched crimson wool tunic and cloak, leather arm wraps, a bronze prisoner's collar with four inlaid runes, sandalled feet. Three full-body views side by side at the same scale - front, side, back - standing in a neutral A-pose, plain background, even lighting, the whole figure visible head to toe. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/04-fire-mage-turnaround.jpg"
+        },
+        {
+          "asset": "05-arena-wide",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. Wide establishing view of an open oval Roman-era sand arena seen from a low stone seat at the arena's edge: tiered stone stands with a watching crowd, banners, grey-robed arcane wardens on the wall, three faint rune circles set in the sand around the seat in the foreground, late afternoon light. No fighting characters, no text.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/05-arena-wide.jpg"
+        },
+        {
+          "asset": "06-cuff-hud",
+          "aspect": "1:1",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. First-person close-up of a seated player's left forearm and open palm raised forward: a bronze prisoner's cuff on the wrist with four inlaid runes, two glowing and two dark, a faint turquoise water glow gathering in the palm, the arena sand softly visible beyond. A natural human hand with five fingers. No text, no numbers, no interface panels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/06-cuff-hud.jpg"
+        },
+        {
+          "asset": "07-threat-language",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. A readability sheet of six incoming projectiles side by side on a plain background, each clearly distinct in colour and silhouette: a turquoise water orb, a vermilion fire bolt, an ochre stone shard, a pale air blade, a steel-grey thrown spear, and one dark projectile with a black core and a jagged red rim. Even spacing, same scale. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/07-threat-language.jpg"
+        },
+        {
+          "asset": "08-enemy-lineup",
+          "aspect": "16:9",
+          "prompt": "Style: chalk drawing on dark slate, the arena, crowd and mages sketched in white and coloured chalk with dusty strokes and smudges, construction lines and geometric annotations visible, spells as bright coloured chalk circles that seem freshly drawn, playful and scholarly. Lineup sheet of four arena enemies at the same scale, front three-quarter view, plain background: a Roman conscript foot soldier with a rectangular shield and short sword, a slinger with a leather sling and a pouch of stones, a lean dog-like hound made of glowing embers and cinders, and a squat swamp beast with a huge mouth of mud and reeds. Whole bodies visible. No text, no labels.",
+          "negative": "text, letters, captions, watermark, logo, signature, UI labels, frame border, extra fingers, six fingers, fused fingers, missing fingers, deformed hands, twisted wrists, game controller, VR headset visible, gloves, smartphone, modern clothing, sunglasses, guns, cars, cropped hands, duplicate characters, blurry, low resolution, jpeg artifacts, photorealistic, 3D render",
+          "path": "apps/vr/art/style-studies/30-chalk-slate/08-enemy-lineup.jpg"
+        }
+      ]
+    }
+  ]
+}

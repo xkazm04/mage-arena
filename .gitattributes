@@ -9,3 +9,7 @@
 apps/vr/data/pinned/** -text
 # Hand clips are JSONL with LF. Regeneration must be byte-identical.
 apps/vr/Game/Clips/** text eol=lf
+# Generated art (style studies and later assets) goes through LFS
+apps/vr/art/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+apps/vr/art/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+apps/vr/art/**/*.webp filter=lfs diff=lfs merge=lfs -text
