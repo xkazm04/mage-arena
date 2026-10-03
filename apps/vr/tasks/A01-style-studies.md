@@ -1,6 +1,6 @@
 # A01 - Style studies for the 19 Oct style pick (images, no Unreal build)
 
-Status: open
+Status: done (images reviewed by orchestrator 2026-10-03)
 Max turns: 160
 
 ## Goal

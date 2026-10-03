@@ -1,0 +1,322 @@
+{
+  "card": "A01",
+  "generated": "2026-10-03",
+  "note": "seconds is the wall-clock of the parallel batch that returned the kept image, in seconds. The image tool has no negative-prompt field; each negative list was appended as 'Avoid: …'. approximate_cost is null because the tool reported none.",
+  "items": [
+    {
+      "style": "13-screen-print",
+      "asset": "01-vr-duel",
+      "path": "apps/vr/art/style-studies/13-screen-print/01-vr-duel.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 50
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "02-key-art",
+      "path": "apps/vr/art/style-studies/13-screen-print/02-key-art.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "2:3",
+      "aspect_delivered": "832x1248",
+      "regen_reasons": [],
+      "seconds": 50
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "03-sigil-glyphs",
+      "path": "apps/vr/art/style-studies/13-screen-print/03-sigil-glyphs.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [],
+      "seconds": 50
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "04-fire-mage-turnaround",
+      "path": "apps/vr/art/style-studies/13-screen-print/04-fire-mage-turnaround.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 50
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "05-arena-wide",
+      "path": "apps/vr/art/style-studies/13-screen-print/05-arena-wide.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "visible Latin letters A, R and X inside the sand circles",
+        "second pass still showed an inscription band of pseudo-letters"
+      ],
+      "seconds": 18
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "06-cuff-hud",
+      "path": "apps/vr/art/style-studies/13-screen-print/06-cuff-hud.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 3,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [
+        "cuff showed Latin letters N and X",
+        "second pass still showed letter-like R glyphs"
+      ],
+      "seconds": 18
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "07-threat-language",
+      "path": "apps/vr/art/style-studies/13-screen-print/07-threat-language.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 34
+    },
+    {
+      "style": "13-screen-print",
+      "asset": "08-enemy-lineup",
+      "path": "apps/vr/art/style-studies/13-screen-print/08-enemy-lineup.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 34
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "01-vr-duel",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/01-vr-duel.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 18
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "02-key-art",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/02-key-art.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "2:3",
+      "aspect_delivered": "832x1248",
+      "regen_reasons": [],
+      "seconds": 18
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "03-sigil-glyphs",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/03-sigil-glyphs.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [],
+      "seconds": 18
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "04-fire-mage-turnaround",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/04-fire-mage-turnaround.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 18
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "05-arena-wide",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/05-arena-wide.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 3,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "rune circles rendered as rings of pseudo-letters",
+        "second pass put readable letters in the circle and moved the rings off the seat"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "06-cuff-hud",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/06-cuff-hud.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 3,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [
+        "cuff glyphs read as the letter R",
+        "second pass still read as letters, including a digit-like mark"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "07-threat-language",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/07-threat-language.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 23
+    },
+    {
+      "style": "25-moonlit-silver",
+      "asset": "08-enemy-lineup",
+      "path": "apps/vr/art/style-studies/25-moonlit-silver/08-enemy-lineup.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 23
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "01-vr-duel",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/01-vr-duel.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 23
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "02-key-art",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/02-key-art.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "2:3",
+      "aspect_delivered": "832x1248",
+      "regen_reasons": [],
+      "seconds": 23
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "03-sigil-glyphs",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/03-sigil-glyphs.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [],
+      "seconds": 20
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "04-fire-mage-turnaround",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/04-fire-mage-turnaround.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 20
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "05-arena-wide",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/05-arena-wide.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 2,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [
+        "one foreground circle was a ring of alphabet-like letters"
+      ],
+      "seconds": 23
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "06-cuff-hud",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/06-cuff-hud.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 3,
+      "aspect_requested": "1:1",
+      "aspect_delivered": "1024x1024",
+      "regen_reasons": [
+        "cuff and background circles showed letter-like glyphs",
+        "second pass showed clear letters K and R on the cuff"
+      ],
+      "seconds": 40
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "07-threat-language",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/07-threat-language.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 23
+    },
+    {
+      "style": "30-chalk-slate",
+      "asset": "08-enemy-lineup",
+      "path": "apps/vr/art/style-studies/30-chalk-slate/08-enemy-lineup.jpg",
+      "tool": "grok",
+      "model": "grok-imagine-image-quality",
+      "attempts": 1,
+      "aspect_requested": "16:9",
+      "aspect_delivered": "1280x720",
+      "regen_reasons": [],
+      "seconds": 23
+    }
+  ],
+  "totals": {
+    "images": 24,
+    "by_tool": {
+      "grok": 24,
+      "agy": 0
+    },
+    "failures": 2,
+    "regenerations": 11,
+    "approximate_cost": null
+  }
+}
