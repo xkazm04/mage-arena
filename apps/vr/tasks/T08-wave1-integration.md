@@ -1,6 +1,6 @@
 # T08 - Wave 1 end to end: gestures drive the kernel, the kernel drives the greybox, the cuff shows the clock
 
-Status: open
+Status: retry 1 dispatched 2026-10-03
 Max turns: 320
 
 ## Goal
@@ -62,3 +62,29 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" "C:\Users\kazda\kiro\mage-arena-vr\apps\vr\Game\MageArenaVR.uproject" -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
 <the capture command you add>                   # screenshots in runs/T08/shots/
 ```
+
+## Retry 1 (orchestrator, 2026-10-03)
+
+The loop works (gesture -> kernel chain, 93/93 tests, the cuff and presentation in the shots), but the win is not the
+game we are making. The seated player NEVER walks: only blinks between the three pads (`docs/DECISIONS.md`,
+plan 6.1). Fix these; keep every test green; do not weaken checks.
+
+1. **No walking.** `ArenaSession.cpp:~925` sets `Input.Move = ComputeKiteMove(...)`, so the kernel player kites at walk
+   speed while the seated camera stays on the pad - the simulation and the view disagree. Remove all move input; pin
+   the kernel player to the active pad's position at all times (blink is the only position change, via the CR-001
+   adapter). Update CR-001 to say so.
+2. **Then measure honestly.** Re-run `Wave1Scripted` without walking. If victory still lands inside the pinned 25-40 s
+   window, good. If it does not, **do not tune numbers and do not change the script to cheat**: let the test require
+   victory within a generous cap (e.g. 120 s), log the measured time against the 25-40 s window, and report it as a
+   design finding for the owner (the window was calibrated for the walking desktop/TV game). Also report how much damage
+   the player takes from a seat.
+3. **Vacuous time check:** `SessionTests.cpp:~103` stops the loop at the 40 s limit, so the `sim <= Limit` assertion at
+   ~134 cannot fail. Loop to the generous cap and assert on the measured time.
+4. Review findings: Wave 1 capture does not suppress mouse look (`MageArenaPlayerController.cpp:~131`, add the Wave 1
+   capture flag); unscripted aim reads the camera component instead of the control rotation (`ArenaSession.cpp:~1132`);
+   a gesture blink during `FadeIn` re-seats without a fade (`MageArenaPawn.cpp:~174`); add the missing `blink-back` from
+   pad 2 case in `BlinkTests.cpp`.
+5. Re-capture `runs/T08/shots/` (and the frame sequence) from the seated, non-walking run.
+
+Note: the tilted horizon in `04-blink.png` is perspective from the side pad (yaw toward the arena centre), not a camera
+roll - no change needed there.
