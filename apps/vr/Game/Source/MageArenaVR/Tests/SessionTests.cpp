@@ -175,6 +175,64 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreaturesSeated, "MageArenaDesign.Session.CreaturesSeated",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+	Session.SetScripted(true);
+	Session.SetBoutIndex(1); // Bout 2 (creatures)
+	if (!Session.Start(1))
+	{
+		AddError(TEXT("Session.Start failed"));
+		Rig.Close(Session);
+		return false;
+	}
+
+	// combat.json pacingTargets.creatureWaveS = [30, 45] (pinned). Do not move the window to make a bout pass.
+	const double PinnedWindowLo = 30.0;
+	const double PinnedWindowHi = 45.0;
+	const double GenerousCap = 120.0;
+	const double Dt = 1.0 / 72.0;
+	int32 Guard = 0;
+	while (Session.GetGames().Phase == TEXT("active") && Session.GetSimSeconds() < GenerousCap && Guard < 10000)
+	{
+		Session.Advance(Dt, true);
+		++Guard;
+	}
+
+	const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
+	const double Measured = Session.GetSimSeconds();
+	const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
+	const bool bInsideWindow = bWon && Measured >= PinnedWindowLo && Measured <= PinnedWindowHi;
+	const double DamageTaken = Player ? Player->Metrics.DamageTaken : -1.0;
+	
+	const int32 Perfects = Player ? Player->Metrics.Perfects : -1;
+	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated end phase=%s t=%.2f hp=%.1f dealt=%.1f taken=%.1f blinks=%d perfects=%d"),
+		*Session.GetGames().Phase, Measured,
+		Player ? Player->Hp : -1.0,
+		Player ? Player->Metrics.DamageDealt : -1.0,
+		DamageTaken,
+		Session.GetBlinkAccepts(),
+		Perfects);
+	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f"),
+		Measured, PinnedWindowLo, PinnedWindowHi,
+		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
+		DamageTaken);
+
+	bool bPass = true;
+	bPass &= TestTrue(TEXT("won bout 2"), bWon);
+	bPass &= TestTrue(*FString::Printf(TEXT("victory inside %.0f-%.0fs window (measured %.2fs, phase %s)"),
+		PinnedWindowLo, PinnedWindowHi, Measured, *Session.GetGames().Phase), bInsideWindow);
+
+	Rig.Close(Session);
+	return bPass;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFireSeated, "MageArenaDesign.Duel.FireSeated",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -293,6 +351,240 @@ bool FMageArenaSessionDefeat::RunTest(const FString& Parameters)
 	const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
 	bPass &= TestTrue(TEXT("player down"), Player && Player->bDown);
 
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSessionChainAdvance, "MageArena.Session.ChainAdvance",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSessionChainAdvance::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
+	Session.SetScripted(false);
+	Session.SetBoutIndex(0);
+	if (!Session.Start(1)) return false;
+
+	// clear bout save
+	FFileHelper::SaveStringToFile(TEXT(""), *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArena"), TEXT("bout.txt")));
+
+	// Mock killing all enemies to force intermission
+	FArenaState& MutableState = const_cast<FArenaState&>(Session.GetGames().State);
+	FActor* Player = SimFindActor(MutableState, Session.GetGames().PlayerId);
+	Player->Hp = Player->MaxHp * 0.5; // lose some HP
+	Player->Mana = 0.0;
+	Player->Stamina = 0.0;
+
+	for (FActor& Actor : MutableState.Actors)
+	{
+		if (Actor.Id != Session.GetGames().PlayerId) Actor.bDown = true;
+	}
+	MutableState.Projectiles.Reset();
+	MutableState.Telegraphs.Reset();
+	Session.Advance(1.0, false); // should transition to intermission
+
+	bool bPass = true;
+	bPass &= TestEqual(TEXT("phase intermission"), Session.GetGames().Phase, FString(TEXT("intermission")));
+	
+	// pause in an intermission does nothing harmful
+	Session.TogglePause();
+	Session.Advance(1.0, false);
+	bPass &= TestEqual(TEXT("still intermission after pause"), Session.GetGames().Phase, FString(TEXT("intermission")));
+	Session.TogglePause();
+
+	// Hand raise to advance
+	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+	Session.Advance(0.1, false);
+
+	bPass &= TestEqual(TEXT("phase active"), Session.GetGames().Phase, FString(TEXT("active")));
+	bPass &= TestEqual(TEXT("wave advanced"), Session.GetGames().Wave, 1);
+	
+	const FActor* ConstPlayer = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
+	// Hand-computed. stats.csv rank 1: max HP 80 + 15 = 95, max mana 80 + 15 = 95, max stamina 60 + 10 = 70.
+	// HP was halved to 47.5, so 47.5 is missing; combat.json betweenWaves heals 0.30 of it = 14.25 -> 61.75.
+	// manaRefill and staminaRefill are 1.0, so both end full.
+	bPass &= TestTrue(TEXT("HP healed by 30% of missing (combat.json betweenWaves.healFractionOfMissingHp)"), FMath::IsNearlyEqual(ConstPlayer->Hp, 61.75, 1.0e-6));
+	bPass &= TestTrue(TEXT("Mana refilled to 95 (combat.json betweenWaves.manaRefill)"), FMath::IsNearlyEqual(ConstPlayer->Mana, 95.0, 1.0e-6));
+	bPass &= TestTrue(TEXT("Stamina refilled to 70 (combat.json betweenWaves.staminaRefill)"), FMath::IsNearlyEqual(ConstPlayer->Stamina, 70.0, 1.0e-6));
+
+	// Save file stores the current bout
+	FString SaveText;
+	FFileHelper::LoadFileToString(SaveText, *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArena"), TEXT("bout.txt")));
+	bPass &= TestTrue(TEXT("save file stores bout 1"), SaveText.Contains(TEXT("bout=1")));
+
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSessionChainDefeat, "MageArena.Session.ChainDefeat",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSessionChainDefeat::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
+	Session.SetScripted(false);
+	Session.SetBoutIndex(1); // Bout 2
+	if (!Session.Start(1)) return false;
+
+	FArenaState& MutableState = const_cast<FArenaState&>(Session.GetGames().State);
+	FActor* Player = SimFindActor(MutableState, Session.GetGames().PlayerId);
+	Player->Hp = 0.0;
+	Player->bDown = true;
+	Session.Advance(1.0, false); // should transition to lost
+
+	bool bPass = true;
+	bPass &= TestEqual(TEXT("phase lost"), Session.GetGames().Phase, FString(TEXT("lost")));
+
+	// Hand raise to retry
+	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+	Session.Advance(0.1, false);
+
+	bPass &= TestEqual(TEXT("phase active"), Session.GetGames().Phase, FString(TEXT("active")));
+	bPass &= TestEqual(TEXT("wave remains 1 (Bout 2)"), Session.GetGames().Wave, 1);
+
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFullSeated, "MageArenaDesign.Session.FullSeated",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFullSeated::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+	Session.SetScripted(true);
+	if (!Session.Start(1))
+	{
+		AddError(TEXT("Session.Start failed"));
+		Rig.Close(Session);
+		return false;
+	}
+
+	const double Dt = 1.0 / 72.0;
+	int32 Guard = 0;
+	bool bWasIntermission = false;
+	
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Starting session"));
+
+	double BoutStartTime = 0.0;
+	int32 CurrentBout = Session.GetGames().Wave;
+
+	while (Session.GetGames().Phase != TEXT("complete") && Session.GetGames().Phase != TEXT("lost") && Guard < 100000)
+	{
+		if (Session.GetGames().Phase == TEXT("intermission") && !bWasIntermission)
+		{
+			bWasIntermission = true;
+			double BoutDuration = Session.GetSimSeconds() - BoutStartTime;
+			UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d won in %.2f s. Triggering intermission advance..."), CurrentBout, BoutDuration);
+			// Trigger palm raise to continue
+			Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+			
+			// Next bout will start
+			CurrentBout = Session.GetGames().Wave;
+			BoutStartTime = Session.GetSimSeconds();
+		}
+		else if (Session.GetGames().Phase == TEXT("active"))
+		{
+			bWasIntermission = false;
+		}
+		
+		Session.Advance(Dt, true);
+		++Guard;
+	}
+
+	double FinalBoutDuration = Session.GetSimSeconds() - BoutStartTime;
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d ended in phase=%s in %.2f s"), CurrentBout, *Session.GetGames().Phase, FinalBoutDuration);
+
+	const double Measured = Session.GetSimSeconds();
+	const double TotalWithTeach = Measured + 63.3; // teach measured at 63.3 s
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Session ended with phase=%s t=%.2f minutes=%.2f (total with teach: %.2f s, %.2f minutes). Plan: 7-10 mins."),
+		*Session.GetGames().Phase, Measured, Measured / 60.0, TotalWithTeach, TotalWithTeach / 60.0);
+
+	bool bPass = true;
+	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 100000);
+	bPass &= TestEqual(TEXT("Session completes (all bouts won)"), Session.GetGames().Phase, FString(TEXT("complete")));
+
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDeathBurstPerfect, "MageArena.Session.DeathBurstPerfect",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDeathBurstPerfect::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
+	Session.SetScripted(false);
+	if (!Session.Start(1)) return false;
+	
+	// Force transition to active phase BEFORE adding dummy owner
+	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+	Session.Advance(0.0, false); // Start wave, which resets Actors
+	Rig.Wards->OnWardLowered.Broadcast(); // Lower ward so it's fresh for the perfect absorb
+
+	FArenaState& MutableState = const_cast<FArenaState&>(Session.GetGames().State);
+	FActor DummyOwner;
+	DummyOwner.Id = 99;
+	DummyOwner.Team = 1;
+	DummyOwner.Hp = 100.0;
+	MutableState.Actors.Add(DummyOwner);
+	
+	const FActor* TargetPlayer = SimFindActor(MutableState, Session.GetGames().PlayerId);
+	FSimVec PlayerPos = TargetPlayer ? TargetPlayer->Pos : FSimVec{8.0, 10.0};
+	
+	FTelegraph Telegraph;
+	Telegraph.Id = 100;
+	Telegraph.ActivationId = 100;
+	Telegraph.OwnerId = 99;
+	Telegraph.Family = TEXT("magic");
+	Telegraph.Tier = 0;
+	Telegraph.Damage = 5.0;
+	Telegraph.Kind = TEXT("area");
+	Telegraph.Origin = FSimVec{PlayerPos.X + 1.0, PlayerPos.Y}; // offset to give it a direction for the ward arc
+	Telegraph.Target = Telegraph.Origin;
+	Telegraph.StartTick = MutableState.Tick;
+	Telegraph.ResolveTick = MutableState.Tick + static_cast<int32>(0.6 * 60.0); // enemies.json death burst delay
+	Telegraph.SpeedMps = 0.0;
+	Telegraph.RangeM = 1.5;
+	Telegraph.WidthM = 1.5;
+	Telegraph.bSurvivesOwner = true;
+	MutableState.Telegraphs.Add(Telegraph);
+	
+	const double Dt = 1.0 / 60.0;
+	
+	const double WaitS = 0.5; // Window is 0.15s, so 0.1s before resolve is perfect
+	double SimS = 0.0;
+	while (SimS < WaitS)
+	{
+		Session.Advance(Dt, false);
+		SimS += Dt;
+	}
+	Rig.Wards->OnWardRaised.Broadcast(Session.GetSimSeconds(), FVector::ForwardVector);
+	
+	while (SimS < 0.65)
+	{
+		Session.Advance(Dt, false);
+		SimS += Dt;
+	}
+
+	const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
+	UE_LOG(LogMageArena, Log, TEXT("Final Tick=%d bAbsorb=%d Telegraphs=%d Perfects=%d"), Session.GetGames().State.Tick, Player ? Player->bAbsorb : 0, Session.GetGames().State.Telegraphs.Num(), Player ? Player->Metrics.Perfects : -1);
+	
+	bool bPass = true;
+	bPass &= TestTrue(TEXT("Death burst was perfect absorbed"), Player && Player->Metrics.Perfects == 1);
+	
 	Rig.Close(Session);
 	return bPass;
 }

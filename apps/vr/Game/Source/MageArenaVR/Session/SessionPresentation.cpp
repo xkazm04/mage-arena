@@ -99,7 +99,7 @@ UStaticMeshComponent* ASessionPresentation::MakePart(const TCHAR* Shape, const F
 	return Component;
 }
 
-ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, bool bSlinger)
+ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FString& EnemyId)
 {
 	for (FBody& Body : Bodies)
 	{
@@ -110,7 +110,7 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, bool bSling
 	}
 	for (FBody& Body : Bodies)
 	{
-		if (Body.Id < 0 && Body.bSlinger == bSlinger)
+		if (Body.Id < 0 && Body.EnemyId == EnemyId)
 		{
 			Body.Id = Id;
 			return Body;
@@ -118,8 +118,13 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, bool bSling
 	}
 	FBody& Created = Bodies.AddDefaulted_GetRef();
 	Created.Id = Id;
-	Created.bSlinger = bSlinger;
-	Created.Mesh = MakePart(TEXT("Cylinder"), bSlinger ? SlingerColour : ConscriptColour);
+	Created.EnemyId = EnemyId;
+	FLinearColor Colour = ConscriptColour;
+	FString Shape = TEXT("Cylinder");
+	if (EnemyId == TEXT("slinger")) { Colour = SlingerColour; }
+	else if (EnemyId == TEXT("cinder_hound")) { Colour = FLinearColor(0.8f, 0.3f, 0.05f); Shape = TEXT("Cube"); }
+	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
+	Created.Mesh = MakePart(*Shape, Colour);
 	Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f, 0.02f, 0.02f));
 	Created.HpFill = MakePart(TEXT("Cube"), HpColour);
 	return Created;
@@ -173,6 +178,10 @@ ASessionPresentation::FRing& ASessionPresentation::RingFor(int32 Id)
 	Created.Id = Id;
 	Created.Mesh = MakePart(TEXT("Cylinder"), SteelColour);
 	Created.Rim = MakePart(TEXT("Cylinder"), UnblockableRim);
+	for (int32 i = 0; i < 20; ++i)
+	{
+		Created.Beads.Add(MakePart(TEXT("Cube"), FLinearColor::White));
+	}
 	return Created;
 }
 
@@ -243,6 +252,10 @@ void ASessionPresentation::HideUnused(const TSet<int32>& LiveIds, double Now, bo
 			if (Ring.Rim)
 			{
 				Ring.Rim->SetVisibility(false);
+			}
+			for (auto Bead : Ring.Beads)
+			{
+				if (Bead) Bead->SetVisibility(false);
 			}
 		}
 	}
@@ -1075,19 +1088,32 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			continue;
 		}
-		const bool bSlinger = Actor.Enemy.IsSet() && Actor.Enemy->Id == TEXT("slinger");
-		FBody& Body = BodyFor(Actor.Id, bSlinger);
+		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id : TEXT("");
+		FBody& Body = BodyFor(Actor.Id, EnemyId);
 		LiveBodies.Add(Actor.Id);
-		const float Height = bSlinger ? 150.f : 176.f;
-		const float Width = bSlinger ? 42.f : 48.f;
+		float Height = 176.f;
+		float Width = 48.f;
+		float Length = 48.f;
+		FLinearColor BodyColour = ConscriptColour;
+		if (Actor.bDummy) { BodyColour = TrainingDummyColour; }
+		else if (EnemyId == TEXT("slinger")) { Height = 150.f; Width = 42.f; Length = 42.f; BodyColour = SlingerColour; }
+		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = FLinearColor(0.8f, 0.3f, 0.05f); }
+		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
+
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
 		Centre.Z += Height * 0.5f;
-		const FLinearColor BodyColour = Actor.bDummy ? TrainingDummyColour : (bSlinger ? SlingerColour : ConscriptColour);
 		if (Body.Mesh)
 		{
 			Body.Mesh->SetVisibility(true);
+			// For cinder_hound and other creatures, use Actor.Facing
+			FVector FacingDir = Session.KernelToUnrealCm(SimAdd(Actor.Pos, Actor.Facing)) - Session.KernelToUnrealCm(Actor.Pos);
+			FacingDir.Z = 0;
+			if (FacingDir.SizeSquared() > 0.0f)
+			{
+				Body.Mesh->SetWorldRotation(FRotationMatrix::MakeFromX(FacingDir).Rotator());
+			}
 			Body.Mesh->SetWorldLocation(Centre);
-			Greybox::SetSized(Body.Mesh, FVector(Width, Width, Height));
+			Greybox::SetSized(Body.Mesh, FVector(Length, Width, Height));
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Body.Mesh->GetMaterial(0)))
 			{
 				Mid->SetVectorParameterValue(TEXT("Color"), BodyColour);
@@ -1245,7 +1271,9 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			const FRotator Rot = Dir.Rotation();
 			const FVector Mid = From + Dir * (Length * 0.5);
 			const double Width = FMath::Max(FMath::Clamp(Telegraph.WidthM, 0.5, 3.0), 1.8) * 100.0;
-			UseMesh(Ring.Mesh, CubeMesh, UnblockableBody);
+			const bool bUnblockable = Telegraph.Family == TEXT("unblockable");
+			const FLinearColor BodyColour = bUnblockable ? UnblockableBody : FamilyColour(Telegraph.Family, false);
+			UseMesh(Ring.Mesh, CubeMesh, BodyColour);
 			UseMesh(Ring.Rim, CubeMesh, UnblockableRim);
 			if (Ring.Mesh)
 			{
@@ -1255,12 +1283,12 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Mesh, FVector(Length, Width, 8.0));
 				if (UMaterialInstanceDynamic* MidMat = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
 				{
-					MidMat->SetVectorParameterValue(TEXT("Color"), UnblockableBody);
+					MidMat->SetVectorParameterValue(TEXT("Color"), BodyColour);
 				}
 			}
 			if (Ring.Rim)
 			{
-				Ring.Rim->SetVisibility(true);
+				Ring.Rim->SetVisibility(bUnblockable);
 				Ring.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 3.0));
 				Ring.Rim->SetWorldRotation(Rot);
 				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
@@ -1302,6 +1330,26 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
 				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
 			}
+		}
+
+		// Perfect-window cue for magic ground telegraphs (e.g. death bursts)
+		const bool bShowPerfectRing = (Telegraph.Family == TEXT("magic") && Telegraph.Kind == TEXT("area"));
+		const int32 RingCount = Ring.Beads.Num();
+		for (int32 Index = 0; Index < RingCount; ++Index)
+		{
+			UStaticMeshComponent* Bead = Ring.Beads[Index];
+			if (!Bead) continue;
+			Bead->SetVisibility(bShowPerfectRing);
+			if (!bShowPerfectRing) continue;
+
+			// Draw them on the ground at RadiusCm
+			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
+			const FVector Radial(FMath::Cos(Angle), FMath::Sin(Angle), 0.0);
+			const FVector Offset = Radial * RadiusCm;
+			const FVector Tangent = FVector(-Radial.Y, Radial.X, 0.0);
+			Bead->SetWorldLocation(At + Offset + FVector(0.0, 0.0, 2.0));
+			Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+			Greybox::SetSized(Bead, FVector(8.0, 10.0, 12.0));
 		}
 	}
 

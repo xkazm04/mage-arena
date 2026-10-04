@@ -33,7 +33,7 @@ private:
 		TObjectPtr<UStaticMeshComponent> Mesh;
 		TObjectPtr<UStaticMeshComponent> HpBack;
 		TObjectPtr<UStaticMeshComponent> HpFill;
-		bool bSlinger = false;
+		FString EnemyId;
 	};
 
 	struct FShot
@@ -53,6 +53,7 @@ private:
 		int32 Id = 0;
 		TObjectPtr<UStaticMeshComponent> Mesh;
 		TObjectPtr<UStaticMeshComponent> Rim;
+		TArray<TObjectPtr<UStaticMeshComponent>> Beads;
 	};
 
 	struct FFlash
@@ -62,7 +63,7 @@ private:
 	};
 
 	UStaticMeshComponent* MakePart(const TCHAR* Shape, const FLinearColor& Colour);
-	FBody& BodyFor(int32 Id, bool bSlinger);
+	FBody& BodyFor(int32 Id, const FString& EnemyId);
 	FShot& ShotFor(int32 Id, bool bSpear);
 	FRing& RingFor(int32 Id);
 	void HideUnused(const TSet<int32>& LiveIds, double Now, bool bPaused);

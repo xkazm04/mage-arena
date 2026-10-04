@@ -1,5 +1,6 @@
 #include "Session/ArenaSession.h"
 
+#include "Session/CreaturesCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
@@ -702,7 +703,7 @@ void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 		bColdRaised = true;
 		return;
 	}
-	if (Games.Phase == TEXT("offer"))
+	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
 		bOfferContinue = true;
 		return;
@@ -777,10 +778,11 @@ void FArenaSession::HandleStaffLift()
 	Note(TEXT("gesture staff-lift"));
 }
 
-void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta) const
+void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const
 {
 	MeleeEta = 1.0e6;
 	ProjectileEta = 1.0e6;
+	MagicEta = 1.0e6;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	if (!Player)
 	{
@@ -817,7 +819,7 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta) const
 		}
 		if (Telegraph.Family == TEXT("magic"))
 		{
-			ProjectileEta = FMath::Min(ProjectileEta, UntilResolve);
+			MagicEta = FMath::Min(MagicEta, UntilResolve);
 		}
 		else
 		{
@@ -1161,7 +1163,8 @@ void FArenaSession::DecideScript()
 	}
 	double MeleeEta = 1.0e6;
 	double ProjectileEta = 1.0e6;
-	ScanThreats(MeleeEta, ProjectileEta);
+	double MagicEta = 1.0e6;
+	ScanThreats(MeleeEta, ProjectileEta, MagicEta);
 	const double Now = GetSimSeconds();
 	const bool bPlaying = ClipPlaying();
 	const FString Action = ClipAction();
@@ -1316,7 +1319,8 @@ void FArenaSession::DecideScript()
 	const bool bSpearFallback = MeleeEta <= 0.70 && MeleeEta >= 0.05 && !bBlinkReady;
 	const bool bFirstStone = !WasWardOnStone() && ProjectileEta <= 1.15 && ProjectileEta >= 0.20;
 	const bool bStoneFallback = ProjectileEta <= 1.05 && ProjectileEta >= 0.20 && MeleeGap > 0.9 && Player->Stamina < 50.0;
-	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || Now < 0.4))
+	const bool bPerfectMagic = MagicEta <= 0.14 && MagicEta >= 0.02 && MeleeGap > 0.9;
+	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || bPerfectMagic || Now < 0.4))
 	{
 		RaiseWard();
 	}
@@ -1689,7 +1693,7 @@ void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 		bClipWasPlaying = ClipPlaying();
 		return;
 	}
-	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
+	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
 		AdvanceArc(DeltaSeconds);
 		bClipWasPlaying = ClipPlaying();
@@ -1756,6 +1760,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bGreyboxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
 	const bool bWave1Capture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
 	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
+	const bool bCreaturesCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreaturesCapture"));
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
@@ -1778,6 +1783,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		TeachCapture = NewObject<UTeachCaptureDriver>(this);
 		TeachCapture->Start();
+		return;
+	}
+	if (bCreaturesCapture)
+	{
+		CreaturesCapture = NewObject<UCreaturesCaptureDriver>(this);
+		CreaturesCapture->Start();
 		return;
 	}
 	if (bSettingsCapture)

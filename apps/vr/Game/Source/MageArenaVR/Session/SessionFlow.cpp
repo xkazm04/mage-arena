@@ -566,6 +566,14 @@ FString FArenaSession::GetPromptText() const
 	{
 		return TeachString(TEXT("offer.continue"));
 	}
+	if (Games.Phase == TEXT("intermission"))
+	{
+		return TeachString(TEXT("intermission"));
+	}
+	if (Games.Phase == TEXT("lost"))
+	{
+		return TeachString(TEXT("offer.continue")); // Or just keep it empty?
+	}
 	if (Games.Phase != TEXT("teach"))
 	{
 		return FString();
@@ -1232,7 +1240,7 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		int32 Steps = 0;
 		while (Accumulator + 1.0e-9 >= Step && Steps < 8 && bRunning)
 		{
-			if (Games.Phase != TEXT("cold") && Games.Phase != TEXT("offer") && Games.Phase != TEXT("teach"))
+			if (Games.Phase != TEXT("cold") && Games.Phase != TEXT("offer") && Games.Phase != TEXT("teach") && Games.Phase != TEXT("intermission") && Games.Phase != TEXT("lost"))
 			{
 				break;
 			}
@@ -1277,7 +1285,7 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		return;
 	}
 
-	if (Games.Phase == TEXT("offer"))
+	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
 		if (BothPalmsRaised())
 		{
@@ -1296,7 +1304,27 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 			OfferHold = 0.0;
 			if (bOfferContinue)
 			{
-				ContinueOffer();
+				bOfferContinue = false;
+				if (Games.Phase == TEXT("intermission"))
+				{
+					if (TryAdvanceGames(Games))
+					{
+						BoutWave = Games.Wave;
+						WriteSavedBout(BoutWave);
+					}
+					else
+					{
+						Games.Phase = TEXT("complete");
+					}
+				}
+				else if (Games.Phase == TEXT("lost"))
+				{
+					Start(BoutSeed);
+				}
+				else
+				{
+					ContinueOffer();
+				}
 				return;
 			}
 		}

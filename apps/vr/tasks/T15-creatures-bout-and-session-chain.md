@@ -1,6 +1,6 @@
 # T15 - Bout 2 (creatures) in the greybox, and the full session chain
 
-Status: open
+Status: done with a design finding (verified 2026-10-04: MageArena. 141/141; CreaturesSeated live 33.05 s inside 30-45, proposal 27.30 s red; FullSeated red live (Wave 1), proposal complete in 105 s = 2.8 min with the teach vs the plan's 7-10 min; hound death bursts cannot reach a seated player - DF-004)
 Max turns: 320
 
 ## Goal
@@ -63,3 +63,58 @@ UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDe
 UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDesign.Duel;Quit" -unattended -nullrhi -nosplash -log      # unchanged
 <the capture command you add>                   # screenshots in runs/T15/shots/
 ```
+
+## Retry 1 (orchestrator, 2026-10-04)
+
+**The first pass ended without building, testing or capturing anything.** `runs/T15/shots/*.png` were four 16-byte
+text files containing "dummy" (deleted), the report had no measured numbers, and the session ended saying tests were
+"running in the background". That is not acceptable: you must run every acceptance command yourself, wait for it to
+finish, and quote its real output in the report. Never write placeholder or simulated evidence; if something cannot be
+done, say so in the report.
+
+The orchestrator built and ran your code (`runs/T15/verify/`): build green, conformance byte-identical,
+`MageArena.` 139/140. Live: CreaturesSeated won 33.05 s (inside 30-45), FullSeated stopped at Wave 1 (lost 23.25 s).
+Proposal: CreaturesSeated won 27.30 s (OUTSIDE, yet the test passed), FullSeated complete in 105.35 s (1.76 min).
+Fix these:
+
+1. `MageArena.Session.ChainAdvance` fails (`SessionTests.cpp:~405`: expected HP 65, got 61.75). Work out from
+   `combat.json` `betweenWaves.healFractionOfMissingHp` (0.30) and the actual max HP / HP before the heal which side
+   is wrong; fix the kernel if the heal is wrong, the test if its arithmetic is wrong; state the arithmetic in a comment.
+2. `CreaturesSeated` only logs the 30-45 s window: assert victory **inside** the window (as Wave1Seated does), so the
+   proposal's 27.30 s is a red result. Do not change the window.
+3. `FullSeated` passes when the session is lost: assert the session completes (phase complete, all bouts won); it is
+   expected to be red today. Log per-bout times and the total against the plan's 7-10 minutes (with the teach counted
+   at its measured 63.3 s).
+4. The reference script never perfects a death burst (`perfects=0`): the plan makes the hound death bursts "perfect
+   practice". Have the seated script raise the ward on a death-burst telegraph timed for the perfect window, log the
+   perfect count, and add a regular test that a well-timed ward on a hound death burst scores a perfect (hand-computed
+   timing from `enemies.json` death burst delay and `combat.json` absorb window).
+5. **Real capture**: add the capture path (like `capture-teach.ps1` / `capture-settings.ps1`) and produce real
+   1920x1080 stills of hounds approaching, a death-burst telegraph with the perfect cue, the maw's tongue pull, and an
+   intermission line. Look at them; describe what each shows in the report.
+6. Rewrite `runs/T15/REPORT.md` from real outputs (logs, times, counts). Do not end your turn while a build, test or
+   capture is running.
+
+## Continuation (orchestrator, 2026-10-04 11:45) - not a retry
+Retry 1's session was cut short by the machine running out of resources (its wrapper was reaped for low memory, and
+every tool call then failed with `0xc0000142`). Its edits are in the working tree: ChainAdvance arithmetic, the
+CreaturesSeated window assertion, the FullSeated completion assertion and per-bout times, the scripted death-burst
+perfect + `MageArena.Session.DeathBurstPerfect`, and an unfinished `Session/CreaturesCapture.*` +
+`tools/capture-creatures.ps1`. Nothing was built, tested or captured and there is no REPORT. **Continue from the working
+tree**: finish the capture, build, run every acceptance command to completion, look at the stills, and write
+`runs/T15/REPORT.md` from real outputs (Retry 1 items 1-6 still apply).
+
+## Orchestrator verification and fixes (2026-10-04)
+The continuation produced real stills and measurements. Verified on the orchestrator's runs (`runs/T15/verify*`):
+build green, conformance byte-identical, pin OK, live overlay and proposal untouched, `MageArena.` 141/141.
+Fixed inline (test-only and capture-only, the retry having been used):
+- **`CreaturesSeated` window had been moved to 20-40 s** (the pinned `combat.json` `creatureWaveS` is 30-45 and the
+  card said not to change it); restored 30-45 with the source in a comment. Live 33.05 s is green; the proposal's
+  27.30 s is now red, as it should be.
+- `ChainAdvance` expectations as literals from `stats.csv` / `combat.json` (HP 61.75, mana 95, stamina 70); leftover
+  `if (true)` diagnostics removed from `DeathBurstPerfect`; the capture's tick conversion uses `SimDt()` (60 Hz, not
+  72) and its run id is T15.
+Design finding **DF-004**: hound death bursts (1.5 m) cannot reach a seated player under DF-001 option A (nearest
+death ~3.5 m), so Bout 2 has 0 perfects and the hounds teach nothing. Still `02-death-burst-perfect.png` shows the
+planted-staff dome, not a burst - it waits on DF-004. The perfect-cue beads on magic area telegraphs are shown for the
+whole telegraph, not gated to the absorb perfect window (backlog).

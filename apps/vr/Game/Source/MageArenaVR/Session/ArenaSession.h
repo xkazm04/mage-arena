@@ -30,6 +30,7 @@ class UStaffDetectorSubsystem;
 class UWardDetectorSubsystem;
 class USettingsCaptureDriver;
 class UTeachCaptureDriver;
+class UCreaturesCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -132,6 +133,7 @@ public:
 	bool IsResumeCounting() const { return bResumeCounting; }
 	int32 GetResumeCount() const;
 	int32 GetBoutIndex() const { return BoutWave; }
+	void SetBoutIndex(int32 Index) { BoutWave = Index; }
 	const FTeachTuning& GetTuning() const { return Tuning; }
 	bool IsPerfectRingVisible() const;
 
@@ -187,7 +189,7 @@ private:
 	FString ClipAction() const;
 	bool ClipPlaying() const;
 	FSimVec ComputeAim(int32 Slot) const;
-	void ScanThreats(double& MeleeEta, double& ProjectileEta) const;
+	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const;
 	/** Stamina, recovery and a blink clip already playing. No side effects. */
 	bool CanBlink(const FActor& Player) const;
 	bool TryScriptBlink();
@@ -410,6 +412,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTeachCaptureDriver> TeachCapture;
+
+	UPROPERTY()
+	TObjectPtr<UCreaturesCaptureDriver> CreaturesCapture;
 
 	UPROPERTY()
 	TObjectPtr<USettingsCaptureDriver> SettingsCapture;
