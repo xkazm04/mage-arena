@@ -28,6 +28,7 @@ class UHandInputSubsystem;
 class USigilRecognizerSubsystem;
 class UStaffDetectorSubsystem;
 class UWardDetectorSubsystem;
+class USettingsCaptureDriver;
 class UTeachCaptureDriver;
 class UWave1CaptureDriver;
 
@@ -157,6 +158,7 @@ public:
 	bool WasSigilHit() const { return bSawSigilHit; }
 	bool WasWardOnStone() const { return bSawWardOnStone; }
 	bool IsStaffPlanted() const;
+	FString TeachString(const TCHAR* Key) const;
 	/** Ward held and a sigil clip playing on the other hand. */
 	bool IsSplitPose() const;
 	int32 GetSplitCasts() const { return SplitCasts; }
@@ -217,6 +219,8 @@ private:
 	bool LoadStrings();
 	bool MakeQuietArena(uint32 Seed);
 	void AdvanceArc(double DeltaSeconds);
+	void ApplyComfort(FVrRuleset& Rules) const;
+	void PollComfortToggles();
 	void DecideCold();
 	void DecideTeach();
 	void EnterTeach();
@@ -235,7 +239,6 @@ private:
 	void HoldPause(const TCHAR* Reason);
 	bool BothPalmsRaised() const;
 	bool IsBothPalmsClip() const;
-	FString TeachString(const TCHAR* Key) const;
 	FString SaveFilePath() const;
 	int32 ReadSavedBout() const;
 	void WriteSavedBout(int32 Bout) const;
@@ -336,6 +339,7 @@ private:
 	bool bCuePlayed = false;
 	bool bColdRaised = false;
 	bool bColdPlayed = false;
+	bool bStoneHeld[3] = {false, false, false};
 	bool bOfferContinue = false;
 	bool bKeepChain = false;
 	bool bResumeGate = false;
@@ -406,4 +410,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UTeachCaptureDriver> TeachCapture;
+
+	UPROPERTY()
+	TObjectPtr<USettingsCaptureDriver> SettingsCapture;
 };

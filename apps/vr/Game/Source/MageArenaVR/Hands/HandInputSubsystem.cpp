@@ -1,5 +1,6 @@
 #include "Hands/HandInputSubsystem.h"
 
+#include "Hands/MageSettings.h"
 #include "MageArenaVR.h"
 
 void UHandInputSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -51,7 +52,8 @@ bool UHandInputSubsystem::ActionOwns(EControllerHand Hand) const
 void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 {
 	EnsurePlayers();
-	const FString Path = FHandClip::MakeFilePath(Action, Variant);
+	const bool bMirror = FMageSettings::IsLeftHanded();
+	const FString Path = FHandClip::MakeFilePath(Action, Variant, bMirror);
 	FHandClip Loaded;
 	FString Error;
 	if (!FHandClip::LoadFromFile(Path, Loaded, Error))
@@ -59,8 +61,8 @@ void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 		UE_LOG(LogMageArena, Error, TEXT("PlayQuickAction failed for %s: %s"), *Action.ToString(), *Error);
 		return;
 	}
-	const bool bUsesLeft = Loaded.GetHands().Contains(EControllerHand::Left);
-	if (bUsesLeft)
+	const bool bUsesWardHand = Loaded.GetHands().Contains(FMageSettings::WardHand());
+	if (bUsesWardHand)
 	{
 		bWardHeld = false;
 		if (WardPlayer)
@@ -79,7 +81,7 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 	EnsurePlayers();
 	if (bHeld)
 	{
-		if (ActionOwns(EControllerHand::Left))
+		if (ActionOwns(FMageSettings::WardHand()))
 		{
 			ActionPlayer->Stop();
 		}
@@ -96,7 +98,9 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 			UE_LOG(LogMageArena, Log, TEXT("Ward hold resumed variant=%s"), FHandClip::VariantToString(Variant));
 			return;
 		}
-		const FString Path = FHandClip::MakeFilePath(TEXT("ward-raise"), Variant);
+		const bool bMirror = FMageSettings::IsLeftHanded();
+		const EControllerHand WardHand = FMageSettings::WardHand();
+		const FString Path = FHandClip::MakeFilePath(TEXT("ward-raise"), Variant, bMirror);
 		FHandClip Loaded;
 		FString Error;
 		if (!FHandClip::LoadFromFile(Path, Loaded, Error))
@@ -104,7 +108,7 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 			UE_LOG(LogMageArena, Error, TEXT("Ward hold failed: %s"), *Error);
 			return;
 		}
-		const double Plateau = UHandClipPlayer::FindPlateauStart(Loaded, EControllerHand::Left);
+		const double Plateau = UHandClipPlayer::FindPlateauStart(Loaded, WardHand);
 		HeldVariant = Variant;
 		bWardHeld = true;
 		WardPlayer->Play(Loaded);
@@ -162,7 +166,8 @@ void UHandInputSubsystem::Step(double DeltaSeconds)
 
 bool UHandInputSubsystem::GetLatest(EControllerHand Hand, FHandFrame& Out) const
 {
-	if (Hand == EControllerHand::Left)
+	// The ward hand prefers the ward lane unless an action owns it. Right-hand mode keeps the left hand there.
+	if (Hand == FMageSettings::WardHand())
 	{
 		if (ActionOwns(Hand) && ActionPlayer->GetLatest(Hand, Out))
 		{

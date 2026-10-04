@@ -37,9 +37,14 @@ void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, con
 	Telegraph.Source = Actor.Pos;
 	Telegraph.Kind = Attack.ProjectileMps.IsSet() ? TEXT("projectile") : TEXT("melee");
 	Telegraph.Origin = Actor.Pos;
+	if (Rules && Rules->bNarrow && Actor.Team != 0)
+	{
+		Telegraph.Origin = Rules->CompressToArc(Actor.Pos);
+	}
 	Telegraph.Target = Target.Pos;
 	Telegraph.StartTick = State.Tick + 1;
-	Telegraph.ResolveTick = State.Tick + 1 + SimTicks(Attack.WindupS);
+	const double WindupS = VrOpponentTelegraph(Rules, Actor.Team, Attack.WindupS);
+	Telegraph.ResolveTick = State.Tick + 1 + SimTicks(WindupS);
 	Telegraph.SpeedMps = Attack.ProjectileMps.Get(0.0);
 	Telegraph.RangeM = Attack.RangeM.Get(Attack.ProjectileMps.IsSet() ? Data.RangedRangeM : Data.DefaultMeleeRangeM);
 	Telegraph.WidthM = Data.MeleeArcDeg;
@@ -67,7 +72,7 @@ void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, con
 	State.Telegraphs.Add(Telegraph);
 	FEnemyBrain& Brain = Actor.Enemy.GetValue();
 	Brain.AttackIndex++;
-	double Cooldown = Attack.WindupS + Attack.RecoveryS.Get(Data.DefaultRecoveryS);
+	double Cooldown = WindupS + Attack.RecoveryS.Get(Data.DefaultRecoveryS);
 	if (Spec.Id == TEXT("mire_maw"))
 	{
 		Cooldown = Data.MawArtilleryCooldownS;
@@ -383,7 +388,7 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules
 	return Inputs;
 }
 
-void QueueDeathEffects(FArenaState& State)
+void QueueDeathEffects(FArenaState& State, const FVrRuleset* Rules)
 {
 	for (FActor& Actor : State.Actors)
 	{
@@ -410,7 +415,11 @@ void QueueDeathEffects(FArenaState& State)
 		Telegraph.Source = Actor.Pos;
 		Telegraph.Kind = TEXT("area");
 		Telegraph.Origin = Actor.Pos;
-		Telegraph.Target = Actor.Pos;
+		if (Rules && Rules->bNarrow && Actor.Team != 0)
+		{
+			Telegraph.Origin = Rules->CompressToArc(Actor.Pos);
+		}
+		Telegraph.Target = Telegraph.Origin;
 		Telegraph.StartTick = State.Tick;
 		Telegraph.ResolveTick = State.Tick + SimTicks(Death.DelayS);
 		Telegraph.SpeedMps = 0.0;

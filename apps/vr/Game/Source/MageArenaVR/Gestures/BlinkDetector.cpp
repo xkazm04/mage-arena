@@ -1,6 +1,7 @@
 #include "Gestures/BlinkDetector.h"
 
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/MageSettings.h"
 #include "HeadMountedDisplayTypes.h"
 #include "MageArenaVR.h"
 
@@ -83,7 +84,7 @@ void FBlinkDetector::Flush()
 
 void FBlinkDetector::Ingest(const FHandFrame& Frame)
 {
-	if (Frame.Hand != EControllerHand::Right)
+	if (Frame.Hand != FMageSettings::CastingHand())
 	{
 		return;
 	}

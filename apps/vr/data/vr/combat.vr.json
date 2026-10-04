@@ -96,5 +96,21 @@
     "_manaCost": "Proposal. Paid once on the raise tick, after that tick's regen. Above a bolt, below Sunfall. Not signed off.",
     "_heatPerStop": "Proposal. Heat granted to the caster for each magic or physical projectile the curtain destroys. Between a bolt hit and a flick. Not signed off.",
     "_burnDamage": "Proposal. Magic damage to an enemy body that crosses the arc. A ward can chip it. Unblockable projectiles pass and do not burn by themselves. Not signed off."
+  },
+
+  "narrowFov": {
+    "spawnArcDeg": 40,
+    "offerBelowDeg": 90,
+    "cameraFovDeg": 70,
+    "_spawnArcDeg": "Plan D3. While narrow view is on, enemy spawns, hold lines and telegraph origins are pressed into this many degrees either side of the active pad's forward. Off leaves positions untouched.",
+    "_offerBelowDeg": "The dais offers narrow view when the device or desktop horizontal FOV is strictly under this. The layout camera is 90, so the desktop bout is not offered it. Accepting is a palm on the centre stone. It is never forced.",
+    "_cameraFovDeg": "Desktop camera horizontal FOV while narrow view is on. The offer compares the device FOV, not this narrowed camera, so accepting does not offer again."
+  },
+
+  "gentle": {
+    "telegraphMult": 2,
+    "competence": 1,
+    "_telegraphMult": "Plan D3. While gentle is on, opponent telegraph windups (enemy attacks and fire casts) are multiplied by this. The player's casts are not. Off does not multiply.",
+    "_competence": "While gentle is on, every opponent mage is attached at this competence. Off keeps the pinned spawn competence."
   }
 }

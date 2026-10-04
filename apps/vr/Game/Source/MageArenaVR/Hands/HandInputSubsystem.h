@@ -6,10 +6,10 @@
 #include "HandInputSubsystem.generated.h"
 
 /**
- * Owns two clip players. The ward lane holds the off hand. The action lane plays the latest
- * quick action. A right-hand clip (sigil, bolt, blink) leaves the ward running. A clip that
- * uses the left hand (mudra, staff) stops the ward. Detectors bind to OnHandFrame, which
- * merges both players, so each hand is read on its own.
+ * Owns two clip players. The ward lane holds the ward hand. The action lane plays the latest
+ * quick action. A casting-hand clip (sigil, bolt, blink) leaves the ward running. A clip that
+ * uses the ward hand (mudra, staff, and a left-hand ward) stops the ward. Detectors bind to
+ * OnHandFrame, which merges both players, so each hand is read on its own.
  */
 UCLASS()
 class MAGEARENAVR_API UHandInputSubsystem : public UGameInstanceSubsystem

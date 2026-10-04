@@ -74,7 +74,16 @@ void SpawnWave(FGames& Games)
 		{
 			const double JitterX = (ArenaRandom(Games.State, FString::Printf(TEXT("wave %d spawn x"), Games.Wave)) * 2.0 - 1.0) * Data.SpawnJitterM;
 			const double JitterY = (ArenaRandom(Games.State, FString::Printf(TEXT("wave %d spawn y"), Games.Wave)) * 2.0 - 1.0) * Data.SpawnJitterM;
-			const FSimVec Pos = OpeningPosition(Index, Total, FSimVec{JitterX, JitterY});
+			FSimVec Pos = OpeningPosition(Index, Total, FSimVec{JitterX, JitterY});
+			if (Games.VrRules.IsSet() && Games.VrRules->bNarrow)
+			{
+				FVrRuleset& NarrowRules = Games.VrRules.GetValue();
+				Pos = NarrowRules.CompressToArc(Pos);
+				if (NarrowRules.bActive && NarrowRules.InsideHold(Pos))
+				{
+					Pos = NarrowRules.CompressToArc(NarrowRules.PushOutsideHold(Pos));
+				}
+			}
 			int32 Id = 0;
 			FString Kind;
 			if (Spawn.bEnemy)
@@ -98,10 +107,15 @@ void SpawnWave(FGames& Games)
 				{
 					Actor->Fire.bSchool = true;
 				}
-				AttachMageAI(*Actor, Spawn.Competence, Games.State.Tick);
+				double Level = Spawn.Competence;
+				if (Games.VrRules.IsSet() && Games.VrRules->bGentle)
+				{
+					Level = Games.VrRules->Gentle.Competence;
+				}
+				AttachMageAI(*Actor, Level, Games.State.Tick);
 				Kind = Games.bFireMages
-					? FString::Printf(TEXT("Ember mage %s"), *JsNumber(Spawn.Competence))
-					: FString::Printf(TEXT("Water proxy %s"), *JsNumber(Spawn.Competence));
+					? FString::Printf(TEXT("Ember mage %s"), *JsNumber(Level))
+					: FString::Printf(TEXT("Water proxy %s"), *JsNumber(Level));
 			}
 			FSpawnRecord Record;
 			Record.Wave = Games.Wave + 1;
@@ -224,9 +238,15 @@ void StepGames(FGames& Games, const FInputFrame* PlayerInput)
 	StepArena(Games.State, Inputs, Rules);
 	if (Rules)
 	{
+		// Narrow view walks opponents back toward the arc first; KeepOut runs last so that walk can never end inside the
+		// dais hold area (DF-001 option A: nothing reaches the dais).
+		if (Rules->bNarrow)
+		{
+			Rules->KeepInView(Games.State);
+		}
 		Rules->KeepOut(Games.State);
 	}
-	QueueDeathEffects(Games.State);
+	QueueDeathEffects(Games.State, Rules);
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	checkf(Player, TEXT("games player %d is missing"), Games.PlayerId);
 	const int32 PlayerTeam = Player->Team;

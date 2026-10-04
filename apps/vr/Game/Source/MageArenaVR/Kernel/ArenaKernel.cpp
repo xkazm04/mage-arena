@@ -213,7 +213,7 @@ void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 	}
 	if (Actor.Pending->Kind == TEXT("fire"))
 	{
-		ReleaseFire(State, Actor);
+		ReleaseFire(State, Actor, Rules);
 		return;
 	}
 	const FKernelData& Data = KernelData();
@@ -306,7 +306,7 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 	}
 	else if (Actor.Fire.bSchool)
 	{
-		if (TryFireCast(State, Actor, Input))
+		if (TryFireCast(State, Actor, Input, Rules))
 		{
 			if (Rules && Rules->bActive && Actor.MageAI.IsSet() && Rules->Pressure.FireMageDamage != 1.0 && Actor.Pending.IsSet())
 			{

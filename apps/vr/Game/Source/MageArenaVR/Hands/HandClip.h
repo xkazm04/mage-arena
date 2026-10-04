@@ -25,7 +25,7 @@ struct FHandClip
 	TArray<EControllerHand> Hands;
 	TArray<FHandClipTrack> Tracks;
 
-	static FString MakeFilePath(FName Action, EClipVariant Variant);
+	static FString MakeFilePath(FName Action, EClipVariant Variant, bool bMirror = false);
 	static const TCHAR* VariantToString(EClipVariant Variant);
 	static const TCHAR* KeypointName(int32 Index);
 	static bool LoadFromFile(const FString& Path, FHandClip& OutClip, FString& OutError);

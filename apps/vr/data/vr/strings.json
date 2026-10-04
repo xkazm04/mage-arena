@@ -11,5 +11,15 @@
   "resume.2": "2",
   "resume.1": "1",
   "wave.flow": "Flow is rising.",
-  "wave.clock": "The clock advanced."
+  "wave.clock": "The clock advanced.",
+  "settings.hand": "Casting hand",
+  "settings.hand.right": "Right hand",
+  "settings.hand.left": "Left hand",
+  "settings.fov": "View",
+  "settings.fov.wide": "Wide view",
+  "settings.fov.narrow": "Narrow view",
+  "settings.gentle": "Gentle",
+  "settings.gentle.off": "Gentle off",
+  "settings.gentle.on": "Gentle on",
+  "settings.offer.narrow": "Narrow view? Palm the centre stone."
 }

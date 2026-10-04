@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Greybox/HandPresentationComponent.h"
 #include "HAL/IConsoleManager.h"
+#include "Hands/MageSettings.h"
 #include "MageArenaVR.h"
 
 AMageArenaPawn::AMageArenaPawn(const FObjectInitializer& ObjectInitializer)
@@ -118,6 +119,13 @@ void AMageArenaPawn::PossessedBy(AController* NewController)
 void AMageArenaPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (Camera)
+	{
+		FMageSettings::EnsureLoaded();
+		const float Wide = static_cast<float>(bHasLayout ? Layout.CameraFovDeg : 90.0);
+		const float Want = FMageSettings::IsNarrow() ? FMageSettings::NarrowCameraFovDeg() : Wide;
+		Camera->SetFieldOfView(Want);
+	}
 	if (BlinkPhase == EBlinkPhase::Idle)
 	{
 		return;

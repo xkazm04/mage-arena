@@ -55,6 +55,7 @@ public:
 
 	bool HasLayout() const { return bHasLayout; }
 	const FArenaLayout& GetLayout() const { return Layout; }
+	USceneComponent* GetSeatedOrigin() const { return SeatedOrigin; }
 	int32 GetActivePadIndex() const { return ActivePad; }
 	bool IsBlinkBusy() const { return bBlinkBusy; }
 

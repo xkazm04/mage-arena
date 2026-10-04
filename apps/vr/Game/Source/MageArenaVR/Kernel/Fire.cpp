@@ -2,6 +2,7 @@
 
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Geometry.h"
+#include "Kernel/VrRules.h"
 
 #include "Containers/Set.h"
 
@@ -168,7 +169,7 @@ int32 FireCooldownUntil(const FActor& Actor, const FString& SpellId)
 	return 0;
 }
 
-bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
+bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules)
 {
 	if (Actor.Pending.IsSet() || FireChannelBusy(Actor))
 	{
@@ -182,12 +183,17 @@ bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	Actor.Mana -= Spell->Mana;
 	SetFireCooldown(Actor, Spell->Id, State.Tick + SimTicks(Spell->CooldownS));
 	// Sunfall's cast and its shadow are two phases, so the windup is only cast_s. Every other row uses the longer of the two columns.
-	const double Windup = Spell->bSequentialTelegraph ? Spell->CastS : std::max(Spell->CastS, Spell->TelegraphS);
+	const double Windup = VrOpponentTelegraph(Rules, Actor.Team, Spell->bSequentialTelegraph ? Spell->CastS : std::max(Spell->CastS, Spell->TelegraphS));
 	FPendingCast Pending;
 	Pending.Kind = TEXT("fire");
 	Pending.StartTick = State.Tick;
 	Pending.ReleaseTick = State.Tick + SimTicks(Windup);
-	Pending.Aim = (Spell->Kind == TEXT("zone") || Spell->Kind == TEXT("meteor")) ? PlacedPoint(Actor, Input.Aim, Spell->RangeM) : Input.Aim;
+	const bool bPlaced = Spell->Kind == TEXT("zone") || Spell->Kind == TEXT("meteor");
+	Pending.Aim = bPlaced ? PlacedPoint(Actor, Input.Aim, Spell->RangeM) : Input.Aim;
+	if (bPlaced && Rules && Rules->bNarrow && Actor.Team != 0)
+	{
+		Pending.Aim = Rules->CompressToArc(Pending.Aim);
+	}
 	Pending.ActivationId = State.NextId++;
 	Pending.SpellId = Spell->Id;
 	Actor.Pending = Pending;
@@ -200,7 +206,7 @@ bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input)
 	return true;
 }
 
-void ReleaseFire(FArenaState& State, FActor& Actor)
+void ReleaseFire(FArenaState& State, FActor& Actor, const FVrRuleset* Rules)
 {
 	if (!Actor.Pending.IsSet() || Actor.Pending->Kind != TEXT("fire"))
 	{
@@ -272,7 +278,12 @@ void ReleaseFire(FArenaState& State, FActor& Actor)
 		Telegraph.Kind = TEXT("area");
 		Telegraph.Origin = Actor.Pos;
 		Telegraph.Target = Pending.Aim;
-		Telegraph.ResolveTick = State.Tick + SimTicks(Spell->TelegraphS);
+		if (Rules && Rules->bNarrow && Actor.Team != 0)
+		{
+			Telegraph.Origin = Rules->CompressToArc(Actor.Pos);
+			Telegraph.Target = Rules->CompressToArc(Telegraph.Target);
+		}
+		Telegraph.ResolveTick = State.Tick + SimTicks(VrOpponentTelegraph(Rules, Actor.Team, Spell->TelegraphS));
 		Telegraph.StartTick = State.Tick;
 		Telegraph.WidthM = Spell->RadiusM;
 		Telegraph.HeatOnHit = HeatPaid(*Spell);
@@ -329,8 +340,8 @@ void ReleaseFire(FArenaState& State, FActor& Actor)
 	}
 	else if (Spell->HeatMode == EFireHeatMode::Lock)
 	{
-		const FHeatRules& Rules = KernelData().Heat;
-		Actor.Fire.Heat = SimClamp(Spell->HeatLockValue, Rules.Min, Rules.Max);
+		const FHeatRules& Heat = KernelData().Heat;
+		Actor.Fire.Heat = SimClamp(Spell->HeatLockValue, Heat.Min, Heat.Max);
 		Actor.Fire.MaxHeat = std::max(Actor.Fire.MaxHeat, Actor.Fire.Heat);
 		Actor.Fire.LockValue = Actor.Fire.Heat;
 		Actor.Fire.LockUntil = State.Tick + SimTicks(Spell->HeatLockS);

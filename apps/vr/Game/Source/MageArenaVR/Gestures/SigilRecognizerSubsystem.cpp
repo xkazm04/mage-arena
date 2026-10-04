@@ -3,6 +3,7 @@
 #include "HAL/FileManager.h"
 #include "Hands/HandClip.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/MageSettings.h"
 #include "HeadMountedDisplayTypes.h"
 #include "MageArenaVR.h"
 #include "Misc/Paths.h"
@@ -125,7 +126,7 @@ void USigilRecognizerSubsystem::ResetStrokes()
 
 void USigilRecognizerSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
-	if (Frame.Hand != EControllerHand::Right)
+	if (Frame.Hand != FMageSettings::CastingHand())
 	{
 		return;
 	}

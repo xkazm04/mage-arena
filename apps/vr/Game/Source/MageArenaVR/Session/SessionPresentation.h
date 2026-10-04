@@ -76,6 +76,9 @@ private:
 	UTexture2D* LoadPng(const FString& Name, const FString& Path);
 	void EnsureTeachVisuals();
 	void SyncTeachVisuals(const FArenaSession& Session, const struct FActor* Player);
+	void EnsureComfortVisuals();
+	void SyncComfortVisuals(const FArenaSession& Session);
+	UWidgetComponent* MakeStoneLabel(const TCHAR* Name);
 	UCameraComponent* FindCamera() const;
 
 	UPROPERTY()
@@ -173,4 +176,18 @@ private:
 	bool bTeachVisuals = false;
 	bool bThreatCm = false;
 	FVector ThreatCm = FVector::ZeroVector;
+
+	UPROPERTY()
+	TObjectPtr<USceneComponent> StoneRoot;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> ComfortStones;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UWidgetComponent>> StoneLabels;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> ArcEdges;
+
+	bool bComfortVisuals = false;
 };

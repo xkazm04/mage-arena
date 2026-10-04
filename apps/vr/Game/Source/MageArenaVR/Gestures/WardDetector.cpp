@@ -1,6 +1,7 @@
 #include "Gestures/WardDetector.h"
 
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/MageSettings.h"
 #include "HeadMountedDisplayTypes.h"
 #include "MageArenaVR.h"
 
@@ -26,9 +27,13 @@ FVector FWardDetector::PalmNormal(const FHandFrame& Frame)
 	{
 		return FVector::ZeroVector;
 	}
-	const FVector Cross = FVector::CrossProduct(
+	FVector Cross = FVector::CrossProduct(
 		Frame.Joints[IndexMeta].Location - Frame.Joints[Wrist].Location,
 		Frame.Joints[LittleMeta].Location - Frame.Joints[Wrist].Location);
+	if (Frame.Hand == EControllerHand::Right)
+	{
+		Cross = -Cross;
+	}
 	if (Cross.IsNearlyZero())
 	{
 		return Frame.Joints[Palm].Rotation.GetAxisX().GetSafeNormal();
@@ -194,7 +199,7 @@ void FWardDetector::NoteRewind()
 
 void FWardDetector::Ingest(const FHandFrame& Frame)
 {
-	if (!bReady || Frame.Hand != EControllerHand::Left)
+	if (!bReady || Frame.Hand != FMageSettings::WardHand())
 	{
 		return;
 	}

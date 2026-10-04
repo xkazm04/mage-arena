@@ -582,14 +582,14 @@ ESigilStrokeEvent FSigilStrokeBuilder::Decide(TArray<FQPoint>& OutPoints)
 	return ESigilStrokeEvent::None;
 }
 
-bool ExtractFirstGesture(const FHandClip& Clip, ESigilDrawStyle Style, TArray<FQPoint>& OutPoints)
+bool ExtractFirstGesture(const FHandClip& Clip, ESigilDrawStyle Style, TArray<FQPoint>& OutPoints, EControllerHand Hand)
 {
 	FSigilStrokeBuilder Builder;
 	Builder.SetStyle(Style);
 	const int32 TipIndex = static_cast<int32>(EHandKeypoint::IndexTip);
 	for (const FHandClipTrack& Track : Clip.GetTracks())
 	{
-		if (Track.Hand != EControllerHand::Right)
+		if (Track.Hand != Hand)
 		{
 			continue;
 		}

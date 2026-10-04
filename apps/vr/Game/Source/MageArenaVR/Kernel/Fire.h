@@ -4,10 +4,12 @@
 
 // Fire school. Parallel to Water. Numbers come from the parsed pin, not from literals here.
 
+struct FVrRuleset;
+
 const FFireSpell* FireSpellFor(const FActor& Actor, int32 Slot);
 int32 FireCooldownUntil(const FActor& Actor, const FString& SpellId);
-bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input);
-void ReleaseFire(FArenaState& State, FActor& Actor);
+bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules = nullptr);
+void ReleaseFire(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nullptr);
 void UpdateFireResource(FArenaState& State, FActor& Actor);
 void UpdateFireOngoing(FArenaState& State, FActor& Actor);
 double FireSpellDamageMult(const FActor& Actor);

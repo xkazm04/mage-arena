@@ -1,6 +1,7 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/SessionPresentation.h"
+#include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
 #include "Session/Wave1Capture.h"
 
@@ -19,6 +20,7 @@
 #include "Hands/HandClipPlayer.h"
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
+#include "Hands/MageSettings.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
@@ -257,6 +259,8 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: %s"), *RulesError);
 		return false;
 	}
+	ActivePad = 1;
+	ApplyComfort(Rules);
 	if (!IsTiroWave(BoutWave))
 	{
 		const int32 Waves = (KernelData().bReady && KernelData().ArenaTiers.Num() > 0)
@@ -315,6 +319,9 @@ bool FArenaSession::Start(uint32 Seed)
 	bCuePlayed = false;
 	bColdRaised = false;
 	bColdPlayed = false;
+	bStoneHeld[0] = false;
+	bStoneHeld[1] = false;
+	bStoneHeld[2] = false;
 	bOfferContinue = false;
 	bFlowCue = false;
 	bClockCue = false;
@@ -449,6 +456,104 @@ FVector FArenaSession::KernelToUnrealCm(const FSimVec& Pos) const
 	const double Ym = (Centre ? Centre->PositionM.Y : 0.0) + (Pos.Y - Spawn.Y);
 	const double Zm = bHasLayout ? Layout.SurfaceHeightM(Xm, Ym) : 0.0;
 	return FVector(Xm, Ym, Zm) * 100.0;
+}
+
+void FArenaSession::ApplyComfort(FVrRuleset& Rules) const
+{
+	FMageSettings::EnsureLoaded();
+	Rules.bNarrow = FMageSettings::IsNarrow();
+	Rules.bGentle = FMageSettings::IsGentle();
+	if (!Rules.bNarrow)
+	{
+		return;
+	}
+	const int32 PadIndex = ActivePad >= 0 ? ActivePad : 1;
+	Rules.NarrowOrigin = PadKernel(PadIndex);
+	FSimVec Forward{1.0, 0.0};
+	if (bHasLayout)
+	{
+		if (const FRunePad* Pad = Layout.FindPad(PadIndex))
+		{
+			const FVector Flat = Layout.FlatForwardM(*Pad);
+			if (!Flat.IsNearlyZero())
+			{
+				Forward.X = Flat.X;
+				Forward.Y = Flat.Y;
+			}
+		}
+	}
+	Rules.NarrowForward = Forward;
+}
+
+void FArenaSession::PollComfortToggles()
+{
+	// The settings still plays a sigil during cold. That stroke must not palm a stone.
+	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture")))
+	{
+		return;
+	}
+	if (bScripted || !Hands || Games.Phase != TEXT("cold"))
+	{
+		return;
+	}
+	// Clip centimetres, seated origin. Clear of the scripted ward palm at (36, -12, 36).
+	const FVector Stones[] = {
+		FVector(55.0, -28.0, 18.0),
+		FVector(55.0, 0.0, 18.0),
+		FVector(55.0, 28.0, 18.0),
+	};
+	const double Radius = 6.0;
+	bool bInside[3] = {false, false, false};
+	auto Consider = [&](const FHandFrame& Frame)
+	{
+		const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+		const int32 Tip = static_cast<int32>(EHandKeypoint::IndexTip);
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			if (Frame.Joints.IsValidIndex(Palm) && FVector::Dist(Frame.Joints[Palm].Location, Stones[Index]) <= Radius)
+			{
+				bInside[Index] = true;
+			}
+			if (Frame.Joints.IsValidIndex(Tip) && FVector::Dist(Frame.Joints[Tip].Location, Stones[Index]) <= Radius)
+			{
+				bInside[Index] = true;
+			}
+		}
+	};
+	FHandFrame Left;
+	FHandFrame Right;
+	if (Hands->GetLatest(EControllerHand::Left, Left))
+	{
+		Consider(Left);
+	}
+	if (Hands->GetLatest(EControllerHand::Right, Right))
+	{
+		Consider(Right);
+	}
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		if (bInside[Index] && !bStoneHeld[Index])
+		{
+			if (Index == 0)
+			{
+				FMageSettings::ToggleHand();
+			}
+			else if (Index == 1)
+			{
+				FMageSettings::ToggleFov();
+			}
+			else
+			{
+				FMageSettings::ToggleGentle();
+			}
+			bStoneHeld[Index] = true;
+			Note(FString::Printf(TEXT("settings stone %d"), Index));
+		}
+		else if (!bInside[Index])
+		{
+			bStoneHeld[Index] = false;
+		}
+	}
 }
 
 FSimVec FArenaSession::PadKernel(int32 PadIndex) const
@@ -1488,10 +1593,16 @@ void FArenaSession::StepKernel()
 	Input.bLiftStaff = bLiftPulse;
 	bPlantPulse = false;
 	bLiftPulse = false;
+	int32 PadBefore = ActivePad;
 	if (bWantRoll)
 	{
 		Input.bRoll = true;
 		bBlinkQueued = false;
+		ActivePad = RollPad;
+	}
+	if (Games.VrRules.IsSet())
+	{
+		ApplyComfort(Games.VrRules.GetValue());
 	}
 	StepGames(Games, &Input);
 	if (bStoneNear)
@@ -1508,7 +1619,6 @@ void FArenaSession::StepKernel()
 	{
 		if (After->Metrics.Rolls > RollsBefore)
 		{
-			ActivePad = RollPad;
 			++BlinkAccepts;
 			bCameraDirty = true;
 			CameraPad = RollPad;
@@ -1519,6 +1629,7 @@ void FArenaSession::StepKernel()
 		}
 		else
 		{
+			ActivePad = PadBefore;
 			Note(FString::Printf(TEXT("kernel roll rejected pad %d stamina=%.1f"), RollPad, After->Stamina));
 		}
 	}
@@ -1645,6 +1756,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bGreyboxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
 	const bool bWave1Capture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
 	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
+	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1666,6 +1778,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		TeachCapture = NewObject<UTeachCaptureDriver>(this);
 		TeachCapture->Start();
+		return;
+	}
+	if (bSettingsCapture)
+	{
+		SettingsCapture = NewObject<USettingsCaptureDriver>(this);
+		SettingsCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)

@@ -105,6 +105,20 @@ struct FVrDefenceTune
 	double WardDrainSplit = 1.0;
 };
 
+// Plan D3. Read from combat.vr.json. The runtime flags below decide whether a bout uses them.
+struct FVrNarrowFov
+{
+	double SpawnArcDeg = 40.0;
+	double OfferBelowDeg = 90.0;
+	double CameraFovDeg = 70.0;
+};
+
+struct FVrGentle
+{
+	double TelegraphMult = 2.0;
+	double Competence = 1.0;
+};
+
 // True when the segment crosses the arc. OutT is along From -> To. A graze that stays outside does not count.
 bool VrWallSegmentCrosses(const FVrWall& Wall, const FSimVec& From, const FSimVec& To, double& OutT);
 
@@ -121,6 +135,14 @@ struct FVrRuleset
 	FVrPressure Pressure;
 	FVrPower Power;
 	FVrDefenceTune Defence;
+	FVrNarrowFov Narrow;
+	FVrGentle Gentle;
+	// Runtime comfort. Not part of the pinned state hash. Off leaves positions and windups untouched.
+	bool bNarrow = false;
+	bool bGentle = false;
+	// Kernel position of the pad the player is on, and that pad's flat forward. The session writes these.
+	FSimVec NarrowOrigin{0.0, 0.0};
+	FSimVec NarrowForward{1.0, 0.0};
 	FVrStaffRuntime StaffRuntime;
 	TArray<FVrWall> Walls;
 	int32 WallsRaised = 0;
@@ -137,6 +159,9 @@ struct FVrRuleset
 	FSimVec Outward(const FSimVec& Point) const;
 	FSimVec PushOutsideHold(const FSimVec& Point) const;
 	void KeepOut(FArenaState& State) const;
+	// Bearing around NarrowOrigin. Points already inside the arc are returned unchanged.
+	FSimVec CompressToArc(const FSimVec& Point) const;
+	void KeepInView(FArenaState& State) const;
 
 	bool IsPlanted(int32 ActorId) const;
 	void Lift(const TCHAR* Why);
@@ -157,3 +182,13 @@ struct FVrRuleset
 // Reads combat.vr.json. With bHonorProposalSwitch, -MageArenaProposal or MageArenaProposal=1
 // overlays apps/vr/data/vr/calibration-proposal.json. The default bout does not.
 bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch = true);
+
+// Opponent telegraph seconds. Identity when gentle is off, including when the multiplier is not 1.
+inline double VrOpponentTelegraph(const FVrRuleset* Rules, int32 Team, double Seconds)
+{
+	if (Rules && Rules->bGentle && Team != 0)
+	{
+		return Seconds * Rules->Gentle.TelegraphMult;
+	}
+	return Seconds;
+}

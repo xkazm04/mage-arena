@@ -78,12 +78,14 @@ const TCHAR* FHandClip::VariantToString(EClipVariant Variant)
 	}
 }
 
-FString FHandClip::MakeFilePath(FName Action, EClipVariant Variant)
+FString FHandClip::MakeFilePath(FName Action, EClipVariant Variant, bool bMirror)
 {
-	return FPaths::Combine(
-		FPaths::ProjectDir(),
-		TEXT("Clips"),
-		FString::Printf(TEXT("%s.%s.jsonl"), *Action.ToString(), VariantToString(Variant)));
+	const FString Name = FString::Printf(TEXT("%s.%s.jsonl"), *Action.ToString(), VariantToString(Variant));
+	if (bMirror)
+	{
+		return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("mirror"), Name);
+	}
+	return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), Name);
 }
 
 int32 FHandClip::GetSampleCount() const

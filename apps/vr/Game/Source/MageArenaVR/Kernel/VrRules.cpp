@@ -408,14 +408,27 @@ FSimVec FVrRuleset::PushOutsideHold(const FSimVec& Point) const
 
 FSimVec FVrRuleset::HoldPoint(const FSimVec& From, const FSimVec& Goal) const
 {
+	auto Finish = [this](const FSimVec& Point) -> FSimVec
+	{
+		if (!bNarrow)
+		{
+			return Point;
+		}
+		FSimVec Held = CompressToArc(Point);
+		if (bActive && InsideHold(Held))
+		{
+			Held = CompressToArc(PushOutsideHold(Held));
+		}
+		return Held;
+	};
 	const FVrAabb Box = HoldBox();
 	if (!Box.Contains(Goal))
 	{
-		return Goal;
+		return Finish(Goal);
 	}
 	if (Box.Contains(From))
 	{
-		return PushOutsideHold(From);
+		return Finish(PushOutsideHold(From));
 	}
 	const FSimVec Delta = SimSub(Goal, From);
 	double Enter = -1.0e9;
@@ -440,10 +453,59 @@ FSimVec FVrRuleset::HoldPoint(const FSimVec& From, const FSimVec& Goal) const
 	};
 	if (!Clip(From.X, Delta.X, Box.MinX, Box.MaxX) || !Clip(From.Y, Delta.Y, Box.MinY, Box.MaxY))
 	{
-		return PushOutsideHold(From);
+		return Finish(PushOutsideHold(From));
 	}
 	const double T = SimClamp(Enter, 0.0, 1.0);
-	return SimAdd(From, SimScale(Delta, T));
+	return Finish(SimAdd(From, SimScale(Delta, T)));
+}
+
+FSimVec FVrRuleset::CompressToArc(const FSimVec& Point) const
+{
+	if (!bNarrow || !(Narrow.SpawnArcDeg > 0.0) || Narrow.SpawnArcDeg >= 180.0)
+	{
+		return Point;
+	}
+	const FSimVec Forward = SimUnit(NarrowForward, FSimVec{1.0, 0.0});
+	const FSimVec Right{-Forward.Y, Forward.X};
+	const FSimVec Offset = SimSub(Point, NarrowOrigin);
+	const double Ahead = SimDot(Offset, Forward);
+	const double Side = SimDot(Offset, Right);
+	const double Radius = std::hypot(Ahead, Side);
+	if (!(Radius > 1.0e-8))
+	{
+		return Point;
+	}
+	const double Bearing = std::atan2(Side, Ahead);
+	const double Limit = Narrow.SpawnArcDeg * SimPi / 180.0;
+	if (std::abs(Bearing) <= Limit)
+	{
+		return Point;
+	}
+	const double Clamped = std::copysign(Limit, Bearing);
+	return SimAdd(NarrowOrigin, SimAdd(SimScale(Forward, Radius * std::cos(Clamped)), SimScale(Right, Radius * std::sin(Clamped))));
+}
+
+void FVrRuleset::KeepInView(FArenaState& State) const
+{
+	// Narrow view: an opponent outside the arc of the active pad walks back toward the nearest arc point at no more
+	// than its own walk speed per tick. Positions are never snapped, so a blink to another pad does not teleport anyone.
+	const FKernelData& Data = KernelData();
+	for (FActor& Actor : State.Actors)
+	{
+		if (Actor.bDown || Actor.Team == 0)
+		{
+			continue;
+		}
+		const FSimVec Goal = CompressToArc(Actor.Pos);
+		const FSimVec Delta = SimSub(Goal, Actor.Pos);
+		const double Distance = SimLength(Delta);
+		if (!(Distance > 1.0e-9))
+		{
+			continue;
+		}
+		const double Step = Actor.SpeedMps.Get(Data.WalkMps) * SimDt();
+		Actor.Pos = Distance <= Step ? Goal : SimAdd(Actor.Pos, SimScale(Delta, Step / Distance));
+	}
 }
 
 void FVrRuleset::KeepOut(FArenaState& State) const
@@ -791,6 +853,42 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.FireWall.ManaCost = ManaCost;
 	Out.FireWall.HeatPerStop = HeatPerStop;
 	Out.FireWall.BurnDamage = BurnDamage;
+
+	const FJsonObject* NarrowJson = nullptr;
+	const FJsonObject* GentleJson = nullptr;
+	if (!NeedObject(*Overlay, TEXT("narrowFov"), NarrowJson, Error) || !NeedObject(*Overlay, TEXT("gentle"), GentleJson, Error))
+	{
+		return false;
+	}
+	double SpawnArcDeg = 0.0;
+	double OfferBelowDeg = 0.0;
+	double CameraFovDeg = 0.0;
+	double TelegraphMult = 0.0;
+	double Competence = 0.0;
+	if (!NeedNumber(*NarrowJson, TEXT("spawnArcDeg"), SpawnArcDeg, Error)
+		|| !NeedNumber(*NarrowJson, TEXT("offerBelowDeg"), OfferBelowDeg, Error)
+		|| !NeedNumber(*NarrowJson, TEXT("cameraFovDeg"), CameraFovDeg, Error)
+		|| !NeedNumber(*GentleJson, TEXT("telegraphMult"), TelegraphMult, Error)
+		|| !NeedNumber(*GentleJson, TEXT("competence"), Competence, Error))
+	{
+		return false;
+	}
+	if (!(SpawnArcDeg > 0.0 && SpawnArcDeg <= 180.0) || !(OfferBelowDeg > 0.0 && OfferBelowDeg <= 180.0)
+		|| !(CameraFovDeg >= 40.0 && CameraFovDeg <= 140.0))
+	{
+		return Fail(Error, TEXT("vr rules: narrowFov arc, offer, or camera is out of range"));
+	}
+	if (!(TelegraphMult >= 1.0 && TelegraphMult <= 8.0) || !(Competence >= 0.0 && Competence <= 5.0))
+	{
+		return Fail(Error, TEXT("vr rules: gentle multiplier or competence is out of range"));
+	}
+	Out.Narrow.SpawnArcDeg = SpawnArcDeg;
+	Out.Narrow.OfferBelowDeg = OfferBelowDeg;
+	Out.Narrow.CameraFovDeg = CameraFovDeg;
+	Out.Gentle.TelegraphMult = TelegraphMult;
+	Out.Gentle.Competence = Competence;
+	Out.bNarrow = false;
+	Out.bGentle = false;
 
 	Out.bActive = true;
 	Out.StandoffM = Standoff;

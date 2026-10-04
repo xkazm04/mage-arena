@@ -151,7 +151,8 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 			// The capture sequence owns the camera. A hidden cursor delta must not drag the scripted shots.
 			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"))
 				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"))
-				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
+				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"))
+				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 			if (!bDrawing && !Mage->IsBlinkBusy() && !bCapture)
 			{
 				FRotator Rot = GetControlRotation();

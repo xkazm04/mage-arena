@@ -1,6 +1,7 @@
 #include "Session/ArenaSession.h"
 
 #include "Dom/JsonObject.h"
+#include "Hands/MageSettings.h"
 #include "Gestures/BlinkDetector.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
 #include "Gestures/StaffDetector.h"
@@ -555,6 +556,10 @@ FString FArenaSession::GetPromptText() const
 	}
 	if (Games.Phase == TEXT("cold"))
 	{
+		if (FMageSettings::ShouldOfferNarrow())
+		{
+			return TeachString(TEXT("settings.offer.narrow"));
+		}
 		return TeachString(TEXT("cold.start"));
 	}
 	if (Games.Phase == TEXT("offer"))
@@ -1243,6 +1248,10 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		if (bScripted)
 		{
 			DecideCold();
+		}
+		else
+		{
+			PollComfortToggles();
 		}
 		if (bColdRaised)
 		{

@@ -613,9 +613,6 @@ function samplePalms(spec, t, timeScale, params) {
     const turned = slerpAxes(start.normal, start.finger, endNormal, endFinger, u);
     return {
       side,
-      // The right hand's mirrored metacarpals flip the joint-cross normal. Build it
-      // with the left layout so both palms face +X the way the ward detector measures.
-      build: 'L',
       palm: distortAround(lerp(start.pos, endPos, u), start.pos, params),
       normal: turned.normal,
       finger: turned.finger,
@@ -1034,9 +1031,11 @@ function checkSigil(action, spec, frames) {
   const circle = frames.filter((frame) => frame.t >= approach + 0.02 && frame.t <= circleEnd - 0.02);
   let minR = Infinity;
   let maxR = 0;
+  const isLeft = frames[0] && frames[0].hand === 'L';
+  const cY = isLeft ? -0.40 : 0.0;
   for (const frame of circle) {
     const p = tip(frame);
-    const r = Math.hypot(p.y, p.z - CHEST_Z);
+    const r = Math.hypot(p.y - cY, p.z - CHEST_Z);
     minR = Math.min(minR, r);
     maxR = Math.max(maxR, r);
   }
@@ -1182,7 +1181,10 @@ function detectorPalmNormal(frame) {
   const wrist = frameJoint(frame, IDX.Wrist);
   const index = frameJoint(frame, IDX.IndexMetacarpal);
   const little = frameJoint(frame, IDX.LittleMetacarpal);
-  const crossed = cross(sub(index, wrist), sub(little, wrist));
+  let crossed = cross(sub(index, wrist), sub(little, wrist));
+  if (frame.hand === 'R') {
+    crossed = scale(crossed, -1);
+  }
   if (len(crossed) < 1e-8) {
     return palmNormalOf(frame);
   }
@@ -1472,6 +1474,194 @@ function selfTestMath() {
   }
 }
 
+// Sagittal mirror: the hand crosses Y=0 and the tag swaps. Tip-driven gestures
+// (sigil, bolt, blink) keep the index-tip path, so a left flick is still the left
+// pad and the sigil diagonal still matches the templates. The joint layout is the
+// one whose detector cross product agrees with the requested palm normal.
+function mirrorVec(v) {
+  return v3(v.x, -v.y, v.z);
+}
+
+function otherSide(side) {
+  return side === 'L' ? 'R' : 'L';
+}
+
+function mirrorSample(hand, kind, lockedBuild) {
+  const side = otherSide(hand.side);
+  const tipDriven = kind === 'sigil' || kind === 'flick';
+  if (tipDriven) {
+    const posed = poseHand(hand.build || hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+    const tipWorld = posed.world[IDX.IndexTip];
+    const restOffset = sub(restPose(side).pos, restPose(hand.side).pos);
+    const translatedTip = add(tipWorld, restOffset);
+    const normal = mirrorVec(hand.normal);
+    const finger = mirrorVec(hand.finger);
+    const build = lockedBuild || side;
+    const palm = palmForTip(build, translatedTip, normal, finger, hand.curls, hand.pinch);
+    return { side, build, palm, normal, finger, curls: hand.curls, pinch: hand.pinch };
+  }
+  const normal = mirrorVec(hand.normal);
+  const finger = mirrorVec(hand.finger);
+  const palm = mirrorVec(hand.palm);
+  const build = lockedBuild || side;
+  return { side, build, palm, normal, finger, curls: hand.curls, pinch: hand.pinch };
+}
+
+function mirroredHandList(hands) {
+  return hands.map(otherSide).sort();
+}
+
+function buildMirroredClip(action, spec, variant) {
+  const params = variantParams(action, variant);
+  const duration = durationOf(spec, params.slow);
+  const n = sampleCount(duration);
+  const lastHands = sampleAction(spec, (n - 1) / HZ, params.slow, params);
+  const buildBySide = {};
+  for (const hand of lastHands) {
+    const mirrored = mirrorSample(hand, spec.kind);
+    buildBySide[mirrored.side] = mirrored.build;
+  }
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / HZ;
+    const hands = sampleAction(spec, t, params.slow, params).map((hand) => {
+      const mirrored = mirrorSample(hand, spec.kind);
+      return mirrorSample(hand, spec.kind, buildBySide[mirrored.side]);
+    });
+    hands.sort((a, b) => (a.side < b.side ? -1 : a.side > b.side ? 1 : 0));
+    for (const hand of hands) {
+      const posed = poseHand(hand.build || hand.side, hand.palm, hand.normal, hand.finger, hand.curls, hand.pinch);
+      applyJitter(posed.world, t, params);
+      const quats = jointQuats(posed.world, posed.palmNormal);
+      const joints = posed.world.map((p, j) => [p.x, p.y, p.z, quats[j].x, quats[j].y, quats[j].z, quats[j].w]);
+      frames.push({ t, hand: hand.side, conf: params.dips ? 0.96 : 1, pinch: hand.pinch, joints });
+    }
+  }
+  if (params.dips) {
+    const handCount = spec.hands.length;
+    const per = n;
+    const pick = (r) => 4 + Math.floor(r * Math.max(1, per - 10));
+    let a = pick(params.dipA);
+    let b = pick(params.dipB);
+    if (Math.abs(a - b) < 4) {
+      b = Math.min(per - 3, a + 5);
+    }
+    for (const centre of [a, b]) {
+      for (let k = -1; k <= 1; k++) {
+        const frameIndex = centre + k;
+        if (frameIndex < 0 || frameIndex >= per) {
+          continue;
+        }
+        for (let h = 0; h < handCount; h++) {
+          frames[frameIndex * handCount + h].conf = 0.4;
+        }
+      }
+    }
+  }
+  stabilize(frames, mirroredHandList(spec.hands));
+  return { frames, params, duration: (n - 1) / HZ };
+}
+
+function assertMirrored(action, spec, variant, original, mirrored) {
+  if (mirrored.frames.length !== original.frames.length) {
+    throw new Error(`${action} ${variant}: mirror frame count ${mirrored.frames.length} != ${original.frames.length}`);
+  }
+  for (let i = 0; i < original.frames.length; i++) {
+    if (Math.abs(original.frames[i].t - mirrored.frames[i].t) > 1e-12) {
+      throw new Error(`${action} ${variant}: mirror timing drifted at frame ${i}`);
+    }
+    if (mirrored.frames[i].conf !== original.frames[i].conf) {
+      throw new Error(`${action} ${variant}: mirror confidence drifted at t=${original.frames[i].t}`);
+    }
+  }
+  const hands = mirroredHandList(spec.hands);
+  if (variant === 'normal') {
+    const byHand = { L: [], R: [] };
+    for (const frame of mirrored.frames) {
+      byHand[frame.hand].push(frame);
+    }
+    if (spec.kind === 'sigil') {
+      checkSigil(action, spec, byHand.L);
+    } else if (spec.kind === 'flick') {
+      checkFlick(action, spec, byHand.L);
+    } else if (spec.kind === 'ward') {
+      checkWard(byHand.R);
+      const end = byHand.R[byHand.R.length - 1];
+      const facing = detectorPalmNormal(end);
+      if (end.hand !== 'R' || facing.x < 0.8 || framePalm(end).y <= 0) {
+        throw new Error(`${action}: mirrored ward hand=${end.hand} facing=${facing.x.toFixed(3)} palmY=${framePalm(end).y.toFixed(3)}`);
+      }
+    } else if (spec.kind === 'palms') {
+      checkPalms(byHand.L, byHand.R);
+    } else if (spec.kind === 'staff') {
+      checkStaff(action, spec, byHand.L, byHand.R);
+    } else {
+      checkMudra(byHand.L, byHand.R);
+    }
+  }
+  if (spec.kind === 'sigil' || spec.kind === 'flick') {
+    const orig = original.frames.filter((frame) => frame.hand === 'R');
+    const copy = mirrored.frames.filter((frame) => frame.hand === 'L');
+    if (orig.length !== copy.length) {
+      throw new Error(`${action} ${variant}: mirrored casting hand lost frames`);
+    }
+    for (let i = 0; i < orig.length; i++) {
+      const origTip = frameJoint(orig[i], IDX.IndexTip);
+      const copyTip = frameJoint(copy[i], IDX.IndexTip);
+      const restOffset = sub(restPose('L').pos, restPose('R').pos);
+      const expectedTip = add(origTip, restOffset);
+      const gap = len(sub(expectedTip, copyTip));
+      if (gap > 1e-4) {
+        throw new Error(`${action} ${variant}: index tip moved incorrectly under the mirror (gap ${gap.toFixed(6)})`);
+      }
+    }
+  }
+  if (hands.length === 2) {
+    for (let i = 0; i + 1 < mirrored.frames.length; i++) {
+      if (mirrored.frames[i].t === mirrored.frames[i + 1].t && mirrored.frames[i].hand === 'R') {
+        throw new Error(`${action} ${variant}: mirrored frames at one t are not L then R`);
+      }
+    }
+  }
+  const prevJoint = {};
+  for (const frame of mirrored.frames) {
+    for (let j = 0; j < 26; j++) {
+      const p = v3(frame.joints[j][0], frame.joints[j][1], frame.joints[j][2]);
+      const key = `${frame.hand}:${j}`;
+      if (prevJoint[key]) {
+        const step = len(sub(p, prevJoint[key]));
+        if (step > 0.12) {
+          throw new Error(`${action} ${variant}: mirrored ${KEYPOINTS[j]} teleported ${step.toFixed(4)} m`);
+        }
+      }
+      prevJoint[key] = p;
+      const q = frame.joints[j].slice(3);
+      const qn = Math.hypot(q[0], q[1], q[2], q[3]);
+      if (Math.abs(qn - 1) > 1e-4) {
+        throw new Error(`${action} ${variant}: mirrored quat norm ${qn}`);
+      }
+    }
+  }
+}
+
+function writeMirrors(outDir) {
+  const dir = path.join(outDir, 'mirror');
+  fs.mkdirSync(dir, { recursive: true });
+  for (const variant of VARIANTS) {
+    for (const [action, spec] of ACTIONS) {
+      const original = buildClip(action, spec, variant);
+      const mirrored = buildMirroredClip(action, spec, variant);
+      assertMirrored(action, spec, variant, original, mirrored);
+      const lines = [headerLine(action, variant, mirroredHandList(spec.hands), mirrored.params.seed)];
+      for (const frame of mirrored.frames) {
+        lines.push(frameLine(frame));
+      }
+      fs.writeFileSync(path.join(dir, `${action}.${variant}.jsonl`), `${lines.join('\n')}\n`, { encoding: 'utf8' });
+    }
+  }
+  process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} mirrored clips to Game/Clips/mirror\n`);
+}
+
 function writeCanonical() {
   const here = path.dirname(fileURLToPath(import.meta.url));
   const outDir = path.resolve(here, '..', '..', 'Game', 'Clips');
@@ -1511,6 +1701,7 @@ function writeCanonical() {
     }
   }
   writeSettleClip(outDir);
+  writeMirrors(outDir);
   process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
 }
 

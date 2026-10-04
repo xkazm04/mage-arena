@@ -14,6 +14,7 @@
 #include "EngineUtils.h"
 #include "Greybox/GreyboxUtil.h"
 #include "Hands/MageArenaPawn.h"
+#include "Hands/MageSettings.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "Kernel/ArenaKernel.h"
@@ -424,6 +425,12 @@ void ASessionPresentation::EnsureCuff()
 void ASessionPresentation::SyncCuff(const FArenaSession& Session, const FActor& Player, bool bPaused)
 {
 	EnsureCuff();
+	if (CuffRoot)
+	{
+		FVector Loc = CuffRoot->GetRelativeLocation();
+		Loc.Y = FMageSettings::IsLeftHanded() ? 26.0 : -26.0;
+		CuffRoot->SetRelativeLocation(Loc);
+	}
 	const double Sim = Session.GetSimSeconds();
 	auto Fit = [](UStaticMeshComponent* Bar, double Fraction)
 	{
@@ -878,6 +885,167 @@ void ASessionPresentation::SyncWalls(const FArenaSession& Session)
 	}
 }
 
+UWidgetComponent* ASessionPresentation::MakeStoneLabel(const TCHAR* Name)
+{
+	UWidgetComponent* Widget = NewObject<UWidgetComponent>(this, Name);
+	if (!Widget || !StoneRoot)
+	{
+		return nullptr;
+	}
+	Widget->SetupAttachment(StoneRoot);
+	Widget->SetWidgetSpace(EWidgetSpace::World);
+	Widget->SetDrawSize(FVector2D(520.f, 96.f));
+	Widget->SetPivot(FVector2D(0.5f, 0.5f));
+	Widget->SetTwoSided(true);
+	Widget->SetBlendMode(EWidgetBlendMode::Transparent);
+	Widget->SetBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 0.f));
+	Widget->SetTintColorAndOpacity(FLinearColor::White);
+	Widget->SetTickMode(ETickMode::Enabled);
+	Widget->SetTickWhenOffscreen(true);
+	Widget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Widget->SetCastShadow(false);
+	Widget->RegisterComponent();
+	AddInstanceComponent(Widget);
+	Widget->SetSlateWidget(
+		SNew(STextBlock)
+		.Font(FCoreStyle::GetDefaultFontStyle("Regular", 42))
+		.ColorAndOpacity(FLinearColor(0.96f, 0.94f, 0.86f, 1.f))
+		.Justification(ETextJustify::Center));
+	Widget->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+	Widget->SetRelativeScale3D(FVector(0.055f));
+	return Widget;
+}
+
+void ASessionPresentation::EnsureComfortVisuals()
+{
+	if (bComfortVisuals || !GetRootComponent())
+	{
+		return;
+	}
+	bComfortVisuals = true;
+	StoneRoot = NewObject<USceneComponent>(this, TEXT("ComfortStones"));
+	if (!StoneRoot)
+	{
+		return;
+	}
+	StoneRoot->SetupAttachment(GetRootComponent());
+	StoneRoot->RegisterComponent();
+	StoneRoot->SetVisibility(false);
+
+	const FLinearColor Colours[] = {
+		FLinearColor(0.32f, 0.36f, 0.42f),
+		FLinearColor(0.22f, 0.40f, 0.42f),
+		FLinearColor(0.36f, 0.40f, 0.28f),
+	};
+	const FVector At[] = {
+		FVector(55.0, -28.0, 18.0),
+		FVector(55.0, 0.0, 18.0),
+		FVector(55.0, 28.0, 18.0),
+	};
+	const TCHAR* LabelNames[] = {TEXT("StoneHand"), TEXT("StoneFov"), TEXT("StoneGentle")};
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		UStaticMeshComponent* Stone = MakePart(TEXT("Cube"), Colours[Index]);
+		if (Stone)
+		{
+			Stone->AttachToComponent(StoneRoot, FAttachmentTransformRules::KeepRelativeTransform);
+			Stone->SetRelativeLocation(At[Index]);
+			Greybox::SetSized(Stone, FVector(12.0, 12.0, 12.0));
+			Stone->SetVisibility(true);
+			ComfortStones.Add(Stone);
+		}
+		if (UWidgetComponent* Label = MakeStoneLabel(LabelNames[Index]))
+		{
+			Label->SetRelativeLocation(At[Index] + FVector(0.0, 0.0, 14.0));
+			StoneLabels.Add(Label);
+		}
+	}
+}
+
+void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
+{
+	const bool bCold = Session.GetStage() == TEXT("cold") && !Session.IsScripted();
+	if (bCold)
+	{
+		EnsureComfortVisuals();
+	}
+	AMageArenaPawn* Pawn = nullptr;
+	if (GetWorld())
+	{
+		for (TActorIterator<AMageArenaPawn> It(GetWorld()); It; ++It)
+		{
+			Pawn = *It;
+			break;
+		}
+	}
+	USceneComponent* Seat = Pawn ? Pawn->GetSeatedOrigin() : nullptr;
+	if (StoneRoot)
+	{
+		if (Seat && StoneRoot->GetAttachParent() != Seat)
+		{
+			StoneRoot->AttachToComponent(Seat, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			StoneRoot->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
+		}
+		StoneRoot->SetVisibility(bCold && Seat != nullptr, true);
+	}
+	const TCHAR* Keys[] = {
+		FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right"),
+		FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide"),
+		FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off"),
+	};
+	for (int32 Index = 0; Index < StoneLabels.Num(); ++Index)
+	{
+		UWidgetComponent* Label = StoneLabels[Index];
+		if (!Label)
+		{
+			continue;
+		}
+		Label->SetVisibility(bCold && Seat != nullptr);
+		if (TSharedPtr<STextBlock> Text = StaticCastSharedPtr<STextBlock>(Label->GetSlateWidget()))
+		{
+			Text->SetText(FText::FromString(Session.TeachString(Keys[Index])));
+		}
+		Label->RequestRenderUpdate();
+	}
+
+	const bool bArc = FMageSettings::IsNarrow();
+	if (bArc && ArcEdges.Num() == 0)
+	{
+		const FLinearColor Edge(0.55f, 0.62f, 0.45f);
+		for (int32 Index = 0; Index < 2; ++Index)
+		{
+			if (UStaticMeshComponent* Line = MakePart(TEXT("Cube"), Edge))
+			{
+				Line->SetVisibility(false);
+				ArcEdges.Add(Line);
+			}
+		}
+	}
+	const FVector Forward = PadForward(Session);
+	const FVector Right = FVector::CrossProduct(FVector::UpVector, Forward).GetSafeNormal();
+	const FVector Pad = Session.KernelToUnrealCm(Session.PadKernel(Session.GetActivePad()));
+	const double ArcRad = FMath::DegreesToRadians(static_cast<double>(FMageSettings::SpawnArcDeg()));
+	const double Length = 1600.0;
+	for (int32 Index = 0; Index < ArcEdges.Num(); ++Index)
+	{
+		UStaticMeshComponent* Edge = ArcEdges[Index];
+		if (!Edge)
+		{
+			continue;
+		}
+		Edge->SetVisibility(bArc);
+		if (!bArc)
+		{
+			continue;
+		}
+		const double Side = Index == 0 ? -1.0 : 1.0;
+		const FVector Dir = (Forward * FMath::Cos(ArcRad) + Right * (FMath::Sin(ArcRad) * Side)).GetSafeNormal();
+		Edge->SetWorldLocation(Pad + FVector(0.0, 0.0, 16.0) + Dir * (Length * 0.5));
+		Edge->SetWorldRotation(Dir.Rotation());
+		Greybox::SetSized(Edge, FVector(Length, 5.0, 6.0));
+	}
+}
+
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
 	if (!Session.IsRunning())
@@ -1180,6 +1348,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		SyncCuff(Session, *Player, bPaused);
 	}
 	SyncTeachVisuals(Session, Player);
+	SyncComfortVisuals(Session);
 	EventCursor = Games.State.Events.Num();
 
 	TSet<int32> LiveAll = LiveBodies;

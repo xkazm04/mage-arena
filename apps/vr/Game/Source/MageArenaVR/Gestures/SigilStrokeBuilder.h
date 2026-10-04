@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gestures/QPointCloudRecognizer.h"
+#include "InputCoreTypes.h"
 
 struct FHandClip;
 
@@ -99,5 +100,5 @@ private:
 	double MotionStill = 0.0;
 };
 
-/** First completed right-hand gesture in the clip, using the index tip. */
-bool ExtractFirstGesture(const FHandClip& Clip, ESigilDrawStyle Style, TArray<FQPoint>& OutPoints);
+/** First completed gesture on Hand. The default is the right hand, which is how templates are stored. */
+bool ExtractFirstGesture(const FHandClip& Clip, ESigilDrawStyle Style, TArray<FQPoint>& OutPoints, EControllerHand Hand = EControllerHand::Right);
