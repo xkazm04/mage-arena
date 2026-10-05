@@ -66,6 +66,13 @@ FString ChainPath(const TCHAR* Name)
 	return Path;
 }
 
+// A bout save in a directory of its own. The default one, Saved/MageArena/bout.txt, is the file a desktop
+// playthrough resumes from, so a test that advances an intermission must never write there.
+FString ScratchSaveDir()
+{
+	return FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("session-save"), FGuid::NewGuid().ToString());
+}
+
 int32 CountChain(const TArray<FString>& Chain, const TCHAR* Piece)
 {
 	int32 Count = 0;
@@ -366,10 +373,9 @@ bool FMageArenaSessionChainAdvance::RunTest(const FString& Parameters)
 	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
 	Session.SetScripted(false);
 	Session.SetBoutIndex(0);
+	const FString SaveDir = ScratchSaveDir();
+	Session.SetSaveDirectory(SaveDir);
 	if (!Session.Start(1)) return false;
-
-	// clear bout save
-	FFileHelper::SaveStringToFile(TEXT(""), *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArena"), TEXT("bout.txt")));
 
 	// Mock killing all enemies to force intermission
 	FArenaState& MutableState = const_cast<FArenaState&>(Session.GetGames().State);
@@ -415,8 +421,9 @@ bool FMageArenaSessionChainAdvance::RunTest(const FString& Parameters)
 
 	// Save file stores the current bout
 	FString SaveText;
-	FFileHelper::LoadFileToString(SaveText, *FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArena"), TEXT("bout.txt")));
+	FFileHelper::LoadFileToString(SaveText, *FPaths::Combine(SaveDir, TEXT("bout.txt")));
 	bPass &= TestTrue(TEXT("save file stores bout 1"), SaveText.Contains(TEXT("bout=1")));
+	IFileManager::Get().DeleteDirectory(*SaveDir, false, true);
 
 	Rig.Close(Session);
 	return bPass;
@@ -490,6 +497,7 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 	FArenaSession Session;
 	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 	Session.SetScripted(true);
+	Session.SetSaveDirectory(ScratchSaveDir());
 	if (!Session.Start(1))
 	{
 		AddError(TEXT("Session.Start failed"));
