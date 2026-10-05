@@ -92,7 +92,6 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 		if (WardPlayer->CanResumeHold())
 		{
 			bWardHeld = true;
-			HeldVariant = Variant;
 			WardPlayer->ResumeHold();
 			LastStarted = WardPlayer;
 			UE_LOG(LogMageArena, Log, TEXT("Ward hold resumed variant=%s"), FHandClip::VariantToString(Variant));
@@ -109,7 +108,6 @@ void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
 			return;
 		}
 		const double Plateau = UHandClipPlayer::FindPlateauStart(Loaded, WardHand);
-		HeldVariant = Variant;
 		bWardHeld = true;
 		WardPlayer->Play(Loaded);
 		WardPlayer->BeginHold(Plateau);
@@ -185,11 +183,6 @@ bool UHandInputSubsystem::GetLatest(EControllerHand Hand, FHandFrame& Out) const
 		return true;
 	}
 	return WardPlayer && WardPlayer->GetLatest(Hand, Out);
-}
-
-uint64 UHandInputSubsystem::GetFrameSequence() const
-{
-	return LastStarted ? LastStarted->GetFrameSequence() : 0;
 }
 
 FOnHandSourceFrame& UHandInputSubsystem::OnHandFrame()

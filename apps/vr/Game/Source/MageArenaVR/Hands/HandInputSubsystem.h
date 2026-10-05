@@ -43,12 +43,10 @@ public:
 	/** Stops both lanes. A fresh player that is not playing stays idle. */
 	void StopAll();
 	bool GetLatest(EControllerHand Hand, FHandFrame& Out) const;
-	uint64 GetFrameSequence() const;
 	FOnHandSourceFrame& OnHandFrame();
 
 	/** The player a test just started: the ward after SetWardHeld, the action after PlayQuickAction. */
 	UHandClipPlayer* GetClipPlayer() const { return LastStarted ? LastStarted : ActionPlayer; }
-	IHandSource* GetActiveSource() const { return GetClipPlayer(); }
 
 	bool IsActionPlaying() const;
 	FString GetActionName() const;
@@ -70,5 +68,4 @@ private:
 	FOnHandSourceFrame FrameDelegate;
 	bool bWardHeld = false;
 	bool bTrackingDropped = false;
-	EClipVariant HeldVariant = EClipVariant::Normal;
 };
