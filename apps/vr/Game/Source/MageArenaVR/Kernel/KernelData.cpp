@@ -315,8 +315,11 @@ bool ParseEnemy(const FJsonObject& Object, FEnemySpec& Spec, const FString& Path
 		{
 			return Fail(Data, Path + TEXT(" attack is not an object"));
 		}
+		// The id is read here because Attack.Id is not filled until ParseAttack runs.
+		FString AttackId;
+		(*AttackObject)->TryGetStringField(TEXT("id"), AttackId);
 		FAttackSpec Attack;
-		if (!ParseAttack(**AttackObject, Attack, Path + TEXT(".") + Attack.Id, Data))
+		if (!ParseAttack(**AttackObject, Attack, Path + TEXT(".") + AttackId, Data))
 		{
 			return false;
 		}
@@ -620,8 +623,11 @@ bool LoadEnemies(const FJsonObject& Root, FKernelData& Data, const FString& Path
 			{
 				return Fail(Data, Path + TEXT(" roster entry is not an object"));
 			}
+			// The id is read here because Spec.Id is not filled until ParseEnemy runs.
+			FString EnemyId;
+			(*Object)->TryGetStringField(TEXT("id"), EnemyId);
 			FEnemySpec Spec;
-			if (!ParseEnemy(**Object, Spec, Path + TEXT("#") + Spec.Id, Data))
+			if (!ParseEnemy(**Object, Spec, Path + TEXT("#") + EnemyId, Data))
 			{
 				return false;
 			}
