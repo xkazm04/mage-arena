@@ -41,9 +41,11 @@ In scope:
   tag), rewrite the refs, and run the pin check in `quality.yml` in the same commit. `commits.yml` uses no action at all.
 - **Content secret scanning.** `neverCommit` matches file names, so a key pasted into a source file would pass it.
   Enable GitHub secret scanning with push protection when the repository goes public (free there, and it blocks the
-  push itself, see `docs/MONOREPO.md`). A third-party scanner action would add one more dependency to pin.
+  push itself, see `docs/MONOREPO.md`). A third-party scanner action would add one more dependency to pin; if content
+  scanning is wanted before then, run the gitleaks release binary checked against its published sha256, not an action.
 - **SAST.** CodeQL for C++ needs a compiled build, and the hosted runners have no Unreal Engine. clang-tidy runs on
-  demand only (`apps/vr/tools/lint/tidy.ps1`).
+  demand only (`apps/vr/tools/lint/tidy.ps1`; `-Strict` fails on any finding in a changed line, but nothing runs it
+  automatically yet).
 - **SBOM, signing, provenance, image scanning.** Nothing is released and no container is built. Revisit with the first
   Quest build that leaves the owner's machine.
 - **Required checks.** Branch protection is an owner setting. The checks to require on `master` are listed in the
