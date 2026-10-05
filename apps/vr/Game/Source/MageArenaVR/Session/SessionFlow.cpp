@@ -248,7 +248,10 @@ void FArenaSession::WriteSavedBout(int32 Bout) const
 {
 	const FString Path = SaveFilePath();
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
-	FFileHelper::SaveStringToFile(FString::Printf(TEXT("bout=%d\n"), Bout), *Path);
+	if (!FFileHelper::SaveStringToFile(FString::Printf(TEXT("bout=%d\n"), Bout), *Path))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("Could not save the bout to %s; the next launch will start from the teach"), *Path);
+	}
 }
 
 void FArenaSession::ClearSavedBout() const
