@@ -6,10 +6,20 @@ import { readFileSync } from 'node:fs';
 let call = {};
 try { call = JSON.parse(readFileSync(0, 'utf8') || '{}').toolCall ?? {}; } catch { /* malformed input: decide on nothing */ }
 const cmd = String(call.args?.CommandLine ?? call.args?.command ?? '');
+// Global git options may sit between `git` and the subcommand: -C <dir>, -c k=v, --no-pager, --git-dir <p>.
+const gitOpts = String.raw`(?:\s+(?:-[Cc]\s+(?:"[^"]*"|\S+)|--[\w-]+(?:[=\s](?:"[^"]*"|\S+))?))*`;
+const gitMutation = new RegExp(String.raw`\bgit${gitOpts}\s+(commit|push|reset|checkout|switch|rebase|merge|stash|clean|branch\s+-D|tag)\b`, 'i');
+// Workers run on Windows, so the cmd.exe and PowerShell spellings of a recursive delete are covered too,
+// including PowerShell's abbreviated -r / -rec / -recurse and the ri alias.
+const recursiveDelete = new RegExp([
+  String.raw`\brm\b[^\n;|&]*\s(?:-[a-z]*r[a-z]*|--recursive)\b`,
+  String.raw`\b(?:Remove-Item|ri)\b.*\s-r(?:e(?:c(?:u(?:r(?:s(?:e)?)?)?)?)?)?\b`,
+  String.raw`\b(?:rmdir|rd|del|erase)\b.*\s/s\b`,
+].join('|'), 'i');
 const rules = [
-  [/\bgit\s+(commit|push|reset|checkout|switch|rebase|merge|stash|clean|branch\s+-D|tag)\b/i, 'workers never change git history or the worktree state; the orchestrator commits'],
+  [gitMutation, 'workers never change git history or the worktree state; the orchestrator commits'],
   [/--no-verify|--force\b|\s-f\s.*push/i, 'no hook bypass or force operations'],
-  [/\brm\s+-[a-z]*r[a-z]*f|Remove-Item\b.*-Recurse/i, 'no recursive deletes; ask the orchestrator'],
+  [recursiveDelete, 'no recursive deletes; ask the orchestrator'],
   [/ELEVENLABS_API_KEY|\.env\b/i, 'secrets are read only by tools the card names, never echoed'],
 ];
 // Review mode: `--mode plan` does NOT stop agy from editing files or building (observed 2026-10-03, T10 review), so a
