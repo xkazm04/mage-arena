@@ -55,6 +55,8 @@ public:
 	// 0 clears the test override and uses the layout (or -MageArenaDeviceFov=).
 	static void SetDeviceFovForTest(float FovDeg);
 	static bool ShouldOfferNarrow();
+	// Re-reads the overlay numbers (and logs why it could not).
+	static void ReloadOverlayForTest();
 
 	static void SetFileOverride(const FString& Path);
 	static FString FileOverride();

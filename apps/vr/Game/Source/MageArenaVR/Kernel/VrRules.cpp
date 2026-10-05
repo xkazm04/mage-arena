@@ -19,8 +19,14 @@
 
 namespace
 {
+FString GVrDataDirOverride;
+
 FString VrFile(const TCHAR* Name)
 {
+	if (!GVrDataDirOverride.IsEmpty())
+	{
+		return FPaths::Combine(GVrDataDirOverride, Name);
+	}
 	return FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr"), Name));
 }
 
@@ -638,6 +644,11 @@ bool ApplyProposal(FVrRuleset& Out, FString& Error)
 		return false;
 	}
 	return true;
+}
+
+void SetVrDataDirForTest(const FString& Dir)
+{
+	GVrDataDirOverride = Dir;
 }
 
 bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)

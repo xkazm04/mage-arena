@@ -269,6 +269,11 @@ void FMageSettings::SetDeviceFovForTest(float FovDeg)
 	Store().DeviceOverride = FovDeg;
 }
 
+void FMageSettings::ReloadOverlayForTest()
+{
+	CacheOverlay();
+}
+
 bool FMageSettings::ShouldOfferNarrow()
 {
 	return DeviceFovDeg() < OfferBelowDeg() && !IsNarrow();
@@ -364,9 +369,17 @@ void FMageSettings::CacheOverlay()
 		Store().OfferBelow = static_cast<float>(Rules.Narrow.OfferBelowDeg);
 		Store().SpawnArc = static_cast<float>(Rules.Narrow.SpawnArcDeg);
 	}
+	else
+	{
+		UE_LOG(LogMageArena, Warning, TEXT("Settings overlay not loaded, keeping the built-in narrow-mode numbers: %s"), *Error);
+	}
 	FArenaLayout Layout;
 	FString LayoutError;
-	if (Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), LayoutError) && Layout.CameraFovDeg > 0.0)
+	if (!Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), LayoutError))
+	{
+		UE_LOG(LogMageArena, Warning, TEXT("Settings overlay not loaded, keeping the built-in camera fov: %s"), *LayoutError);
+	}
+	else if (Layout.CameraFovDeg > 0.0)
 	{
 		Store().LayoutFov = static_cast<float>(Layout.CameraFovDeg);
 	}

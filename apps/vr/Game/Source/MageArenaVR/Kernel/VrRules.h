@@ -183,6 +183,9 @@ struct FVrRuleset
 // overlays apps/vr/data/vr/calibration-proposal.json. The default bout does not.
 bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch = true);
 
+// Test seam: read the overlay files from this directory instead of apps/vr/data/vr. Empty restores the default.
+void SetVrDataDirForTest(const FString& Dir);
+
 // Opponent telegraph seconds. Identity when gentle is off, including when the multiplier is not 1.
 inline double VrOpponentTelegraph(const FVrRuleset* Rules, int32 Team, double Seconds)
 {

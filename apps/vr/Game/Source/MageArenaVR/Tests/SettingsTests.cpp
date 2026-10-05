@@ -1104,4 +1104,32 @@ bool FMageArenaSettingsGentle::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSettingsOverlayLog, "MageArena.Settings.OverlayLog",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSettingsOverlayLog::RunTest(const FString& Parameters)
+{
+	// CacheOverlay used to drop a failed overlay load without a word, so a player on the built-in numbers had nothing in the
+	// log to say why their field of view or spawn arc was not the tuned one.
+	const FString EmptyDir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Automation"), TEXT("OverlayLog-") + FGuid::NewGuid().ToString());
+	IFileManager::Get().MakeDirectory(*EmptyDir, true);
+	const float NarrowBefore = FMageSettings::NarrowCameraFovDeg();
+	const float OfferBefore = FMageSettings::OfferBelowDeg();
+	const float ArcBefore = FMageSettings::SpawnArcDeg();
+
+	AddExpectedMessage(TEXT("Settings overlay not loaded"), ELogVerbosity::Warning, EAutomationExpectedMessageFlags::Contains, 1);
+	SetVrDataDirForTest(EmptyDir);
+	FMageSettings::ReloadOverlayForTest();
+	SetVrDataDirForTest(FString());
+
+	bool bPass = TestEqual(TEXT("narrow camera keeps its last good value"), FMageSettings::NarrowCameraFovDeg(), NarrowBefore);
+	bPass &= TestEqual(TEXT("offer threshold keeps its last good value"), FMageSettings::OfferBelowDeg(), OfferBefore);
+	bPass &= TestEqual(TEXT("spawn arc keeps its last good value"), FMageSettings::SpawnArcDeg(), ArcBefore);
+
+	FMageSettings::ReloadOverlayForTest();
+	bPass &= TestEqual(TEXT("good overlay reads back the same camera"), FMageSettings::NarrowCameraFovDeg(), NarrowBefore);
+	IFileManager::Get().DeleteDirectory(*EmptyDir, false, true);
+	return bPass;
+}
+
 #endif
