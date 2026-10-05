@@ -37,6 +37,9 @@ FWardHoldStep StepWardHold(const FWardHoldKeys& Prev, const FWardHoldKeys& Now);
  */
 FVector ResolveWardAim(bool bFromCursor, const FVector& CursorDirection, const FVector& ViewDirection);
 
+/** True when the command line starts one of the scripted capture drivers. A capture owns the camera, so mouse look stands down. */
+bool IsCaptureRun(const TCHAR* CommandLine);
+
 /** Installs the desktop quick-action keys. Taps call PlayQuickAction. Space and the right mouse button hold the ward. */
 UCLASS()
 class MAGEARENAVR_API AMageArenaPlayerController : public APlayerController

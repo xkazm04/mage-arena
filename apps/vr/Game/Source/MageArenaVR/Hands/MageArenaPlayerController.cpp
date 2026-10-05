@@ -83,6 +83,26 @@ FVector ResolveWardAim(bool bFromCursor, const FVector& CursorDirection, const F
 	return View;
 }
 
+bool IsCaptureRun(const TCHAR* CommandLine)
+{
+	static const TCHAR* const Flags[] = {
+		TEXT("MageArenaGreyboxCapture"),
+		TEXT("MageArenaWave1Capture"),
+		TEXT("MageArenaTeachCapture"),
+		TEXT("MageArenaSettingsCapture"),
+		TEXT("MageArenaCreaturesCapture"),
+		TEXT("MageArenaStylePickCapture"),
+	};
+	for (const TCHAR* Flag : Flags)
+	{
+		if (FParse::Param(CommandLine, Flag))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 AMageArenaPlayerController::AMageArenaPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -149,10 +169,7 @@ void AMageArenaPlayerController::PlayerTick(float DeltaTime)
 			float DY = 0.f;
 			GetInputMouseDelta(DX, DY);
 			// The capture sequence owns the camera. A hidden cursor delta must not drag the scripted shots.
-			const bool bCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"))
-				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"))
-				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"))
-				|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
+			const bool bCapture = IsCaptureRun(FCommandLine::Get());
 			if (!bDrawing && !Mage->IsBlinkBusy() && !bCapture)
 			{
 				FRotator Rot = GetControlRotation();
