@@ -39,6 +39,9 @@ In scope:
   until every ref is `owner/repo@<40-hex sha> # vX.Y.Z`. To close it, resolve each tag
   (`git ls-remote --tags https://github.com/actions/checkout 'v4.2.2*'`, using the peeled `^{}` sha for an annotated
   tag), rewrite the refs, and run the pin check in `quality.yml` in the same commit. `commits.yml` uses no action at all.
+  An earlier attempt (commit `5316984`, branch `ascent/loop-20261005150814-xkazm04-mage-arena`) dropped off
+  `ascent/runner` at the next master merge and never reached `master`. Re-check its SHAs before reusing them: GitHub
+  resolves a SHA from any fork of the action repository, so a pin is only trustworthy if it equals the upstream peeled tag.
 - **Content secret scanning.** `neverCommit` matches file names, so a key pasted into a source file would pass it.
   Enable GitHub secret scanning with push protection when the repository goes public (free there, and it blocks the
   push itself, see `docs/MONOREPO.md`). A third-party scanner action would add one more dependency to pin; if content
@@ -46,7 +49,21 @@ In scope:
 - **SAST.** CodeQL for C++ needs a compiled build, and the hosted runners have no Unreal Engine. clang-tidy runs on
   demand only (`apps/vr/tools/lint/tidy.ps1`; `-Strict` fails on any finding in a changed line, but nothing runs it
   automatically yet).
-- **SBOM, signing, provenance, image scanning.** Nothing is released and no container is built. Revisit with the first
-  Quest build that leaves the owner's machine.
+- **SBOM, signing, provenance.** Nothing is released and no container is built. The first build that leaves the
+  owner's machine is the competition APK on the "Competition" release channel (`docs/PROJECT-PLAN.md`). That APK
+  ships only once all of the following hold:
+  - **Signed with a release upload key, not the debug key.** `apps/vr/tools/package-android.ps1` builds a Development
+    APK with the debug keystore; the submission is a Shipping build. The keystore and its passwords live outside the
+    repository and are read by name at build time, like the ElevenLabs key. `.ai/guardrails.yaml` `secrets.neverCommit`
+    does not list `*.keystore` or `*.jks` yet; add both before the keystore exists.
+  - **Signature checked before upload.** `apksigner verify --verbose --print-certs <apk>` must report APK Signature
+    Scheme v2 or v3 and a signer certificate SHA-256 equal to the fingerprint recorded here when the key is made.
+    Any other certificate means the wrong key, so the APK does not go up.
+  - **Integrity and inventory recorded with the build.** Commit the APK's sha256 beside a CycloneDX SBOM listing what
+    went in: the UE version (5.8.x), the Meta XR v207 archives with the SHA-256 values `apps/vr/tools/install-xr.ps1`
+    pins (`PinnedSha256`), and the pinned combat-data commit (`apps/vr/data/PINNED.json`).
+  - **No GitHub build provenance claimed.** `actions/attest` signs artifacts built on a GitHub runner, and hosted
+    runners have no Unreal Engine, so the APK is built on the owner's machine. The sha256, the SBOM and the release
+    signature are the record; do not describe the APK as SLSA-attested.
 - **Required checks.** Branch protection is an owner setting. The checks to require on `master` are listed in the
   header of `.github/workflows/commits.yml`.
