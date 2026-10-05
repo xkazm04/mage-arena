@@ -75,6 +75,10 @@ bool FMageArenaGreyboxLayout::RunTest(const FString& Parameters)
 	TestTrue(TEXT("seated eye height is 1.2 m"), FMath::IsNearlyEqual(Layout.SeatedEyeHeightAbovePadM, 1.2, 1.0e-6));
 	TestTrue(TEXT("dais top is 0.6 m"), FMath::IsNearlyEqual(Layout.SurfaceHeightM(Layout.DaisCentreM.X, Layout.DaisCentreM.Y), 0.6, 1.0e-4));
 	TestTrue(TEXT("arena centre is sand"), FMath::IsNearlyEqual(Layout.SurfaceHeightM(0.0, 0.0), 0.0, 1.0e-6));
+	// Two fields state the dais top: dais.heightM feeds the VR throw rules, centreM + sizeM feed SurfaceHeightM and the
+	// threat landings. Nothing else ties them, so a one-sided edit to the JSON would split the two consumers.
+	TestTrue(TEXT("dais.heightM is the top that SurfaceHeightM reports"),
+		FMath::IsNearlyEqual(Layout.DaisHeightM, Layout.SurfaceHeightM(Layout.DaisCentreM.X, Layout.DaisCentreM.Y), 1.0e-6));
 
 	AMageArenaPawn* Pawn = NewObject<AMageArenaPawn>(GetTransientPackage());
 	if (!TestNotNull(TEXT("pawn constructs"), Pawn))
