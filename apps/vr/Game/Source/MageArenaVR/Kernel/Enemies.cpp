@@ -13,10 +13,26 @@ namespace
 {
 double Extract(const FString& Text, const FString& Pattern)
 {
+	// EnemyInputs reads the same behaviour and attack text every tick for each conscript, hound, thornback and moth, and
+	// compiling the regex was most of a wave's step cost. The answer depends only on the two strings, so it is kept.
+	static FCriticalSection Lock;
+	static TMap<FString, double> Cache;
+	const FString Key = Pattern + TEXT("\n") + Text;
+	{
+		FScopeLock Guard(&Lock);
+		if (const double* Found = Cache.Find(Key))
+		{
+			return *Found;
+		}
+	}
 	const FRegexPattern Compiled(Pattern);
 	FRegexMatcher Matcher(Compiled, Text);
-	checkf(Matcher.FindNext(), TEXT("Missing enemy magnitude: %s / %s"), *Text, *Pattern);
-	return FCString::Atod(*Matcher.GetCaptureGroup(1));
+	const bool bMatched = Matcher.FindNext();
+	checkf(bMatched, TEXT("Missing enemy magnitude: %s / %s"), *Text, *Pattern);
+	const double Value = FCString::Atod(*Matcher.GetCaptureGroup(1));
+	FScopeLock Guard(&Lock);
+	Cache.Add(Key, Value);
+	return Value;
 }
 
 void ScheduleAttack(FArenaState& State, FActor& Actor, const FActor& Target, const FEnemySpec& Spec, const FAttackSpec& Attack, const FVrRuleset* Rules)
