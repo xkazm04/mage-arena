@@ -337,7 +337,9 @@ FFightReport RunFight(uint32 Seed, int32 Wave, double MaxSeconds)
 	const FComposition* Preset = FindPreset(Data.ReferencePreset);
 	checkf(Preset, TEXT("reference preset %s is missing"), *Data.ReferencePreset);
 	FGames Games;
-	checkf(TryCreateGames(Games, Seed, Preset, Wave, true), TEXT("Invalid Tiro wave %d"), Wave);
+	// The call is made outside the macro: a build with checks compiled out drops the expression inside check and checkf.
+	const bool bCreated = TryCreateGames(Games, Seed, Preset, Wave, true);
+	checkf(bCreated, TEXT("Invalid Tiro wave %d"), Wave);
 	TArray<bool> DeadAir;
 	bool bBucketActive = false;
 	const int32 Limit = SimTicks(MaxSeconds);
