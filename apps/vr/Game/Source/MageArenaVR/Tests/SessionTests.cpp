@@ -422,6 +422,31 @@ bool FMageArenaSessionChainAdvance::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSessionSaveFailureLogged, "MageArena.Session.SaveFailureLogged",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSessionSaveFailureLogged::RunTest(const FString& Parameters)
+{
+	// A save that cannot be written must say so. Quitting mid-wave is the only moment the bout is saved, so a silent
+	// failure loses the player's place with nothing in the log to explain it.
+	FSessionRig Rig;
+	if (!Rig.Open(*this)) return false;
+	const FString Blocker = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("save-blocker.txt"));
+	FFileHelper::SaveStringToFile(TEXT("a file where the save directory should be"), *Blocker);
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks);
+	Session.SetScripted(false);
+	Session.SetBoutIndex(0);
+	Session.SetSaveDirectory(FPaths::Combine(Blocker, TEXT("sub")));
+	bool bPass = TestTrue(TEXT("start wave 1"), Session.Start(1));
+	bPass &= TestEqual(TEXT("the wave is live"), Session.GetStage(), FString(TEXT("active")));
+	AddExpectedError(TEXT("Could not save the bout"), EAutomationExpectedErrorFlags::Contains, 1);
+	Session.NotifyQuit();
+	IFileManager::Get().Delete(*Blocker, false, true, true);
+	Rig.Close(Session);
+	return bPass;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSessionChainDefeat, "MageArena.Session.ChainDefeat",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
