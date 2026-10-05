@@ -9,7 +9,6 @@ class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class USigilRecognizerSubsystem;
 class UStaticMeshComponent;
-class UWardDetectorSubsystem;
 
 /**
  * Draws the active hand source as joint spheres and bone capsules in clip space.
@@ -72,5 +71,4 @@ private:
 	FDelegateHandle CastHandle;
 	FDelegateHandle RejectHandle;
 	TWeakObjectPtr<USigilRecognizerSubsystem> Sigils;
-	TWeakObjectPtr<UWardDetectorSubsystem> Wards;
 };
