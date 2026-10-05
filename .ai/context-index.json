@@ -5,7 +5,7 @@
       "id": "root",
       "path": ".",
       "context": "CONTEXT.md",
-      "owns": "TODO: what the repo is for",
+      "owns": "The Meta Quest channel of Mage Arena: a seated, hands-first spell duel in Unreal Engine 5.8, built desktop-first with recorded hand clips driving the one gesture pipeline",
       "reconciledToSha": "dc2a0c48d34668575051f44013cb30c42248074b"
     }
   ]

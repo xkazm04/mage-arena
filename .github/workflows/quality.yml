@@ -1,0 +1,33 @@
+# Quality gate for .ai/manifest.yaml `controls.ciHardPass` (lint, test, format): the same commands an agent
+# runs locally before proposing a change, re-run on every pull request so nothing merges unchecked.
+# No Unreal build here: the engine is not on hosted runners (build stays a local capability).
+# SUPPLY CHAIN: actions/checkout floats on its v4 tag, like ai-conformance.yml. Pin both files to the commit
+# SHA in one change (git ls-remote https://github.com/actions/checkout refs/tags/v4.2.2); .github/dependabot.yml
+# then keeps the pins current.
+name: quality
+on:
+  pull_request:
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: lint (unused private and protected members)
+        run: node apps/vr/tools/lint/unused-members.mjs && node apps/vr/tools/lint/unused-members.mjs --self-test
+      - name: test (agy guard, pinned-data hash gate)
+        run: node --test tools/agy-guard.test.mjs && node apps/vr/tools/check-pin.mjs && node apps/vr/tools/check-pin.mjs --self-test
+  format:
+    # Changed lines only, against the PR's base branch. The runner image ships clang-format.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: format (clang-format on changed C++ lines)
+        env:
+          FORMAT_BASE: origin/${{ github.base_ref }}
+        run: node apps/vr/tools/lint/format-check.mjs --self-test && node apps/vr/tools/lint/format-check.mjs --base "$FORMAT_BASE"

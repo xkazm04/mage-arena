@@ -1,0 +1,22 @@
+# Every change is reviewed by the owner (docs/ORCHESTRATION.md: workers never commit; the orchestrator
+# commits, the owner decides). The explicit lines below name the paths whose change is a decision, not
+# an implementation detail, so a reviewer sees why they were pulled in.
+#
+# CODEOWNERS routes review; it cannot block a commit made under the owner's own identity. The machine
+# guard for the pinned combat data is the sha256 gate `node apps/vr/tools/check-pin.mjs`, which runs as
+# the `test` capability on pre-push (lefthook.yml) and in CI (.github/workflows/quality.yml).
+*                                   @xkazm04
+
+# Combat data pinned from kiro/mage-arena: never edited in place; a change is a change request, then a re-pin.
+/apps/vr/data/pinned/               @xkazm04
+/apps/vr/data/PINNED.json           @xkazm04
+# Conformance vectors are generated from the TS oracle and must stay byte-identical.
+/apps/vr/data/conformance/          @xkazm04
+# Seated tuning overlay: the owner signs off its numbers (docs/DECISIONS.md 2026-10-03).
+/apps/vr/data/vr/                   @xkazm04
+# Owner decisions outrank every other document.
+/docs/DECISIONS.md                  @xkazm04
+# The agent contract and its gates.
+/.ai/                               @xkazm04
+/lefthook.yml                       @xkazm04
+/.github/                           @xkazm04

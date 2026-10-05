@@ -1,0 +1,27 @@
+# On-demand static analysis for apps/vr/Game/Source. Run it with apps/vr/tools/lint/tidy.ps1, which asks UBT
+# for a compile database and checks the C++ files changed on this branch. It is not a pre-push gate: it
+# needs the UE toolchain, and a run over the module takes longer than a push should wait.
+#
+# Dead private members are NOT left to clang-diagnostic-unused-private-field: clang only reports one when
+# every member of the class is defined in a single translation unit, and a UCLASS has part of its body in
+# the UHT .gen.cpp. apps/vr/tools/lint/unused-members.mjs (the `lint` capability) covers that case.
+Checks: >-
+  -*,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  clang-analyzer-*,
+  -clang-analyzer-optin.*,
+  performance-*,
+  -performance-enum-size,
+  misc-unused-using-decls,
+  misc-redundant-expression,
+  readability-redundant-control-flow,
+  readability-redundant-declaration,
+  readability-redundant-member-init,
+  clang-diagnostic-unused-private-field,
+  clang-diagnostic-unused-variable
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*[/\\]MageArenaVR[/\\].*'
+FormatStyle: file
