@@ -11,6 +11,9 @@
 
 namespace
 {
+// Set only for the duration of LoadKernelDataWithOverrides, on the game thread.
+const TMap<FString, FString>* GTextOverrides = nullptr;
+
 FString PinnedPath(const TCHAR* Relative)
 {
 	return FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/pinned"), Relative));
@@ -25,7 +28,12 @@ bool Fail(FKernelData& Data, const FString& Message)
 
 bool LoadText(const FString& Path, FString& Out, FKernelData& Data)
 {
-	if (!FFileHelper::LoadFileToString(Out, *Path))
+	const FString* Override = GTextOverrides ? GTextOverrides->Find(Path) : nullptr;
+	if (Override)
+	{
+		Out = *Override;
+	}
+	else if (!FFileHelper::LoadFileToString(Out, *Path))
 	{
 		return Fail(Data, FString::Printf(TEXT("kernel data: cannot read %s"), *Path));
 	}
@@ -1654,6 +1662,19 @@ const FKernelData& KernelData()
 {
 	static const FKernelData Loaded = Load();
 	return Loaded;
+}
+
+FString KernelDataPinnedPath(const TCHAR* Relative)
+{
+	return PinnedPath(Relative);
+}
+
+FKernelData LoadKernelDataWithOverrides(const TMap<FString, FString>& Overrides)
+{
+	GTextOverrides = &Overrides;
+	FKernelData Data = Load();
+	GTextOverrides = nullptr;
+	return Data;
 }
 
 const TArray<FString>& WaterLines()

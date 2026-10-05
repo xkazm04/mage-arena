@@ -355,5 +355,10 @@ const FFireSpell* FindFireSpell(const FString& Id);
 
 const FKernelData& KernelData();
 
+// Test seam. Loads a fresh FKernelData from the pinned files, except that a file whose full path is a key in
+// Overrides is read from the mapped text instead. KernelData() itself never sees an override.
+FString KernelDataPinnedPath(const TCHAR* Relative);
+FKernelData LoadKernelDataWithOverrides(const TMap<FString, FString>& Overrides);
+
 // catalog.ts:53. Line identity, not a tuned magnitude.
 const TArray<FString>& WaterLines();
