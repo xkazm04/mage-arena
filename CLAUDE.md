@@ -47,6 +47,11 @@ and `DerivedDataCache/` are never committed.
 
 Commit locally, in small atomic commits. Never push, force-push or bypass hooks unless the owner asks.
 
+Subjects take one of two forms: `<card id>: summary` for a task card, change request or design finding (`T08: `,
+`A02: `, `CR-003: `), else `type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
+chore or revert. `node tools/check-commits.mjs` checks the branch's commits; `.github/workflows/commits.yml` fails a
+pull request on any other subject.
+
 <!-- personas:context-map:start -->
 ## Project Context Map
 

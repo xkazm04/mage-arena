@@ -14,6 +14,7 @@ Paste the result line of each command you ran. A claim with no command behind it
 - [ ] `node apps/vr/tools/lint/unused-members.mjs` prints `unused-members OK`
 - [ ] `node apps/vr/tools/lint/format-check.mjs` prints `format-check OK` (changed C++ lines only)
 - [ ] `node .ai/doctor.mjs` reports 0 fail
+- [ ] `node tools/check-commits.mjs` prints `check-commits OK` (subjects are `<card id>: ` or `type(scope): `)
 - [ ] The card's own acceptance commands, run by the orchestrator, not only by the worker
 
 ## AI-assisted contributions

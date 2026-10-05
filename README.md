@@ -149,6 +149,9 @@ node apps/vr/tools/lint/format-check.mjs       # clang-format on CHANGED lines o
 powershell -NoProfile -File apps/vr/tools/lint/tidy.ps1   # on demand: clang-tidy on changed .cpp files
 ```
 
+clang-tidy is not a CI gate: it needs UBT's compile database, and hosted runners have no Unreal Engine. Commit subjects
+are checked on every pull request too (`node tools/check-commits.mjs`, `.github/workflows/commits.yml`; forms in CLAUDE.md "Git").
+
 `format-check` needs clang-format (Visual Studio's "C++ Clang tools for Windows" component, or LLVM). The tree is never
 bulk-reformatted; only lines a change touches are held to the style. A member that must stay while unused gets
 `// lint:allow-unused <reason>` on its line.

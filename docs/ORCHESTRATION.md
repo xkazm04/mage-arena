@@ -38,6 +38,7 @@ even when tools were denied - `tools/agy-run.sh` records `denied_actions`, and a
 3. **Verify.** Claude reads `runs/<id>/REPORT.md` and `git status`, then runs the acceptance commands itself. A claim
    with no command behind it is not accepted.
 4. **Settle.** Pass: Claude commits only the card's paths with message `<id>: <summary>`, ticks the card's status line.
+   Work outside a card uses `type(scope): summary`; `node tools/check-commits.mjs` enforces both forms on every PR.
    Fail: one retry with a correction appended to the card (`## Retry 1`). A second failure escalates to Claude + owner,
    and the card records why Grok could not do it (that is evidence for the registry's autonomy-coverage ledger).
 5. **Record.** Mechanics proven by a task update the registry matrix
