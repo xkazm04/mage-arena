@@ -29,3 +29,10 @@ apps/vr/Game/Clips/corpus/
 apps/vr/Game/Clips/mouse/
 apps/vr/Game/Clips/noise/
 apps/vr/Game/Clips/impostors/
+
+# BEGIN ai-registry linked skills (managed by ai-registry/scripts/link-registry.mjs)
+# Links are machine state; the declarations live in .ai/manifest.yaml (`skills:` and `knowledge.domains`).
+/.claude/skills/scan-sweep
+/.claude/rules/ai-registry-access.md
+/.ai/skill-runs.local.jsonl
+# END ai-registry linked skills

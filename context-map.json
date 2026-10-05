@@ -1,0 +1,537 @@
+{
+  "contexts": [
+    {
+      "api_surface": null,
+      "business_feature": "Arena Greybox & Threat Visuals",
+      "category": "ui",
+      "cross_refs": [
+        "combat-sim-core",
+        "duel-session",
+        "hand-input-pipeline"
+      ],
+      "db_tables": [],
+      "description": "Builds the 3D greybox arena the player fights in during the desktop-core phase: ArenaLayout generates the seating position, enemy spawn rings, and obstacle placement; ArenaGreyboxActor owns the runtime UE Actor that renders those primitives; HandPresentationComponent drives per-frame hand mesh positioning; ThreatDemo illustrates the threat colour language (element=absorb, steel=dodge, black-red-rim=leave); AbsorbResolver decides which incoming hit colour triggers a player shield. Also contains the static art-style reference gallery used to pick the visual direction.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaGreyboxActor.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaLayout.h"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaGreyboxActor.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaGreyboxActor.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaLayout.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ArenaLayout.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/GreyboxCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/GreyboxCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/GreyboxUtil.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/GreyboxUtil.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/HandPresentationComponent.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/HandPresentationComponent.h",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ThreatDemo.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Greybox/ThreatDemo.h",
+        "apps/vr/Game/Source/MageArenaVR/Combat/AbsorbResolver.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Combat/AbsorbResolver.h"
+      ],
+      "group": "Arena Presentation",
+      "group_id": "4aeafa71-735e-468b-9fcb-5f18abe37a0e",
+      "id": "4c083b18-9c17-44a5-a322-53fd81e04820",
+      "keywords": [
+        "greybox",
+        "arena",
+        "layout",
+        "threat",
+        "absorb",
+        "colour",
+        "dodge",
+        "seated",
+        "hand-mesh",
+        "ThreatDemo",
+        "style"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.396392800+00:00",
+      "name": "arena-greybox",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17",
+        "Forward Shading"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Build Pipeline & Dev Tools",
+      "category": "config",
+      "cross_refs": [
+        "duel-session",
+        "combat-sim-core"
+      ],
+      "db_tables": [],
+      "description": "Contains the Unreal Build Tool configuration (Build.cs, Target.cs files), the .uproject manifest, the module entry points (MageArenaVR.cpp/h), and all operational scripts: build.ps1 compiles the game; capture-*.ps1 scripts drive headless bout recordings for each session segment; install-xr.ps1 sets up the XR toolchain; package-android.ps1 prepares the Quest APK. check-pin.mjs verifies the combat data pin matches the upstream repo; agy-run/review/guard tools orchestrate Grok agent task execution.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/MageArenaVR.Build.cs",
+        "apps/vr/tools/build.ps1"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/MageArenaVR.Build.cs",
+        "apps/vr/Game/Source/MageArenaVR.Target.cs",
+        "apps/vr/Game/Source/MageArenaVREditor.Target.cs",
+        "apps/vr/Game/Source/MageArenaVR/MageArenaVR.cpp",
+        "apps/vr/Game/Source/MageArenaVR/MageArenaVR.h",
+        "apps/vr/tools/check-pin.mjs",
+        "tools/agy-guard.mjs"
+      ],
+      "group": "Build & Tools",
+      "group_id": "bd623b2a-73cb-47d8-830f-20e45755e78a",
+      "id": "fbed54b5-100b-409a-a692-c2a5bc8adabb",
+      "keywords": [
+        "build",
+        "UBT",
+        "target",
+        "LFS",
+        "Android",
+        "Quest",
+        "APK",
+        "data-pin",
+        "capture",
+        "agent",
+        "Grok",
+        "PowerShell"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.397388600+00:00",
+      "name": "build-config",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "PowerShell",
+        "Node.js",
+        "Git LFS"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Combat Simulation Primitives",
+      "category": "lib",
+      "cross_refs": [
+        "spell-schools-and-ai",
+        "duel-session"
+      ],
+      "db_tables": [],
+      "description": "Provides the deterministic tick-based simulation primitives shared across all combat logic: arena state, actor model, hit resolution, timing helpers, geometry utilities, and the data seam that lets the VR build consume combat data from the pinned external package. SimTypes/SimMath/SimConstants form the shared data vocabulary; ArenaKernel drives the per-tick step. No UE gameplay classes — pure value-type C++ for portability.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Kernel/ArenaKernel.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/SimTypes.h"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Kernel/ArenaKernel.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/ArenaKernel.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Catalog.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Catalog.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/KernelData.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/KernelData.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Seams.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/SimConstants.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/SimMath.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/SimTypes.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Geometry.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Geometry.h"
+      ],
+      "group": "Combat Simulation",
+      "group_id": "8ce331b7-0891-4f18-8efe-2a57e54cc62b",
+      "id": "0793d48f-b932-49a8-a7b8-4dd657fb398b",
+      "keywords": [
+        "arena",
+        "simulation",
+        "tick",
+        "actor",
+        "hit",
+        "damage",
+        "geometry",
+        "seam",
+        "catalog",
+        "kernel"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.395326200+00:00",
+      "name": "combat-sim-core",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Duel Session Orchestration",
+      "category": "api",
+      "cross_refs": [
+        "sigil-recognition",
+        "hand-input-pipeline",
+        "combat-sim-core",
+        "spell-schools-and-ai",
+        "arena-greybox"
+      ],
+      "db_tables": [],
+      "description": "Orchestrates the full arc of a player session from settings selection through the teaching moment, Wave 1 enemy bout, creatures bout, and style pick; ArenaSession is the world subsystem that drives state transitions and coordinates all gesture subsystems; SessionFlow holds the linear duel script; the Capture classes (Wave1, Creatures, Teach, Settings, StylePick) each record a replay snapshot for a specific bout so runs can be re-skinned or diffed. SessionPresentation renders session-level overlays and bout summaries.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/SessionFlow.cpp"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/CreaturesCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/CreaturesCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/SessionFlow.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/SessionPresentation.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/SessionPresentation.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/SettingsCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/SettingsCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/StylePickCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/StylePickCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/TeachCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/TeachCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Session/Wave1Capture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Session/Wave1Capture.h"
+      ],
+      "group": "Duel Session",
+      "group_id": "3c91f724-d453-49ee-b09e-ab7f07c75889",
+      "id": "41c8b915-5971-40c4-9b85-4b4868865142",
+      "keywords": [
+        "session",
+        "duel",
+        "flow",
+        "wave",
+        "creatures",
+        "teach",
+        "settings",
+        "style-pick",
+        "capture",
+        "replay",
+        "presentation",
+        "bout"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.396737600+00:00",
+      "name": "duel-session",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Automated Test Coverage",
+      "category": "test",
+      "cross_refs": [
+        "combat-sim-core",
+        "spell-schools-and-ai",
+        "sigil-recognition",
+        "duel-session",
+        "arena-greybox"
+      ],
+      "db_tables": [],
+      "description": "Automated Unreal Engine unit tests covering all core systems: sigil drawing and blink/ward gesture recognition, kernel combat maths and conformance against the pinned data set, spell school balance (fire, water, defence), greybox layout invariants, hand-clip playback, session flow, settings persistence, pause/overlay behaviour, and the T16 replay-reskin pipeline. Tests execute via the UE Automation framework and run headless on desktop without VR hardware.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Tests/KernelTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/SessionTests.cpp"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Tests/BlinkTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/CensusTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/DefenceTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/FireTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/GamesTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/GeometryTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/GreyboxTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/HandClipTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/KernelConformanceTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/KernelTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/PauseTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/ReplayTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/SessionTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/SettingsTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/SigilTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/TeachTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/VrOverlayTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/WardTests.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Tests/WaterTests.cpp"
+      ],
+      "group": "Test Suite",
+      "group_id": "6af8b76e-428a-413b-83b7-19e04a350ec4",
+      "id": "2612e001-dbf4-453a-bde1-211aee32c96f",
+      "keywords": [
+        "test",
+        "automation",
+        "unit",
+        "conformance",
+        "blink",
+        "sigil",
+        "ward",
+        "kernel",
+        "fire",
+        "water",
+        "replay",
+        "overlay"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.397068500+00:00",
+      "name": "game-tests",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17",
+        "UE Automation Framework"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Hand Input & Player Setup",
+      "category": "lib",
+      "cross_refs": [
+        "sigil-recognition",
+        "duel-session"
+      ],
+      "db_tables": [],
+      "description": "Owns the player-side data path from raw hand tracking frames through clip playback (desktop mode replays recorded VR hand motions to drive the gesture pipeline without a headset) to the UE Pawn and GameMode setup. HandInputSubsystem is the central broker that all gesture detectors subscribe to; IHandSource abstracts whether frames come from live XR or a HandClipPlayer. MageSettings persists per-user preferences such as left-hand mode, narrow-FOV, and Gentle difficulty.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandInputSubsystem.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/IHandSource.h"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Hands/ClipVariant.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandClip.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandClip.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandClipPlayer.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandClipPlayer.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandFrame.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandInputSubsystem.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/HandInputSubsystem.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/IHandSource.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaGameMode.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaGameMode.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPawn.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPawn.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPlayerController.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPlayerController.h",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageSettings.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Hands/MageSettings.h"
+      ],
+      "group": "Hand Input & Player",
+      "group_id": "48188979-7d80-4427-871c-b78efb4455e2",
+      "id": "5c8ba1a3-c7aa-4f13-b7f4-36246638c3b1",
+      "keywords": [
+        "hand",
+        "clip",
+        "player",
+        "pawn",
+        "input",
+        "subsystem",
+        "settings",
+        "left-hand",
+        "narrow-FOV",
+        "Gentle",
+        "GameMode",
+        "XR"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.395949800+00:00",
+      "name": "hand-input-pipeline",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Spell Gesture Recognition",
+      "category": "lib",
+      "cross_refs": [
+        "hand-input-pipeline",
+        "duel-session"
+      ],
+      "db_tables": [],
+      "description": "Handles the full pipeline for recognising hand gestures as magic spells: the player draws a sigil with their hand (or mouse in desktop mode), the stroke is sampled into a point cloud, and the $Q unistroke recogniser classifies it against loaded templates. Subsidiary detectors cover the blink (both-hands-open), ward (palm-forward hold), and staff (two-fist) poses that act as non-drawing gesture shortcuts. Depends on HandInputSubsystem for raw hand frames.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilRecognizerSubsystem.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilStrokeBuilder.h"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Gestures/BlinkDetector.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/BlinkDetector.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/MouseSigilCapture.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/MouseSigilCapture.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/QPointCloudRecognizer.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/QPointCloudRecognizer.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilRecognizerSubsystem.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilRecognizerSubsystem.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilStrokeBuilder.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/SigilStrokeBuilder.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/StaffDetector.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/StaffDetector.h",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/WardDetector.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Gestures/WardDetector.h"
+      ],
+      "group": "Spell Casting",
+      "group_id": "7db0e7b2-4242-4cc9-b93d-c1bb6a36cb2f",
+      "id": "4022e3d0-e588-434a-8715-e5f4fa2f1359",
+      "keywords": [
+        "sigil",
+        "gesture",
+        "recognition",
+        "stroke",
+        "Q$",
+        "blink",
+        "ward",
+        "staff",
+        "mouse",
+        "palm"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.389861500+00:00",
+      "name": "sigil-recognition",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17"
+      ]
+    },
+    {
+      "api_surface": null,
+      "business_feature": "Spell Schools & Opponent AI",
+      "category": "lib",
+      "cross_refs": [
+        "combat-sim-core",
+        "duel-session"
+      ],
+      "db_tables": [],
+      "description": "Implements the playable magic schools (Fire and Water spells with their elemental rules), the enemy roster and spawn logic, the opponent AI decision loop, the game-level flow rules (tier clock, Flow mechanic, victory conditions), VR-specific combat adjustments, and the training calibration system used to tune difficulty. These modules build on the core simulation primitives and together define how a duel plays out round by round.",
+      "entry_points": [
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Games.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/MageAI.h"
+      ],
+      "file_paths": [
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Fire.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Fire.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Water.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Water.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Enemies.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Enemies.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/MageAI.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/MageAI.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Games.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Games.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/VrRules.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/VrRules.h",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Training.cpp",
+        "apps/vr/Game/Source/MageArenaVR/Kernel/Training.h"
+      ],
+      "group": "Combat Simulation",
+      "group_id": "8ce331b7-0891-4f18-8efe-2a57e54cc62b",
+      "id": "30622f93-54b9-4a02-bfe4-330e137cf16e",
+      "keywords": [
+        "fire",
+        "water",
+        "school",
+        "spell",
+        "enemy",
+        "AI",
+        "tier",
+        "Flow",
+        "VR rules",
+        "training",
+        "calibration",
+        "mage"
+      ],
+      "last_written_at": "2026-10-05T08:17:16.395643200+00:00",
+      "name": "spell-schools-and-ai",
+      "pinned": false,
+      "tech_stack": [
+        "Unreal Engine 5.8",
+        "C++17"
+      ]
+    }
+  ],
+  "generated_at": "2026-10-05T08:17:22.719348500+00:00",
+  "generator": "personas-context-scan",
+  "groups": [
+    {
+      "color": "amber",
+      "context_count": 1,
+      "domain": "feature",
+      "id": "7db0e7b2-4242-4cc9-b93d-c1bb6a36cb2f",
+      "name": "Spell Casting"
+    },
+    {
+      "color": "red",
+      "context_count": 2,
+      "domain": "feature",
+      "id": "8ce331b7-0891-4f18-8efe-2a57e54cc62b",
+      "name": "Combat Simulation"
+    },
+    {
+      "color": "blue",
+      "context_count": 1,
+      "domain": "shared",
+      "id": "48188979-7d80-4427-871c-b78efb4455e2",
+      "name": "Hand Input & Player"
+    },
+    {
+      "color": "emerald",
+      "context_count": 1,
+      "domain": "feature",
+      "id": "4aeafa71-735e-468b-9fcb-5f18abe37a0e",
+      "name": "Arena Presentation"
+    },
+    {
+      "color": "violet",
+      "context_count": 1,
+      "domain": "feature",
+      "id": "3c91f724-d453-49ee-b09e-ab7f07c75889",
+      "name": "Duel Session"
+    },
+    {
+      "color": "indigo",
+      "context_count": 1,
+      "domain": "infrastructure",
+      "id": "6af8b76e-428a-413b-83b7-19e04a350ec4",
+      "name": "Test Suite"
+    },
+    {
+      "color": "orange",
+      "context_count": 1,
+      "domain": "infrastructure",
+      "id": "bd623b2a-73cb-47d8-830f-20e45755e78a",
+      "name": "Build & Tools"
+    }
+  ],
+  "project": {
+    "id": "5bea765c-4656-43de-8ffc-fd5442a353a8",
+    "name": "mage-arena-vr",
+    "root": "C:\\Users\\kazda\\kiro\\mage-arena-vr"
+  },
+  "provenance": {
+    "git_commit": "e682c2fa2c7ab49a7dab088efd2f42a878e31113",
+    "git_commit_count": 71
+  },
+  "stats": {
+    "contexts": 8,
+    "files": 112,
+    "groups": 7,
+    "use_cases": 0
+  },
+  "taxonomy": {
+    "context_categories": [
+      "ui",
+      "api",
+      "lib",
+      "data",
+      "test",
+      "config"
+    ],
+    "group_domains": [
+      "feature",
+      "infrastructure",
+      "shared",
+      "integration",
+      "data"
+    ]
+  },
+  "use_cases": [],
+  "version": 2
+}
