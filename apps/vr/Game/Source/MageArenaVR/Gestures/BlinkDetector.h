@@ -44,11 +44,16 @@ struct FBlinkThresholds
 	static constexpr double ForwardYawDeg = 35.0;
 	static constexpr double SideYawDeg = 120.0;
 	static constexpr double FallFraction = 0.55;
+	// A latched flick lets go once the tip has moved under RearmSpeedMps for RearmQuietS, so a stream that never rewinds
+	// (a headset) still sees the next flick. Half the arming speed, held for about ten frames at 72 Hz.
+	static constexpr double RearmSpeedMps = 0.60;
+	static constexpr double RearmQuietS = 0.15;
 };
 
 /**
- * One flick per clip. The hottest pointing sample above the gates is kept, and the
- * event fires once the tip slows after that peak. A backward time jump (a new clip) re-arms.
+ * One flick per peak. The hottest pointing sample above the gates is kept, and the
+ * event fires once the tip slows after that peak. It then re-arms when the tip has
+ * been still for RearmQuietS, or at once on a backward time jump (a new clip).
  */
 class FBlinkDetector
 {
@@ -80,6 +85,7 @@ private:
 	FBoltFlickEvent LastBolt;
 	bool bHasPrev = false;
 	bool bLatched = false;
+	double QuietFor = 0.0;
 	double LastTime = 0.0;
 	FVector PrevIndexTip = FVector::ZeroVector;
 	double HottestSpeed = 0.0;

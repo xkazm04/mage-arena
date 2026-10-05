@@ -19,6 +19,7 @@ void FBlinkDetector::Arm()
 {
 	bHasPrev = false;
 	bLatched = false;
+	QuietFor = 0.0;
 	LastTime = 0.0;
 	PrevIndexTip = FVector::ZeroVector;
 	HottestSpeed = 0.0;
@@ -138,6 +139,22 @@ void FBlinkDetector::Ingest(const FHandFrame& Frame)
 	const double MiddleReach = (Middle - Wrist).Size();
 	const bool bPointing = MiddleReach > 1.0 && IndexReach / MiddleReach >= FBlinkThresholds::PointRatio;
 	const double Yaw = FMath::RadiansToDegrees(FMath::Atan2(Delta.Y, Delta.X));
+
+	// Let go of a fired flick once the tip has been still. Without this only a clock rewind (a new clip) re-armed the
+	// detector, so a stream with no rewinds saw its first flick and no other.
+	if (bLatched)
+	{
+		QuietFor = Horizontal < FBlinkThresholds::RearmSpeedMps ? QuietFor + Dt : 0.0;
+		if (QuietFor >= FBlinkThresholds::RearmQuietS)
+		{
+			bLatched = false;
+			QuietFor = 0.0;
+			HottestSpeed = 0.0;
+			HottestOmega = 0.0;
+			HottestYaw = 0.0;
+			HottestTime = 0.0;
+		}
+	}
 
 	if (bPointing && Omega >= FBlinkThresholds::MinOmegaRadPerS && Horizontal > HottestSpeed)
 	{
