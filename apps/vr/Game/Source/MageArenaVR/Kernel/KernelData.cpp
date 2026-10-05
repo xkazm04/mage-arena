@@ -345,6 +345,17 @@ bool ParseEnemy(const FJsonObject& Object, FEnemySpec& Spec, const FString& Path
 
 bool BuildSpells(const FCsvTable& Rows, FKernelData& Data)
 {
+	// Every column below is dereferenced without a null check, so a renamed column must stop here, named.
+	static const TCHAR* const Required[] = {
+		TEXT("line"), TEXT("tier"), TEXT("branch"), TEXT("name"), TEXT("shape"), TEXT("cast_s"), TEXT("cooldown_s"),
+		TEXT("mana"), TEXT("damage"), TEXT("blockable"), TEXT("telegraph_s"), TEXT("range_m")};
+	for (const TCHAR* Column : Required)
+	{
+		if (!Rows.Keys.Contains(FString(Column)))
+		{
+			return Fail(Data, FString::Printf(TEXT("kernel data: spells-water.csv has no %s column"), Column));
+		}
+	}
 	const FString* LashShape = nullptr;
 	for (const TMap<FString, FString>& Row : Rows.Rows)
 	{
