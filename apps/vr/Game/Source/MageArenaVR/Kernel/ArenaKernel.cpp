@@ -76,6 +76,328 @@ void MixVec(uint32& Hash, const FSimVec& Value)
 	MixDouble(Hash, Value.Y);
 }
 
+void MixOptInt(uint32& Hash, const TOptional<int32>& Value)
+{
+	MixBool(Hash, Value.IsSet());
+	if (Value.IsSet())
+	{
+		MixInt(Hash, Value.GetValue());
+	}
+}
+
+void MixOptDouble(uint32& Hash, const TOptional<double>& Value)
+{
+	MixBool(Hash, Value.IsSet());
+	if (Value.IsSet())
+	{
+		MixDouble(Hash, Value.GetValue());
+	}
+}
+
+void MixOptString(uint32& Hash, const TOptional<FString>& Value)
+{
+	MixBool(Hash, Value.IsSet());
+	if (Value.IsSet())
+	{
+		MixString(Hash, Value.GetValue());
+	}
+}
+
+void MixInts(uint32& Hash, const TArray<int32>& Values)
+{
+	MixInt(Hash, Values.Num());
+	for (const int32 Value : Values)
+	{
+		MixInt(Hash, Value);
+	}
+}
+
+void MixInput(uint32& Hash, const FInputFrame& Input)
+{
+	MixVec(Hash, Input.Move);
+	MixVec(Hash, Input.Aim);
+	MixInt(Hash, Input.Slot);
+	MixBool(Hash, Input.bCast);
+	MixBool(Hash, Input.bAbsorb);
+	MixBool(Hash, Input.bRoll);
+	MixBool(Hash, Input.bSprint);
+	MixBool(Hash, Input.bPlantStaff);
+	MixBool(Hash, Input.bLiftStaff);
+	MixBool(Hash, Input.bRaiseFireWall);
+}
+
+void MixWater(uint32& Hash, const FWaterState& Water)
+{
+	MixString(Hash, Water.Composition.Name);
+	MixInt(Hash, Water.Composition.Lines.Num());
+	for (const FString& Line : Water.Composition.Lines)
+	{
+		MixString(Hash, Line);
+	}
+	MixString(Hash, Water.Composition.Branches.Lash);
+	MixString(Hash, Water.Composition.Branches.Mirror);
+	MixString(Hash, Water.Composition.Branches.TideOrb);
+	MixInt(Hash, Water.Flow);
+	MixString(Hash, Water.LastLine);
+	MixInt(Hash, Water.LastCastTick);
+	MixInt(Hash, Water.LastActivityTick);
+	MixInt(Hash, Water.Cooldowns.Num());
+	for (const FCooldownEntry& Entry : Water.Cooldowns)
+	{
+		MixString(Hash, Entry.Line);
+		MixInt(Hash, Entry.Until);
+	}
+	MixDouble(Hash, Water.Stored);
+	MixInt(Hash, Water.RootUntil);
+	MixInt(Hash, Water.EncasedUntil);
+	MixInt(Hash, Water.SlowUntil);
+	MixDouble(Hash, Water.SlowMult);
+	MixInt(Hash, Water.WardUntil);
+	MixInt(Hash, Water.SheenUntil);
+	MixInt(Hash, Water.HotUntil);
+	MixDouble(Hash, Water.HotPerTick);
+	MixInt(Hash, Water.Crests);
+	MixDouble(Hash, Water.Healing);
+	MixInt(Hash, Water.ControlTicks);
+	MixBool(Hash, Water.Decoy.IsSet());
+	if (Water.Decoy.IsSet())
+	{
+		MixVec(Hash, Water.Decoy->Pos);
+		MixInt(Hash, Water.Decoy->Until);
+	}
+}
+
+void MixFire(uint32& Hash, const FFireState& Fire)
+{
+	MixBool(Hash, Fire.bSchool);
+	MixDouble(Hash, Fire.Heat);
+	MixDouble(Hash, Fire.MaxHeat);
+	MixInt(Hash, Fire.LastGainTick);
+	MixInt(Hash, Fire.LockUntil);
+	MixDouble(Hash, Fire.LockValue);
+	MixDouble(Hash, Fire.AbsorbDrainSpellMult);
+	MixInt(Hash, Fire.AbsorbDrainSpellUntil);
+	MixInt(Hash, Fire.SunfallCastTick);
+	MixInt(Hash, Fire.SunfallTick);
+	MixBool(Hash, Fire.bSunfallLoosed);
+	MixInt(Hash, Fire.Cooldowns.Num());
+	for (const FFireCooldown& Entry : Fire.Cooldowns)
+	{
+		MixString(Hash, Entry.SpellId);
+		MixInt(Hash, Entry.Until);
+	}
+	MixInt(Hash, Fire.Trails.Num());
+	for (const FFireTrail& Trail : Fire.Trails)
+	{
+		MixVec(Hash, Trail.From);
+		MixVec(Hash, Trail.To);
+		MixInt(Hash, Trail.Until);
+		MixInt(Hash, Trail.NextTick);
+		MixInt(Hash, Trail.IntervalTicks);
+		MixDouble(Hash, Trail.Damage);
+		MixDouble(Hash, Trail.HeatOnHit);
+		MixInt(Hash, Trail.Tier);
+		MixString(Hash, Trail.Family);
+		MixString(Hash, Trail.SpellId);
+	}
+	MixBool(Hash, Fire.Channel.IsSet());
+	if (Fire.Channel.IsSet())
+	{
+		const FFireChannel& Channel = Fire.Channel.GetValue();
+		MixString(Hash, Channel.SpellId);
+		MixInt(Hash, Channel.Until);
+		MixInt(Hash, Channel.NextTick);
+		MixInt(Hash, Channel.IntervalTicks);
+		MixInt(Hash, Channel.TicksDone);
+		MixDouble(Hash, Channel.Damage);
+		MixDouble(Hash, Channel.HeatOnHit);
+		MixDouble(Hash, Channel.RangeM);
+		MixInt(Hash, Channel.Tier);
+		MixString(Hash, Channel.Family);
+		MixBool(Hash, Channel.bPierceShields);
+		MixBool(Hash, Channel.bPerfectOnlyFirstTick);
+	}
+}
+
+void MixEnemy(uint32& Hash, const TOptional<FEnemyBrain>& Enemy)
+{
+	MixBool(Hash, Enemy.IsSet());
+	if (!Enemy.IsSet())
+	{
+		return;
+	}
+	MixString(Hash, Enemy->Id);
+	MixInt(Hash, Enemy->ReadyTick);
+	MixInt(Hash, Enemy->BackoffUntil);
+	MixInt(Hash, Enemy->StunnedUntil);
+	MixInt(Hash, Enemy->AttackIndex);
+	MixBool(Hash, Enemy->bDeathQueued);
+}
+
+void MixMage(uint32& Hash, const TOptional<FMageBrain>& Mage)
+{
+	MixBool(Hash, Mage.IsSet());
+	if (!Mage.IsSet())
+	{
+		return;
+	}
+	MixDouble(Hash, Mage->Competence);
+	MixInt(Hash, Mage->NextDecisionTick);
+	MixInput(Hash, Mage->Input);
+	MixInt(Hash, Mage->Observed.Num());
+	for (const FMageObservation& Row : Mage->Observed)
+	{
+		MixInt(Hash, Row.Id);
+		MixInt(Hash, Row.FirstSeenTick);
+		MixBool(Hash, Row.bReacted);
+	}
+	MixInt(Hash, Mage->DefendUntil);
+	MixInt(Hash, Mage->PlannedRaiseTick);
+	MixInt(Hash, Mage->PlannedReleaseTick);
+	MixVec(Hash, Mage->TargetPoint);
+	MixInts(Hash, Mage->DecisionTicks);
+	MixInts(Hash, Mage->ReactionAges);
+	MixInt(Hash, Mage->WallSeenTick);
+	MixInt(Hash, Mage->WallLastSeenTick);
+}
+
+void MixPending(uint32& Hash, const TOptional<FPendingCast>& Pending)
+{
+	MixBool(Hash, Pending.IsSet());
+	if (!Pending.IsSet())
+	{
+		return;
+	}
+	MixString(Hash, Pending->Kind);
+	MixInt(Hash, Pending->ReleaseTick);
+	MixInt(Hash, Pending->StartTick);
+	MixVec(Hash, Pending->Aim);
+	MixInt(Hash, Pending->ActivationId);
+	MixOptString(Hash, Pending->SpellId);
+	MixOptDouble(Hash, Pending->DamageMult);
+	MixOptInt(Hash, Pending->TargetId);
+}
+
+void MixActor(uint32& Hash, const FActor& Actor)
+{
+	MixInt(Hash, Actor.Id);
+	MixInt(Hash, Actor.Team);
+	MixString(Hash, Actor.Label);
+	MixVec(Hash, Actor.Pos);
+	MixVec(Hash, Actor.PreviousPos);
+	MixVec(Hash, Actor.Facing);
+	MixDouble(Hash, Actor.Radius);
+	MixInt(Hash, Actor.Ranks.Vigor);
+	MixInt(Hash, Actor.Ranks.Focus);
+	MixInt(Hash, Actor.Ranks.Nerve);
+	MixDouble(Hash, Actor.Hp);
+	MixDouble(Hash, Actor.MaxHp);
+	MixDouble(Hash, Actor.Mana);
+	MixDouble(Hash, Actor.MaxMana);
+	MixDouble(Hash, Actor.Stamina);
+	MixDouble(Hash, Actor.MaxStamina);
+	MixBool(Hash, Actor.bDown);
+	MixBool(Hash, Actor.bDummy);
+	MixBool(Hash, Actor.bAbsorb);
+	MixInt(Hash, Actor.AbsorbFreshTick);
+	MixInt(Hash, Actor.ReleaseTick);
+	MixBool(Hash, Actor.bAbsorbExhausted);
+	MixWater(Hash, Actor.Water);
+	MixFire(Hash, Actor.Fire);
+	MixEnemy(Hash, Actor.Enemy);
+	MixMage(Hash, Actor.MageAI);
+	MixOptDouble(Hash, Actor.SpeedMps);
+	MixInput(Hash, Actor.LastInput);
+	MixInt(Hash, Actor.RollUntil);
+	MixInt(Hash, Actor.ImmuneUntil);
+	MixInt(Hash, Actor.RecoveryUntil);
+	MixVec(Hash, Actor.RollDirection);
+	MixInt(Hash, Actor.StaminaUsedTick);
+	MixInt(Hash, Actor.CooldownUntil);
+	MixPending(Hash, Actor.Pending);
+	MixInt(Hash, Actor.WaveStartTick);
+	MixInt(Hash, Actor.Tier);
+	MixInt(Hash, Actor.LastUnlockTick);
+	MixInt(Hash, Actor.ClockAdvanceTicks);
+	MixInts(Hash, Actor.UnlockTicks);
+	MixInt(Hash, Actor.Metrics.Perfects);
+	MixInt(Hash, Actor.Metrics.Blocks);
+	MixInt(Hash, Actor.Metrics.Hits);
+	MixDouble(Hash, Actor.Metrics.DamageDealt);
+	MixDouble(Hash, Actor.Metrics.DamageTaken);
+	MixDouble(Hash, Actor.Metrics.ManaDrained);
+	MixDouble(Hash, Actor.Metrics.ManaRaised);
+	MixDouble(Hash, Actor.Metrics.ManaReturned);
+	MixInt(Hash, Actor.Metrics.Casts);
+	MixInt(Hash, Actor.Metrics.Rolls);
+}
+
+// OriginPos, AimedAt and bHasAim are presentation only (SimTypes.h: "The sim does not read these"), so they stay out.
+void MixProjectile(uint32& Hash, const FProjectile& Projectile)
+{
+	MixInt(Hash, Projectile.Id);
+	MixInt(Hash, Projectile.OwnerId);
+	MixInt(Hash, Projectile.ActivationId);
+	MixDouble(Hash, Projectile.Damage);
+	MixString(Hash, Projectile.Family);
+	MixInt(Hash, Projectile.Tier);
+	MixVec(Hash, Projectile.Source);
+	MixBool(Hash, Projectile.bBolt);
+	MixBool(Hash, Projectile.bReaction);
+	MixString(Hash, Projectile.Delivery);
+	MixVec(Hash, Projectile.Pos);
+	MixVec(Hash, Projectile.PreviousPos);
+	MixVec(Hash, Projectile.Velocity);
+	MixDouble(Hash, Projectile.Radius);
+	MixDouble(Hash, Projectile.RemainingM);
+	MixInts(Hash, Projectile.HitIds);
+	MixDouble(Hash, Projectile.BurstRadiusM);
+	MixBool(Hash, Projectile.bPiercing);
+	MixBool(Hash, Projectile.bReflected);
+	MixDouble(Hash, Projectile.HeatOnHit);
+	MixBool(Hash, Projectile.bSuppressPerfect);
+	MixBool(Hash, Projectile.bPierceShields);
+}
+
+void MixTelegraph(uint32& Hash, const FTelegraph& Telegraph)
+{
+	MixInt(Hash, Telegraph.Id);
+	MixInt(Hash, Telegraph.ActivationId);
+	MixInt(Hash, Telegraph.OwnerId);
+	MixString(Hash, Telegraph.Family);
+	MixInt(Hash, Telegraph.Tier);
+	MixDouble(Hash, Telegraph.Damage);
+	MixVec(Hash, Telegraph.Source);
+	MixBool(Hash, Telegraph.bBolt);
+	MixString(Hash, Telegraph.Kind);
+	MixVec(Hash, Telegraph.Origin);
+	MixVec(Hash, Telegraph.Target);
+	MixInt(Hash, Telegraph.ResolveTick);
+	MixInt(Hash, Telegraph.StartTick);
+	MixDouble(Hash, Telegraph.SpeedMps);
+	MixDouble(Hash, Telegraph.RangeM);
+	MixDouble(Hash, Telegraph.WidthM);
+	MixDouble(Hash, Telegraph.RootS);
+	MixDouble(Hash, Telegraph.PullM);
+	MixBool(Hash, Telegraph.bSurvivesOwner);
+	MixDouble(Hash, Telegraph.WallStunS);
+	MixDouble(Hash, Telegraph.HeatOnHit);
+	MixBool(Hash, Telegraph.bSuppressPerfect);
+	MixBool(Hash, Telegraph.bPierceShields);
+	MixBool(Hash, Telegraph.bCommitted);
+}
+
+void MixZone(uint32& Hash, const FZone& Zone)
+{
+	MixInt(Hash, Zone.Id);
+	MixInt(Hash, Zone.OwnerId);
+	MixVec(Hash, Zone.Pos);
+	MixDouble(Hash, Zone.RadiusM);
+	MixInt(Hash, Zone.Until);
+	MixString(Hash, Zone.Kind);
+	MixDouble(Hash, Zone.SlowMult);
+}
+
 EAbsorbHitKind KindFromFamily(const FString& Family)
 {
 	if (Family == TEXT("physical"))
@@ -979,45 +1301,26 @@ FString StateHash(const FArenaState& State)
 	MixUInt(Hash, State.Seed);
 	MixUInt(Hash, State.Rng);
 	MixInt(Hash, State.NextId);
+	// Each list is counted first, so dropping or adding an element moves the hash even when the survivors are equal.
+	MixInt(Hash, State.Actors.Num());
 	for (const FActor& Actor : State.Actors)
 	{
-		MixInt(Hash, Actor.Id);
-		MixInt(Hash, Actor.Team);
-		MixString(Hash, Actor.Label);
-		MixVec(Hash, Actor.Pos);
-		MixVec(Hash, Actor.PreviousPos);
-		MixVec(Hash, Actor.Facing);
-		MixDouble(Hash, Actor.Hp);
-		MixDouble(Hash, Actor.Mana);
-		MixDouble(Hash, Actor.Stamina);
-		MixBool(Hash, Actor.bDown);
-		MixBool(Hash, Actor.bAbsorb);
-		MixInt(Hash, Actor.Tier);
-		MixInt(Hash, Actor.ClockAdvanceTicks);
-		MixInt(Hash, Actor.Water.Flow);
-		MixDouble(Hash, Actor.Water.Stored);
-		MixBool(Hash, Actor.Fire.bSchool);
-		MixDouble(Hash, Actor.Fire.Heat);
-		MixInt(Hash, Actor.Fire.LockUntil);
-		MixInt(Hash, Actor.Fire.SunfallTick);
-		MixInt(Hash, Actor.Pending.IsSet() ? 1 : 0);
+		MixActor(Hash, Actor);
 	}
+	MixInt(Hash, State.Projectiles.Num());
 	for (const FProjectile& Projectile : State.Projectiles)
 	{
-		MixInt(Hash, Projectile.Id);
-		MixVec(Hash, Projectile.Pos);
-		MixVec(Hash, Projectile.Velocity);
-		MixDouble(Hash, Projectile.RemainingM);
+		MixProjectile(Hash, Projectile);
 	}
+	MixInt(Hash, State.Telegraphs.Num());
 	for (const FTelegraph& Telegraph : State.Telegraphs)
 	{
-		MixInt(Hash, Telegraph.Id);
-		MixInt(Hash, Telegraph.ResolveTick);
+		MixTelegraph(Hash, Telegraph);
 	}
+	MixInt(Hash, State.Zones.Num());
 	for (const FZone& Zone : State.Zones)
 	{
-		MixInt(Hash, Zone.Id);
-		MixInt(Hash, Zone.Until);
+		MixZone(Hash, Zone);
 	}
 	for (const FArenaEvent& Event : State.Events)
 	{
