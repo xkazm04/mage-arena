@@ -1,0 +1,23 @@
+# .ai/manifest.yaml - the agent-facing contract for this repo.
+# Minimal on purpose: it declares which registry skills this project uses and the one gate that
+# CLAUDE.md documents. Unknown fields must be ignored by readers. Grow it only with facts that
+# were run, not guessed.
+schema: ai-manifest
+schemaVersion: 0.1.0
+generatedAt: "2026-10-05"
+generatedFrom: [CLAUDE.md, apps/vr/tools/build.ps1]
+
+repo:
+  name: mage-arena-vr
+  purpose: "Seated, hands-first spell duel for Meta Quest, built in Unreal Engine 5.8 (desktop-first until 2026-10-31)"
+  languages: [cpp, powershell, javascript]
+
+# Capabilities, not tools. `verified` flips to true only after a session has run the command.
+# CLAUDE.md records a successful run on 2026-10-02 (54 s, UE 5.8.2); this manifest has not re-run it.
+capabilities:
+  build: { command: "powershell -NoProfile -File apps/vr/tools/build.ps1", verified: false }
+
+# Registry skills this project consumes. scripts/link-registry.mjs in the registry makes
+# .claude/skills/<name> a local, gitignored link to each one.
+skills:
+  - scan-sweep
