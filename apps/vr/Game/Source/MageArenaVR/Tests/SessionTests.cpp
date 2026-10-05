@@ -388,7 +388,10 @@ bool FMageArenaSessionChainAdvance::RunTest(const FString& Parameters)
 
 	bool bPass = true;
 	bPass &= TestEqual(TEXT("phase intermission"), Session.GetGames().Phase, FString(TEXT("intermission")));
-	
+	// The only way out of an intermission is a raised palm, so the prompt has to say so.
+	bPass &= TestTrue(*FString::Printf(TEXT("intermission prompt names the gesture (%s)"), *Session.GetPromptText()),
+		Session.GetPromptText().Contains(TEXT("palm")));
+
 	// pause in an intermission does nothing harmful
 	Session.TogglePause();
 	Session.Advance(1.0, false);

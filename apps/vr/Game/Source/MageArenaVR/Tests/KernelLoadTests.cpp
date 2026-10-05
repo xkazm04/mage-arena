@@ -121,4 +121,28 @@ bool FMageArenaKernelLoadNamesEnemy::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelLoadNamesColumn, "MageArena.Kernel.LoadNamesColumn",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaKernelLoadNamesColumn::RunTest(const FString& Parameters)
+{
+	// A data bump that renames a spells-water.csv column must fail the load with the column named. It used to
+	// dereference a null cell and take the editor down.
+	const TCHAR* SpellsFile = TEXT("docs/design/baseline-fourteen-nights/design/data/spells-water.csv");
+	FString Csv;
+	if (!TestTrue(TEXT("read spells-water.csv"), FFileHelper::LoadFileToString(Csv, *KernelDataPinnedPath(SpellsFile))))
+	{
+		return false;
+	}
+	const FString Renamed = Csv.Replace(TEXT(",mana,"), TEXT(",mana_renamed,"), ESearchCase::CaseSensitive);
+	if (!TestTrue(TEXT("the header had a mana column to rename"), Renamed != Csv))
+	{
+		return false;
+	}
+	const FKernelData Loaded = LoadWith(SpellsFile, Renamed);
+	TestFalse(TEXT("a spells file without a mana column fails the load"), Loaded.bReady);
+	TestTrue(*FString::Printf(TEXT("the error names the mana column (%s)"), *Loaded.Error), Loaded.Error.Contains(TEXT("mana")));
+	return true;
+}
+
 #endif
