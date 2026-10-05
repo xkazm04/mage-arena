@@ -1321,6 +1321,58 @@ bool LoadGamesTuning(const FJsonObject& Games, FKernelData& Data, const FString&
 	return true;
 }
 
+// Names that one file uses to point at another. Games.cpp and Enemies.cpp resolve them with checkf when a bout spawns,
+// so a rename in a data bump used to surface there, mid-session, instead of as a named load error.
+bool CheckReferences(FKernelData& Data)
+{
+	auto HasPreset = [&Data](const FString& Name)
+	{
+		for (const FComposition& Preset : Data.Presets)
+		{
+			if (Preset.Name == Name)
+			{
+				return true;
+			}
+		}
+		return false;
+	};
+	if (!HasPreset(Data.ReferencePreset))
+	{
+		return Fail(Data, FString::Printf(TEXT("kernel data: games.referencePreset names no water preset: %s"), *Data.ReferencePreset));
+	}
+	for (const FString& Name : Data.OpponentPresets)
+	{
+		if (!HasPreset(Name))
+		{
+			return Fail(Data, FString::Printf(TEXT("kernel data: games.opponentPresets names no water preset: %s"), *Name));
+		}
+	}
+	for (const FArenaTier& Tier : Data.ArenaTiers)
+	{
+		for (const FArenaWave& Wave : Tier.Waves)
+		{
+			for (const FWaveSpawn& Spawn : Wave.Spawns)
+			{
+				if (!Spawn.bEnemy)
+				{
+					continue;
+				}
+				bool bKnown = false;
+				for (const FEnemySpec& Enemy : Data.Enemies)
+				{
+					bKnown |= Enemy.Id == Spawn.EnemyId;
+				}
+				if (!bKnown)
+				{
+					return Fail(Data, FString::Printf(TEXT("kernel data: arena-tiers %s wave %d spawns an enemy that enemies.json does not define: %s"),
+						*Tier.Id, Wave.N, *Spawn.EnemyId));
+				}
+			}
+		}
+	}
+	return true;
+}
+
 FKernelData Load()
 {
 	FKernelData Data;
@@ -1654,7 +1706,8 @@ FKernelData Load()
 		return Data;
 	}
 	TSharedPtr<FJsonObject> Enemies;
-	if (!LoadJson(EnemyPath, Enemies, Data) || !LoadEnemies(*Enemies, Data, EnemyPath) || !LoadArenaTiers(Data) || !LoadFireSpells(Data) || !LoadHeat(Data))
+	if (!LoadJson(EnemyPath, Enemies, Data) || !LoadEnemies(*Enemies, Data, EnemyPath) || !LoadArenaTiers(Data) || !LoadFireSpells(Data) || !LoadHeat(Data)
+		|| !CheckReferences(Data))
 	{
 		return Data;
 	}

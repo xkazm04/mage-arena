@@ -121,6 +121,98 @@ bool FMageArenaKernelLoadNamesEnemy::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelLoadRejectsUnknownReference, "MageArena.Kernel.LoadRejectsUnknownReference",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaKernelLoadRejectsUnknownReference::RunTest(const FString& Parameters)
+{
+	// A preset or enemy name that nothing loaded must fail the load, named. Otherwise it first shows up as a checkf abort
+	// when a bout spawns (Games.cpp SpawnWave and RunFight, Enemies.cpp AddEnemy).
+	const TCHAR* RuntimeFile = TEXT("packages/core/src/arena/data/runtime.json");
+	const TCHAR* TiersFile = TEXT("docs/design/baseline-fourteen-nights/design/data/arena-tiers.json");
+
+	FString BadReference;
+	const bool bReference = MutatedJson(RuntimeFile, [](FJsonObject& Root)
+	{
+		const TSharedPtr<FJsonObject>* Games = nullptr;
+		if (!Root.TryGetObjectField(TEXT("games"), Games))
+		{
+			return false;
+		}
+		(*Games)->SetStringField(TEXT("referencePreset"), TEXT("no_such_reference_preset"));
+		return true;
+	}, BadReference);
+	FString BadOpponent;
+	const bool bOpponent = MutatedJson(RuntimeFile, [](FJsonObject& Root)
+	{
+		const TSharedPtr<FJsonObject>* Games = nullptr;
+		if (!Root.TryGetObjectField(TEXT("games"), Games))
+		{
+			return false;
+		}
+		TArray<TSharedPtr<FJsonValue>> Names = (*Games)->GetArrayField(TEXT("opponentPresets"));
+		if (Names.Num() == 0)
+		{
+			return false;
+		}
+		Names[0] = MakeShared<FJsonValueString>(TEXT("no_such_opponent_preset"));
+		(*Games)->SetArrayField(TEXT("opponentPresets"), Names);
+		return true;
+	}, BadOpponent);
+	FString BadEnemy;
+	const bool bEnemy = MutatedJson(TiersFile, [](FJsonObject& Root)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Tiers = nullptr;
+		if (!Root.TryGetArrayField(TEXT("tiers"), Tiers))
+		{
+			return false;
+		}
+		for (const TSharedPtr<FJsonValue>& Tier : *Tiers)
+		{
+			const TArray<TSharedPtr<FJsonValue>>* Waves = nullptr;
+			if (!Tier->AsObject()->TryGetArrayField(TEXT("waves"), Waves))
+			{
+				continue;
+			}
+			for (const TSharedPtr<FJsonValue>& Wave : *Waves)
+			{
+				const TArray<TSharedPtr<FJsonValue>>* Spawns = nullptr;
+				if (!Wave->AsObject()->TryGetArrayField(TEXT("spawns"), Spawns))
+				{
+					continue;
+				}
+				for (const TSharedPtr<FJsonValue>& Spawn : *Spawns)
+				{
+					FString Existing;
+					if (Spawn->AsObject()->TryGetStringField(TEXT("enemy"), Existing))
+					{
+						Spawn->AsObject()->SetStringField(TEXT("enemy"), TEXT("no_such_enemy"));
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}, BadEnemy);
+	if (!TestTrue(TEXT("built the three broken inputs"), bReference && bOpponent && bEnemy))
+	{
+		return false;
+	}
+
+	const FKernelData Reference = LoadWith(RuntimeFile, BadReference);
+	TestFalse(TEXT("an unknown reference preset fails the load"), Reference.bReady);
+	TestTrue(*FString::Printf(TEXT("the error names the reference preset (%s)"), *Reference.Error), Reference.Error.Contains(TEXT("no_such_reference_preset")));
+
+	const FKernelData Opponent = LoadWith(RuntimeFile, BadOpponent);
+	TestFalse(TEXT("an unknown opponent preset fails the load"), Opponent.bReady);
+	TestTrue(*FString::Printf(TEXT("the error names the opponent preset (%s)"), *Opponent.Error), Opponent.Error.Contains(TEXT("no_such_opponent_preset")));
+
+	const FKernelData Enemy = LoadWith(TiersFile, BadEnemy);
+	TestFalse(TEXT("an unknown wave enemy fails the load"), Enemy.bReady);
+	TestTrue(*FString::Printf(TEXT("the error names the enemy (%s)"), *Enemy.Error), Enemy.Error.Contains(TEXT("no_such_enemy")));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelLoadNamesColumn, "MageArena.Kernel.LoadNamesColumn",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
