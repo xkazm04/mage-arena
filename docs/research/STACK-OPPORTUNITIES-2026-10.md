@@ -290,7 +290,9 @@ Short paths resolve as follows:
   - (b) Before the gate, add a held-sample clip variant: each pose held for 1/30 s and still emitted at 72 Hz. Run the
     ward, blink and sigil tests on it. Reword `CLIP-SCHEMA.md` so 72 is the display rate, not "the Quest sample rate".
   - (c) In V2, A/B test LOW against HIGH on the real-hand corpus: blink-flick recall, sigil accuracy, false casts per
-    minute, and the headroom cost. Never choose MAX.
+    minute, and the headroom cost. MAX is the same as HIGH (Meta's FMM page, FEASIBILITY G4), so the A/B is LOW against
+    HIGH. It must log the `Camera FPS` logcat line (to prove which rate ran, 50 or 60 Hz), the CPU and GPU levels from
+    OVR Metrics, and the room light.
 - **Unconfirmed:** the rate at which the runtime hands predicted joint poses to the app.
 - **Cost:** (b) S-M in `apps/vr/tools/clipgen` plus tests; (c) M.
 - **When:** (b) before the desktop gate; (c) at V2.
