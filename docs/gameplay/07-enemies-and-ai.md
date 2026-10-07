@@ -2,7 +2,7 @@
 title: Enemies and AI
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - "docs/DECISIONS.md"
   - "docs/PROJECT-PLAN.md"
@@ -73,7 +73,7 @@ pad, so they re-aim at the new pad on their next decision after a blink.
 - The conscript keeps walking to the hold line during its back-off instead of standing still
   (`combat.vr.json` `movement.throwerClosesToLip` true).
 - The overlay loader refuses a conscript entry whose damage or windup differs from the pinned row, or whose replaced
-  `rangeM` / `projectileMps` do not match the pinned values (`VrRules.cpp:236-303`).
+  `rangeM` / `projectileMps` do not match the pinned values (`ReadThrow`, `VrRulesLoad.cpp:221-319`).
 - Not spawned in Tiro, but ported: Scutum bearer (`shieldman`, 70 HP, front block 120 deg) and Net-thrower (`netter`,
   45 HP, root 1.0 s). They appear in the Veteranus and Primus tiers only.
 
@@ -101,7 +101,7 @@ pad, so they re-aim at the new pad on their next decision after a blink.
 | Nearest enemy body to the centre pad | about 3.5 | m | DF-004 |
 
 After every kernel step, `FVrRuleset::KeepOut` pushes any enemy inside the hold box back outside (`Games.cpp:239-248`).
-The loader checks that the overlay box equals the layout dais (`VrRules.cpp`, "dais box or standoff does not match").
+The loader checks that the overlay box equals the layout dais (`VrRulesLoad.cpp:489-494`, "dais box or standoff does not match").
 Consequences, measured:
 
 | Gate | Live overlay | With `-MageArenaProposal` | Source |

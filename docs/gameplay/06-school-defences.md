@@ -2,7 +2,7 @@
 title: School defences
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - docs/DECISIONS.md
   - docs/design/SCHOOL-DEFENCES.md
@@ -110,17 +110,17 @@ Both hands grip as if holding a shaft and thrust down; the reverse lifts it.
 Desktop: `F` plays `staff-plant`, or `staff-lift` while planted (`MageArenaPlayerController.cpp:288`). A mudra does not
 pass as a plant (`StaffDetector.h:305-308`). The staff gesture uses the ward hand, so it stops a held ward clip.
 
-### Rule (`VrRules.cpp:1126-1167`, `ArenaThreats.cpp:299-307`, `ArenaKernel.cpp:79-84`, `ArenaKernel.cpp:197-201`)
+### Rule (`TickStaff`, `VrRules.cpp:429-470`, `ArenaThreats.cpp:299-307`, `ArenaKernel.cpp:79-84`, `ArenaKernel.cpp:197-201`)
 
 | Rule | Value | Unit | Source key |
 |---|---|---|---|
 | Up-front cost | 8, paid on the plant tick; refused (`staff-mana`) if mana is short | mana | `combat.vr.json#plantedStaff.manaUpFront` |
 | Drain | 4 per second, from the plant tick, while planted | mana/s | `combat.vr.json#plantedStaff.drainPerSecond` |
 | Duration | 6 (360 ticks), then lifts | s | `combat.vr.json#plantedStaff.durationS` |
-| Other lifts | the lift gesture; a blink attempt; mana running out | - | `VrRules.cpp:1132-1139`, `:1159-1166`; `ArenaKernel.cpp:79-84` |
+| Other lifts | the lift gesture; a blink attempt; mana running out | - | `VrRules.cpp:435-442`, `:462-469`; `ArenaKernel.cpp:79-84` |
 | Magic reduction | 0.85 (a hit keeps 15%) | fraction removed | `combat.vr.json#plantedStaff.magicReduction` |
 | Physical reduction | 0.6 (a 10-damage spear becomes 4) | fraction removed | `combat.vr.json#plantedStaff.physicalReduction` |
-| Unblockable | 0 (passes) | - | `VrRules.cpp:1103-1118` |
+| Unblockable | 0 (passes) | - | `DomeReduction`, `VrRules.cpp:406-421` |
 | Direction | all round (not the ward's 140° arc) | - | `ArenaThreats.cpp:299-307` |
 | With the ward | the larger of the two reductions applies; the dome never perfects, a ward perfect still counts | - | `ArenaThreats.cpp:299-307` |
 | Casting while planted | full two-hand cast: full power, Flow builds, tiers III-IV and the Crest allowed | - | `ArenaKernel.cpp:199-201` |
@@ -142,14 +142,14 @@ is load-bearing": never planting loses the wave and shortens both duels.
 
 ### Who raises it
 
-Only an actor of the Fire school (`VrRules.cpp:988-1015`); in the build that is the AI Fire mage. The player has no fire
+Only an actor of the Fire school (`TickWalls`, `VrRules.cpp:291-318`); in the build that is the AI Fire mage. The player has no fire
 wall: the player is never a Fire actor and there is no sweep gesture, clip or detector.
 
 AI trigger (`MageAI.cpp:538-608`): the mage raises the wall when a hostile magic or physical projectile's remaining path
 would cross a wall in front of it, after its competence reaction delay, if it has the mana, unless it is saving mana for
 Sunfall at tier IV or is casting Sunfall that tick. Raising replaces that tick's cast and ward.
 
-### Rule (`VrRules.cpp:922-1057`, `ArenaThreats.cpp:165-210`, `ArenaThreats.cpp:249-257`)
+### Rule (`VrRules.cpp:225-360`, `ArenaThreats.cpp:165-210`, `ArenaThreats.cpp:249-257`)
 
 | Rule | Value | Unit | Source key |
 |---|---|---|---|
@@ -157,12 +157,12 @@ Sunfall at tier IV or is casting Sunfall that tick. Raising replaces that tick's
 | Arc | 90 (45 either side of the caster's facing at the raise tick) | deg | `combat.vr.json#fireWall.arcDeg` |
 | Duration | 3 (180 ticks) | s | `combat.vr.json#fireWall.durationS` |
 | Cost | 12, once on the raise tick | mana | `combat.vr.json#fireWall.manaCost` |
-| Walls per caster | one at a time | - | `VrRules.cpp:994-997` |
-| Position | fixed where it was raised; it does not follow the caster | - | `VrRules.cpp:1007-1008` |
-| Stops | magic and physical projectiles whose path crosses the arc line (a chord entering and leaving the ring counts) | - | `VrRules.cpp:922-962` |
+| Walls per caster | one at a time | - | `VrRules.cpp:297-300` |
+| Position | fixed where it was raised; it does not follow the caster | - | `VrRules.cpp:310-311` |
+| Stops | magic and physical projectiles whose path crosses the arc line (a chord entering and leaving the ring counts) | - | `VrWallSegmentCrosses`, `VrRules.cpp:225-265` |
 | Passes | unblockable projectiles; the caster's own and its team's projectiles | - | `ArenaThreats.cpp:32-46`, `:170-171` |
 | Heat per stopped projectile | 4, to the caster | Heat | `combat.vr.json#fireWall.heatPerStop` |
-| Burn | 12 magic damage to an opposing body whose movement crosses the arc; a ward can reduce it | HP | `combat.vr.json#fireWall.burnDamage`; `VrRules.cpp:1017-1057` |
+| Burn | 12 magic damage to an opposing body whose movement crosses the arc; a ward can reduce it | HP | `combat.vr.json#fireWall.burnDamage`; `BurnCrossers`, `VrRules.cpp:320-360` |
 
 Presentation: a vermilion curtain (`SessionPresentation.cpp:858`).
 
@@ -188,7 +188,7 @@ Momentum (consecutive blinks and casting cadence) awaits the owner (BACKLOG). No
 ## Calibration proposal (not live)
 
 `calibration-proposal.json` (DF-003 set `wide`), applied only with `-MageArenaProposal` or `MageArenaProposal=1`
-(`VrRules.cpp:536-544`, `VrRules.cpp:590-647`):
+(`VrRulesLoad.cpp:321-329` (`ProposalRequested`), `VrRulesLoad.cpp:375-432` (`ApplyProposal`)):
 
 | Knob | Live overlay | Proposal | Unit |
 |---|---|---|---|

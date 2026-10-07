@@ -2,7 +2,7 @@
 title: Earth and Air schools (status)
 channel: vr
 status: designed
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - "docs/DECISIONS.md"
   - "docs/PROJECT-PLAN.md"
@@ -28,7 +28,7 @@ built; SCHOOL-DEFENCES proposes one, and the owner has not confirmed it.
 | Earth | the Stone Tent | `#7a6a3a` | footing | 0-6 | `stackPerHalfSecondBelowMps` 1.0 (the key reads as one stack per 0.5 s while moving below 1.0 m/s; no code interprets it yet) | `clearOnRollOrSprint` | at 1: damage taken -0.04 and spell power +0.04 per stack; at 3: absorb drain x0.8 | +2 Footing |
 | Air | the Gale Tent | `#5f9e98` | momentum | 0-100 | `perSecondMovingAbove4Mps` 20 | `perSecondStill` 25 | at 40: spells pierce 1, roll stamina x0.6; at 80: spell range x1.3 | deflect: an absorbed projectile of tier <= own unlocked tier is redirected along the aim direction |
 
-Air also carries `absorbDrainMult` 1.2. All values from `schools.json` at pin `68a4d68`. The pinned data has
+Air also carries `absorbDrainMult` 1.2. All values from `schools.json` at pin `baeac66`. The pinned data has
 `spells-water.csv` and `spells-fire.csv` only; there is no Earth or Air spell file.
 
 ## Designed seated defences (SCHOOL-DEFENCES.md)
