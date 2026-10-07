@@ -628,12 +628,9 @@ bool FArenaSession::WouldSplitRefuse(int32 Slot) const
 	{
 		return false;
 	}
-	if (Player->Water.Flow >= KernelData().FlowMax)
-	{
-		return true;
-	}
+	// The kernel's own test (FVrRuleset::SplitRefusal). An empty slot is not refused there either: it does not cast.
 	const FSpell* Spell = SpellFor(*Player, Slot);
-	return Spell && Spell->Tier > Rules->Split.MaxTier;
+	return Spell && Rules->SplitRefusal(*Player, *Spell) != nullptr;
 }
 
 void FArenaSession::BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard)

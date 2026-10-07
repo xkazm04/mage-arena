@@ -67,7 +67,11 @@
     "oneHandPower": 0.6,
     "maxTier": 2,
     "_oneHandPower": "Proposal from SCHOOL-DEFENCES A. With the ward held and the staff not planted, Bolt and lines up to maxTier deal this fraction and build no Flow. Calibration may change it. Not signed off.",
-    "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate."
+    "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate.",
+    "latchClearIdleS": 0.3,
+    "boltAtFullFlow": true,
+    "_latchClearIdleS": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'the perfect latch clears after the casting hand is idle about 0.3 s'. The kernel rounds up to whole ticks: 0.3 s at 60 Hz is 18. A ward drop still clears the latch at once. Absent means the latch holds until the ward drops.",
+    "_boltAtFullFlow": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'a split Bolt at Flow 5 is allowed and does not spend the Crest'. The Bolt resolves at oneHandPower and leaves Flow and Crests as they are. Every other split cast at full Flow is still refused for crest. Absent or false keeps the refusal."
   },
 
   "plantedStaff": {

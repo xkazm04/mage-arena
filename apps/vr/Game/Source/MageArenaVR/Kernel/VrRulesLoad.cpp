@@ -73,6 +73,38 @@ bool NeedBool(const FJsonObject& Object, const TCHAR* Field, bool& Out, FString&
 	return true;
 }
 
+// Absent leaves Slot as it is. Present must be a JSON number (not a numeric string) inside [Min, Max].
+bool ReadOptionalStrictNumber(const FJsonObject& Object, const TCHAR* Field, double& Slot, FString& Error, double Min, double Max)
+{
+	const TSharedPtr<FJsonValue> Value = Object.TryGetField(Field);
+	if (!Value.IsValid())
+	{
+		return true;
+	}
+	if (Value->Type != EJson::Number || !(Value->AsNumber() >= Min && Value->AsNumber() <= Max))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: %s must be a number in [%g, %g]"), Field, Min, Max));
+	}
+	Slot = Value->AsNumber();
+	return true;
+}
+
+// Absent leaves Slot as it is. Present must be a JSON true or false.
+bool ReadOptionalStrictBool(const FJsonObject& Object, const TCHAR* Field, bool& Slot, FString& Error)
+{
+	const TSharedPtr<FJsonValue> Value = Object.TryGetField(Field);
+	if (!Value.IsValid())
+	{
+		return true;
+	}
+	if (Value->Type != EJson::Boolean)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: %s must be true or false"), Field));
+	}
+	Slot = Value->AsBool();
+	return true;
+}
+
 bool NeedString(const FJsonObject& Object, const TCHAR* Field, FString& Out, FString& Error)
 {
 	if (!Object.TryGetStringField(Field, Out))
@@ -608,9 +640,20 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	{
 		return Fail(Error, TEXT("vr rules: plantedStaff duration, mana, or reduction is out of range"));
 	}
+	// DECISIONS 2026-10-07 split hands. Absent keeps the rule before T17 (latch until the ward drops, no split Bolt at
+	// full Flow), so older overlay files still load. A wrong type or range fails the load.
+	double LatchClearIdleS = -1.0;
+	bool bBoltAtFullFlow = false;
+	if (!ReadOptionalStrictNumber(*Split, TEXT("latchClearIdleS"), LatchClearIdleS, Error, 0.0, 5.0)
+		|| !ReadOptionalStrictBool(*Split, TEXT("boltAtFullFlow"), bBoltAtFullFlow, Error))
+	{
+		return false;
+	}
 	Out.Split.bEnabled = true;
 	Out.Split.OneHandPower = OneHandPower;
 	Out.Split.MaxTier = static_cast<int32>(TierRounded);
+	Out.Split.LatchClearIdleS = LatchClearIdleS;
+	Out.Split.bBoltAtFullFlow = bBoltAtFullFlow;
 	Out.Staff.bEnabled = true;
 	Out.Staff.DurationS = DurationS;
 	Out.Staff.ManaUpFront = ManaUpFront;

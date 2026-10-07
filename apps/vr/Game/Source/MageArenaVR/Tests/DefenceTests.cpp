@@ -3,6 +3,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Engine/GameInstance.h"
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Guid.h"
 #include "Misc/OutputDeviceRedirector.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
 #include "Gestures/StaffDetector.h"
@@ -136,6 +139,12 @@ bool AssertProposals(FAutomationTestBase& Test, const FVrRuleset& Rules)
 	bPass &= Near(Test, TEXT("crest multiplier"), KernelData().CrestDamageMult, 1.5);
 	bPass &= Near(Test, TEXT("ward magic"), KernelData().Absorb.ReductionMagic, 0.85);
 	bPass &= Near(Test, TEXT("outside the arc is open"), KernelData().Absorb.ReductionOutsideArc, 0.0);
+	// combat.vr.json splitHands, DECISIONS 2026-10-07. 0.3 s at combat.json simStepHz 60 is 18 ticks.
+	bPass &= Near(Test, TEXT("latch clears after idle seconds"), Rules.Split.LatchClearIdleS, 0.3);
+	bPass &= Test.TestEqual(TEXT("latch idle ticks"), Rules.SplitLatchIdleTicks(), 18);
+	bPass &= Test.TestTrue(TEXT("split bolt at full flow"), Rules.Split.bBoltAtFullFlow);
+	// combat.json absorb.perfect.windowS 0.15 at 60 Hz.
+	bPass &= Test.TestEqual(TEXT("perfect window ticks"), SimTicks(KernelData().Absorb.WindowS), 9);
 	return bPass;
 }
 
@@ -166,6 +175,58 @@ const FProjectile* PlayerShot(const FArenaState& State, int32 PlayerId)
 bool HasRefusal(const FVrRuleset& Rules, const TCHAR* Reason)
 {
 	return Rules.Refusals.Contains(FString(Reason));
+}
+
+bool HasPerfectEvent(const FArenaState& State, int32 ActorId, int32 Tick)
+{
+	for (const FArenaEvent& Event : State.Events)
+	{
+		if (Event.Kind == TEXT("perfect") && Event.ActorId == ActorId && Event.Tick == Tick)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+// Holds the ward with the casting hand idle, then resolves a magic hit on the tick the latch has counted IdleTicks idle
+// ticks. The pinned perfect window (combat.json absorb.perfect.windowS 0.15 = 9 ticks) runs from the raise, so a real
+// hold is always past it 18 ticks after a cast. The fresh tick is moved to the hit tick to isolate the latch: with it
+// moved, the latch is the only thing that can still deny the perfect.
+void HoldThenHit(FDuel& Duel, int32 IdleTicks)
+{
+	for (int32 Idle = 1; Idle < IdleTicks; ++Idle)
+	{
+		FInputFrame Held = AimAt(Duel);
+		Held.bAbsorb = true;
+		StepPlayer(Duel, Held, &Duel.Rules);
+	}
+	// In front of the palm, close enough that 60 m/s crosses the body on the next tick.
+	SpawnIncoming(Duel.State, Duel.Foe, FSimVec{10.55, 10.0}, FSimVec{-1.0, 0.0}, 20.0, TEXT("magic"));
+	PlayerOf(Duel).AbsorbFreshTick = Duel.State.Tick + 1;
+	FInputFrame Held = AimAt(Duel);
+	Held.bAbsorb = true;
+	StepPlayer(Duel, Held, &Duel.Rules);
+}
+
+// Ward up and a split Bolt on tick 1. Bolt cast_s is 0 (spells-water.csv), so it is released on the cast tick and the
+// casting hand is idle from tick 2.
+bool OpenSplitBolt(FAutomationTestBase& Test, FDuel& Duel)
+{
+	if (!OpenDuel(Test, Duel, 14.0))
+	{
+		return false;
+	}
+	FInputFrame Opening = AimAt(Duel);
+	Opening.bAbsorb = true;
+	Opening.bCast = true;
+	Opening.Slot = 0;
+	StepPlayer(Duel, Opening, &Duel.Rules);
+	bool bPass = Test.TestEqual(TEXT("cast tick"), Duel.State.Tick, 1);
+	bPass &= Test.TestEqual(TEXT("split bolt cast"), PlayerOf(Duel).Metrics.Casts, 1);
+	bPass &= Test.TestFalse(TEXT("bolt released on the cast tick"), PlayerOf(Duel).Pending.IsSet());
+	bPass &= Test.TestTrue(TEXT("latch on after the split cast"), Duel.Rules.IsSplitCasting(Duel.Player));
+	return bPass;
 }
 
 struct FDefenceLogProbe : FOutputDevice
@@ -441,6 +502,314 @@ bool FMageArenaDefencesSplitLine::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitLatchClearsOnIdle, "MageArena.Defences.SplitLatchClearsOnIdle",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitLatchClearsOnIdle::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	bool bPass = true;
+	{
+		// 17 idle ticks: one short of 0.3 s at 60 Hz. The latch still holds, so the fresh hit is warded, not perfected.
+		FDuel Duel;
+		if (!OpenSplitBolt(*this, Duel))
+		{
+			return false;
+		}
+		bPass &= AssertProposals(*this, Duel.Rules);
+		HoldThenHit(Duel, 17);
+		bPass &= TestEqual(TEXT("17: hit tick is cast tick + 17"), Duel.State.Tick, 18);
+		bPass &= TestTrue(TEXT("17: ward still up"), PlayerOf(Duel).bAbsorb);
+		bPass &= TestTrue(TEXT("17: latch still on"), Duel.Rules.IsSplitCasting(Duel.Player));
+		bPass &= TestEqual(TEXT("17: no perfect"), PlayerOf(Duel).Metrics.Perfects, 0);
+		bPass &= TestFalse(TEXT("17: no perfect event"), HasPerfectEvent(Duel.State, Duel.Player, Duel.State.Tick));
+		// combat.json absorb.reduction.magic 0.85: 20 * 0.15 = 3.
+		bPass &= Near(*this, TEXT("17: warded hit is 3"), PlayerOf(Duel).Metrics.DamageTaken, 3.0);
+	}
+	{
+		// 18 idle ticks: 0.3 s. The latch clears before the hit resolves, so the fresh ward perfects it.
+		FDuel Duel;
+		if (!OpenSplitBolt(*this, Duel))
+		{
+			return false;
+		}
+		HoldThenHit(Duel, 18);
+		bPass &= TestEqual(TEXT("18: hit tick is cast tick + 18"), Duel.State.Tick, 19);
+		bPass &= TestTrue(TEXT("18: ward still up"), PlayerOf(Duel).bAbsorb);
+		bPass &= TestFalse(TEXT("18: latch cleared"), Duel.Rules.IsSplitCasting(Duel.Player));
+		bPass &= TestEqual(TEXT("18: one perfect"), PlayerOf(Duel).Metrics.Perfects, 1);
+		bPass &= TestTrue(TEXT("18: perfect event on the hit tick"), HasPerfectEvent(Duel.State, Duel.Player, Duel.State.Tick));
+		bPass &= Near(*this, TEXT("18: perfect takes nothing"), PlayerOf(Duel).Metrics.DamageTaken, 0.0);
+	}
+	{
+		// No latchClearIdleS (an older overlay): the latch holds for the whole ward hold, the rule before T17.
+		FDuel Duel;
+		if (!OpenSplitBolt(*this, Duel))
+		{
+			return false;
+		}
+		Duel.Rules.Split.LatchClearIdleS = -1.0;
+		bPass &= TestEqual(TEXT("absent: no idle clear"), Duel.Rules.SplitLatchIdleTicks(), -1);
+		HoldThenHit(Duel, 40);
+		bPass &= TestTrue(TEXT("absent: latch still on after 40 idle ticks"), Duel.Rules.IsSplitCasting(Duel.Player));
+		bPass &= TestEqual(TEXT("absent: no perfect"), PlayerOf(Duel).Metrics.Perfects, 0);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitLatchStillOnWhileCasting, "MageArena.Defences.SplitLatchStillOnWhileCasting",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitLatchStillOnWhileCasting::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FDuel Duel;
+	if (!OpenSplitBolt(*this, Duel))
+	{
+		return false;
+	}
+	bool bPass = true;
+	// Bolt cooldown_s 0.25 (spells-water.csv) is 15 ticks, so the second Bolt can start on tick 16, before 18 idle ticks.
+	for (int32 Tick = 2; Tick < 16; ++Tick)
+	{
+		FInputFrame Held = AimAt(Duel);
+		Held.bAbsorb = true;
+		StepPlayer(Duel, Held, &Duel.Rules);
+	}
+	bPass &= TestTrue(TEXT("latch on at 14 idle ticks"), Duel.Rules.IsSplitCasting(Duel.Player));
+	FInputFrame Again = AimAt(Duel);
+	Again.bAbsorb = true;
+	Again.bCast = true;
+	Again.Slot = 0;
+	StepPlayer(Duel, Again, &Duel.Rules);
+	bPass &= TestEqual(TEXT("second cast tick"), Duel.State.Tick, 16);
+	bPass &= TestEqual(TEXT("second split bolt cast"), PlayerOf(Duel).Metrics.Casts, 2);
+	bPass &= TestTrue(TEXT("latch on after the second cast"), Duel.Rules.IsSplitCasting(Duel.Player));
+
+	// Tick 19 is 18 ticks after the first cast but 3 after the second: the latch holds and the hit is not perfected.
+	HoldThenHit(Duel, 3);
+	bPass &= TestEqual(TEXT("hit tick"), Duel.State.Tick, 19);
+	bPass &= TestTrue(TEXT("latch on 18 ticks after the first cast"), Duel.Rules.IsSplitCasting(Duel.Player));
+	bPass &= TestEqual(TEXT("no perfect while the hand was casting"), PlayerOf(Duel).Metrics.Perfects, 0);
+	bPass &= TestFalse(TEXT("no perfect event"), HasPerfectEvent(Duel.State, Duel.Player, Duel.State.Tick));
+	bPass &= Near(*this, TEXT("warded hit is 3"), PlayerOf(Duel).Metrics.DamageTaken, 3.0);
+
+	// The count restarts at the second cast: on through tick 33 (17 idle), off on tick 34 (18 idle).
+	for (int32 Tick = 20; Tick <= 33; ++Tick)
+	{
+		FInputFrame Held = AimAt(Duel);
+		Held.bAbsorb = true;
+		StepPlayer(Duel, Held, &Duel.Rules);
+	}
+	bPass &= TestEqual(TEXT("tick 33"), Duel.State.Tick, 33);
+	bPass &= TestTrue(TEXT("latch on at 17 idle ticks after the second cast"), Duel.Rules.IsSplitCasting(Duel.Player));
+	FInputFrame Held = AimAt(Duel);
+	Held.bAbsorb = true;
+	StepPlayer(Duel, Held, &Duel.Rules);
+	bPass &= TestFalse(TEXT("latch off at 18 idle ticks after the second cast"), Duel.Rules.IsSplitCasting(Duel.Player));
+	bPass &= TestTrue(TEXT("ward held throughout"), PlayerOf(Duel).bAbsorb);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitBoltAtFullFlow, "MageArena.Defences.SplitBoltAtFullFlow",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitBoltAtFullFlow::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FDuel Duel;
+	// 2.4 m: outside the 1.6 m staff, so slot 0 is the Bolt, and inside Tide Lash's 3 m for the two-hand line after.
+	if (!OpenDuel(*this, Duel, 12.4))
+	{
+		return false;
+	}
+	bool bPass = AssertProposals(*this, Duel.Rules);
+	PlayerOf(Duel).Tier = 1;
+	FInputFrame Raise = AimAt(Duel);
+	Raise.bAbsorb = true;
+	StepPlayer(Duel, Raise, &Duel.Rules);
+	PlayerOf(Duel).Water.Flow = 5;
+	PlayerOf(Duel).Water.LastActivityTick = Duel.State.Tick;
+
+	FInputFrame Cast = AimAt(Duel);
+	Cast.bAbsorb = true;
+	Cast.bCast = true;
+	Cast.Slot = 0;
+	StepPlayer(Duel, Cast, &Duel.Rules);
+	bPass &= TestEqual(TEXT("split bolt accepted at flow 5"), PlayerOf(Duel).Metrics.Casts, 1);
+	bPass &= TestFalse(TEXT("no crest refusal"), HasRefusal(Duel.Rules, TEXT("crest")));
+	bPass &= TestEqual(TEXT("no refusal at all"), Duel.Rules.Refusals.Num(), 0);
+	bPass &= TestNotNull(TEXT("bolt in flight"), PlayerShot(Duel.State, Duel.Player));
+	bPass &= TestEqual(TEXT("flow stays 5 on the cast tick"), PlayerOf(Duel).Water.Flow, 5);
+	bPass &= TestEqual(TEXT("no crest spent"), PlayerOf(Duel).Water.Crests, 0);
+
+	bool bLanded = false;
+	for (int32 Index = 0; Index < 40 && !bLanded; ++Index)
+	{
+		FInputFrame Held = AimAt(Duel);
+		Held.bAbsorb = true;
+		StepPlayer(Duel, Held, &Duel.Rules);
+		bLanded = FoeOf(Duel).Metrics.Hits > 0;
+	}
+	bPass &= TestTrue(TEXT("split bolt lands"), bLanded);
+	// spells-water.csv bolt damage 2.05 x combat.vr.json oneHandPower 0.6 = 1.23. No Flow bonus, no Crest 1.5.
+	bPass &= Near(*this, TEXT("split bolt at full flow is 2.05 x 0.6"), FoeOf(Duel).Metrics.DamageTaken, 1.23);
+	bPass &= TestEqual(TEXT("flow still 5 after the bolt"), PlayerOf(Duel).Water.Flow, 5);
+	bPass &= TestEqual(TEXT("crests unchanged after the bolt"), PlayerOf(Duel).Water.Crests, 0);
+
+	// Both hands free: ward down and Tide Lash on the same tick. The Crest is still there to spend.
+	FInputFrame Line = AimAt(Duel);
+	Line.bCast = true;
+	Line.Slot = 2;
+	StepPlayer(Duel, Line, &Duel.Rules);
+	bPass &= TestFalse(TEXT("ward down for the two-hand cast"), PlayerOf(Duel).bAbsorb);
+	bPass &= TestEqual(TEXT("two-hand lash cast"), PlayerOf(Duel).Metrics.Casts, 2);
+	bPass &= TestEqual(TEXT("the crest is spent by the line"), PlayerOf(Duel).Water.Crests, 1);
+	bPass &= TestEqual(TEXT("crest resets flow"), PlayerOf(Duel).Water.Flow, 0);
+	const double Before = FoeOf(Duel).Metrics.DamageTaken;
+	// lash:1:base cast_s 0.10 and telegraph_s 0.10 (spells-water.csv): 6 ticks to release.
+	for (int32 Index = 0; Index < 6; ++Index)
+	{
+		StepPlayer(Duel, AimAt(Duel), &Duel.Rules);
+	}
+	// spells-water.csv lash damage 8 x combat.json flow.crest.damageMult 1.5 = 12.
+	bPass &= Near(*this, TEXT("crest lash is 8 x 1.5"), FoeOf(Duel).Metrics.DamageTaken - Before, 12.0);
+	bPass &= Near(*this, TEXT("foe took 1.23 + 12"), FoeOf(Duel).Metrics.DamageTaken, 13.23);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitLineAtFullFlowRefused, "MageArena.Defences.SplitLineAtFullFlowRefused",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitLineAtFullFlowRefused::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FDuel Duel;
+	if (!OpenDuel(*this, Duel, 12.4))
+	{
+		return false;
+	}
+	bool bPass = AssertProposals(*this, Duel.Rules);
+	PlayerOf(Duel).Tier = 1;
+	const FSpell* Lash = SpellFor(PlayerOf(Duel), 2);
+	if (!TestNotNull(TEXT("tide lash"), Lash))
+	{
+		return false;
+	}
+	bPass &= TestEqual(TEXT("lash is a tier-1 line"), Lash->Id, FString(TEXT("lash:1:base")));
+	FInputFrame Raise = AimAt(Duel);
+	Raise.bAbsorb = true;
+	StepPlayer(Duel, Raise, &Duel.Rules);
+	PlayerOf(Duel).Water.Flow = 5;
+	PlayerOf(Duel).Water.LastActivityTick = Duel.State.Tick;
+	const double Before = PlayerOf(Duel).Mana;
+
+	FInputFrame Cast = AimAt(Duel);
+	Cast.bAbsorb = true;
+	Cast.bCast = true;
+	Cast.Slot = 2;
+	StepPlayer(Duel, Cast, &Duel.Rules);
+	bPass &= TestTrue(TEXT("refusal is crest"), HasRefusal(Duel.Rules, TEXT("crest")));
+	bPass &= TestFalse(TEXT("not a tier refusal"), HasRefusal(Duel.Rules, TEXT("tier")));
+	bPass &= TestEqual(TEXT("split line refused"), PlayerOf(Duel).Metrics.Casts, 0);
+	bPass &= TestFalse(TEXT("nothing winding"), PlayerOf(Duel).Pending.IsSet());
+	bPass &= TestEqual(TEXT("flow stays 5"), PlayerOf(Duel).Water.Flow, 5);
+	bPass &= TestEqual(TEXT("no crest"), PlayerOf(Duel).Water.Crests, 0);
+	// Regen 7.5/60 = 0.125 minus ward drain 27/60 = 0.45 (derivation in TierAndCrest): no spell mana spent.
+	bPass &= Near(*this, TEXT("refused line spends no spell mana"), PlayerOf(Duel).Mana - Before, 0.125 - 0.45);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitKeysStrict, "MageArena.Defences.SplitKeysStrict",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitKeysStrict::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	const FString Source = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr")));
+	FString Overlay;
+	if (!FFileHelper::LoadFileToString(Overlay, *FPaths::Combine(Source, TEXT("combat.vr.json"))))
+	{
+		AddError(TEXT("combat.vr.json not readable"));
+		return false;
+	}
+	const FString Latch = TEXT("\"latchClearIdleS\": 0.3,");
+	const FString Bolt = TEXT("\"boltAtFullFlow\": true,");
+	bool bPass = TestTrue(TEXT("overlay has the latch key"), Overlay.Contains(Latch));
+	bPass &= TestTrue(TEXT("overlay has the bolt key"), Overlay.Contains(Bolt));
+
+	auto LoadWith = [&Source](const FString& Text, FVrRuleset& Out, FString& Error) -> bool
+	{
+		const FString Dir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("Automation"), TEXT("SplitKeys-") + FGuid::NewGuid().ToString());
+		IFileManager::Get().MakeDirectory(*Dir, true);
+		TArray<FString> Files;
+		IFileManager::Get().FindFiles(Files, *FPaths::Combine(Source, TEXT("*.json")), true, false);
+		for (const FString& File : Files)
+		{
+			IFileManager::Get().Copy(*FPaths::Combine(Dir, File), *FPaths::Combine(Source, File));
+		}
+		FFileHelper::SaveStringToFile(Text, *FPaths::Combine(Dir, TEXT("combat.vr.json")));
+		SetVrDataDirForTest(Dir);
+		const bool bOk = LoadVrRuleset(Out, Error, false);
+		SetVrDataDirForTest(FString());
+		IFileManager::Get().DeleteDirectory(*Dir, false, true);
+		return bOk;
+	};
+
+	{
+		FVrRuleset Rules;
+		FString Error;
+		const FString Text = Overlay.Replace(*Latch, TEXT("")).Replace(*Bolt, TEXT(""));
+		const bool bOk = LoadWith(Text, Rules, Error);
+		bPass &= TestTrue(*FString::Printf(TEXT("absent keys still load (%s)"), *Error), bOk);
+		bPass &= TestEqual(TEXT("absent latch key: ward drop only"), Rules.SplitLatchIdleTicks(), -1);
+		bPass &= TestFalse(TEXT("absent bolt key: refused at full flow"), Rules.Split.bBoltAtFullFlow);
+	}
+	{
+		FVrRuleset Rules;
+		FString Error;
+		bPass &= TestTrue(TEXT("unchanged overlay loads"), LoadWith(Overlay, Rules, Error));
+		bPass &= TestEqual(TEXT("copied overlay latch ticks"), Rules.SplitLatchIdleTicks(), 18);
+		bPass &= TestTrue(TEXT("copied overlay bolt flag"), Rules.Split.bBoltAtFullFlow);
+	}
+	{
+		FVrRuleset Rules;
+		FString Error;
+		const FString Text = Overlay.Replace(*Latch, TEXT("\"latchClearIdleS\": \"0.3\","));
+		bPass &= TestFalse(TEXT("a string latch fails the load"), LoadWith(Text, Rules, Error));
+		bPass &= TestTrue(*FString::Printf(TEXT("latch error names the key (%s)"), *Error), Error.Contains(TEXT("latchClearIdleS")));
+	}
+	{
+		FVrRuleset Rules;
+		FString Error;
+		const FString Text = Overlay.Replace(*Latch, TEXT("\"latchClearIdleS\": -0.3,"));
+		bPass &= TestFalse(TEXT("a negative latch fails the load"), LoadWith(Text, Rules, Error));
+	}
+	{
+		FVrRuleset Rules;
+		FString Error;
+		const FString Text = Overlay.Replace(*Bolt, TEXT("\"boltAtFullFlow\": 1,"));
+		bPass &= TestFalse(TEXT("a number for the bolt flag fails the load"), LoadWith(Text, Rules, Error));
+		bPass &= TestTrue(*FString::Printf(TEXT("bolt error names the key (%s)"), *Error), Error.Contains(TEXT("boltAtFullFlow")));
+	}
+	return bPass;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesTierAndCrest, "MageArena.Defences.TierAndCrest",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -497,11 +866,16 @@ bool FMageArenaDefencesTierAndCrest::RunTest(const FString& Parameters)
 		{
 			return false;
 		}
+		// T17: the live overlay now allows a split Bolt at full Flow (SplitBoltAtFullFlow). Without boltAtFullFlow, the
+		// rule before T17, the same Bolt is still refused for crest.
+		bPass &= TestTrue(TEXT("live overlay allows the bolt"), Duel.Rules.Split.bBoltAtFullFlow);
+		Duel.Rules.Split.bBoltAtFullFlow = false;
 		FInputFrame Raise = AimAt(Duel);
 		Raise.bAbsorb = true;
 		StepPlayer(Duel, Raise, &Duel.Rules);
 		PlayerOf(Duel).Water.Flow = static_cast<int32>(KernelData().FlowMax);
 		PlayerOf(Duel).Water.LastActivityTick = Duel.State.Tick;
+
 
 		FInputFrame Cast = AimAt(Duel);
 		Cast.bAbsorb = true;
