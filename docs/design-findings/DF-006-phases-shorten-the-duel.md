@@ -26,3 +26,9 @@ phases cost 0-4 s instead of adding length.
   the proposal at c1, and the climax gets a stage. VR overlay only.
 - **C. Named rivals at vigor rank 2** (max HP 110 instead of 95): longer by HP, every number else unchanged.
 - **D. Surge the player's collar only** on a break, not the rival's: changes the vision's "both collars".
+
+## Addendum 2026-10-07 (T21, the chained day)
+In the full Tiro day on the proposal, the seat wins Bouts 1-2 and then **loses Bout 3 to Brennic at 35.82 s**, carrying
+Bout 2's damage through the `betweenWaves` heal (30 % of missing HP). The standalone duel (fresh HP) is won at
+competence 1. Whatever lengthens the duel must also be measured in the chain, not only standalone. The day is 3.0 min
+with the teach against the plan's 7-10 min.
