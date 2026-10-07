@@ -237,4 +237,23 @@ bool FMageArenaKernelLoadNamesColumn::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelPinHash, "MageArena.Kernel.PinHash",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaKernelPinHash::RunTest(const FString& Parameters)
+{
+	const TMap<FString, FString> None;
+	const FKernelData First = LoadKernelDataWithOverrides(None);
+	if (!TestTrue(*FString::Printf(TEXT("loads with no override (%s)"), *First.Error), First.bReady))
+	{
+		return false;
+	}
+	TestTrue(TEXT("at least one pinned file was read"), First.PinFileCount > 0);
+	TestFalse(TEXT("the pin hash is not empty"), First.PinHash.IsEmpty());
+	const FKernelData Second = LoadKernelDataWithOverrides(None);
+	TestEqual(TEXT("a second load reads the same number of files"), Second.PinFileCount, First.PinFileCount);
+	TestEqual(TEXT("a second load gives the same hash"), Second.PinHash, First.PinHash);
+	return true;
+}
+
 #endif

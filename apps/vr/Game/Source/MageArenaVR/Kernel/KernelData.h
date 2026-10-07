@@ -206,6 +206,9 @@ struct FKernelData
 {
 	bool bReady = false;
 	FString Error;
+	// Files read by Load() and a SHA-1 chained over their text in read order (empty until a file is read).
+	int32 PinFileCount = 0;
+	FString PinHash;
 
 	double SimStepHz = 0.0;
 	double WalkMps = 0.0;

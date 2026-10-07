@@ -4,6 +4,8 @@
 #include "Internationalization/Regex.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "Misc/SecureHash.h"
+#include "MageArenaVR.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
@@ -41,6 +43,12 @@ bool LoadText(const FString& Path, FString& Out, FKernelData& Data)
 	{
 		Out.RemoveAt(0, 1, EAllowShrinking::No);
 	}
+	// Chain: hash = SHA1(previous hash text + this file's text), so the order of reads is part of the result.
+	const FTCHARToUTF8 Utf8(*(Data.PinHash + Out));
+	FSHAHash Hash;
+	FSHA1::HashBuffer(Utf8.Get(), Utf8.Length(), Hash.Hash);
+	Data.PinHash = Hash.ToString();
+	++Data.PinFileCount;
 	return true;
 }
 
@@ -1730,7 +1738,20 @@ const FFireSpell* FindFireSpell(const FString& Id)
 
 const FKernelData& KernelData()
 {
-	static const FKernelData Loaded = Load();
+	static const FKernelData Loaded = []()
+	{
+		FKernelData Data = Load();
+		const FString PinnedDir = PinnedPath(TEXT(""));
+		if (Data.bReady)
+		{
+			UE_LOG(LogMageArena, Log, TEXT("kernel data: pinned dir %s, %d files, SHA1 %s"), *PinnedDir, Data.PinFileCount, *Data.PinHash);
+		}
+		else
+		{
+			UE_LOG(LogMageArena, Error, TEXT("kernel data: not loaded (%s); expected pinned data in %s"), *Data.Error, *PinnedDir);
+		}
+		return Data;
+	}();
 	return Loaded;
 }
 
