@@ -6,6 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaGreyboxActor.generated.h"
 
+class UBudgetStressDriver;
 class UGreyboxCaptureDriver;
 
 /** Spawns the procedural greybox from the layout. Basic shapes only. */
@@ -46,6 +47,9 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UGreyboxCaptureDriver> Capture;
+
+	UPROPERTY()
+	TObjectPtr<UBudgetStressDriver> BudgetStress;
 
 	bool bStarted = false;
 };

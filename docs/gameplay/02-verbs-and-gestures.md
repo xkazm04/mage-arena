@@ -2,7 +2,7 @@
 title: Verbs and gestures
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - docs/DECISIONS.md
   - docs/PROJECT-PLAN.md
@@ -136,11 +136,12 @@ session always starts the player on the Rotation preset (`ArenaSession.cpp:240-2
 
 | Item | Value | Unit | Source |
 |---|---|---|---|
-| Draw style A (default) | pinch is the pen: down at ≥ 0.7, up below 0.5 | pinch | `SigilStrokeBuilder.h:65-71`, `PinchDown`, `PinchUp` |
+| Draw style A (default) | pinch is the pen: down at ≥ 0.7, up below 0.5 | pinch | `PinchDown`, `PinchUp`, `SigilStrokeBuilder.h:37-38` |
 | Draw style B | one stroke while the tip moves; 0.150 s still ends it | s | `StillGapSeconds` |
 | Loop test | start-end gap ≤ 0.40 of the path, or net turn ≥ 300 | ratio, deg | `ClosedStartEndRatio`, `LoopTurnDegrees` |
 | Minimum loop path | 25 | cm | `MinLoopPathCm` |
-| Inner stroke minimum | 0.34 × loop diagonal | ratio | `MinInnerStrokeRatio` |
+| Inner stroke minimum | 0.28 × loop diagonal, measured as the later stroke's reach (its bounding-box diagonal), not its path | ratio | `MinInnerStrokeRatio`, `SigilStrokeBuilder.h:60` and the comment block above it |
+| One-stroke tail minimum | 0.53 × loop diagonal, the reach of the tail after the loop closes | ratio | `InnerTailRatio`, `SigilStrokeBuilder.h:56` |
 | Bare circle wait before reject | 0.40 | s | `InnerWaitSeconds` |
 | Classifier | $Q point cloud, 32 points, 64 × 64 grid | - | `QPointCloudRecognizer.h:182-191` |
 | Reject distance | 26000 | $Q distance | `FQPointCloudRecognizer::DefaultRejectDistance` |

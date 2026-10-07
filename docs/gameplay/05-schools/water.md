@@ -2,7 +2,7 @@
 title: Water school (as built)
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - "docs/DECISIONS.md"
   - "docs/PROJECT-PLAN.md"
@@ -79,7 +79,7 @@ Tier clock, Flow and the cuff display are described in [03-tier-clock-and-flow.m
 
 ## Spell numbers by line and tier
 
-All rows are verbatim from `spells-water.csv` at pin `68a4d68`. Units: seconds, mana, HP, metres. "Blockable" maps to
+All rows are verbatim from `spells-water.csv` at pin `baeac66`. Units: seconds, mana, HP, metres. "Blockable" maps to
 the kernel family: `absorbable` = magic, `UNBLOCKABLE` = unblockable, `n/a` = no hit.
 
 ### Bolt (always on slot 0)

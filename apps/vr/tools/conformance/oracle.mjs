@@ -1,8 +1,8 @@
 // Runs the pinned TypeScript kernel and writes one JSON vector per scenario.
 // The C++ port replays `frames` and `ops`; it does not re-decide these inputs.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const outFlag = process.argv.indexOf('--out');
 if (outFlag < 0 || !process.argv[outFlag + 1]) {
@@ -10,7 +10,11 @@ if (outFlag < 0 || !process.argv[outFlag + 1]) {
   process.exit(1);
 }
 const outDir = process.argv[outFlag + 1];
-const cacheRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '.cache', 'kernel-68a4d68', 'packages', 'core', 'src', 'arena');
+if (!process.env.CONFORMANCE_KERNEL_CACHE) {
+  console.error('usage: run through generate.mjs, which sets CONFORMANCE_KERNEL_CACHE to the extracted kernel folder');
+  process.exit(1);
+}
+const cacheRoot = join(process.env.CONFORMANCE_KERNEL_CACHE, 'packages', 'core', 'src', 'arena');
 
 const kernel = await import(pathToFileURL(join(cacheRoot, 'kernel.ts')).href);
 const catalog = await import(pathToFileURL(join(cacheRoot, 'catalog.ts')).href);

@@ -2,7 +2,7 @@
 title: Body and space
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - docs/DECISIONS.md
   - docs/PROJECT-PLAN.md
@@ -63,7 +63,7 @@ behind) are met by where the build spawns enemies and by the camera yaw clamp; t
 | Clip space (hands) | same axes | centimetres | seated origin (clip hip), 0.62 m below and 0.08 m behind the eyes | `arena-layout.json#eyeAboveSeatedOriginM`, `#eyeForwardOfSeatedOriginM` |
 
 Kernel position = `playerSpawn` + (layout position − centre pad position). The shift is applied when the ruleset is built
-(`VrRules.cpp:786-789`) and when the session converts pads (`ArenaSession.cpp:560-572`, `PadKernel`).
+(`VrRulesLoad.cpp:572-575`, `LoadVrRuleset`) and when the session converts pads (`ArenaSession.cpp:560-572`, `PadKernel`).
 
 ## Arena and dais
 
@@ -75,7 +75,7 @@ Kernel position = `playerSpawn` + (layout position − centre pad position). The
 | Dais centre (box centre) | (−11.7, 0, 0.3) | m, layout | `arena-layout.json#dais.centreM` |
 | Dais size | 5.2 × 8.8 × 0.6 | m | `arena-layout.json#dais.sizeM` |
 | Dais top above sand | 0.6 | m | `arena-layout.json#dais.heightM` |
-| Dais no-entry half extent | 2.6 × 4.4 | m | `combat.vr.json#daisNoEntry.halfExtentM` (must equal half of `dais.sizeM`, checked at load, `VrRules.cpp:703-708`) |
+| Dais no-entry half extent | 2.6 × 4.4 | m | `combat.vr.json#daisNoEntry.halfExtentM` (must equal half of `dais.sizeM`, checked at load, `VrRulesLoad.cpp:489-494`) |
 | Standoff (hold line outside the footprint) | 0.6 | m | `combat.vr.json#daisNoEntry.standoffM` (must equal `dais.heightM`, checked at load) |
 | Dais footprint in kernel metres | x 5.7 to 10.9, y 5.6 to 14.4 | m, kernel | derived from the rows above |
 | Hold box in kernel metres | x 5.1 to 11.5, y 5.0 to 15.0 | m, kernel | derived (footprint expanded by standoff) |
@@ -86,7 +86,7 @@ Kernel position = `playerSpawn` + (layout position − centre pad position). The
 ### Floor versus dais (DF-001)
 
 - Every enemy body, listed in the overlay or not, is pushed back outside the hold box after each kernel step
-  (`FVrRuleset::KeepOut`, `VrRules.cpp:517-534`; called from `Games.cpp:247`).
+  (`FVrRuleset::KeepOut`, `VrRules.cpp:206-223`; called from `Games.cpp:247`).
 - Conscripts throw their spear instead of lunging (range 9 m, 14 m/s); slingers keep the pinned sling. Details and
   numbers: [07-enemies-and-ai.md](07-enemies-and-ai.md) and [04-threat-language.md](04-threat-language.md).
 - A thrower walks to the hold line during its pinned backoff window and holds there (`combat.vr.json#movement`).
@@ -118,7 +118,7 @@ The pad is a layout concept, not a kernel field (CR-001 asks the shared kernel f
 | Eye height above the active pad top | 1.2 | m | `arena-layout.json#seatedEyeHeightAbovePadM` |
 | Desktop camera horizontal FOV (wide) | 90 | deg | `arena-layout.json#cameraFovDeg` |
 | Initial look target | (0, 0, 0.9) | m, layout | `arena-layout.json#lookTargetM` |
-| Mouse-look yaw clamp around the pad facing | ±100 | deg | `arena-layout.json#mouseLook.yawLimitDeg`; `MageArenaPawn.cpp:287-290` |
+| Mouse-look yaw clamp around the pad facing | ±100 | deg | `arena-layout.json#mouseLook.yawLimitDeg`; `ClampLookRotation`, `MageArenaPawn.cpp:289-291` |
 | Pitch down / up | 32 / 18 | deg | `arena-layout.json#mouseLook.pitchDownDeg`, `#pitchUpDeg` |
 | Mouse sensitivity | 0.08 | deg/pixel | `arena-layout.json#mouseLook.sensitivityDegPerPixel` |
 
@@ -166,7 +166,7 @@ never forced.
 | Desktop camera FOV while on | 70 | deg | `combat.vr.json#narrowFov.cameraFovDeg`; `MageArenaPawn.cpp:159-160` |
 | How the player accepts | palm on the centre stone during the cold start | - | `strings.json#settings.offer.narrow`; `ArenaSession.cpp:489-558` |
 
-What the flag changes in the kernel (`VrRules.cpp:468-515`, `Games.cpp:78-85`, `Enemies.cpp:58`, `Enemies.cpp:436`,
+What the flag changes in the kernel (`VrRules.cpp:157-204`, `CompressToArc`, `KeepInView`, `Games.cpp:78-85`, `Enemies.cpp:58`, `Enemies.cpp:436`,
 `Fire.cpp:195`, `Fire.cpp:283-284`):
 
 - New enemy spawn positions are compressed to the arc (bearing clamped to ±40°, distance kept), then pushed out of the hold
@@ -210,7 +210,7 @@ Designed only, or differs from the plan:
 ## Open questions
 
 - Can an enemy end up behind the seated player in wide mode? `KeepOut` pushes a body to the nearest hold-box edge
-  (`VrRules.cpp:383-413`), and the back edge (kernel x = 5.1) is behind the centre pad (x = 8). A hound orbiting at
+  (`PushOutsideHold`, `VrRules.cpp:72-102`), and the back edge (kernel x = 5.1) is behind the centre pad (x = 8). A hound orbiting at
   `games.houndOrbitM` 3.5 m around the player would cross that edge. Not measured.
 - Should the VR overlay clamp enemy bodies to the visible 32 × 20 m sand, or should the greybox oval grow to match the
   kernel bound? Neither document states which is intended.

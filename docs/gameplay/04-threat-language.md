@@ -2,7 +2,7 @@
 title: Threat language
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified (none cited, or by symbol still valid)
 sources:
   - docs/DECISIONS.md
   - docs/PROJECT-PLAN.md

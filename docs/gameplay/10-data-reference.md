@@ -2,7 +2,7 @@
 title: Gameplay data reference
 channel: vr
 status: implemented
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources: [CLAUDE.md, docs/DECISIONS.md, docs/PROJECT-PLAN.md, apps/vr/data/README.md, docs/design-findings/DF-003-calibration-proposal.md, apps/vr/Game/Source/MageArenaVR/Kernel/KernelData.h, apps/vr/Game/Source/MageArenaVR/Kernel/KernelData.cpp, apps/vr/Game/Source/MageArenaVR/Combat/AbsorbResolver.cpp, apps/vr/Game/Source/MageArenaVR/Kernel/VrRules.h, apps/vr/Game/Source/MageArenaVR/Kernel/VrRules.cpp, apps/vr/Game/Source/MageArenaVR/Greybox/ArenaLayout.cpp, apps/vr/Game/Source/MageArenaVR/Hands/MageSettings.cpp, apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPawn.cpp, apps/vr/Game/Source/MageArenaVR/Session/SessionFlow.cpp, apps/vr/Game/Source/MageArenaVR/Tests/KernelConformanceTests.cpp, apps/vr/Game/Source/MageArenaVR/Tests/FireTests.cpp, apps/vr/tools/check-pin.mjs, apps/vr/tools/conformance/generate.mjs]
 data: [apps/vr/data/PINNED.json, apps/vr/data/pinned/**, apps/vr/data/vr/combat.vr.json, apps/vr/data/vr/arena-layout.json, apps/vr/data/vr/teach.json, apps/vr/data/vr/strings.json, apps/vr/data/vr/calibration-proposal.json, apps/vr/data/scenarios-vr/*.json, apps/vr/data/conformance/*.json]
 ---
@@ -10,7 +10,7 @@ data: [apps/vr/data/PINNED.json, apps/vr/data/pinned/**, apps/vr/data/vr/combat.
 # Gameplay data reference
 
 The VR build reads two kinds of gameplay data. **Pinned data** (`apps/vr/data/pinned/**`, nine files) is a byte copy of
-commit `68a4d68` of `kiro/mage-arena` (worktree `mage-arena-arena`, branch `arena`), owned by the desktop/TV channel and
+commit `baeac66` of `kiro/mage-arena-tv` (it was `68a4d68` on the `arena` branch before the 2026-10-07 history rewrite; the bytes are unchanged), owned by the desktop/TV channel and
 its calibrated simulator; it is never edited here, and a change is a change request to that project followed by a
 re-pin. **VR overlay data** (`apps/vr/data/vr/*.json`) is owned by this repo and holds everything a seated VR player
 needs that the shared rules do not: the arena layout and pads, the threat-geometry overlay, the seated defences,
@@ -18,13 +18,13 @@ comfort settings, the teach and the prompt strings. Two test-data folders comple
 generated from the TypeScript oracle; they prove the C++ port) and `scenarios-vr/` (the C++ kernel's own reference for
 Fire, which the TS kernel does not have). The calibration proposal in the overlay folder is **not live**.
 
-## Pinned data (owner: `kiro/mage-arena`, commit `68a4d68`)
+## Pinned data (owner: `kiro/mage-arena-tv`, commit `baeac66`)
 
 ### Manifest and gate
 
 | File | Purpose | Keys | How it is checked |
 |---|---|---|---|
-| `apps/vr/data/PINNED.json` | manifest of the pin | `source`, `commit` (`68a4d68d315856c89339d331ac0db7f4784d566f`), `copied` (2026-10-02), `files[]` (`path`, `sha256`, `bytes`) | `node apps/vr/tools/check-pin.mjs` (also `--source <repo>` byte compare, `--self-test`) |
+| `apps/vr/data/PINNED.json` | manifest of the pin | `source`, `commit` (`baeac6641790dcf526ec6d3bde35985553f84028`), `copied` (2026-10-02), `files[]` (`path`, `sha256`, `bytes`) | `node apps/vr/tools/check-pin.mjs` (also `--source <repo>` byte compare, `--self-test`) |
 | `apps/vr/data/README.md` | the pin rules and the re-pin procedure | - | - |
 
 At load the kernel logs `kernel data: pinned dir <dir>, <n> files, SHA1 <hash>`, a SHA-1 chained over the text of each
@@ -132,7 +132,7 @@ only, owner signs off). The loaders validate shape and ranges; a failed load sto
 
 ### `apps/vr/data/vr/combat.vr.json`
 
-Loaded by `LoadVrRuleset` (`VrRules.cpp:654` onward) at every bout start and by `FMageSettings` for the narrow-view
+Loaded by `LoadVrRuleset` (`VrRulesLoad.cpp:440` onward) at every bout start and by `FMageSettings` for the narrow-view
 numbers. Units: metres, seconds, mana, degrees. Applied only when a session passes the ruleset into `TryCreateGames`;
 the conformance path passes null.
 
@@ -201,7 +201,7 @@ One table for later localisation.
 | Item | Value |
 |---|---|
 | Status | written by the T12 seated census (set `wide`); **not signed off**; DF-003 is an open owner decision |
-| Applied | only when `-MageArenaProposal` is on the command line or the environment variable `MageArenaProposal` is `1` or `true` (`VrRules.cpp:536-545`); then `ApplyProposal` (`VrRules.cpp:590-652`) overrides the overlay after `combat.vr.json` loads |
+| Applied | only when `-MageArenaProposal` is on the command line or the environment variable `MageArenaProposal` is `1` or `true` (`VrRulesLoad.cpp:321-329`); then `ApplyProposal` (`VrRulesLoad.cpp:375-432`) overrides the overlay after `combat.vr.json` loads |
 | `knobs.wave` | `conscriptCount` -1, `slingerCount` -1 (-1 = keep the pinned count; integer -1 to 8), `spawnDelayS` 0 |
 | `knobs.pressure` | `attackCadence` 1, `enemyDamage` 1, `fireMageDamage` 1 (multipliers, 0-3) |
 | `knobs.power` | `boltDamage` 1, `lineDamage` 1, `manaRegen` 1.25 (player only) |
@@ -220,7 +220,7 @@ Style skins `style-13.json`, `style-25.json`, `style-30.json` for the T16 style-
 
 | Item | Value |
 |---|---|
-| Owner | generated, never hand-edited: `node apps/vr/tools/conformance/generate.mjs` runs the TypeScript oracle at the pinned commit (`MAGE_ARENA_ARENA`, default `C:/Users/kazda/kiro/mage-arena-arena`) |
+| Owner | generated, never hand-edited: `node apps/vr/tools/conformance/generate.mjs` runs the TypeScript oracle at the pinned commit (`MAGE_ARENA_ARENA`, default `C:/Users/kazda/kiro/mage-arena-tv`) |
 | Loaded by | `Tests/KernelConformanceTests.cpp:23` (`MageArena.*` suite) |
 | Keys | `name`, `note`, `seed`, `driver` (`arena` 32, `games` 7, `training` 4, `mage` 1, `enemies` 1), `trainingKind`, `checkpointEvery`, `tolerance` (relative 1e-6, absolute 1e-9), `ticks`, `replaySetup`, `setup` (actors, ranks, compositions), `frames`, `ops`, `events`, `checkpoints`, and `games` for games-driven vectors |
 | Rule | must regenerate byte-identically; the VR overlay is never passed on this path (rules null) |

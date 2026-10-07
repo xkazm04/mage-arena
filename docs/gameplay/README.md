@@ -2,7 +2,7 @@
 title: Gameplay (VR channel)
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07); commits up to 75b5cc4 checked, they change only the blink vignette, a capture and a research doc
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources:
   - "docs/DECISIONS.md"
   - "docs/PROJECT-PLAN.md"
@@ -14,7 +14,7 @@ sources:
 # Gameplay - VR channel
 
 This folder is the structured, as-built reference for how the VR channel of Mage Arena plays: a seated, hands-first
-spell duel on a raised dais. It documents the VR channel only. The TV/PC channel (`kiro/mage-arena`) plays differently
+spell duel on a raised dais. It documents the VR channel only. The TV/PC channel (`kiro/mage-arena-tv`) plays differently
 (walking, mouse and keyboard, a six-week season) and is mentioned only where VR deliberately diverges from the shared,
 pinned combat data. The campaign and story side is in [`../campaign/`](../campaign/README.md).
 
@@ -26,7 +26,7 @@ says `status: proposed`.
 
 1. `docs/DECISIONS.md` - owner decisions, newest first. They outrank everything below.
 2. Code (`apps/vr/Game/Source/MageArenaVR/`) and data: the VR overlay `apps/vr/data/vr/*.json`, and the pinned shared data
-   `apps/vr/data/pinned/**`, which is owned by `kiro/mage-arena` and never edited here (see `apps/vr/data/README.md`).
+   `apps/vr/data/pinned/**`, which is owned by `kiro/mage-arena-tv` and never edited here (see `apps/vr/data/README.md`).
 3. These pages.
 4. `docs/PROJECT-PLAN.md` section 6. It is partly superseded; the pages name each superseded statement.
 5. The records behind them: `docs/design/`, `docs/design-findings/DF-*`, `docs/change-requests/CR-*`, `apps/vr/tasks/T*`.
@@ -86,4 +86,4 @@ The pages give the detail and the code locations. These are the ones a reviewer 
 ## Maintenance
 
 - When code or data changes a documented rule, update the page in the same commit and move `verified-against`.
-- A change to pinned data is a change request to `kiro/mage-arena` (`docs/change-requests/`), never an edit here.
+- A change to pinned data is a change request to `kiro/mage-arena-tv` (`docs/change-requests/`), never an edit here.

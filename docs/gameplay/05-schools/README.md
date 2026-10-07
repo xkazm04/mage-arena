@@ -2,7 +2,7 @@
 title: Schools overview
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified (none cited, or by symbol still valid)
 sources: [docs/DECISIONS.md, docs/PROJECT-PLAN.md, docs/schools/FIRE.md, docs/design/SCHOOL-DEFENCES.md, docs/change-requests/CR-002-fire-school.md, apps/vr/Game/Source/MageArenaVR/Kernel/Catalog.cpp, apps/vr/Game/Source/MageArenaVR/Kernel/Games.cpp, apps/vr/Game/Source/MageArenaVR/Session/SessionFlow.cpp, apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.cpp]
 data: [apps/vr/data/pinned/docs/design/baseline-fourteen-nights/design/data/schools.json (schools), apps/vr/data/pinned/docs/design/baseline-fourteen-nights/design/data/spells-water.csv, apps/vr/data/pinned/docs/design/reference-the-ledger/design/data/spells-fire.csv, apps/vr/data/pinned/packages/core/src/arena/data/runtime.json (water.presets, games.opponentPresets), apps/vr/data/pinned/docs/design/baseline-fourteen-nights/design/data/combat.json (lines)]
 ---

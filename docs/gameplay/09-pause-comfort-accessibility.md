@@ -2,7 +2,7 @@
 title: Pause, comfort and accessibility
 channel: vr
 status: partial
-verified-against: 46643e2 (2026-10-07)
+verified-against: 1fb1b8b (2026-10-07); anchors into files changed since 46643e2 re-verified
 sources: [docs/DECISIONS.md, docs/PROJECT-PLAN.md, docs/DESKTOP-INPUT.md, apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.h, apps/vr/Game/Source/MageArenaVR/Session/ArenaSession.cpp, apps/vr/Game/Source/MageArenaVR/Session/SessionFlow.cpp, apps/vr/Game/Source/MageArenaVR/Session/SessionPresentation.cpp, apps/vr/Game/Source/MageArenaVR/Session/SettingsCapture.cpp, apps/vr/Game/Source/MageArenaVR/Hands/MageSettings.h, apps/vr/Game/Source/MageArenaVR/Hands/MageSettings.cpp, apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPawn.cpp, apps/vr/Game/Source/MageArenaVR/Hands/MageArenaPlayerController.cpp, apps/vr/Game/Source/MageArenaVR/Kernel/VrRules.h, apps/vr/Game/Source/MageArenaVR/Kernel/Enemies.cpp, apps/vr/Game/Source/MageArenaVR/Kernel/Fire.cpp, apps/vr/Game/Source/MageArenaVR/Gestures/WardDetector.h, apps/vr/tasks/T13-teach-and-pause.md, apps/vr/tasks/T14-left-hand-narrow-fov-gentle.md, apps/vr/tasks/BACKLOG.md]
 data: [apps/vr/data/vr/teach.json (trackingLossS, resumeStepSeconds, resumeStepCount, offerHoldS), apps/vr/data/vr/strings.json (pause, resume.*, settings.*), apps/vr/data/vr/combat.vr.json (narrowFov, gentle), apps/vr/data/vr/arena-layout.json (blink, mouseLook, cameraFovDeg, threats, spawnArc)]
 ---
@@ -120,7 +120,7 @@ Gentle does **not** lengthen Water-proxy mage spell telegraphs (`Water.cpp` `Try
 | Rule | Build | Source |
 |---|---|---|
 | Locomotion | none; the player is pinned to the active pad every tick | `ArenaSession.cpp` `SeatOnActivePad` |
-| Blink | camera fade to black 0.12 s, snap to the pad, fade in 0.2 s, with a vignette ramp to 1.15 | `arena-layout.json` `blink.fadeOutS`, `fadeInS`, `vignettePeak`; `MageArenaPawn.cpp` (at 46643e2 a post-process `VignetteIntensity`) |
+| Blink | camera fade to black 0.12 s, snap to the pad, fade in 0.2 s, with a vignette ramp to 1.15. The vignette is four black quads attached to the camera, not a post-process: they frame a clear opening that closes from 65 deg to 15 deg half-angle (square-root ramp) as opacity rises to 1 | `arena-layout.json` `blink.fadeOutS`, `fadeInS`, `vignettePeak`; `MageArenaPawn.cpp` `SetVignette`, `VignetteAperture`, `UpdateVignetteQuads`; `MageArenaPawn.h` `VignetteQuads` |
 | Threats from behind | none; spawn markers within +-70 deg of the centre pad's forward | `arena-layout.json` `spawnArc.limitDeg` |
 | Desktop mouse look | yaw +-100 deg around the pad facing; pitch -32 / +18 deg; frozen while a mouse button is down | `arena-layout.json` `mouseLook` |
 | Prompts | a plaque in the world, 220 cm ahead of and 162 cm above the active pad | `SessionPresentation.cpp:650-680` |

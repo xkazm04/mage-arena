@@ -21,7 +21,11 @@ const manifestPath = join(vrRoot, 'data', 'PINNED.json');
 const pinnedDir = join(vrRoot, 'data', 'pinned');
 const outDir = join(vrRoot, 'data', 'conformance');
 const sourceRepo = process.env.MAGE_ARENA_ARENA || 'C:/Users/kazda/kiro/mage-arena-tv';
-const tsxCli = join(sourceRepo, 'packages/core/node_modules/tsx/dist/cli.mjs');
+const tsxCandidates = [
+  process.env.TSX_CLI,
+  join(sourceRepo, 'packages/core/node_modules/tsx/dist/cli.mjs'),
+  join(sourceRepo, 'node_modules/tsx/dist/cli.mjs'),
+].filter(Boolean);
 
 const compilerReads = [
   'docs/design/baseline-fourteen-nights/design/data/combat.json',
@@ -59,14 +63,19 @@ function runBuffer(cmd, args) {
 }
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-if (!String(manifest.commit).startsWith('68a4d68')) {
-  fail(`PINNED.json commit ${manifest.commit} is not 68a4d68`);
+if (!/^[0-9a-f]{40}$/.test(String(manifest.commit))) {
+  fail(`PINNED.json commit "${manifest.commit}" is not a full 40-hex SHA (TV repo ${sourceRepo})`);
 }
 const expected = new Map(manifest.files.map((file) => [file.path, file]));
-if (!existsSync(tsxCli)) fail(`tsx not found at ${tsxCli}`);
+const tsxCli = tsxCandidates.find((path) => existsSync(path));
+if (!tsxCli) fail(`tsx not found; tried:${tsxCandidates.map((path) => `\n  ${path}`).join('')}`);
 if (!existsSync(join(sourceRepo, '.git'))) fail(`source repo not found: ${sourceRepo}`);
+if (spawnSync('git', ['-C', sourceRepo, 'cat-file', '-e', `${manifest.commit}^{commit}`]).status !== 0) {
+  fail(`PINNED.json commit ${manifest.commit} does not exist in the TV repo ${sourceRepo}`);
+}
 
-const cacheRoot = join(vrRoot, '.cache', 'kernel-68a4d68');
+const cacheName = `kernel-${manifest.commit.slice(0, 7)}`;
+const cacheRoot = join(vrRoot, '.cache', cacheName);
 rmSync(cacheRoot, { recursive: true, force: true });
 mkdirSync(cacheRoot, { recursive: true });
 
@@ -113,5 +122,8 @@ console.log('Compiler read the pinned combat, spells, stats, enemies, tiers and 
 
 mkdirSync(outDir, { recursive: true });
 const oracle = join(toolsDir, 'oracle.mjs');
-run(process.execPath, [tsxCli, oracle, '--out', outDir], { cwd: vrRoot });
+run(process.execPath, [tsxCli, oracle, '--out', outDir], {
+  cwd: vrRoot,
+  env: { ...process.env, CONFORMANCE_KERNEL_CACHE: cacheRoot },
+});
 console.log('Conformance vectors written.');
