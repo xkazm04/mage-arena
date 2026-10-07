@@ -397,7 +397,7 @@ bool FMageArenaKernelStateHashFieldGuard::RunTest(const FString& Parameters)
 {
 	// The perturbation list above is written by hand, so a field added to one of these structs is in neither it nor the hash
 	// until someone adds it. These sizes change when a field is added or removed. When one fails: add the field to the
-	// matching Mix function in ArenaKernel.cpp and to the case list in this file (or to the presentation-only list in both),
+	// matching Mix function in StateHash.cpp and to the case list in this file (or to the presentation-only list in both),
 	// then update the number. Win64 editor sizes, which is where this suite runs.
 	TestEqual(TEXT("sizeof(FActor): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FActor)), 1096);
 	TestEqual(TEXT("sizeof(FProjectile): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FProjectile)), 240);
