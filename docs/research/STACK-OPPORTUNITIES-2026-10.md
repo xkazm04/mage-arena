@@ -64,6 +64,8 @@ Short paths resolve as follows:
 
 ### F1. Target SDK 32 cannot be uploaded for an app created after 2026-03-01
 
+- **Status:** applied 2026-10-07, before `TargetSDKVersion=32`, after `TargetSDKVersion=34`; APK proof pending the engine's Android component.
+
 - **Upstream statements:**
   - Meta's Android 14 post (Nov 24, 2025, updated February 6, 2026):
     "Starting March 1, 2026, all new Meta Horizon apps created in the Developer Dashboard are required to target Android

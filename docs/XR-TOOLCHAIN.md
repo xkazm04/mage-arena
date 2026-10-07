@@ -116,16 +116,16 @@ Project Android settings (not reached by this package, because UBT died first) i
 
 - `PackageName=com.magearena.vr`, `bPackageForMetaQuest=True`
 - arm64 only, Vulkan on, Vulkan SM5 off, `bBuildForES31=False`, ASTC, data inside the APK
-- `MinSDKVersion=32`, `TargetSDKVersion=32`
+- `MinSDKVersion=32`, `TargetSDKVersion=34`
 - `XrApi=NativeOpenXR`, `HandTrackingSupport=ControllersAndHands`, `HandTrackingFrequency=LOW`, `HandTrackingVersion=Default`, `+SupportedDevices=Quest3`
 
 `ControllersAndHands` is the v207 setting that makes `OculusMobile_APL.xml` add `com.oculus.permission.HAND_TRACKING` and `oculus.software.handtracking` (`android:required` false unless the mode is `HandsOnly`). The APL's `contains="Quest"` also matches the string `Quest3`, so the manifest is expected to carry the legacy token `quest` as well as `quest3`. The plugin was not patched. A draft `ExtraApplicationSettings` line that named quest2, questpro, quest3, and quest3s was removed, because the APL merges any existing `com.oculus.supportedDevices` value into that tag.
 
 `apps/vr/Game/Config/Android/AndroidEngine.ini` sets `vr.MobileMultiView=1`, `r.Mobile.MultiView=1`, and `r.Mobile.ShadingPath=0` (the packaged-5.8-sample note from the task card). Desktop `r.ForwardShading` stays true.
 
-If the next package, after the engine component is installed, fails on the renderer or the SDK level, the fallbacks to try are `bBuildForES31=True` and `TargetSDKVersion=36`. Those were not changed ahead of a failure that has not been seen.
+If the next package, after the engine component is installed, fails on the renderer or the SDK level, the fallback to try is `bBuildForES31=True`. It was not changed ahead of a failure that has not been seen. Do not raise `TargetSDKVersion` to 36 (the engine default since 5.8.2) and do not leave it blank: 34 is the target Meta requires for new apps and the cap for immersive apps (allowed range 32-34 immersive, 32-36 for 2D), see https://developers.meta.com/horizon/resources/publish-mobile-manifest/.
 
-`package-android.ps1` treats an APK as success only when `aapt dump badging` / permissions show `arm64-v8a`, `com.oculus.permission.HAND_TRACKING`, and `oculus.software.handtracking`.
+`package-android.ps1` treats an APK as success only when `aapt dump badging` / permissions show `arm64-v8a`, `com.oculus.permission.HAND_TRACKING`, and `oculus.software.handtracking`, and the badging shows `targetSdkVersion:'34'`.
 
 ## Simulator boot
 

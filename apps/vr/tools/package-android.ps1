@@ -134,9 +134,12 @@ $ErrorActionPreference = 'Stop'
 $hasArm = $markerText -match 'arm64-v8a'
 $hasPermission = $markerText -match 'com\.oculus\.permission\.HAND_TRACKING'
 $hasFeature = $markerText -match 'oculus\.software\.handtracking'
+# Meta refuses an upload below 34 and the immersive cap is 34, so the badging must say exactly 34.
+$hasTargetSdk = $markerText -match "targetSdkVersion:'34'"
 Write-Host ("MARKER_ARM64=" + $(if ($hasArm) { 'yes' } else { 'no' }))
 Write-Host ("MARKER_HAND_PERMISSION=" + $(if ($hasPermission) { 'yes' } else { 'no' }))
 Write-Host ("MARKER_HAND_FEATURE=" + $(if ($hasFeature) { 'yes' } else { 'no' }))
+Write-Host ("MARKER_TARGET_SDK_34=" + $(if ($hasTargetSdk) { 'yes' } else { 'no' }))
 
 $markerLog = Join-Path $LogDir 'apk-markers.txt'
 @(
@@ -147,11 +150,12 @@ $markerLog = Join-Path $LogDir 'apk-markers.txt'
     "MARKER_ARM64=$(if ($hasArm) { 'yes' } else { 'no' })"
     "MARKER_HAND_PERMISSION=$(if ($hasPermission) { 'yes' } else { 'no' })"
     "MARKER_HAND_FEATURE=$(if ($hasFeature) { 'yes' } else { 'no' })"
+    "MARKER_TARGET_SDK_34=$(if ($hasTargetSdk) { 'yes' } else { 'no' })"
     ''
     $markerText
 ) | Set-Content -LiteralPath $markerLog -Encoding UTF8
 
-if ($hasArm -and $hasPermission -and $hasFeature) {
+if ($hasArm -and $hasPermission -and $hasFeature -and $hasTargetSdk) {
     Write-Host 'MARKER_RESULT=PASS'
     exit 0
 }
