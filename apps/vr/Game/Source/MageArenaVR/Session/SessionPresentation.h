@@ -54,6 +54,8 @@ private:
 		TObjectPtr<UStaticMeshComponent> Mesh;
 		TObjectPtr<UStaticMeshComponent> Rim;
 		TArray<TObjectPtr<UStaticMeshComponent>> Beads;
+		// A hound ember gathering at the mouth during the spit windup (or where a hound died, for the death ember).
+		TObjectPtr<UStaticMeshComponent> Glow;
 	};
 
 	struct FFlash

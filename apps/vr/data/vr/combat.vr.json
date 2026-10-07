@@ -53,6 +53,34 @@
       "mode": "unchanged",
       "attackId": "sling_stone",
       "_note": "sling_stone stays pinned: damage 7, windupS 0.5, cooldownS 2.2, projectileMps 14, keepDistanceM [8, 10]. No field is replaced. The dais no-entry still applies if a strafe would step onto the stone."
+    },
+    {
+      "enemyId": "cinder_hound",
+      "mode": "spit",
+      "attackId": "bite",
+      "family": "magic",
+      "tier": 0,
+      "damage": 5,
+      "windupS": 0.6,
+      "projectileMps": 7,
+      "rangeM": 9,
+      "deathEmber": true,
+      "_about": "Owner decision 2026-10-07, DF-004 option A (docs/DECISIONS.md). From the seat no hound death burst (radius 1.5 m) reaches the player, so the hounds hold at the dais hold line like a thrower (CR-003 steering) and spit a slow, telegraphed magic ember instead of biting. The pinned bite row is not edited and keeps its recoveryS 0.4. A VR overlay attack until the TV change request lands.",
+      "_family": "The pinned onDeath ember_burst family. Magic, so a ward takes combat.json absorb.reduction.magic 0.85 off it and a fresh raise inside absorb.perfect.windowS 0.15 perfects it.",
+      "_tier": "The pinned ember_burst tier 0. A tier-0 perfect returns 4 mana (combat.json absorb.perfect.manaReturned).",
+      "_damage": "The pinned ember_burst damage 5. Not a new number.",
+      "_windupS": "Above the combat.json reactionBands.minimumTelegraphPositionalS floor of 0.40 s, and the pinned ember_burst delayS 0.6, so the spit telegraph reads as long as the burst does.",
+      "_projectileMps": "Half the 14 m/s steel speed (pinned sling_stone projectileMps, the thrown spear's speed), so the ember reads as slow and the perfect window has room. From the hold line to the centre pad (about 3.5 m) it flies about 0.5 s.",
+      "_rangeM": "The thrower reach from CR-003 (conscript throw rangeM 9): the longest line from the front lip of the hold box to a pad is about 8.6 m.",
+      "_deathEmber": "A dying hound throws one last ember with these numbers from where it died, after the pinned ember_burst delayS 0.6. The pinned 1.5 m area burst still happens unchanged.",
+      "replaces": [
+        {
+          "field": "bite",
+          "pinned": "physical 6, windupS 0.35, melee",
+          "overlay": "magic 5, windupS 0.6, projectile 7 m/s, range 9 m",
+          "why": "The bite is melee and DF-001 option A keeps every body off the dais, so it never reaches the seat (DF-004)."
+        }
+      ]
     }
   ],
 
@@ -61,7 +89,7 @@
     "_throwerClosesToLip": "The conscript ready delay is unchanged: windupS 0.6 + recoveryS 0.5, then the behaviour text 'back off 1 s'. runtime.json conscriptBackoffM stays 3. While that delay runs and the player is farther than 3 m, the kernel stands still. A thrower instead keeps walking to the hold line, then holds. The delay before the next throw is the pinned one. Unlisted enemy ids keep their pinned attack; the dais no-entry still rejects their bodies."
   },
 
-  "_unlisted": "An enemy id with no entry keeps its pinned attack. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM.",
+  "_unlisted": "An enemy id with no entry keeps its pinned attack. A spit is accepted for cinder_hound only; any other enemy with mode spit fails the load. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM.",
 
   "splitHands": {
     "oneHandPower": 0.6,

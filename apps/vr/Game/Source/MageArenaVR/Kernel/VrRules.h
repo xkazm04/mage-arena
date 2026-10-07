@@ -2,6 +2,7 @@
 
 #include "Kernel/SimTypes.h"
 
+struct FAttackSpec;
 struct FSpell;
 
 // VR combat overlay. Absent means the pinned kernel. Session creation is the only caller that passes one.
@@ -20,13 +21,26 @@ struct FVrAabb
 struct FVrAttackMode
 {
 	FString EnemyId;
+	// A ranged overlay attack that holds at the dais hold line (CR-003 steering). True for a throw and for a spit.
 	bool bThrow = false;
 	double ProjectileMps = 0.0;
 	double RangeM = 0.0;
 	double ArcApexM = 0.0;
 	double SpearLengthM = 0.0;
 	double SpearRadiusM = 0.0;
+	// DF-004 option A. A spit replaces the melee row's family, tier, damage and windup as well as speed and range.
+	// Recovery stays on the pinned row.
+	bool bSpit = false;
+	FString Family;
+	int32 Tier = 0;
+	double Damage = 0.0;
+	double WindupS = 0.0;
+	// A dying spitter throws one ember with the spit numbers after the pinned onDeath delay.
+	bool bDeathEmber = false;
 };
+
+// Copies an overlay mode onto a local attack row. The pinned row is never written. A throw sets speed and range only.
+void VrApplyAttackMode(const FVrAttackMode& Mode, FAttackSpec& Attack);
 
 struct FVrSplitHands
 {
@@ -198,6 +212,8 @@ struct FVrRuleset
 	FVrRivalRuntime RivalRuntime;
 
 	const FVrAttackMode* FindThrow(const FString& EnemyId) const;
+	// The spit mode for this enemy id, or null. A spit is also returned by FindThrow.
+	const FVrAttackMode* FindSpit(const FString& EnemyId) const;
 	FVrAabb HoldBox() const;
 	bool InsideDais(const FSimVec& Point) const;
 	bool InsideHold(const FSimVec& Point) const;

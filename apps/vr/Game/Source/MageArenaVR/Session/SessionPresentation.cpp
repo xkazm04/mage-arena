@@ -83,6 +83,40 @@ FLinearColor FamilyColour(const FString& Family, bool bPlayerOwned)
 	}
 	return SteelColour;
 }
+
+// DF-004 option A. A magic shot or telegraph owned by an enemy whose overlay attack is a spit (a cinder hound ember).
+bool IsHoundEmber(const FGames& Games, const FVrRuleset* Rules, int32 OwnerId, const FString& Family)
+{
+	if (!Rules || !Rules->bActive || Family != TEXT("magic"))
+	{
+		return false;
+	}
+	const FActor* Owner = SimFindActor(Games.State, OwnerId);
+	return Owner && Owner->Enemy.IsSet() && Rules->FindSpit(Owner->Enemy->Id) != nullptr;
+}
+
+// Beads ring a magic threat only while a fresh raise would still perfect it: combat.json absorb.perfect.windowS.
+bool InsidePerfectWindow(double SecondsToHit)
+{
+	return SecondsToHit >= 0.0 && SecondsToHit <= KernelData().Absorb.WindowS + 1.0e-9;
+}
+
+// The ward and the dome both take hits at the body. An ember is judged when it touches the player's body.
+double SecondsToContact(const FProjectile& Projectile, const FActor& Player)
+{
+	const double Speed = SimLength(Projectile.Velocity);
+	if (Speed < 0.1)
+	{
+		return -1.0;
+	}
+	const FSimVec Direction = SimUnit(Projectile.Velocity);
+	const double Along = SimDot(SimSub(Player.Pos, Projectile.Pos), Direction);
+	if (Along < 0.0)
+	{
+		return -1.0;
+	}
+	return FMath::Max(0.0, Along - Player.Radius - Projectile.Radius) / Speed;
+}
 }
 
 ASessionPresentation::ASessionPresentation()
@@ -188,6 +222,11 @@ ASessionPresentation::FRing& ASessionPresentation::RingFor(int32 Id)
 	{
 		Created.Beads.Add(MakePart(TEXT("Cube"), FLinearColor::White));
 	}
+	Created.Glow = MakePart(TEXT("Sphere"), WaterColour);
+	if (Created.Glow)
+	{
+		Created.Glow->SetVisibility(false);
+	}
 	return Created;
 }
 
@@ -262,6 +301,10 @@ void ASessionPresentation::HideUnused(const TSet<int32>& LiveIds, double Now, bo
 			for (auto Bead : Ring.Beads)
 			{
 				if (Bead) Bead->SetVisibility(false);
+			}
+			if (Ring.Glow)
+			{
+				Ring.Glow->SetVisibility(false);
 			}
 		}
 	}
@@ -1296,6 +1339,44 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 
 	const FVrRuleset* Rules = Session.GetVrRules();
 	const FVrAttackMode* SpearMode = Rules ? Rules->FindThrow(TEXT("conscript")) : nullptr;
+	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
+	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
+	{
+		if (!Mesh || !Shape)
+		{
+			return;
+		}
+		if (Mesh->GetStaticMesh() != Shape)
+		{
+			Mesh->SetStaticMesh(Shape);
+			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
+		}
+	};
+	// Ground beads for the perfect cue, centred on At at RadiusCm. Hidden unless bShow.
+	auto PlaceBeads = [](FRing& Ring, bool bShow, const FVector& At, double RadiusCm)
+	{
+		const int32 RingCount = Ring.Beads.Num();
+		for (int32 Index = 0; Index < RingCount; ++Index)
+		{
+			UStaticMeshComponent* Bead = Ring.Beads[Index];
+			if (!Bead)
+			{
+				continue;
+			}
+			Bead->SetVisibility(bShow);
+			if (!bShow)
+			{
+				continue;
+			}
+			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
+			const FVector Radial(FMath::Cos(Angle), FMath::Sin(Angle), 0.0);
+			const FVector Tangent = FVector(-Radial.Y, Radial.X, 0.0);
+			Bead->SetWorldLocation(At + Radial * RadiusCm + FVector(0.0, 0.0, 2.0));
+			Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+			Greybox::SetSized(Bead, FVector(8.0, 10.0, 12.0));
+		}
+	};
 	for (const FProjectile& Projectile : Games.State.Projectiles)
 	{
 		const bool bPlayerOwned = Projectile.OwnerId == Games.PlayerId;
@@ -1351,11 +1432,77 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		else
 		{
 			At.Z += 120.0;
+			// DF-004 option A. A hound ember is magic: an unlit ball in the magic colour at its collider size, a shrinking
+			// magic ring where it will land, and a ring of perfect beads around the ball only while a fresh ward would
+			// still perfect it.
+			const bool bEmber = !bPlayerOwned && Projectile.bHasAim && IsHoundEmber(Games, Rules, Projectile.OwnerId, Projectile.Family);
 			if (Shot.Mesh)
 			{
 				const float Diameter = FMath::Max(18.f, static_cast<float>(Projectile.Radius * 200.0));
 				Greybox::SetSized(Shot.Mesh, FVector(Diameter));
 				Shot.Mesh->SetWorldRotation(FRotator::ZeroRotator);
+			}
+			if (bEmber)
+			{
+				FRing& Ring = RingFor(Projectile.Id);
+				LiveRings.Add(Projectile.Id);
+				const FLinearColor Magic = FamilyColour(Projectile.Family, false);
+				UseMesh(Ring.Mesh, CylinderMesh, Magic);
+				const double Span = FMath::Max(SimDistance(Projectile.OriginPos, Projectile.AimedAt), 1.0e-4);
+				const double Progress = FMath::Clamp(SimDistance(Projectile.OriginPos, Projectile.Pos) / Span, 0.0, 1.0);
+				// Continue the windup ring: the windup used the first WindupS / (WindupS + flight) of the shrink.
+				const FActor* Spitter = SimFindActor(Games.State, Projectile.OwnerId);
+				const FVrAttackMode* Spit = Spitter && Spitter->Enemy.IsSet() ? Rules->FindSpit(Spitter->Enemy->Id) : nullptr;
+				const double WindupS = Spit ? Spit->WindupS : 0.0;
+				const double FlightS = Span / FMath::Max(SimLength(Projectile.Velocity), 0.1);
+				const double Start = WindupS / FMath::Max(WindupS + FlightS, 1.0e-6);
+				const double RadiusCm = FMath::Lerp(150.0, 28.0, Start + (1.0 - Start) * Progress);
+				FVector Ground = Session.KernelToUnrealCm(Projectile.AimedAt);
+				Ground.Z += 4.0;
+				if (Ring.Mesh)
+				{
+					Ring.Mesh->SetVisibility(true);
+					Ring.Mesh->SetWorldLocation(Ground);
+					Ring.Mesh->SetWorldRotation(FRotator::ZeroRotator);
+					Greybox::SetSized(Ring.Mesh, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
+					if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
+					{
+						Mid->SetVectorParameterValue(TEXT("Color"), Magic);
+					}
+				}
+				if (Ring.Rim)
+				{
+					Ring.Rim->SetVisibility(false);
+				}
+				if (Ring.Glow)
+				{
+					Ring.Glow->SetVisibility(false);
+				}
+				// The seated eye cannot see a ring under its own seat, so the cue rings the ember itself, in the plane facing
+				// the player, as the teach's white ring rings its glob.
+				const bool bCue = Player && InsidePerfectWindow(SecondsToContact(Projectile, *Player));
+				const FVector Flight = FVector(Projectile.Velocity.X, Projectile.Velocity.Y, 0.0).GetSafeNormal();
+				const FVector Side = FVector::CrossProduct(FVector::UpVector, Flight).GetSafeNormal();
+				const int32 BeadCount = Ring.Beads.Num();
+				for (int32 Index = 0; Index < BeadCount; ++Index)
+				{
+					UStaticMeshComponent* Bead = Ring.Beads[Index];
+					if (!Bead)
+					{
+						continue;
+					}
+					Bead->SetVisibility(bCue && !Side.IsNearlyZero());
+					if (!bCue || Side.IsNearlyZero())
+					{
+						continue;
+					}
+					const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(BeadCount);
+					const FVector Radial = (Side * FMath::Cos(Angle) + FVector::UpVector * FMath::Sin(Angle)).GetSafeNormal();
+					const FVector Tangent = FVector::CrossProduct(Radial, Flight).GetSafeNormal();
+					Bead->SetWorldLocation(At + Radial * 30.0);
+					Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+					Greybox::SetSized(Bead, FVector(5.0, 6.0, 9.0));
+				}
 			}
 		}
 		Shot.LastCm = At;
@@ -1390,20 +1537,6 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 
-	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
-	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
-	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
-	{
-		if (!Mesh || !Shape)
-		{
-			return;
-		}
-		if (Mesh->GetStaticMesh() != Shape)
-		{
-			Mesh->SetStaticMesh(Shape);
-			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
-		}
-	};
 	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
 	{
 		if (Telegraph.OwnerId == Games.PlayerId)
@@ -1458,7 +1591,17 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		const double Span = FMath::Max(1.0, static_cast<double>(Telegraph.ResolveTick - Telegraph.StartTick));
 		const double Left = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick));
 		const double Alpha = 1.0 - Left / Span;
-		const double RadiusCm = FMath::Lerp(150.0, 28.0, Alpha);
+		const bool bEmberWindup = Telegraph.Kind == TEXT("projectile") && IsHoundEmber(Games, Rules, Telegraph.OwnerId, Telegraph.Family);
+		double Shrink = Alpha;
+		if (bEmberWindup && Telegraph.SpeedMps > 0.1)
+		{
+			// One ring for the whole ember: it shrinks through the windup and keeps shrinking in flight, so it does not
+			// jump back to full size when the ember leaves the mouth.
+			const double WindupS = Span * SimDt();
+			const double FlightS = SimDistance(Telegraph.Origin, Telegraph.Target) / Telegraph.SpeedMps;
+			Shrink = Alpha * WindupS / FMath::Max(WindupS + FlightS, 1.0e-6);
+		}
+		const double RadiusCm = FMath::Lerp(150.0, 28.0, Shrink);
 		const FSimVec Ground = Telegraph.Kind == TEXT("projectile") ? Telegraph.Target : Telegraph.Origin;
 		FVector At = Session.KernelToUnrealCm(Ground);
 		At.Z += 4.0;
@@ -1486,24 +1629,37 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			}
 		}
 
-		// Perfect-window cue for magic ground telegraphs (e.g. death bursts)
-		const bool bShowPerfectRing = (Telegraph.Family == TEXT("magic") && Telegraph.Kind == TEXT("area"));
-		const int32 RingCount = Ring.Beads.Num();
-		for (int32 Index = 0; Index < RingCount; ++Index)
-		{
-			UStaticMeshComponent* Bead = Ring.Beads[Index];
-			if (!Bead) continue;
-			Bead->SetVisibility(bShowPerfectRing);
-			if (!bShowPerfectRing) continue;
+		// Perfect-window cue for magic ground telegraphs (e.g. death bursts). Shown only inside combat.json
+		// absorb.perfect.windowS before the hit resolves, like the teach's white ring, not for the whole telegraph.
+		const double UntilResolveS = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick)) * SimDt();
+		const bool bShowPerfectRing = Telegraph.Family == TEXT("magic") && Telegraph.Kind == TEXT("area") && InsidePerfectWindow(UntilResolveS);
+		PlaceBeads(Ring, bShowPerfectRing, At, RadiusCm);
 
-			// Draw them on the ground at RadiusCm
-			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
-			const FVector Radial(FMath::Cos(Angle), FMath::Sin(Angle), 0.0);
-			const FVector Offset = Radial * RadiusCm;
-			const FVector Tangent = FVector(-Radial.Y, Radial.X, 0.0);
-			Bead->SetWorldLocation(At + Offset + FVector(0.0, 0.0, 2.0));
-			Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
-			Greybox::SetSized(Bead, FVector(8.0, 10.0, 12.0));
+		// DF-004 option A. The spit telegraph: an ember gathers at the hound's mouth through the windup. A death ember
+		// gathers where the hound fell. The ring on the ground is the magic ring drawn above.
+		if (Ring.Glow)
+		{
+			Ring.Glow->SetVisibility(bEmberWindup);
+			if (bEmberWindup)
+			{
+				// It rises from the mouth (30 cm, on a 40 cm body) to the 120 cm a shot flies at, so it clears the dais lip
+				// and hands over to the ember where the ember appears.
+				const double LiftCm = FMath::Lerp(30.0, 120.0, Alpha);
+				FVector Mouth = Session.KernelToUnrealCm(Telegraph.Origin);
+				const FActor* Hound = SimFindActor(Games.State, Telegraph.OwnerId);
+				if (Hound && !Hound->bDown)
+				{
+					const FSimVec Toward = SimUnit(SimSub(Telegraph.Target, Hound->Pos), Hound->Facing);
+					Mouth = Session.KernelToUnrealCm(SimAdd(Hound->Pos, SimScale(Toward, 0.6)));
+				}
+				Mouth.Z += LiftCm;
+				Ring.Glow->SetWorldLocation(Mouth);
+				Greybox::SetSized(Ring.Glow, FVector(FMath::Lerp(8.0, 24.0, Alpha)));
+				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Glow->GetMaterial(0)))
+				{
+					Mid->SetVectorParameterValue(TEXT("Color"), FamilyColour(Telegraph.Family, false));
+				}
+			}
 		}
 	}
 
