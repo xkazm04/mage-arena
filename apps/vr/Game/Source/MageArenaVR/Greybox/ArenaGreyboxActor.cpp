@@ -1,5 +1,6 @@
 #include "Greybox/ArenaGreyboxActor.h"
 
+#include "Budget/BudgetStressDriver.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
@@ -374,7 +375,17 @@ void UArenaGreyboxSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture")))
 	{
-		Capture = NewObject<UGreyboxCaptureDriver>(this);
-		Capture->Start();
+		// The D-G4 stress scene rides the greybox capture flag, so the session stays idle and mouse look
+		// stands down as for any capture. -MageArenaBudgetStress swaps the scripted shots for the stress driver.
+		if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaBudgetStress")))
+		{
+			BudgetStress = NewObject<UBudgetStressDriver>(this);
+			BudgetStress->Start();
+		}
+		else
+		{
+			Capture = NewObject<UGreyboxCaptureDriver>(this);
+			Capture->Start();
+		}
 	}
 }
