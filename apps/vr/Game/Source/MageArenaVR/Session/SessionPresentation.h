@@ -80,6 +80,8 @@ private:
 	void EnsureComfortVisuals();
 	void SyncComfortVisuals(const FArenaSession& Session);
 	UWidgetComponent* MakeStoneLabel(const TCHAR* Name);
+	void EnsurePhaseVisuals(const FArenaSession& Session);
+	void SyncPhaseVisuals(const FArenaSession& Session, double Now);
 	UCameraComponent* FindCamera() const;
 
 	UPROPERTY()
@@ -191,4 +193,19 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> ArcEdges;
 
 	bool bComfortVisuals = false;
+
+	// T19 phase break beat: the rival flares in its element colour, a ring pulses on both wrists (the surge), and the
+	// crowd band brightens (the swell placeholder; audio is T26). No new threat colours.
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> RivalFlare;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CuffPulses;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CrowdBand;
+
+	bool bPhaseVisuals = false;
+	double PhaseAt = -1.0;
+	int32 PhaseRivalId = 0;
 };

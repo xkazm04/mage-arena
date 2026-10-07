@@ -119,6 +119,41 @@ struct FVrGentle
 	double Competence = 1.0;
 };
 
+// DECISIONS 2026-10-07 (DF-003 answered): a named rival fights in HP-gated phases. Read from combat.vr.json rivals.
+struct FVrRivalPhase
+{
+	double AtHpFraction = 0.0;
+	// Empty: the break only surges. Otherwise the rival's next action is this fire spell, granted once per duel.
+	FString OpensWith;
+};
+
+// appliesTo picks the spawn: the mage of this arena tier's wave n (and its kind), in this school.
+struct FVrRival
+{
+	FString Id;
+	FString School;
+	FString TierId;
+	int32 WaveN = 0;
+	FString WaveKind;
+	TArray<FVrRivalPhase> Phases;
+	int32 SurgeTiers = 1;
+};
+
+// Runtime for one bout. Not part of the pinned state hash. A copied ruleset starts empty (ClearRuntime),
+// and every wave spawn clears it before binding.
+struct FVrRivalRuntime
+{
+	int32 ActorId = -1;
+	int32 RivalIndex = -1;
+	int32 PhasesBroken = 0;
+	TArray<int32> BreakTicks;
+	bool bGrantPending = false;
+	bool bGrantUsed = false;
+	FString GrantSpell;
+	// Tick the granted cast started. -1 until it does.
+	int32 GrantTick = -1;
+};
+
 // True when the segment crosses the arc. OutT is along From -> To. A graze that stays outside does not count.
 bool VrWallSegmentCrosses(const FVrWall& Wall, const FSimVec& From, const FSimVec& To, double& OutT);
 
@@ -137,6 +172,10 @@ struct FVrRuleset
 	FVrDefenceTune Defence;
 	FVrNarrowFov Narrow;
 	FVrGentle Gentle;
+	TArray<FVrRival> Rivals;
+	// Harness seam for the census and the design tests: every opponent mage spawns at this competence.
+	// Below zero keeps the pinned spawn competence. Not read from JSON. Gentle still wins.
+	double MageCompetenceOverride = -1.0;
 	// Runtime comfort. Not part of the pinned state hash. Off leaves positions and windups untouched.
 	bool bNarrow = false;
 	bool bGentle = false;
@@ -148,6 +187,7 @@ struct FVrRuleset
 	int32 WallsRaised = 0;
 	TArray<int32> SplitCasting;
 	TArray<FString> Refusals;
+	FVrRivalRuntime RivalRuntime;
 
 	const FVrAttackMode* FindThrow(const FString& EnemyId) const;
 	FVrAabb HoldBox() const;
@@ -177,11 +217,23 @@ struct FVrRuleset
 	void TickWalls(FArenaState& State, FActor& Actor, const FInputFrame& Input);
 	void BurnCrossers(FArenaState& State);
 	void ClearRuntime();
+
+	// Index into Rivals, or INDEX_NONE.
+	int32 FindRival(const FString& TierId, int32 WaveN, const FString& WaveKind, const FString& School) const;
+	const FVrRival* BoundRival() const;
+	bool IsRival(int32 ActorId) const;
+	// Phase breaks for the bound rival. StepArena calls it once per tick, after hits resolve and before the tier clock.
+	void TickRivalPhases(FArenaState& State);
+	// Starts the granted signature when the bound rival is free. True when it started.
+	bool TryGrantedCast(FArenaState& State, FActor& Actor, const FSimVec& Aim);
 };
 
 // Reads combat.vr.json. With bHonorProposalSwitch, -MageArenaProposal or MageArenaProposal=1
 // overlays apps/vr/data/vr/calibration-proposal.json. The default bout does not.
 bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch = true);
+
+// Overlays calibration-proposal.json onto an already loaded ruleset, whatever the command line says. The census uses it.
+bool ApplyVrCalibrationProposal(FVrRuleset& Out, FString& Error);
 
 // Test seam: read the overlay files from this directory instead of apps/vr/data/vr. Empty restores the default.
 void SetVrDataDirForTest(const FString& Dir);

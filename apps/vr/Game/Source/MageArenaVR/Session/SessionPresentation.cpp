@@ -1059,6 +1059,125 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 	}
 }
 
+void ASessionPresentation::EnsurePhaseVisuals(const FArenaSession& Session)
+{
+	if (bPhaseVisuals || !GetRootComponent())
+	{
+		return;
+	}
+	UCameraComponent* Camera = FindCamera();
+	if (!Camera)
+	{
+		return;
+	}
+	bPhaseVisuals = true;
+	RivalFlare = MakePart(TEXT("Sphere"), FireColour);
+	if (RivalFlare)
+	{
+		RivalFlare->SetVisibility(false);
+	}
+	// Both wrists: the cuff sits at (58, -26, -14) on the camera, and its mirror is the other wrist.
+	for (const double Side : {-26.0, 26.0})
+	{
+		UStaticMeshComponent* Pulse = MakePart(TEXT("Cylinder"), ClockColour);
+		if (Pulse)
+		{
+			Pulse->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
+			Pulse->SetRelativeLocation(FVector(58.0, Side, -14.0));
+			Pulse->SetRelativeRotation(FRotator(90.0, 0.0, 0.0));
+			Pulse->SetVisibility(false);
+			CuffPulses.Add(Pulse);
+		}
+	}
+	// The crowd placeholder: one band along the top stand tier, dim until a phase swells it.
+	if (Session.HasLayout())
+	{
+		const FArenaLayout& Layout = Session.GetLayout();
+		const int32 Segments = 32;
+		const double Offset = Layout.WallThicknessM + Layout.StandGapM + (static_cast<double>(Layout.StandTiers) - 0.5) * Layout.StandDepthM;
+		const double A = Layout.FloorRadiusXM + Offset;
+		const double B = Layout.FloorRadiusYM + Offset;
+		const double TopM = Layout.WallHeightM + Layout.StandFirstTopAboveWallM + (Layout.StandTiers - 1) * Layout.StandStepRiseM + 0.6;
+		for (int32 Index = 0; Index < Segments; ++Index)
+		{
+			const double T0 = 2.0 * PI * Index / Segments;
+			const double T1 = 2.0 * PI * (Index + 1) / Segments;
+			const FVector P0(A * FMath::Cos(T0), B * FMath::Sin(T0), TopM);
+			const FVector P1(A * FMath::Cos(T1), B * FMath::Sin(T1), TopM);
+			UStaticMeshComponent* Piece = MakePart(TEXT("Cube"), FLinearColor(0.20f, 0.18f, 0.15f));
+			if (!Piece)
+			{
+				continue;
+			}
+			const FVector Chord = P1 - P0;
+			Piece->SetWorldLocation((P0 + P1) * 50.0);
+			Piece->SetWorldRotation(FRotationMatrix::MakeFromXZ(Chord.GetSafeNormal(), FVector::UpVector).Rotator());
+			Greybox::SetSized(Piece, FVector(Chord.Size() * 104.0, 30.0, 40.0));
+			Piece->SetVisibility(false);
+			CrowdBand.Add(Piece);
+		}
+	}
+}
+
+void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double Now)
+{
+	const FVrRuleset* Rules = Session.GetVrRules();
+	const bool bRivalBout = Rules && Rules->BoundRival() != nullptr && Session.GetGames().Phase != TEXT("teach");
+	if (!bRivalBout && !bPhaseVisuals)
+	{
+		return;
+	}
+	EnsurePhaseVisuals(Session);
+	const double Since = PhaseAt >= 0.0 ? Now - PhaseAt : 1.0e9;
+	// Flare: 0.9 s, growing from a body width to a little over two metres.
+	const FActor* Rival = SimFindActor(Session.GetGames().State, PhaseRivalId);
+	const bool bFlare = bRivalBout && Rival && !Rival->bDown && Since < 0.9;
+	if (RivalFlare)
+	{
+		RivalFlare->SetVisibility(bFlare);
+		if (bFlare)
+		{
+			const double Alpha = FMath::Clamp(Since / 0.9, 0.0, 1.0);
+			FVector At = Session.KernelToUnrealCm(Rival->Pos);
+			At.Z += 110.0;
+			RivalFlare->SetWorldLocation(At);
+			Greybox::SetSized(RivalFlare, FVector(FMath::Lerp(60.0, 230.0, Alpha)));
+		}
+	}
+	// Surge: a clock-gold ring on each wrist, 0.8 s, opening outward.
+	const bool bPulse = bRivalBout && Since < 0.8;
+	for (UStaticMeshComponent* Pulse : CuffPulses)
+	{
+		if (!Pulse)
+		{
+			continue;
+		}
+		Pulse->SetVisibility(bPulse);
+		if (bPulse)
+		{
+			const double Diameter = FMath::Lerp(4.0, 16.0, FMath::Clamp(Since / 0.8, 0.0, 1.0));
+			Greybox::SetSized(Pulse, FVector(Diameter, Diameter, 0.4));
+		}
+	}
+	// Swell: the band runs from dim to bright on the break and decays over 1.6 s.
+	const double Swell = Since < 1.6 ? 1.0 - Since / 1.6 : 0.0;
+	const FLinearColor Dim(0.20f, 0.18f, 0.15f);
+	const FLinearColor Bright(0.98f, 0.92f, 0.78f);
+	const FLinearColor Band = FMath::Lerp(Dim, Bright, static_cast<float>(Swell));
+	for (UStaticMeshComponent* Piece : CrowdBand)
+	{
+		if (!Piece)
+		{
+			continue;
+		}
+		Piece->SetVisibility(bRivalBout);
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Piece->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Band);
+		}
+	}
+}
+
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
 	if (!Session.IsRunning())
@@ -1395,6 +1514,24 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 		SyncCuff(Session, *Player, bPaused);
 	}
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		if (Event.Kind != TEXT("phase"))
+		{
+			continue;
+		}
+		PhaseAt = Now;
+		PhaseRivalId = Event.ActorId;
+		const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
+		const FString Line = FString::Printf(TEXT("Phase %.0f/%d"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 3);
+		UE_LOG(LogMageArena, Log, TEXT("presentation %s rival=%s actor=%d"), *Line, Rival ? *Rival->Id : TEXT("-"), Event.ActorId);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor(236, 232, 220), Line);
+		}
+	}
+	SyncPhaseVisuals(Session, Now);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
 	EventCursor = Games.State.Events.Num();

@@ -12,7 +12,9 @@
 #include "Kernel/SimTypes.h"
 #include "HAL/FileManager.h"
 #include "MageArenaVR.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Session/ArenaSession.h"
 
@@ -251,15 +253,31 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		return false;
 	}
 	const double Dt = 1.0 / 72.0;
+	// DECISIONS 2026-10-07 (DF-003 answered): median 45-80 s, the signature in every duel that reaches the last phase,
+	// and the player wins at competence 1. T19: both runs are Brennic, the Tiro semifinal Fire mage (wave index 2), with
+	// his HP-gated phases; competence 1.5 is the same duel with the opponent's brain at 1.5.
 	const double Lo = 45.0;
 	const double Hi = 80.0;
 	bool bPass = true;
-	auto RunOne = [&](int32 Wave, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
+	FVrRuleset Loaded;
+	FString RulesError;
+	if (!LoadVrRuleset(Loaded, RulesError))
+	{
+		AddError(RulesError);
+		FArenaSession Dummy;
+		Rig.Close(Dummy);
+		return false;
+	}
+	bPass &= TestTrue(TEXT("combat.vr.json names a rival"), Loaded.Rivals.Num() > 0);
+	auto RunOne = [&](double Competence, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
 	{
 		FArenaSession Session;
 		Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 		Session.SetScripted(true);
-		Session.SetBout(Wave, true);
+		Session.SetBout(2, true);
+		FVrRuleset Rules = Loaded;
+		Rules.MageCompetenceOverride = Competence;
+		Session.SetRulesOverride(Rules);
 		if (!Session.Start(Seed))
 		{
 			AddError(FString::Printf(TEXT("%s start failed"), Label));
@@ -284,7 +302,9 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 			WorstOffPad = FMath::Max(WorstOffPad, OffPad);
 		}
 		const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
-		FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("%s-chain.log"), Label)));
+		// T19 owns this measurement. The proposal run keeps its own chain so it does not overwrite the live one.
+		const TCHAR* Variant = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("-proposal") : TEXT("");
+		FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("../T19/%s%s-chain.log"), Label, Variant)));
 		const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
 		bool bSunfall = false;
 		for (const FActor& Actor : Session.GetGames().State.Actors)
@@ -297,13 +317,20 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		const double Measured = Session.GetSimSeconds();
 		const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
 		const bool bBand = Measured >= Lo && Measured <= Hi && Session.GetGames().Phase != TEXT("active");
-		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d"),
-			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0,
+		const FVrRuleset* Live = Session.GetVrRules();
+		const bool bBound = Live && Live->BoundRival() != nullptr;
+		const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
+		const int32 LastBreaks = bBound ? Live->BoundRival()->Phases.Num() : 2;
+		const bool bSignature = Live && Live->RivalRuntime.GrantTick >= 0;
+		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d breaks=%d signature=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d"),
+			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0, Breaks, bSignature ? 1 : 0,
 			Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0,
 			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants());
 		bool bOne = true;
+		bOne &= TestTrue(*FString::Printf(TEXT("%s Brennic bound"), Label), bBound);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);
-		bOne &= TestTrue(*FString::Printf(TEXT("%s Sunfall cast"), Label), bSunfall);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s reached the last phase (%d of %d breaks)"), Label, Breaks, LastBreaks), Breaks >= LastBreaks);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s signature cast in the last phase"), Label), Breaks < LastBreaks || bSignature);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s stayed on a pad (worst %.4f m)"), Label, WorstOffPad), WorstOffPad < 1.0e-3);
 		if (bRequireWin)
 		{
@@ -312,8 +339,8 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		Session.Unbind();
 		return bOne;
 	};
-	bPass &= RunOne(2, 1, TEXT("fire-c1"), true);
-	bPass &= RunOne(3, 1, TEXT("fire-c15"), false);
+	bPass &= RunOne(1.0, 1, TEXT("brennic-c1"), true);
+	bPass &= RunOne(1.5, 1, TEXT("brennic-c15"), false);
 	FArenaSession Dummy;
 	Rig.Close(Dummy);
 	return bPass;

@@ -366,6 +366,7 @@ void FVrRuleset::ClearRuntime()
 	StaffRuntime = FVrStaffRuntime();
 	SplitCasting.Reset();
 	Refusals.Reset();
+	RivalRuntime = FVrRivalRuntime();
 }
 
 bool FVrRuleset::IsPlanted(int32 ActorId) const
