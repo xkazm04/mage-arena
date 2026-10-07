@@ -2,6 +2,14 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-07 - Supported headsets: Quest 3 and Quest 3S
+
+> Operator, 2026-10-07 morning: chose Quest 3 and Quest 3S.
+
+- The APK declares Quest 3 and Quest 3S only (`+SupportedDevices=Quest3` and `+SupportedDevices=Quest3S`; the
+  `ExtraApplicationSettings` line that also named Quest 2 and Quest Pro is gone). Delivered as finding F2.
+- The milestone-4 frame and memory budgets stay measured on Quest 3.
+
 ## 2026-10-03 - Seated balance: calibrate with every knob, and invent school-specific defences
 
 > Calibration may use: wave composition, enemy pressure, player spell power, defence (ward/blink). And: "Invent class

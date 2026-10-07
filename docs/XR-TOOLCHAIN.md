@@ -119,7 +119,7 @@ Project Android settings (not reached by this package, because UBT died first) i
 - `MinSDKVersion=32`, `TargetSDKVersion=34`
 - `XrApi=NativeOpenXR`, `HandTrackingSupport=ControllersAndHands`, `HandTrackingFrequency=LOW`, `HandTrackingVersion=Default`, `+SupportedDevices=Quest3`
 
-`ControllersAndHands` is the v207 setting that makes `OculusMobile_APL.xml` add `com.oculus.permission.HAND_TRACKING` and `oculus.software.handtracking` (`android:required` false unless the mode is `HandsOnly`). The APL's `contains="Quest"` also matches the string `Quest3`, so the manifest is expected to carry the legacy token `quest` as well as `quest3`. The plugin was not patched. A draft `ExtraApplicationSettings` line that named quest2, questpro, quest3, and quest3s was removed, because the APL merges any existing `com.oculus.supportedDevices` value into that tag.
+`ControllersAndHands` is the v207 setting that makes `OculusMobile_APL.xml` add `com.oculus.permission.HAND_TRACKING` and `oculus.software.handtracking` (`android:required` false unless the mode is `HandsOnly`). The APL's `contains="Quest"` also matches the string `Quest3`, so the manifest is expected to carry the legacy token `quest` as well as `quest3`. The plugin was not patched. A draft `ExtraApplicationSettings` line that named quest2, questpro, quest3, and quest3s was in fact still in `DefaultEngine.ini` until finding F2 removed it on 2026-10-07 (this section had said it was already gone), because the APL merges any existing `com.oculus.supportedDevices` value into that tag. The declared devices are now Quest 3 and Quest 3S (`+SupportedDevices=Quest3` and `+SupportedDevices=Quest3S`), so the expected manifest value is `quest|quest3|quest3s`. Frame and memory budgets stay measured on Quest 3.
 
 `apps/vr/Game/Config/Android/AndroidEngine.ini` sets `vr.MobileMultiView=1`, `r.Mobile.MultiView=1`, and `r.Mobile.ShadingPath=0` (the packaged-5.8-sample note from the task card). Desktop `r.ForwardShading` stays true.
 
@@ -177,8 +177,9 @@ or HKLM writes, and no credentials. Five defects were fixed by the orchestrator 
 - **Fresh clone:** `OculusXR` and `OculusInteraction` are `"Optional": true` in `MageArenaVR.uproject`, so a checkout
   without the (git-ignored) plugin trees still opens. Verified by moving `Game/Plugins` aside: editor load and 17/17
   `MageArena.*` tests pass; with the plugins back, the plugin modules load again.
-- **Manifest:** the leftover `ExtraApplicationSettings` `supportedDevices` line was removed from `DefaultEngine.ini`
-  (the section above already said it was removed; the file had not caught up).
+- **Manifest:** the leftover `ExtraApplicationSettings` `supportedDevices` line was still in `DefaultEngine.ini`; F2
+  removed it on 2026-10-07 (earlier text claiming it was already removed was wrong). Declared devices: Quest 3 and
+  Quest 3S; budgets stay measured on Quest 3. `package-android.ps1` now asserts the value (`-SelfTest` checks the matcher).
 - **Stale APK:** `package-android.ps1` only accepts APKs written after the run started.
 - **Portable path:** the scoop Android SDK fallback is built from `%USERPROFILE%`, not a hard-coded user folder.
 
