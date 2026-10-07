@@ -1440,21 +1440,12 @@ bool CheckReferences(FKernelData& Data)
 	return true;
 }
 
-FKernelData Load()
+bool LoadAbsorb(FKernelData& Data)
 {
-	FKernelData Data;
-	const FString CombatPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/combat.json"));
-	const FString StatsPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/stats.csv"));
-	const FString SpellsPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/spells-water.csv"));
-	const FString EnemyPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/enemies.json"));
-	const FString ScalePath = PinnedPath(TEXT("art/scale-contract-v1.json"));
-	const FString RuntimePath = PinnedPath(TEXT("packages/core/src/arena/data/runtime.json"));
-
 	FString AbsorbError;
 	if (!Data.Absorb.LoadFromPinnedFile(AbsorbError))
 	{
-		Fail(Data, AbsorbError);
-		return Data;
+		return Fail(Data, AbsorbError);
 	}
 	bool bPhysical = false;
 	bool bUnblockable = false;
@@ -1468,14 +1459,18 @@ FKernelData Load()
 	// kernel.ts:57 hard-codes family === 'magic'. BlocksPerfect matches only while notAgainst is the other two families.
 	if (Data.Absorb.NotAgainst.Num() != AbsorbNotAgainstCount || !bPhysical || !bUnblockable || bMagic)
 	{
-		Fail(Data, TEXT("kernel data: perfect.notAgainst must be exactly physical and unblockable"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: perfect.notAgainst must be exactly physical and unblockable"));
 	}
+	return true;
+}
 
+bool LoadCombat(FKernelData& Data)
+{
+	const FString CombatPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/combat.json"));
 	TSharedPtr<FJsonObject> Combat;
 	if (!LoadJson(CombatPath, Combat, Data))
 	{
-		return Data;
+		return false;
 	}
 	const FJsonObject* Movement = nullptr;
 	const FJsonObject* Roll = nullptr;
@@ -1536,40 +1531,34 @@ FKernelData Load()
 		|| !NeedObject(*Combat, TEXT("pacingTargets"), Pacing, CombatPath, Data)
 		|| !NeedNumber(*Pacing, TEXT("deadAirBucketS"), Data.DeadAirBucketS, CombatPath, Data))
 	{
-		return Data;
+		return false;
 	}
 	if (Data.TierClockAdvanceS != Data.Absorb.TierClockAdvanceS)
 	{
-		Fail(Data, TEXT("kernel data: clock reward contradiction"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: clock reward contradiction"));
 	}
 	for (int32 Tier = 1; Tier <= 4; ++Tier)
 	{
 		if (!NeedNumber(*Unlock, *FString::FromInt(Tier), Data.UnlockAtSeconds[Tier], CombatPath, Data))
 		{
-			return Data;
+			return false;
 		}
 	}
 	const TArray<TSharedPtr<FJsonValue>>* BranchTiers = nullptr;
 	if (!Lines->TryGetArrayField(TEXT("branchAtTiers"), BranchTiers))
 	{
-		Fail(Data, TEXT("kernel data: lines.branchAtTiers missing"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: lines.branchAtTiers missing"));
 	}
 	for (const TSharedPtr<FJsonValue>& Value : *BranchTiers)
 	{
 		Data.BranchAtTiers.Add(static_cast<int32>(std::llround(Value->AsNumber())));
 	}
+	return true;
+}
 
-	FCsvTable Stats;
-	if (!LoadCsv(StatsPath, Stats, Data)
-		|| !LinearStat(Stats, TEXT("vigor"), TEXT("maxHp"), Data.HpBase, Data.HpPerRank, Data)
-		|| !LinearStat(Stats, TEXT("vigor"), TEXT("maxStamina"), Data.StaminaBase, Data.StaminaPerRank, Data)
-		|| !LinearStat(Stats, TEXT("focus"), TEXT("maxMana"), Data.ManaBase, Data.ManaPerRank, Data)
-		|| !LinearStat(Stats, TEXT("focus"), TEXT("manaRegen"), Data.ManaRegenBase, Data.ManaRegenPerRank, Data))
-	{
-		return Data;
-	}
+// The absorb file owns the nerve formulas. stats.csv must state the same numbers.
+bool CheckNerveAuthority(const FCsvTable& Stats, FKernelData& Data)
+{
 	const TMap<FString, FString>* Nerve = nullptr;
 	for (const TMap<FString, FString>& Row : Stats.Rows)
 	{
@@ -1584,16 +1573,14 @@ FKernelData Load()
 	FString RefundPer;
 	if (!Nerve || !MatchGroup(Data.Absorb.DrainFormula, TEXT("^(\\d+) - (\\d+) \\* nerveRank$"), DrainA))
 	{
-		Fail(Data, TEXT("kernel data: nerve authority contradiction"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: nerve authority contradiction"));
 	}
 	{
 		const FRegexPattern RefundPattern(TEXT("^(\\d+) \\* incomingTier \\* \\(1 \\+ ([\\d.]+) \\* nerveRank\\)"));
 		FRegexMatcher RefundMatcher(RefundPattern, Data.Absorb.ManaFormula);
 		if (!RefundMatcher.FindNext())
 		{
-			Fail(Data, TEXT("kernel data: nerve authority contradiction"));
-			return Data;
+			return Fail(Data, TEXT("kernel data: nerve authority contradiction"));
 		}
 		DrainB = [&]() { FString Second; MatchGroup(Data.Absorb.DrainFormula, TEXT("^\\d+ - (\\d+) \\* nerveRank$"), Second); return Second; }();
 		RefundPer = RefundMatcher.GetCaptureGroup(2);
@@ -1602,14 +1589,33 @@ FKernelData Load()
 	if (!Compact.Contains(FString::Printf(TEXT("absorbDrain=%s-%s*rank"), *DrainA, *DrainB))
 		|| !Compact.Contains(FString::Printf(TEXT("perfectReturnMult=1+%s*rank"), *RefundPer)))
 	{
-		Fail(Data, TEXT("kernel data: nerve authority contradiction"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: nerve authority contradiction"));
 	}
+	return true;
+}
 
+bool LoadStats(FKernelData& Data)
+{
+	const FString StatsPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/stats.csv"));
+	FCsvTable Stats;
+	if (!LoadCsv(StatsPath, Stats, Data)
+		|| !LinearStat(Stats, TEXT("vigor"), TEXT("maxHp"), Data.HpBase, Data.HpPerRank, Data)
+		|| !LinearStat(Stats, TEXT("vigor"), TEXT("maxStamina"), Data.StaminaBase, Data.StaminaPerRank, Data)
+		|| !LinearStat(Stats, TEXT("focus"), TEXT("maxMana"), Data.ManaBase, Data.ManaPerRank, Data)
+		|| !LinearStat(Stats, TEXT("focus"), TEXT("manaRegen"), Data.ManaRegenBase, Data.ManaRegenPerRank, Data))
+	{
+		return false;
+	}
+	return CheckNerveAuthority(Stats, Data);
+}
+
+bool LoadScaleContract(FKernelData& Data)
+{
+	const FString ScalePath = PinnedPath(TEXT("art/scale-contract-v1.json"));
 	TSharedPtr<FJsonObject> Scale;
 	if (!LoadJson(ScalePath, Scale, Data))
 	{
-		return Data;
+		return false;
 	}
 	const TArray<TSharedPtr<FJsonValue>>* Metres = nullptr;
 	const FJsonObject* ScaleAbsorb = nullptr;
@@ -1623,28 +1629,122 @@ FKernelData Load()
 		{
 			Fail(Data, TEXT("kernel data: scale contract is missing arena_metres"));
 		}
-		return Data;
+		return false;
 	}
 	Data.ArenaWidthM = (*Metres)[0]->AsNumber();
 	Data.ArenaHeightM = (*Metres)[1]->AsNumber();
 	if (ScaleArc != Data.Absorb.ArcDeg)
 	{
-		Fail(Data, TEXT("kernel data: absorb contract contradiction"));
-		return Data;
+		return Fail(Data, TEXT("kernel data: absorb contract contradiction"));
 	}
+	return true;
+}
 
-	TSharedPtr<FJsonObject> Runtime;
-	if (!LoadJson(RuntimePath, Runtime, Data))
-	{
-		return Data;
-	}
-	const FJsonObject* Geometry = nullptr;
-	const FJsonObject* Training = nullptr;
+bool LoadTrainingTuning(const FJsonObject& Training, FKernelData& Data, const FString& RuntimePath)
+{
+	const FJsonObject* Ranks = nullptr;
 	const FJsonObject* Magic = nullptr;
 	const FJsonObject* Physical = nullptr;
 	const FJsonObject* Charge = nullptr;
 	const FJsonObject* Field = nullptr;
-	const FJsonObject* Ranks = nullptr;
+	if (!NeedObject(Training, TEXT("defaultRanks"), Ranks, RuntimePath, Data)
+		|| !NeedInt(*Ranks, TEXT("vigor"), Data.DefaultRanks.Vigor, RuntimePath, Data)
+		|| !NeedInt(*Ranks, TEXT("focus"), Data.DefaultRanks.Focus, RuntimePath, Data)
+		|| !NeedInt(*Ranks, TEXT("nerve"), Data.DefaultRanks.Nerve, RuntimePath, Data)
+		|| !NeedVec(Training, TEXT("player"), Data.TrainingPlayer, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("dummyHp"), Data.DummyHp, RuntimePath, Data)
+		|| !NeedVec(Training, TEXT("front"), Data.TrainingFront, RuntimePath, Data)
+		|| !NeedVec(Training, TEXT("side"), Data.TrainingSide, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("attackIntervalS"), Data.AttackIntervalS, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("firstAttackS"), Data.FirstAttackS, RuntimePath, Data)
+		|| !NeedObject(Training, TEXT("magic"), Magic, RuntimePath, Data)
+		|| !NeedNumber(*Magic, TEXT("damage"), Data.MagicDamage, RuntimePath, Data)
+		|| !NeedInt(*Magic, TEXT("tier"), Data.MagicTier, RuntimePath, Data)
+		|| !NeedNumber(*Magic, TEXT("windupS"), Data.MagicWindupS, RuntimePath, Data)
+		|| !NeedNumber(*Magic, TEXT("speedMps"), Data.MagicSpeedMps, RuntimePath, Data)
+		|| !NeedNumber(*Magic, TEXT("rangeM"), Data.MagicRangeM, RuntimePath, Data)
+		|| !NeedObject(Training, TEXT("physical"), Physical, RuntimePath, Data)
+		|| !NeedNumber(*Physical, TEXT("damage"), Data.PhysicalDamage, RuntimePath, Data)
+		|| !NeedInt(*Physical, TEXT("tier"), Data.PhysicalTier, RuntimePath, Data)
+		|| !NeedNumber(*Physical, TEXT("windupS"), Data.PhysicalWindupS, RuntimePath, Data)
+		|| !NeedNumber(*Physical, TEXT("speedMps"), Data.PhysicalSpeedMps, RuntimePath, Data)
+		|| !NeedNumber(*Physical, TEXT("rangeM"), Data.PhysicalRangeM, RuntimePath, Data)
+		|| !NeedObject(Training, TEXT("charge"), Charge, RuntimePath, Data)
+		|| !NeedNumber(*Charge, TEXT("damage"), Data.ChargeDamage, RuntimePath, Data)
+		|| !NeedNumber(*Charge, TEXT("windupS"), Data.ChargeWindupS, RuntimePath, Data)
+		|| !NeedNumber(*Charge, TEXT("rangeM"), Data.ChargeRangeM, RuntimePath, Data)
+		|| !NeedNumber(*Charge, TEXT("widthM"), Data.ChargeWidthM, RuntimePath, Data)
+		|| !NeedInt(Training, TEXT("streamCount"), Data.StreamCount, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("streamIntervalS"), Data.StreamIntervalS, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("perfectBotLeadS"), Data.PerfectBotLeadS, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("lateBotLeadS"), Data.LateBotLeadS, RuntimePath, Data)
+		|| !NeedNumber(Training, TEXT("reportDurationS"), Data.ReportDurationS, RuntimePath, Data)
+		|| !NeedInt(Training, TEXT("performanceProjectiles"), Data.PerformanceProjectiles, RuntimePath, Data)
+		|| !NeedObject(Training, TEXT("performanceField"), Field, RuntimePath, Data)
+		|| !NeedNumber(*Field, TEXT("widthM"), Data.FieldWidthM, RuntimePath, Data)
+		|| !NeedNumber(*Field, TEXT("heightM"), Data.FieldHeightM, RuntimePath, Data)
+		|| !NeedNumber(*Field, TEXT("speedMps"), Data.FieldSpeedMps, RuntimePath, Data)
+		|| !NeedNumber(*Field, TEXT("rangeM"), Data.FieldRangeM, RuntimePath, Data))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool LoadWaterPresets(const FJsonObject& Water, FKernelData& Data, const FString& RuntimePath)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Presets = nullptr;
+	if (!Water.TryGetArrayField(TEXT("presets"), Presets) || Presets->Num() == 0)
+	{
+		return Fail(Data, TEXT("kernel data: runtime water.presets missing"));
+	}
+	for (const TSharedPtr<FJsonValue>& Value : *Presets)
+	{
+		const TSharedPtr<FJsonObject>* Object = nullptr;
+		if (!Value.IsValid() || !Value->TryGetObject(Object) || Object == nullptr)
+		{
+			return Fail(Data, TEXT("kernel data: preset is not an object"));
+		}
+		FComposition Composition;
+		const FJsonObject* Branches = nullptr;
+		const TArray<TSharedPtr<FJsonValue>>* LineValues = nullptr;
+		if (!NeedString(**Object, TEXT("name"), Composition.Name, RuntimePath, Data)
+			|| !(*Object)->TryGetArrayField(TEXT("lines"), LineValues)
+			|| !NeedObject(**Object, TEXT("branches"), Branches, RuntimePath, Data)
+			|| !NeedString(*Branches, TEXT("lash"), Composition.Branches.Lash, RuntimePath, Data)
+			|| !NeedString(*Branches, TEXT("mirror"), Composition.Branches.Mirror, RuntimePath, Data)
+			|| !NeedString(*Branches, TEXT("tide_orb"), Composition.Branches.TideOrb, RuntimePath, Data))
+		{
+			if (Data.Error.IsEmpty())
+			{
+				Fail(Data, TEXT("kernel data: preset lines missing"));
+			}
+			return false;
+		}
+		for (const TSharedPtr<FJsonValue>& LineValue : *LineValues)
+		{
+			FString Line;
+			if (!LineValue.IsValid() || !LineValue->TryGetString(Line))
+			{
+				return Fail(Data, TEXT("kernel data: preset line is not a string"));
+			}
+			Composition.Lines.Add(Line);
+		}
+		Data.Presets.Add(MoveTemp(Composition));
+	}
+	return true;
+}
+
+bool LoadRuntime(FKernelData& Data)
+{
+	const FString RuntimePath = PinnedPath(TEXT("packages/core/src/arena/data/runtime.json"));
+	TSharedPtr<FJsonObject> Runtime;
+	if (!LoadJson(RuntimePath, Runtime, Data))
+	{
+		return false;
+	}
+	const FJsonObject* Geometry = nullptr;
+	const FJsonObject* Training = nullptr;
 	const FJsonObject* Water = nullptr;
 	const FJsonObject* Games = nullptr;
 	const FJsonObject* Presentation = nullptr;
@@ -1654,44 +1754,7 @@ FKernelData Load()
 		|| !NeedNumber(*Geometry, TEXT("projectileRadiusM"), Data.ProjectileRadiusM, RuntimePath, Data)
 		|| !NeedNumber(*Geometry, TEXT("staffArcDeg"), Data.StaffArcDeg, RuntimePath, Data)
 		|| !NeedObject(*Runtime, TEXT("training"), Training, RuntimePath, Data)
-		|| !NeedObject(*Training, TEXT("defaultRanks"), Ranks, RuntimePath, Data)
-		|| !NeedInt(*Ranks, TEXT("vigor"), Data.DefaultRanks.Vigor, RuntimePath, Data)
-		|| !NeedInt(*Ranks, TEXT("focus"), Data.DefaultRanks.Focus, RuntimePath, Data)
-		|| !NeedInt(*Ranks, TEXT("nerve"), Data.DefaultRanks.Nerve, RuntimePath, Data)
-		|| !NeedVec(*Training, TEXT("player"), Data.TrainingPlayer, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("dummyHp"), Data.DummyHp, RuntimePath, Data)
-		|| !NeedVec(*Training, TEXT("front"), Data.TrainingFront, RuntimePath, Data)
-		|| !NeedVec(*Training, TEXT("side"), Data.TrainingSide, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("attackIntervalS"), Data.AttackIntervalS, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("firstAttackS"), Data.FirstAttackS, RuntimePath, Data)
-		|| !NeedObject(*Training, TEXT("magic"), Magic, RuntimePath, Data)
-		|| !NeedNumber(*Magic, TEXT("damage"), Data.MagicDamage, RuntimePath, Data)
-		|| !NeedInt(*Magic, TEXT("tier"), Data.MagicTier, RuntimePath, Data)
-		|| !NeedNumber(*Magic, TEXT("windupS"), Data.MagicWindupS, RuntimePath, Data)
-		|| !NeedNumber(*Magic, TEXT("speedMps"), Data.MagicSpeedMps, RuntimePath, Data)
-		|| !NeedNumber(*Magic, TEXT("rangeM"), Data.MagicRangeM, RuntimePath, Data)
-		|| !NeedObject(*Training, TEXT("physical"), Physical, RuntimePath, Data)
-		|| !NeedNumber(*Physical, TEXT("damage"), Data.PhysicalDamage, RuntimePath, Data)
-		|| !NeedInt(*Physical, TEXT("tier"), Data.PhysicalTier, RuntimePath, Data)
-		|| !NeedNumber(*Physical, TEXT("windupS"), Data.PhysicalWindupS, RuntimePath, Data)
-		|| !NeedNumber(*Physical, TEXT("speedMps"), Data.PhysicalSpeedMps, RuntimePath, Data)
-		|| !NeedNumber(*Physical, TEXT("rangeM"), Data.PhysicalRangeM, RuntimePath, Data)
-		|| !NeedObject(*Training, TEXT("charge"), Charge, RuntimePath, Data)
-		|| !NeedNumber(*Charge, TEXT("damage"), Data.ChargeDamage, RuntimePath, Data)
-		|| !NeedNumber(*Charge, TEXT("windupS"), Data.ChargeWindupS, RuntimePath, Data)
-		|| !NeedNumber(*Charge, TEXT("rangeM"), Data.ChargeRangeM, RuntimePath, Data)
-		|| !NeedNumber(*Charge, TEXT("widthM"), Data.ChargeWidthM, RuntimePath, Data)
-		|| !NeedInt(*Training, TEXT("streamCount"), Data.StreamCount, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("streamIntervalS"), Data.StreamIntervalS, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("perfectBotLeadS"), Data.PerfectBotLeadS, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("lateBotLeadS"), Data.LateBotLeadS, RuntimePath, Data)
-		|| !NeedNumber(*Training, TEXT("reportDurationS"), Data.ReportDurationS, RuntimePath, Data)
-		|| !NeedInt(*Training, TEXT("performanceProjectiles"), Data.PerformanceProjectiles, RuntimePath, Data)
-		|| !NeedObject(*Training, TEXT("performanceField"), Field, RuntimePath, Data)
-		|| !NeedNumber(*Field, TEXT("widthM"), Data.FieldWidthM, RuntimePath, Data)
-		|| !NeedNumber(*Field, TEXT("heightM"), Data.FieldHeightM, RuntimePath, Data)
-		|| !NeedNumber(*Field, TEXT("speedMps"), Data.FieldSpeedMps, RuntimePath, Data)
-		|| !NeedNumber(*Field, TEXT("rangeM"), Data.FieldRangeM, RuntimePath, Data)
+		|| !LoadTrainingTuning(*Training, Data, RuntimePath)
 		|| !NeedObject(*Runtime, TEXT("water"), Water, RuntimePath, Data)
 		|| !NeedNumber(*Water, TEXT("fanSpeedMps"), Data.FanSpeedMps, RuntimePath, Data)
 		|| !NeedNumber(*Water, TEXT("returnWaveSpeedMps"), Data.ReturnWaveSpeedMps, RuntimePath, Data)
@@ -1718,55 +1781,22 @@ FKernelData Load()
 		|| !NeedObject(*Runtime, TEXT("presentation"), Presentation, RuntimePath, Data)
 		|| !NeedNumber(*Presentation, TEXT("maxFrameDeltaS"), Data.MaxFrameDeltaS, RuntimePath, Data))
 	{
-		return Data;
+		return false;
 	}
-	if (!LoadGamesTuning(*Games, Data, RuntimePath))
-	{
-		return Data;
-	}
-	const TArray<TSharedPtr<FJsonValue>>* Presets = nullptr;
-	if (!Water->TryGetArrayField(TEXT("presets"), Presets) || Presets->Num() == 0)
-	{
-		Fail(Data, TEXT("kernel data: runtime water.presets missing"));
-		return Data;
-	}
-	for (const TSharedPtr<FJsonValue>& Value : *Presets)
-	{
-		const TSharedPtr<FJsonObject>* Object = nullptr;
-		if (!Value.IsValid() || !Value->TryGetObject(Object) || Object == nullptr)
-		{
-			Fail(Data, TEXT("kernel data: preset is not an object"));
-			return Data;
-		}
-		FComposition Composition;
-		const FJsonObject* Branches = nullptr;
-		const TArray<TSharedPtr<FJsonValue>>* LineValues = nullptr;
-		if (!NeedString(**Object, TEXT("name"), Composition.Name, RuntimePath, Data)
-			|| !(*Object)->TryGetArrayField(TEXT("lines"), LineValues)
-			|| !NeedObject(**Object, TEXT("branches"), Branches, RuntimePath, Data)
-			|| !NeedString(*Branches, TEXT("lash"), Composition.Branches.Lash, RuntimePath, Data)
-			|| !NeedString(*Branches, TEXT("mirror"), Composition.Branches.Mirror, RuntimePath, Data)
-			|| !NeedString(*Branches, TEXT("tide_orb"), Composition.Branches.TideOrb, RuntimePath, Data))
-		{
-			if (Data.Error.IsEmpty())
-			{
-				Fail(Data, TEXT("kernel data: preset lines missing"));
-			}
-			return Data;
-		}
-		for (const TSharedPtr<FJsonValue>& LineValue : *LineValues)
-		{
-			FString Line;
-			if (!LineValue.IsValid() || !LineValue->TryGetString(Line))
-			{
-				Fail(Data, TEXT("kernel data: preset line is not a string"));
-				return Data;
-			}
-			Composition.Lines.Add(Line);
-		}
-		Data.Presets.Add(MoveTemp(Composition));
-	}
+	return LoadGamesTuning(*Games, Data, RuntimePath) && LoadWaterPresets(*Water, Data, RuntimePath);
+}
 
+FKernelData Load()
+{
+	FKernelData Data;
+	const FString SpellsPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/spells-water.csv"));
+	const FString EnemyPath = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/enemies.json"));
+
+	// LoadText chains every file it reads into the pin hash, so the order of these steps is part of the result.
+	if (!LoadAbsorb(Data) || !LoadCombat(Data) || !LoadStats(Data) || !LoadScaleContract(Data) || !LoadRuntime(Data))
+	{
+		return Data;
+	}
 	FCsvTable SpellRows;
 	if (!LoadCsv(SpellsPath, SpellRows, Data) || !BuildSpells(SpellRows, Data))
 	{
