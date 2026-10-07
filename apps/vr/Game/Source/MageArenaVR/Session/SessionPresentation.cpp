@@ -17,6 +17,7 @@
 #include "Hands/MageSettings.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/KernelData.h"
@@ -43,6 +44,11 @@ const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
 // Opponent mage bodies (T20): dark tones of the school colours, so the body never reads as an absorb cue.
 const FLinearColor MageFireBody(0.30f, 0.06f, 0.03f);
 const FLinearColor MageWaterBody(0.03f, 0.22f, 0.24f);
+// T23. Air's canon colour #5f9e98 sits next to the Water turquoise, so the greybox draws Air in a light wind green
+// (linear 0.20, 0.85, 0.22; about sRGB 124, 238, 130): a green the eye does not confuse with cyan, and saturated enough
+// not to read as the white/steel of the dodge family. The body is a dark tone of it, never an absorb cue.
+const FLinearColor AirColour(0.20f, 0.85f, 0.22f);
+const FLinearColor MageAirBody(0.05f, 0.20f, 0.06f);
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
@@ -117,6 +123,23 @@ double SecondsToContact(const FProjectile& Projectile, const FActor& Player)
 	}
 	return FMath::Max(0.0, Along - Player.Radius - Projectile.Radius) / Speed;
 }
+
+// T23: a magic threat thrown by an air mage is absorbed like any magic threat, so it keeps the element-colour rule, in
+// the air colour. Everything else is FamilyColour unchanged.
+FLinearColor ThreatColour(const FArenaState& State, int32 OwnerId, const FString& Family, bool bPlayerOwned)
+{
+	if (!bPlayerOwned && Family == TEXT("magic"))
+	{
+		if (const FActor* Owner = SimFindActor(State, OwnerId))
+		{
+			if (Owner->Air.bSchool)
+			{
+				return AirColour;
+			}
+		}
+	}
+	return FamilyColour(Family, bPlayerOwned);
+}
 }
 
 ASessionPresentation::ASessionPresentation()
@@ -164,6 +187,7 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FStri
 	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
 	else if (EnemyId == TEXT("mage-fire")) { Colour = MageFireBody; }
 	else if (EnemyId == TEXT("mage-water")) { Colour = MageWaterBody; }
+	else if (EnemyId == TEXT("mage-air")) { Colour = MageAirBody; }
 	Created.Mesh = MakePart(*Shape, Colour);
 	Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f, 0.02f, 0.02f));
 	Created.HpFill = MakePart(TEXT("Cube"), HpColour);
@@ -1224,6 +1248,11 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 			At.Z += 110.0;
 			RivalFlare->SetWorldLocation(At);
 			Greybox::SetSized(RivalFlare, FVector(FMath::Lerp(60.0, 230.0, Alpha)));
+			// T23: the flare is the rival's element colour, so the air rival flares in the air colour.
+			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(RivalFlare->GetMaterial(0)))
+			{
+				Mid->SetVectorParameterValue(TEXT("Color"), Rival->Air.bSchool ? AirColour : FireColour);
+			}
 		}
 	}
 	// Surge: a clock-gold ring on each wrist, 0.8 s, opening outward.
@@ -1292,7 +1321,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			continue;
 		}
-		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id : (bMage ? (Actor.Fire.bSchool ? TEXT("mage-fire") : TEXT("mage-water")) : TEXT(""));
+		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id
+			: (bMage ? (Actor.Fire.bSchool ? TEXT("mage-fire") : (Actor.Air.bSchool ? TEXT("mage-air") : TEXT("mage-water"))) : TEXT(""));
 		FBody& Body = BodyFor(Actor.Id, EnemyId);
 		LiveBodies.Add(Actor.Id);
 		float Height = 176.f;
@@ -1305,6 +1335,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
 		else if (EnemyId == TEXT("mage-fire")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageFireBody; }
 		else if (EnemyId == TEXT("mage-water")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageWaterBody; }
+		else if (EnemyId == TEXT("mage-air")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageAirBody; }
 
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
 		Centre.Z += Height * 0.5f;
@@ -1527,7 +1558,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Shot.Mesh->SetWorldLocation(At);
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Shot.Mesh->GetMaterial(0)))
 			{
-				const FLinearColor Colour = FamilyColour(Projectile.Family, bPlayerOwned);
+				const FLinearColor Colour = ThreatColour(Games.State, Projectile.OwnerId, Projectile.Family, bPlayerOwned);
 				Mid->SetVectorParameterValue(TEXT("Color"), Colour);
 			}
 		}
@@ -1733,6 +1764,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	}
 	SyncPhaseVisuals(Session, Now);
 	SyncOrbPaths(Session);
+	SyncAirVisuals(Session, Now);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
 	SyncTablet(Session);
@@ -1934,6 +1966,164 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 				}
 				It.RemoveCurrent();
 			}
+		}
+	}
+}
+
+void ASessionPresentation::SyncAirVisuals(const FArenaSession& Session, double Now)
+{
+	const FGames& Games = Session.GetGames();
+	const FActor* Caster = nullptr;
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (!Actor.bDown && Actor.Air.bSchool && Actor.Id != Games.PlayerId)
+		{
+			Caster = &Actor;
+			break;
+		}
+	}
+	if (!Caster && AirArcBeads.Num() == 0)
+	{
+		return;
+	}
+	if (AirArcBeads.Num() == 0)
+	{
+		for (int32 Index = 0; Index < 28; ++Index)
+		{
+			AirArcBeads.Add(MakePart(TEXT("Sphere"), AirColour));
+		}
+		AirRing = MakePart(TEXT("Cylinder"), AirColour);
+		AirLineBody = MakePart(TEXT("Cube"), UnblockableBody);
+		AirLineRim = MakePart(TEXT("Cube"), UnblockableRim);
+		for (int32 Index = 0; Index < 12; ++Index)
+		{
+			AirFormBeads.Add(MakePart(TEXT("Cube"), AirColour));
+		}
+	}
+	bool bArc = false;
+	bool bRing = false;
+	bool bLine = false;
+	bool bForm = false;
+	const FAirSpell* Spell = nullptr;
+	if (Caster && Caster->Pending.IsSet() && Caster->Pending->Kind == TEXT("air") && Caster->Pending->SpellId.IsSet())
+	{
+		Spell = FindAirSpell(Caster->Pending->SpellId.GetValue());
+	}
+	if (Spell)
+	{
+		const FPendingCast& Pending = Caster->Pending.GetValue();
+		const double Span = FMath::Max(1.0, static_cast<double>(Pending.ReleaseTick - Pending.StartTick));
+		const double Alpha = FMath::Clamp(1.0 - static_cast<double>(Pending.ReleaseTick - Games.State.Tick) / Span, 0.0, 1.0);
+		const double Range = Spell->RangeM * AirSpellRangeMult(*Caster);
+		const FSimVec Direction = SimUnit(SimSub(Pending.Aim, Caster->Pos), Caster->Facing);
+		auto ShowRing = [&](const FSimVec& Where)
+		{
+			bRing = true;
+			FVector At = Session.KernelToUnrealCm(Where);
+			At.Z += 4.0;
+			const double RadiusCm = FMath::Lerp(150.0, 28.0, Alpha);
+			if (AirRing)
+			{
+				AirRing->SetWorldLocation(At);
+				AirRing->SetWorldRotation(FRotator::ZeroRotator);
+				Greybox::SetSized(AirRing, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
+			}
+		};
+		if (Spell->Kind == TEXT("veer"))
+		{
+			// The same arc the kernel will fly (Air.cpp AirVeerArc), drawn at chest height for the whole windup.
+			const double Chord = FMath::Min(SimDistance(Caster->Pos, Pending.Aim), Range);
+			const FSimVec To = SimAdd(Caster->Pos, SimScale(Direction, Chord));
+			const FAirArc Arc = AirVeerArc(Caster->Pos, To, Spell->EntryDeg, AirVeerSide(Pending.ActivationId));
+			bArc = true;
+			for (int32 Index = 0; Index < AirArcBeads.Num(); ++Index)
+			{
+				UStaticMeshComponent* Bead = AirArcBeads[Index];
+				if (!Bead)
+				{
+					continue;
+				}
+				const double S = Arc.LengthM * static_cast<double>(Index + 1) / static_cast<double>(AirArcBeads.Num());
+				FVector At = Session.KernelToUnrealCm(AirArcPoint(Arc, S));
+				At.Z += 120.0;
+				Bead->SetWorldLocation(At);
+				Greybox::SetSized(Bead, FVector(16.0));
+			}
+			ShowRing(To);
+		}
+		else if (Spell->Kind == TEXT("zone"))
+		{
+			ShowRing(Pending.Aim);
+		}
+		else if (Spell->Kind == TEXT("line") && Spell->Family == TEXT("unblockable"))
+		{
+			bLine = true;
+			// Seen from the seat, a strip on the sand is hidden by the dais lip, so the lance is drawn where a bolt flies:
+			// a black beam at chest height, each end at its own surface height, inside a wider red rim.
+			FVector From = Session.KernelToUnrealCm(Caster->Pos);
+			FVector To = Session.KernelToUnrealCm(SimAdd(Caster->Pos, SimScale(Direction, Range)));
+			From.Z += 120.0;
+			To.Z += 120.0;
+			const FVector Delta = To - From;
+			const double Length = FMath::Max(Delta.Size(), 20.0);
+			const FVector Dir = Delta.GetSafeNormal();
+			const FVector Mid = From + Dir * (Length * 0.5);
+			if (AirLineBody)
+			{
+				AirLineBody->SetWorldLocation(Mid);
+				AirLineBody->SetWorldRotation(Dir.Rotation());
+				Greybox::SetSized(AirLineBody, FVector(Length, 30.0, 30.0));
+			}
+			if (AirLineRim)
+			{
+				AirLineRim->SetWorldLocation(Mid);
+				AirLineRim->SetWorldRotation(Dir.Rotation());
+				Greybox::SetSized(AirLineRim, FVector(Length - 2.0, 54.0, 18.0));
+			}
+		}
+	}
+	if (Caster && Games.State.Tick < Caster->Air.FormUntil)
+	{
+		bForm = true;
+		const FVector Centre = Session.KernelToUnrealCm(Caster->Pos);
+		for (int32 Index = 0; Index < AirFormBeads.Num(); ++Index)
+		{
+			UStaticMeshComponent* Bead = AirFormBeads[Index];
+			if (!Bead)
+			{
+				continue;
+			}
+			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(AirFormBeads.Num()) + Now * 2.4;
+			const double Height = 40.0 + 110.0 * static_cast<double>(Index % 3) / 2.0;
+			Bead->SetWorldLocation(Centre + FVector(FMath::Cos(Angle) * 70.0, FMath::Sin(Angle) * 70.0, Height));
+			Bead->SetWorldRotation(FRotator(0.0, FMath::RadiansToDegrees(Angle), 0.0));
+			Greybox::SetSized(Bead, FVector(30.0, 8.0, 8.0));
+		}
+	}
+	for (UStaticMeshComponent* Bead : AirArcBeads)
+	{
+		if (Bead)
+		{
+			Bead->SetVisibility(bArc);
+		}
+	}
+	if (AirRing)
+	{
+		AirRing->SetVisibility(bRing);
+	}
+	if (AirLineBody)
+	{
+		AirLineBody->SetVisibility(bLine);
+	}
+	if (AirLineRim)
+	{
+		AirLineRim->SetVisibility(bLine);
+	}
+	for (UStaticMeshComponent* Bead : AirFormBeads)
+	{
+		if (Bead)
+		{
+			Bead->SetVisibility(bForm);
 		}
 	}
 }

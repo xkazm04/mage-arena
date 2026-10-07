@@ -236,6 +236,17 @@ bool PendingSunfall(const FActor& Actor)
 }
 }
 
+// Since the T23 merge tiroFinal names rivals.lio, so a variant without rivals also falls back to the Corvo final
+// ({ fire, null }, the DECISIONS cut fallback): otherwise the overlay rejects the dangling rival name.
+static void RemoveRivals(FJsonObject& Root)
+{
+	Root.RemoveField(TEXT("rivals"));
+	TSharedRef<FJsonObject> Final = MakeShared<FJsonObject>();
+	Final->SetStringField(TEXT("school"), TEXT("fire"));
+	Final->SetField(TEXT("rival"), MakeShared<FJsonValueNull>());
+	Root.SetObjectField(TEXT("tiroFinal"), Final);
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaRivalsLoads, "MageArena.Rivals.Loads",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -248,12 +259,14 @@ bool FMageArenaRivalsLoads::RunTest(const FString& Parameters)
 		AddError(Error);
 		return false;
 	}
-	bool bPass = TestEqual(TEXT("one rival"), Rules.Rivals.Num(), 1);
-	if (!bPass)
+	// T23 added Lio (air, the Tiro final) beside Brennic; MageArena.Air.TempestSignature checks his block.
+	bool bPass = TestEqual(TEXT("two rivals"), Rules.Rivals.Num(), 2);
+	const int32 BrennicIndex = Rules.Rivals.IndexOfByPredicate([](const FVrRival& Candidate) { return Candidate.Id == TEXT("brennic"); });
+	if (!bPass || !TestTrue(TEXT("brennic is listed"), BrennicIndex != INDEX_NONE))
 	{
 		return false;
 	}
-	const FVrRival& Rival = Rules.Rivals[0];
+	const FVrRival& Rival = Rules.Rivals[BrennicIndex];
 	bPass &= TestEqual(TEXT("id"), Rival.Id, FString(TEXT("brennic")));
 	bPass &= TestEqual(TEXT("school"), Rival.School, FString(TEXT("fire")));
 	// arena-tiers.json Tiro wave n 3 is the semifinal (one mage, competence 1).
@@ -279,7 +292,7 @@ bool FMageArenaRivalsLoads::RunTest(const FString& Parameters)
 		TFunction<void(FJsonObject&)> Mutate;
 	};
 	TArray<FCase> Cases;
-	Cases.Add({TEXT("absent block"), true, [](FJsonObject& Root) { Root.RemoveField(TEXT("rivals")); }});
+	Cases.Add({TEXT("absent block"), true, [](FJsonObject& Root) { RemoveRivals(Root); }});
 	Cases.Add({TEXT("rising threshold"), false, [](FJsonObject& Root) { if (auto P = BrennicPhase(Root, 1)) { P->SetNumberField(TEXT("atHpFraction"), 0.7); } }});
 	Cases.Add({TEXT("threshold of 1"), false, [](FJsonObject& Root) { if (auto P = BrennicPhase(Root, 0)) { P->SetNumberField(TEXT("atHpFraction"), 1.0); } }});
 	Cases.Add({TEXT("unknown signature"), false, [](FJsonObject& Root) { if (auto P = BrennicPhase(Root, 1)) { P->SetStringField(TEXT("opensWith"), TEXT("fire_nope")); } }});
@@ -604,7 +617,7 @@ bool FMageArenaRivalsNullPath::RunTest(const FString& Parameters)
 	}
 	bool bPass = true;
 	// 1. combat.vr.json without the rivals block: the duel is the pre-change duel, event for event.
-	const FString Dir = WriteVariant(*this, [](FJsonObject& Root) { Root.RemoveField(TEXT("rivals")); });
+	const FString Dir = WriteVariant(*this, [](FJsonObject& Root) { RemoveRivals(Root); });
 	FVrRuleset Without;
 	FString Error;
 	if (Dir.IsEmpty() || !LoadFrom(Dir, Without, Error))

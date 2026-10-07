@@ -423,9 +423,9 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 		{
 			return false;
 		}
-		if (Rival.School != TEXT("fire") && Rival.School != TEXT("water"))
+		if (Rival.School != TEXT("fire") && Rival.School != TEXT("water") && Rival.School != TEXT("air"))
 		{
-			return Fail(Error, FString::Printf(TEXT("vr rules: %s school must be fire or water (the kernel schools)"), *Where));
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s school must be fire, water or air (the kernel schools)"), *Where));
 		}
 		if (!WholeNumber(Surge, 0.0, static_cast<double>(TierCap - 1), Rival.SurgeTiers))
 		{
@@ -487,9 +487,12 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 				{
 					return false;
 				}
-				if (Rival.School != TEXT("fire") || !FindFireSpell(Phase.OpensWith))
+				// The signature belongs to the rival's school: a pinned fire row for fire, a VR air row (T23) for air.
+				const bool bFireSignature = Rival.School == TEXT("fire") && FindFireSpell(Phase.OpensWith);
+				const bool bAirSignature = Rival.School == TEXT("air") && FindAirSpell(Phase.OpensWith);
+				if (!bFireSignature && !bAirSignature)
 				{
-					return Fail(Error, FString::Printf(TEXT("vr rules: %s opensWith %s is not a pinned fire spell"), *Where, *Phase.OpensWith));
+					return Fail(Error, FString::Printf(TEXT("vr rules: %s opensWith %s is not a spell of its school (%s)"), *Where, *Phase.OpensWith, *Rival.School));
 				}
 				++Signatures;
 			}

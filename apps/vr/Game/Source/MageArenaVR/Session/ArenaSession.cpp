@@ -3,6 +3,7 @@
 #include "Session/CreaturesCapture.h"
 #include "Session/DayCapture.h"
 #include "Session/PresetCapture.h"
+#include "Session/AirCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
@@ -24,6 +25,7 @@
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
 #include "Hands/MageSettings.h"
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
@@ -274,7 +276,8 @@ bool FArenaSession::Start(uint32 Seed)
 			{
 				if (Index == DayTier->Waves.Num() - 1)
 				{
-					bFire = Rules.TiroFinal.School == TEXT("fire");
+					// T23 merge: an Air final rides on the school-mage switch; Games.bAirFinal turns that final to Air.
+					bFire = Rules.TiroFinal.School == TEXT("fire") || Rules.TiroFinal.School == TEXT("air");
 				}
 				else
 				{
@@ -292,7 +295,8 @@ bool FArenaSession::Start(uint32 Seed)
 		}
 	}
 	const bool bBoutFire = bSchoolPinned ? bFireMages : (DayFire.IsValidIndex(BoutWave) && DayFire[BoutWave]);
-	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bBoutFire, &Rules))
+	const bool bBoutAir = bSchoolPinned ? bAirFinal : Rules.TiroFinal.School == TEXT("air");
+	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bBoutFire, &Rules, bBoutAir))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -374,6 +378,7 @@ bool FArenaSession::Start(uint32 Seed)
 	StartOverPhase.Reset();
 	BoutPerfectsStart = 0;
 	StaffPlantsAtBout = 0;
+	TempestNoted = -1;
 	if (Hands)
 	{
 		Hands->StopAll();
@@ -910,6 +915,16 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		{
 			continue;
 		}
+		// T23 Veering Bolt: the drawn arc ends at the aim point, so its ETA is the arc still to fly when it ends at the
+		// seat. The straight projection below would only see it in its last metres.
+		if (Projectile.bCurved && Projectile.ArcLeftM > 0.0 && Projectile.bHasAim)
+		{
+			if (SimDistance(Projectile.AimedAt, Player->Pos) <= Player->Radius + Projectile.Radius + 0.4)
+			{
+				ProjectileEta = FMath::Min(ProjectileEta, Projectile.ArcLeftM / Speed);
+			}
+			continue;
+		}
 		const FSimVec ToPlayer = SimSub(Player->Pos, Projectile.Pos);
 		const FSimVec Direction = SimUnit(Projectile.Velocity);
 		const double Along = SimDot(ToPlayer, Direction);
@@ -1210,6 +1225,52 @@ bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
 			{
 				return true;
 			}
+		}
+		return false;
+	}
+	// T23: an unblockable air line (Tempest Lance) is answered the Sunfall way, along a line instead of a circle: while
+	// the line is drawn (the pending cast; its aim is fixed at the press), blink to the pad farthest from it.
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (Actor.bDown || Actor.Team == Player->Team || !Actor.Air.bSchool || !Actor.Pending.IsSet() || !Actor.Pending->SpellId.IsSet())
+		{
+			continue;
+		}
+		const FAirSpell* Spell = FindAirSpell(Actor.Pending->SpellId.GetValue());
+		if (!Spell || Spell->Kind != TEXT("line") || Spell->Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		const FSimVec From = Actor.Pos;
+		const FSimVec To = SimAdd(From, SimScale(SimUnit(SimSub(Actor.Pending->Aim, From), Actor.Facing), Spell->RangeM * AirSpellRangeMult(Actor)));
+		auto LineGap = [&](const FSimVec& Point)
+		{
+			const FSimVec Seg = SimSub(To, From);
+			const double Len2 = SimDot(Seg, Seg);
+			const double T = Len2 > 0.0 ? FMath::Clamp(SimDot(SimSub(Point, From), Seg) / Len2, 0.0, 1.0) : 0.0;
+			return SimDistance(Point, SimAdd(From, SimScale(Seg, T)));
+		};
+		int32 BestPad = ActivePad;
+		double BestGap = -1.0;
+		for (int32 Pad = 0; Pad < 3; ++Pad)
+		{
+			const double Gap = LineGap(PadKernel(Pad));
+			if (Gap > BestGap)
+			{
+				BestGap = Gap;
+				BestPad = Pad;
+			}
+		}
+		SunfallPad = BestPad;
+		const bool bOnLine = LineGap(Player->Pos) <= Player->Radius + 0.15;
+		if (bOnLine && BestPad != ActivePad)
+		{
+			if (PlayBlinkToward(BestPad) && TempestNoted != Actor.Pending->ActivationId)
+			{
+				TempestNoted = Actor.Pending->ActivationId;
+				Note(FString::Printf(TEXT("script tempest pad=%d from=%d"), BestPad, ActivePad));
+			}
+			return true;
 		}
 		return false;
 	}
@@ -1945,6 +2006,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 	const bool bPresetCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaPresetCapture"));
 	const bool bDayCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaDayCapture"));
+	const bool bAirCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaAirCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1990,6 +2052,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		DayCapture = NewObject<UDayCaptureDriver>(this);
 		DayCapture->Start();
+		return;
+	}
+	if (bAirCapture)
+	{
+		AirCapture = NewObject<UAirCaptureDriver>(this);
+		AirCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)

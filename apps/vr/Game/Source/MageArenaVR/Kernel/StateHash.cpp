@@ -198,6 +198,66 @@ void MixFire(uint32& Hash, const FFireState& Fire)
 	}
 }
 
+// T23. Mixed only for an air actor, so every water and fire state hashes as it did before Air existed (the fire
+// scenario hashes in scenarios-vr and the T19 digest stay byte-identical).
+void MixAir(uint32& Hash, const FAirState& Air)
+{
+	if (!Air.bSchool)
+	{
+		return;
+	}
+	MixBool(Hash, Air.bSchool);
+	MixDouble(Hash, Air.Momentum);
+	MixDouble(Hash, Air.MaxMomentum);
+	MixInt(Hash, Air.LockUntil);
+	MixDouble(Hash, Air.LockValue);
+	MixDouble(Hash, Air.AbsorbDrainSpellMult);
+	MixInt(Hash, Air.AbsorbDrainSpellUntil);
+	MixInt(Hash, Air.FormUntil);
+	MixDouble(Hash, Air.FormPhysical);
+	MixDouble(Hash, Air.FormMagic);
+	MixInt(Hash, Air.Forms);
+	MixInt(Hash, Air.Evades);
+	MixInt(Hash, Air.Deflects);
+	MixInt(Hash, Air.TempestCastTick);
+	MixInt(Hash, Air.Cooldowns.Num());
+	for (const FFireCooldown& Entry : Air.Cooldowns)
+	{
+		MixString(Hash, Entry.SpellId);
+		MixInt(Hash, Entry.Until);
+	}
+	MixBool(Hash, Air.Volley.IsSet());
+	if (Air.Volley.IsSet())
+	{
+		const FAirVolley& Volley = Air.Volley.GetValue();
+		MixString(Hash, Volley.SpellId);
+		MixVec(Hash, Volley.Aim);
+		MixInt(Hash, Volley.Left);
+		MixInt(Hash, Volley.NextTick);
+		MixInt(Hash, Volley.IntervalTicks);
+		MixDouble(Hash, Volley.Damage);
+		MixDouble(Hash, Volley.RangeMult);
+		MixInt(Hash, Volley.PierceLeft);
+	}
+	MixBool(Hash, Air.Channel.IsSet());
+	if (Air.Channel.IsSet())
+	{
+		const FFireChannel& Channel = Air.Channel.GetValue();
+		MixString(Hash, Channel.SpellId);
+		MixInt(Hash, Channel.Until);
+		MixInt(Hash, Channel.NextTick);
+		MixInt(Hash, Channel.IntervalTicks);
+		MixInt(Hash, Channel.TicksDone);
+		MixDouble(Hash, Channel.Damage);
+		MixDouble(Hash, Channel.HeatOnHit);
+		MixDouble(Hash, Channel.RangeM);
+		MixInt(Hash, Channel.Tier);
+		MixString(Hash, Channel.Family);
+		MixBool(Hash, Channel.bPierceShields);
+		MixBool(Hash, Channel.bPerfectOnlyFirstTick);
+	}
+}
+
 void MixEnemy(uint32& Hash, const TOptional<FEnemyBrain>& Enemy)
 {
 	MixBool(Hash, Enemy.IsSet());
@@ -283,6 +343,7 @@ void MixActor(uint32& Hash, const FActor& Actor)
 	MixBool(Hash, Actor.bAbsorbExhausted);
 	MixWater(Hash, Actor.Water);
 	MixFire(Hash, Actor.Fire);
+	MixAir(Hash, Actor.Air);
 	MixEnemy(Hash, Actor.Enemy);
 	MixMage(Hash, Actor.MageAI);
 	MixOptDouble(Hash, Actor.SpeedMps);
@@ -336,6 +397,19 @@ void MixProjectile(uint32& Hash, const FProjectile& Projectile)
 	MixDouble(Hash, Projectile.HeatOnHit);
 	MixBool(Hash, Projectile.bSuppressPerfect);
 	MixBool(Hash, Projectile.bPierceShields);
+	// T23: an air projectile's flight fields, only when it is one (see MixAir).
+	if (Projectile.bAir || Projectile.bCurved)
+	{
+		MixBool(Hash, Projectile.bAir);
+		MixDouble(Hash, Projectile.MomentumOnHit);
+		MixInt(Hash, Projectile.PierceLeft);
+		MixBool(Hash, Projectile.bCurved);
+		MixVec(Hash, Projectile.ArcCentre);
+		MixDouble(Hash, Projectile.ArcRadiusM);
+		MixDouble(Hash, Projectile.ArcAngle);
+		MixDouble(Hash, Projectile.ArcSign);
+		MixDouble(Hash, Projectile.ArcLeftM);
+	}
 }
 
 void MixTelegraph(uint32& Hash, const FTelegraph& Telegraph)

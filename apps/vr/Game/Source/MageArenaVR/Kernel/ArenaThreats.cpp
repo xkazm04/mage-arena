@@ -1,6 +1,7 @@
 #include "Kernel/ArenaThreats.h"
 
 #include "MageArenaVR.h"
+#include "Kernel/Air.h"
 #include "Kernel/Enemies.h"
 #include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
@@ -126,7 +127,7 @@ void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 				Hit.bPierceShields = Telegraph.bPierceShields;
 				Hit.Delivery = Telegraph.Kind == TEXT("melee") ? TEXT("melee") : TEXT("area");
 				const FSimHitResult Result = ResolveHit(State, Target, Hit, Rules);
-				if (!bImmune && !Result.bPerfect && !Target.bDown)
+				if (!bImmune && !Result.bPerfect && !Result.bEvaded && !Target.bDown)
 				{
 					if (Telegraph.RootS > 0.0)
 					{
@@ -163,7 +164,27 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 		const double Travel = std::min(SimLength(Projectile.Velocity) * SimDt(), Projectile.RemainingM);
 		const FSimVec Direction = SimUnit(Projectile.Velocity);
 		Projectile.PreviousPos = Projectile.Pos;
-		const FSimVec End = SimAdd(Projectile.Pos, SimScale(Direction, Travel));
+		FSimVec End = SimAdd(Projectile.Pos, SimScale(Direction, Travel));
+		// T23 Veering Bolt: a curved flight's end is on its arc. The commit below applies the new angle and velocity
+		// wherever the projectile moves on; every other projectile keeps the straight step above.
+		double ArcAngle = Projectile.ArcAngle;
+		FSimVec ArcVelocity = Projectile.Velocity;
+		double ArcLeft = Projectile.ArcLeftM;
+		if (Projectile.bCurved)
+		{
+			End = AirCurvedStep(Projectile, Travel, ArcAngle, ArcVelocity, ArcLeft);
+		}
+		auto MoveOn = [&](FProjectile& Moving)
+		{
+			Moving.Pos = End;
+			Moving.RemainingM -= Travel;
+			if (Moving.bCurved)
+			{
+				Moving.ArcAngle = ArcAngle;
+				Moving.Velocity = ArcVelocity;
+				Moving.ArcLeftM = ArcLeft;
+			}
+		};
 		const FActor* Owner = SimFindActor(State, Projectile.OwnerId);
 		double WallT = std::numeric_limits<double>::infinity();
 		const FVrWall* Stopping = nullptr;
@@ -225,8 +246,15 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 			Hit.bSuppressPerfect = Projectile.bSuppressPerfect;
 			Hit.bPierceShields = Projectile.bPierceShields;
 			Hit.Delivery = (Projectile.BurstRadiusM > 0.0 || Projectile.bPiercing) ? TEXT("area") : TEXT("projectile");
+			Hit.MomentumOnHit = Projectile.MomentumOnHit;
 			const FSimHitResult Result = ResolveHit(State, *First, Hit, Rules);
 			Projectile.HitIds.Add(First->Id);
+			if (Result.bEvaded)
+			{
+				// Air Form: the bolt passes through the evading body and flies on. It cannot hit that body again.
+				MoveOn(Projectile);
+				continue;
+			}
 			if (Result.bPerfect)
 			{
 				// Read before the spawn: the reserve above keeps Projectile valid, but the owner id is what the event names.
@@ -234,7 +262,17 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 				const int32 Tier = Projectile.Tier;
 				// The reflect event is a VR overlay event (T20): conformance runs without a ruleset and its pinned event
 				// logs (mirror-2a) were recorded without it, so the null path stays byte-identical.
-				if (ReflectProjectile(State, *First, Projectile) && Rules)
+				if (First->Air.bSchool)
+				{
+					// T23: an air actor's perfect is the school's deflect (schools.json air perfectAbsorbExtra), not the
+					// water mirror its attached water preset might name. No conformance vector has an air actor, so the
+					// event needs no ruleset gate.
+					if (AirTryDeflect(State, *First, Projectile))
+					{
+						Emit(State, TEXT("deflect"), *First, static_cast<double>(Tier), Caster);
+					}
+				}
+				else if (ReflectProjectile(State, *First, Projectile) && Rules)
 				{
 					Emit(State, TEXT("reflect"), *First, static_cast<double>(Tier), Caster);
 				}
@@ -263,20 +301,24 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 				UE_LOG(LogMageArena, Log, TEXT("defence firewall stop wall=%d projectile=%d owner=%d"), Stopping->Id, Projectile.Id, Stopping->OwnerId);
 				Projectile.RemainingM = 0.0;
 			}
+			else if (!Projectile.bPiercing && !Result.bPerfect && Projectile.PierceLeft > 0)
+			{
+				// T23 spellsPierce, read as "pierces one extra target": the bolt that connected flies on for one more body.
+				Projectile.PierceLeft--;
+				MoveOn(Projectile);
+			}
 			else if (!Projectile.bPiercing || Result.bPerfect)
 			{
 				Projectile.RemainingM = 0.0;
 			}
 			else
 			{
-				Projectile.Pos = End;
-				Projectile.RemainingM -= Travel;
+				MoveOn(Projectile);
 			}
 		}
 		else
 		{
-			Projectile.Pos = End;
-			Projectile.RemainingM -= Travel;
+			MoveOn(Projectile);
 		}
 	}
 	State.Projectiles.RemoveAll([](const FProjectile& Projectile) { return !(Projectile.RemainingM > ProjectileRemainEpsilon); });
@@ -287,6 +329,12 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit, co
 	FSimHitResult Result;
 	if (Target.bDown || State.Tick < Target.ImmuneUntil || State.Tick < Target.Water.EncasedUntil)
 	{
+		return Result;
+	}
+	// T23 Air Form. Before the ward: an evaded hit does not touch the ward, the HP or the metrics.
+	if (AirTryEvade(State, Target, Hit))
+	{
+		Result.bEvaded = true;
 		return Result;
 	}
 	const FKernelData& Data = KernelData();
@@ -340,6 +388,7 @@ FSimHitResult ResolveHit(FArenaState& State, FActor& Target, const FHit& Hit, co
 		Owner->Metrics.DamageDealt += Removed;
 	}
 	FireOnHitResolved(State, Target, Hit, Incoming, Verdict.Reduction);
+	AirOnHitResolved(State, Hit);
 	Target.Metrics.Hits++;
 	Emit(State, TEXT("hit"), Target, Removed, Hit.OwnerId);
 	if (Target.Hp == 0.0)

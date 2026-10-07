@@ -7,7 +7,7 @@
 // - teach.json offerHoldS 0.40 (the ritual's both-palms hold and every stone hold).
 // - pinned arena-tiers.json Tiro: wave n 1 soldiers, 2 creatures, 3 semifinal (one mage, competence 1),
 //   4 final (one mage, competence 1.5).
-// - combat.vr.json rivals.brennic applies to Tiro wave n 3 (semifinal) in Fire; tiroFinal { school fire, rival null }.
+// - combat.vr.json rivals.brennic applies to Tiro wave n 3 (semifinal) in Fire; tiroFinal { school air, rival lio } since the T23 merge (Corvo, { fire, null }, stays the DECISIONS cut fallback).
 // - combat.json simStepHz 60, so a kernel tick is 1/60 s.
 
 #include "Dom/JsonObject.h"
@@ -528,9 +528,9 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 		AddError(Error);
 		return false;
 	}
-	bool bPass = TestEqual(TEXT("tiroFinal.school"), Live.TiroFinal.School, FString(TEXT("fire")));
-	bPass &= TestTrue(TEXT("tiroFinal.rival is null"), Live.TiroFinal.Rival.IsEmpty());
-	bPass &= TestEqual(TEXT("no rival binds the Fire final"), Live.FindRival(TEXT("tiro"), 4, TEXT("final"), TEXT("fire")), static_cast<int32>(INDEX_NONE));
+	bool bPass = TestEqual(TEXT("tiroFinal.school"), Live.TiroFinal.School, FString(TEXT("air")));
+	bPass &= TestEqual(TEXT("tiroFinal.rival"), Live.TiroFinal.Rival, FString(TEXT("lio")));
+	bPass &= TestTrue(TEXT("lio binds the Air final"), Live.FindRival(TEXT("tiro"), 4, TEXT("final"), TEXT("air")) != static_cast<int32>(INDEX_NONE));
 
 	struct FCase
 	{
@@ -551,9 +551,11 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 		}
 	};
 	TArray<FCase> Cases;
-	// No Air school in this kernel yet (T23 is not merged on this branch): both Air values fail the load.
+	// Since the T23 merge Air is a kernel school with rivals.lio: Air without a rival still fails (no phase-less Air
+	// entrant is authored), Air with lio loads. The Corvo fallback { fire, null } is the "fire without a rival" case.
 	Cases.Add({TEXT("air without a rival"), false, [](FJsonObject& Root) { Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("air"), nullptr)); }});
-	Cases.Add({TEXT("air with lio (T23's value)"), false, [](FJsonObject& Root) { Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("air"), TEXT("lio"))); }});
+	Cases.Add({TEXT("air with lio (T23's value)"), true, [](FJsonObject& Root) { Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("air"), TEXT("lio"))); }});
+	Cases.Add({TEXT("corvo fallback (fire, no rival)"), true, [](FJsonObject& Root) { Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("fire"), nullptr)); }});
 	Cases.Add({TEXT("brennic is the semifinal"), false, [](FJsonObject& Root) { Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("fire"), TEXT("brennic"))); }});
 	Cases.Add({TEXT("missing block"), false, [](FJsonObject& Root) { Root.RemoveField(TEXT("tiroFinal")); }});
 	Cases.Add({TEXT("unknown key"), false, [](FJsonObject& Root)
@@ -575,7 +577,11 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 		Block->SetNumberField(TEXT("school"), 1.0);
 		Root.SetObjectField(TEXT("tiroFinal"), Block);
 	}});
-	Cases.Add({TEXT("null rival while brennic applies to the final"), false, [MoveBrennicToFinal](FJsonObject& Root) { MoveBrennicToFinal(Root); }});
+	Cases.Add({TEXT("null rival while brennic applies to the final"), false, [MoveBrennicToFinal](FJsonObject& Root)
+	{
+		MoveBrennicToFinal(Root);
+		Root.SetObjectField(TEXT("tiroFinal"), FinalBlock(TEXT("fire"), nullptr));
+	}});
 	// The seam T23 uses: a named rival that applies to the final in the same school loads.
 	Cases.Add({TEXT("a named rival for the final"), true, [MoveBrennicToFinal](FJsonObject& Root)
 	{
@@ -600,7 +606,7 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 		IFileManager::Get().DeleteDirectory(*Dir, false, true);
 	}
 
-	// The day's Bout 4: Tiro wave index 3 (n 4, final), competence 1.5, a Fire mage, no rival, the Corvo line.
+	// The day's Bout 4: Tiro wave index 3 (n 4, final), competence 1.5, the Air mage Lio bound as the rival, the Lio line.
 	FDayRig Rig;
 	if (!Rig.Open(*this))
 	{
@@ -614,14 +620,14 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kDayTick, true);
 	bPass &= TestTrue(TEXT("ritual to the final"), OfferWrists(Rig, Session));
-	bPass &= TestEqual(TEXT("final intro line"), Session.GetPromptText(), FString(TEXT("Corvo of the Ember. The final.")));
+	bPass &= TestEqual(TEXT("final intro line"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. The final.")));
 	bPass &= TestEqual(TEXT("final wave index"), Session.GetGames().Wave, 3);
 	const FActor* Mage = OpponentMage(Session);
 	bPass &= TestTrue(TEXT("one opponent mage"), Mage != nullptr);
-	bPass &= TestTrue(TEXT("Fire mage"), Mage && Mage->Fire.bSchool);
+	bPass &= TestTrue(TEXT("Air mage"), Mage && Mage->Air.bSchool);
 	bPass &= TestTrue(TEXT("competence 1.5"), Mage && Mage->MageAI.IsSet() && FMath::IsNearlyEqual(Mage->MageAI->Competence, 1.5));
-	bPass &= TestTrue(TEXT("no rival (no phases)"), Session.GetVrRules() && Session.GetVrRules()->BoundRival() == nullptr);
-	bPass &= TestEqual(TEXT("the day's school for the final"), Session.DaySchool(3), FString(TEXT("fire")));
+	bPass &= TestTrue(TEXT("Lio bound (phases)"), Session.GetVrRules() && Session.GetVrRules()->BoundRival() && Session.GetVrRules()->BoundRival()->Id == TEXT("lio"));
+	bPass &= TestEqual(TEXT("the day's school for the final"), Session.DaySchool(3), FString(TEXT("air")));
 	Rig.Close(Session);
 	return bPass;
 }
@@ -713,7 +719,7 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	Session.Advance(kDayTick, true);
 	bPass &= TestEqual(TEXT("the palm offers Bout 4 again"), Session.GetStage(), FString(TEXT("intro")));
 	bPass &= TestEqual(TEXT("the same bout"), Session.GetGames().Wave, 3);
-	bPass &= TestEqual(TEXT("the intro again"), Session.GetPromptText(), FString(TEXT("Corvo of the Ember. The final.")));
+	bPass &= TestEqual(TEXT("the intro again"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. The final.")));
 	RunWhileStage(Session, TEXT("intro"), 5.0);
 	LoseBout(Session);
 	bPass &= TestEqual(TEXT("lost again"), Session.GetStage(), FString(TEXT("lost")));

@@ -115,7 +115,12 @@ void FArenaSession::SaveFlags() const
 
 FString FArenaSession::DaySchool(int32 WaveIndex) const
 {
-	return DayFire.IsValidIndex(WaveIndex) && DayFire[WaveIndex] ? TEXT("fire") : TEXT("water");
+	if (!DayFire.IsValidIndex(WaveIndex) || !DayFire[WaveIndex])
+	{
+		return TEXT("water");
+	}
+	// T23 merge: an Air final rides on the school-mage switch (see Start), so the last wave reports tiroFinal.school.
+	return WaveIndex == DayFire.Num() - 1 && GetVrRules() && GetVrRules()->TiroFinal.School == TEXT("air") ? TEXT("air") : TEXT("fire");
 }
 
 double FArenaSession::BoutSeconds() const
