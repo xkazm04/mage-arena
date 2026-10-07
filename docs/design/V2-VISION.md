@@ -126,3 +126,27 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
 - **The signatures need a VR-owned player preset** (Mirror A, Tide Orb IV picked on the stones) in the overlay, because
   the pinned presets cannot be edited. The mudra needs a pose detector, a 1.5 s data window and a deliberate seal shape
   (BACKLOG). Audio is the first `UAudioComponent` in the build: A05 SFX plus new threat cues (ElevenLabs).
+
+## Wave 4 - combat depth (2026-10-07)
+
+| Question | Owner's answer |
+|---|---|
+| Mastery techniques | **All four**: read the tell and interrupt, named line combos, reflection rallies, pad angles. |
+| Opponent personality | **Signature kit, tells and taunts**: a signature spell, a defence, readable tells, a voiced phase-break taunt of 10 words or fewer, and an AI style tweak, all authored data on the existing mage AI. |
+| Cracks and Tithe feedback | **Diegetic collar and crowd**: light leaks from the collar and wrists on a Crack, the Wardstones pulse and the crowd chants on Tithe; exact tallies only on the aftermath tablet. |
+| Playable schools | **All four at launch** (spring 2027). |
+
+### What changes
+
+- **Techniques, as rules:**
+  - *Interrupt*: a tell window before every tier III-IV mage cast. A hit landing inside it staggers the mage, cancels
+    the cast and gives a Crack.
+  - *Combos*: named effects keyed to line order inside the Flow window, one per three-line order. These are data rows
+    keyed by the last three casts.
+  - *Rallies*: a reflected projectile can be perfected back. Each exchange adds speed and damage, capped at three
+    returns. The kernel already has `ReflectProjectile`, so it needs a mage-side reflect and a rally counter.
+  - *Pad angles*: the ward arc test already uses angle. A flank shot from a side pad more than 45 degrees off the
+    mage's facing ignores the mage's ward. A pad charge is a later idea.
+- **Tension to settle in Wave 5:** the Wave 1 spine is Cassia's story, and four playable schools means four
+  protagonists. Canon offers a natural answer: the **Four** betrayed at the ford are the four Tent mains (Cassia,
+  Brennic, Garran, Iskar), so each school is one of the Four, on one shared ladder seen from four sides.
