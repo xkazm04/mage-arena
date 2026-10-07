@@ -9,6 +9,7 @@
 #include "Gestures/StaffDetector.h"
 #include "Gestures/WardDetector.h"
 #include "HAL/FileManager.h"
+#include "HeadMountedDisplayTypes.h"
 #include "Hands/ClipVariant.h"
 #include "Hands/HandClip.h"
 #include "Hands/HandInputSubsystem.h"
@@ -20,6 +21,10 @@
 // update at about 30 Hz? The worst case is modelled in memory: every pose is held for 1/30 s, still emitted at 72 Hz,
 // and nothing predicts between updates. No clip file is written. Every test plays the held copy through the real
 // pipeline (PlayLoadedClip, the hand source, the detectors) and compares it with the unmodified clip.
+//
+// G1 of docs/research/FEASIBILITY-2026-10.md: the runtime extrapolates poses to the display time by default, so the held
+// stream is the floor, not the real case. A second stream model extrapolates from the last two camera samples, and both
+// models also run at 25 Hz, a bound: whether default mode drops to 25 Hz on 50 Hz mains is unconfirmed.
 
 namespace HeldSampleTestsImpl
 {
@@ -27,6 +32,10 @@ namespace HeldSampleTestsImpl
 constexpr double GCameraHz = 30.0;
 /** The rate the pose-count bound is written for. Not the same constant on purpose: TransformIsReal must notice a change. */
 constexpr double GBoundHz = 30.0;
+/** The lower camera rate (G1). The mutation proof sets this to 72, which turns both models into the identity. */
+constexpr double GLowCameraHz = 25.0;
+/** The pose-count bound for GLowCameraHz. Separate for the same reason as GBoundHz. */
+constexpr double GLowBoundHz = 25.0;
 /** Three alignments of the camera grid against the 72 Hz emit grid, so one lucky alignment cannot pass. */
 constexpr double GPhases[] = {0.0, 1.0 / 90.0, 2.0 / 90.0};
 constexpr int32 GPhaseCount = UE_ARRAY_COUNT(GPhases);
@@ -88,6 +97,84 @@ FHandClip MakeHeldClip(const FHandClip& Source, double CameraHz, double Phase)
 		}
 	}
 	return Held;
+}
+
+/**
+ * MODEL of an extrapolating runtime (G1). Meta states that poses are extrapolated to the display time, not how, so this is
+ * a model and not Meta's method. Every frame keeps its time. The latest camera sample c1 = Phase + k / CameraHz <= the frame
+ * time and the one before it, c0 = c1 - 1 / CameraHz, are extrapolated linearly to the frame time, capped at one camera
+ * period: locations by the fraction (t - c1) * CameraHz of the step c0 to c1, rotations by the same fraction of the rotation
+ * c0 to c1, pinch the same and clamped to 0..1. Confidence and every other field come as in MakeHeldClip. Until c0 exists
+ * (the first camera period) the pose is held.
+ */
+FHandClip MakeExtrapolatedClip(const FHandClip& Source, double CameraHz, double Phase)
+{
+	FHandClip Extrapolated = Source;
+	const double Period = 1.0 / CameraHz;
+	for (FHandClipTrack& Track : Extrapolated.Tracks)
+	{
+		for (FHandFrame& Frame : Track.Frames)
+		{
+			const double Ticks = FMath::FloorToDouble((Frame.TimeSeconds - Phase) * CameraHz + 1.0e-9);
+			const double Latest = Phase + Ticks / CameraHz;
+			FHandFrame Now;
+			if (!Source.Sample(Track.Hand, FMath::Max(0.0, Latest), Now))
+			{
+				continue;
+			}
+			Frame.Joints = Now.Joints;
+			Frame.Pinch = Now.Pinch;
+			Frame.Confidence = Now.Confidence;
+			const double Previous = Latest - Period;
+			FHandFrame Before;
+			if (Previous < -1.0e-9 || !Source.Sample(Track.Hand, Previous, Before) || Before.Joints.Num() != Now.Joints.Num())
+			{
+				continue;
+			}
+			const double Fraction = FMath::Clamp((Frame.TimeSeconds - Latest) * CameraHz, 0.0, 1.0);
+			for (int32 Index = 0; Index < Now.Joints.Num(); ++Index)
+			{
+				const FHandJointPose& From = Before.Joints[Index];
+				const FHandJointPose& To = Now.Joints[Index];
+				Frame.Joints[Index].Location = To.Location + (To.Location - From.Location) * Fraction;
+				// The world-frame step that takes c0 to c1, applied again for the fraction of a period.
+				const FQuat Step = To.Rotation * From.Rotation.Inverse();
+				Frame.Joints[Index].Rotation = (FQuat::Slerp(FQuat::Identity, Step, Fraction) * To.Rotation).GetNormalized();
+			}
+			Frame.Pinch = FMath::Clamp(Now.Pinch + (Now.Pinch - Before.Pinch) * static_cast<float>(Fraction), 0.0f, 1.0f);
+		}
+	}
+	return Extrapolated;
+}
+
+enum class EStreamModel : uint8
+{
+	Held,
+	Extrapolated
+};
+
+/** One modelled hand stream: how poses reach the 72 Hz frames, and the camera rate. */
+struct FStream
+{
+	const TCHAR* Name;
+	EStreamModel Model;
+	double CameraHz;
+};
+
+const FStream GHeld30{TEXT("held30"), EStreamModel::Held, GCameraHz};
+const FStream GExtrapolated30{TEXT("extrap30"), EStreamModel::Extrapolated, GCameraHz};
+const FStream GHeld25{TEXT("held25"), EStreamModel::Held, GLowCameraHz};
+const FStream GExtrapolated25{TEXT("extrap25"), EStreamModel::Extrapolated, GLowCameraHz};
+
+FHandClip MakeStream(const FHandClip& Source, const FStream& Stream, double Phase)
+{
+	return Stream.Model == EStreamModel::Held ? MakeHeldClip(Source, Stream.CameraHz, Phase) : MakeExtrapolatedClip(Source, Stream.CameraHz, Phase);
+}
+
+/** The ward onset bound of a stream: one camera interval plus one 72 Hz frame. 47.2 ms at 30 Hz, 53.9 ms at 25 Hz. */
+double OnsetBoundMs(double CameraHz)
+{
+	return (1.0 / CameraHz + 1.0 / 72.0) * 1000.0;
 }
 
 bool SamePose(const FHandFrame& A, const FHandFrame& B)
@@ -304,9 +391,10 @@ struct FWardFigures
 	int32 WithinBound = 0;
 };
 
-/** Runs one action over every variant and phase against the ratchet. Returns false on a failure. */
-bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, FWardFigures* OutWard)
+/** Runs one action over every variant and phase of a stream against the ratchet. Returns false on a failure. */
+bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, const FStream& Stream, FWardFigures* OutWard)
 {
+	const double BoundMs = OnsetBoundMs(Stream.CameraHz);
 	FRig Rig;
 	if (!Rig.Open(Test))
 	{
@@ -346,7 +434,7 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, FWar
 		for (int32 PhaseIndex = 0; PhaseIndex < GPhaseCount; ++PhaseIndex)
 		{
 			const FString Key = CaseKey(Action, VariantIndex, PhaseIndex);
-			const FHandClip Held = MakeHeldClip(Source, GCameraHz, GPhases[PhaseIndex]);
+			const FHandClip Held = MakeStream(Source, Stream, GPhases[PhaseIndex]);
 			if (!Rig.Play(Held))
 			{
 				Test.AddError(Key + TEXT(" held did not play"));
@@ -403,9 +491,9 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, FWar
 							bPass = false;
 						}
 					}
-					const bool bWithin = FMath::Abs(DeltaMs) <= GOnsetBoundMs;
+					const bool bWithin = FMath::Abs(DeltaMs) <= BoundMs;
 					bWardHolds = bWithin && bInteriorHeld;
-					Extra += FString::Printf(TEXT(" onsetWithin%.1fms=%d interiorHeld=%d"), GOnsetBoundMs, bWithin ? 1 : 0, bInteriorHeld ? 1 : 0);
+					Extra += FString::Printf(TEXT(" onsetWithin%.1fms=%d interiorHeld=%d"), BoundMs, bWithin ? 1 : 0, bInteriorHeld ? 1 : 0);
 					if (OutWard)
 					{
 						OutWard->OnsetDeltasMs.Add(DeltaMs);
@@ -418,7 +506,7 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, FWar
 				if (!bWardHolds && !bKnownWard)
 				{
 					Test.AddError(FString::Printf(TEXT("%s held onset is not within %.1f ms of the 72 Hz onset, or an interior hit is not perfect, and it is not in KnownHeldWardMisses"),
-						*Key, GOnsetBoundMs));
+						*Key, BoundMs));
 					bPass = false;
 				}
 				if (bWardHolds && bKnownWard)
@@ -572,13 +660,107 @@ bool FMageArenaHeldSampleTransformIsReal::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleModelsAreReal, "MageArena.Hands.HeldSample.ModelsAreReal",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleModelsAreReal::RunTest(const FString& Parameters)
+{
+	// G1: each new stream must differ from its source. The 25 Hz hold keeps the pose-count bound of TransformIsReal at its
+	// own rate. An extrapolated stream must differ from its source and from the held stream of the same rate and phase, so
+	// neither the identity nor a zero extrapolation fraction (which is the hold) passes.
+	const TCHAR* Actions[] = {TEXT("ward-raise"), TEXT("blink-left"), TEXT("blink-right"), TEXT("blink-back"),
+		TEXT("sigil-line1"), TEXT("sigil-line2"), TEXT("sigil-line3"), TEXT("staff-lift"), TEXT("staff-plant")};
+	const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+	bool bPass = true;
+	double HeldErrorCm[2] = {0.0, 0.0};
+	double ExtrapolatedErrorCm[2] = {0.0, 0.0};
+	int32 ErrorFrames[2] = {0, 0};
+	for (const TCHAR* Action : Actions)
+	{
+		for (int32 VariantIndex = 0; VariantIndex < 3; ++VariantIndex)
+		{
+			FHandClip Source;
+			if (!LoadActionClip(*this, Action, VariantIndex, Source))
+			{
+				bPass = false;
+				continue;
+			}
+			const int32 LowBound = FMath::CeilToInt(Source.GetDuration() * GLowBoundHz) + 1;
+			for (int32 PhaseIndex = 0; PhaseIndex < GPhaseCount; ++PhaseIndex)
+			{
+				const FString Key = CaseKey(Action, VariantIndex, PhaseIndex);
+				const FHandClip Held25 = MakeStream(Source, GHeld25, GPhases[PhaseIndex]);
+				bPass &= TestEqual(*FString::Printf(TEXT("held25 %s hz stays 72"), *Key), Held25.Hz, 72.0);
+				bPass &= TestEqual(TEXT("held25 track count"), Held25.Tracks.Num(), Source.Tracks.Num());
+				for (int32 TrackIndex = 0; TrackIndex < Source.Tracks.Num() && TrackIndex < Held25.Tracks.Num(); ++TrackIndex)
+				{
+					const int32 Original = DistinctPoses(Source.Tracks[TrackIndex]);
+					const int32 Distinct = DistinctPoses(Held25.Tracks[TrackIndex]);
+					bPass &= TestEqual(TEXT("held25 frame count unchanged"), Held25.Tracks[TrackIndex].Frames.Num(), Source.Tracks[TrackIndex].Frames.Num());
+					bPass &= TestTrue(*FString::Printf(TEXT("held25 %s track %d has %d distinct poses, at most %d"), *Key, TrackIndex, Distinct, LowBound),
+						Distinct <= LowBound);
+					bPass &= TestTrue(*FString::Printf(TEXT("held25 %s track %d source has %d distinct poses, more than held %d"), *Key, TrackIndex, Original, Distinct),
+						Original > Distinct);
+				}
+				const FStream* Pairs[2][2] = {{&GExtrapolated30, &GHeld30}, {&GExtrapolated25, &GHeld25}};
+				for (int32 RateIndex = 0; RateIndex < 2; ++RateIndex)
+				{
+					const FStream& Model = *Pairs[RateIndex][0];
+					const FHandClip Extrapolated = MakeStream(Source, Model, GPhases[PhaseIndex]);
+					const FHandClip Held = MakeStream(Source, *Pairs[RateIndex][1], GPhases[PhaseIndex]);
+					bPass &= TestEqual(*FString::Printf(TEXT("%s %s hz stays 72"), Model.Name, *Key), Extrapolated.Hz, 72.0);
+					bPass &= TestEqual(TEXT("extrapolated track count"), Extrapolated.Tracks.Num(), Source.Tracks.Num());
+					for (int32 TrackIndex = 0; TrackIndex < Source.Tracks.Num() && TrackIndex < Extrapolated.Tracks.Num(); ++TrackIndex)
+					{
+						const TArray<FHandFrame>& From = Source.Tracks[TrackIndex].Frames;
+						const TArray<FHandFrame>& Out = Extrapolated.Tracks[TrackIndex].Frames;
+						const TArray<FHandFrame>& Hold = Held.Tracks[TrackIndex].Frames;
+						if (!TestEqual(TEXT("extrapolated frame count unchanged"), Out.Num(), From.Num()) || Hold.Num() != From.Num())
+						{
+							bPass = false;
+							continue;
+						}
+						int32 OffSource = 0;
+						int32 OffHeld = 0;
+						int32 Retimed = 0;
+						for (int32 Index = 0; Index < From.Num(); ++Index)
+						{
+							OffSource += SamePose(Out[Index], From[Index]) ? 0 : 1;
+							OffHeld += SamePose(Out[Index], Hold[Index]) ? 0 : 1;
+							Retimed += Out[Index].TimeSeconds == From[Index].TimeSeconds ? 0 : 1;
+							if (From[Index].Joints.IsValidIndex(Palm) && Out[Index].Joints.IsValidIndex(Palm) && Hold[Index].Joints.IsValidIndex(Palm))
+							{
+								HeldErrorCm[RateIndex] += FVector::Distance(Hold[Index].Joints[Palm].Location, From[Index].Joints[Palm].Location);
+								ExtrapolatedErrorCm[RateIndex] += FVector::Distance(Out[Index].Joints[Palm].Location, From[Index].Joints[Palm].Location);
+								++ErrorFrames[RateIndex];
+							}
+						}
+						bPass &= TestEqual(TEXT("extrapolated frames keep their time"), Retimed, 0);
+						bPass &= TestTrue(*FString::Printf(TEXT("%s %s track %d differs from its source in %d frames"), Model.Name, *Key, TrackIndex, OffSource), OffSource > 0);
+						bPass &= TestTrue(*FString::Printf(TEXT("%s %s track %d differs from the held stream in %d frames"), Model.Name, *Key, TrackIndex, OffHeld), OffHeld > 0);
+					}
+				}
+			}
+		}
+	}
+	for (int32 RateIndex = 0; RateIndex < 2; ++RateIndex)
+	{
+		const double Frames = FMath::Max(1, ErrorFrames[RateIndex]);
+		const FString Line = FString::Printf(TEXT("HeldSample %d Hz mean palm distance to the source: held %.3f cm, extrapolated %.3f cm over %d frames"),
+			RateIndex == 0 ? 30 : 25, HeldErrorCm[RateIndex] / Frames, ExtrapolatedErrorCm[RateIndex] / Frames, ErrorFrames[RateIndex]);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+		AddInfo(Line);
+	}
+	return bPass;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleWard, "MageArena.Hands.HeldSample.Ward",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaHeldSampleWard::RunTest(const FString& Parameters)
 {
 	FWardFigures Figures;
-	const bool bPass = RunRatchet(*this, TEXT("ward-raise"), EKind::Ward, &Figures);
+	const bool bPass = RunRatchet(*this, TEXT("ward-raise"), EKind::Ward, GHeld30, &Figures);
 	TArray<double>& Deltas = Figures.OnsetDeltasMs;
 	if (Deltas.Num() > 0)
 	{
@@ -603,7 +785,7 @@ bool FMageArenaHeldSampleBlink::RunTest(const FString& Parameters)
 	bool bPass = true;
 	for (const TCHAR* Action : {TEXT("blink-left"), TEXT("blink-right"), TEXT("blink-back")})
 	{
-		bPass &= RunRatchet(*this, Action, EKind::Blink, nullptr);
+		bPass &= RunRatchet(*this, Action, EKind::Blink, GHeld30, nullptr);
 	}
 	return bPass;
 }
@@ -616,7 +798,7 @@ bool FMageArenaHeldSampleSigilLines::RunTest(const FString& Parameters)
 	bool bPass = true;
 	for (const TCHAR* Action : {TEXT("sigil-line1"), TEXT("sigil-line2"), TEXT("sigil-line3")})
 	{
-		bPass &= RunRatchet(*this, Action, EKind::Sigil, nullptr);
+		bPass &= RunRatchet(*this, Action, EKind::Sigil, GHeld30, nullptr);
 	}
 	return bPass;
 }
