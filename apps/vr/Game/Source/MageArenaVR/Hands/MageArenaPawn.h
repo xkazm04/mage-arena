@@ -7,6 +7,8 @@
 
 class UCameraComponent;
 class UHandPresentationComponent;
+class UMaterialInstanceDynamic;
+class UStaticMeshComponent;
 class USceneComponent;
 
 /**
@@ -60,6 +62,24 @@ public:
 	bool IsBlinkBusy() const { return bBlinkBusy; }
 	/** 0 outside a fade-out, else how far the fade-out has run, 0 to 1. For the capture. */
 	double GetBlinkFadeOutFraction() const;
+	/** What the blink vignette shows for an intensity. Opacity is 0 to 1. The inner half-angle is of the clear opening. */
+	struct FVignetteAperture
+	{
+		double Opacity = 0.0;
+		double InnerHalfAngleDeg = 0.0;
+	};
+
+	/** Pure. Zero is open and clear. Intensity at the peak is fully closed. Anything above the peak clamps. */
+	static FVignetteAperture VignetteAperture(double Intensity, double Peak);
+
+	/**
+	 * Drives the four camera-attached vignette quads. Zero hides them. Public so a test can drive it
+	 * without a blink.
+	 */
+	void SetVignette(double Intensity);
+	bool IsVignetteVisible() const;
+	/** The opacity the vignette material holds now, or -1 when it has no material yet. */
+	double GetVignetteOpacity() const;
 	/** The intensity last given to SetVignette. */
 	double GetVignetteIntensity() const { return VignetteValue; }
 
@@ -81,7 +101,6 @@ private:
 	void StartBlinkFade(int32 PadIndex);
 	void SeatOnPad(int32 PadIndex);
 	void ApplyLook();
-	void SetVignette(double Intensity);
 	void StartFade(float FromAlpha, float ToAlpha, double Duration, bool bHold);
 
 	UPROPERTY()
@@ -95,6 +114,17 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UHandPresentationComponent> Hands;
+
+	void EnsureVignetteAssets();
+	void UpdateVignetteQuads(const FVignetteAperture& Aperture);
+
+	static constexpr int32 VignetteQuadCount = 4;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> VignetteQuads;
+
+	UPROPERTY()
+	TObjectPtr<UMaterialInstanceDynamic> VignetteMaterial;
 
 	FArenaLayout Layout;
 	bool bHasLayout = false;

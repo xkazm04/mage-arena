@@ -7,9 +7,27 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Greybox/HandPresentationComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Greybox/GreyboxUtil.h"
 #include "HAL/IConsoleManager.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Hands/MageSettings.h"
 #include "MageArenaVR.h"
+
+namespace
+{
+// These move to layout data once ArenaLayout.cpp is free of T16's edits. BlinkVignettePeak already lives there.
+constexpr double VignetteMaxOpacity = 1.0;
+// The HMD view is wider than the desktop camera, so the outer edge reaches past 120 degrees on both axes.
+constexpr double VignetteOuterHalfAngleDeg = 65.0;
+// The opening at the peak. At the start of the ramp it is as wide as the outer edge.
+// The desktop camera sees 45 degrees either side, so the opening has to close well inside that to show.
+constexpr double VignetteClosedHalfAngleDeg = 15.0;
+// Just beyond the near clip plane. The effective distance is raised when the engine's plane is farther.
+constexpr double VignetteDistanceCm = 15.0;
+constexpr double VignetteBeyondNearCm = 5.0;
+constexpr int32 VignetteSortPriority = 1000;
+}
 
 AMageArenaPawn::AMageArenaPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -33,6 +51,21 @@ AMageArenaPawn::AMageArenaPawn(const FObjectInitializer& ObjectInitializer)
 	Camera->SetRelativeLocation(FVector(0.0, 0.0, 120.0));
 	Camera->SetFieldOfView(90.f);
 	Camera->bUsePawnControlRotation = true;
+
+	// The quads exist from construction. Their mesh and material load on first use, so an unregistered
+	// pawn made with NewObject still constructs without loading assets.
+	static const TCHAR* const QuadNames[VignetteQuadCount] = {TEXT("VignetteTop"), TEXT("VignetteBottom"), TEXT("VignetteLeft"), TEXT("VignetteRight")};
+	for (int32 Index = 0; Index < VignetteQuadCount; ++Index)
+	{
+		UStaticMeshComponent* Quad = CreateDefaultSubobject<UStaticMeshComponent>(QuadNames[Index]);
+		Quad->SetupAttachment(Camera);
+		Quad->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Quad->SetCastShadow(false);
+		Quad->SetMobility(EComponentMobility::Movable);
+		Quad->SetTranslucentSortPriority(VignetteSortPriority);
+		Quad->SetVisibility(false);
+		VignetteQuads.Add(Quad);
+	}
 
 	Hands = CreateDefaultSubobject<UHandPresentationComponent>(TEXT("Hands"));
 	Hands->SetupAttachment(SeatedOrigin);
@@ -276,15 +309,108 @@ void AMageArenaPawn::SetLookPitch(float PitchDegrees)
 	}
 }
 
-void AMageArenaPawn::SetVignette(double Intensity)
+AMageArenaPawn::FVignetteAperture AMageArenaPawn::VignetteAperture(double Intensity, double Peak)
 {
-	if (!Camera)
+	FVignetteAperture Out;
+	Out.InnerHalfAngleDeg = VignetteOuterHalfAngleDeg;
+	if (Peak <= 0.0 || Intensity <= 0.0)
+	{
+		return Out;
+	}
+	const double Closed = FMath::Min(Intensity / Peak, 1.0);
+	Out.Opacity = Closed * VignetteMaxOpacity;
+	// The square root brings the edge into the desktop view early in the ramp. The fade-out is only 0.12 s.
+	Out.InnerHalfAngleDeg = FMath::Lerp(VignetteOuterHalfAngleDeg, VignetteClosedHalfAngleDeg, FMath::Sqrt(Closed));
+	return Out;
+}
+
+void AMageArenaPawn::EnsureVignetteAssets()
+{
+	if (VignetteMaterial)
 	{
 		return;
 	}
+	UStaticMesh* Plane = Greybox::LoadShape(TEXT("Plane"));
+	VignetteMaterial = Greybox::Tint(Greybox::TranslucentMaterial(), this, FLinearColor(0.f, 0.f, 0.f, 0.f));
+	for (UStaticMeshComponent* Quad : VignetteQuads)
+	{
+		Quad->SetStaticMesh(Plane);
+		Quad->SetMaterial(0, VignetteMaterial);
+	}
+}
+
+void AMageArenaPawn::UpdateVignetteQuads(const FVignetteAperture& Aperture)
+{
+	const double Distance = FMath::Max(VignetteDistanceCm, static_cast<double>(GNearClippingPlane) + VignetteBeyondNearCm);
+	const double Outer = Distance * FMath::Tan(FMath::DegreesToRadians(VignetteOuterHalfAngleDeg));
+	const double Inner = FMath::Min(Distance * FMath::Tan(FMath::DegreesToRadians(Aperture.InnerHalfAngleDeg)), Outer);
+	const double Band = Outer - Inner;
+	const double Mid = 0.5 * (Outer + Inner);
+	// The plane lies in local XY. Pitch 90 turns local X to camera up, keeps Y as camera right,
+	// and turns the plane normal to face the camera. Camera forward is +X.
+	const FRotator Facing(90.0, 0.0, 0.0);
+	struct FQuadSpec
+	{
+		double RightCm;
+		double UpCm;
+		double WidthCm;
+		double HeightCm;
+	};
+	const FQuadSpec Specs[VignetteQuadCount] = {
+		{0.0, Mid, 2.0 * Outer, Band},
+		{0.0, -Mid, 2.0 * Outer, Band},
+		{-Mid, 0.0, Band, 2.0 * Inner},
+		{Mid, 0.0, Band, 2.0 * Inner}};
+	for (int32 Index = 0; Index < VignetteQuadCount; ++Index)
+	{
+		UStaticMeshComponent* Quad = VignetteQuads[Index];
+		Quad->SetRelativeLocationAndRotation(FVector(Distance, Specs[Index].RightCm, Specs[Index].UpCm), Facing);
+		// Local X is camera up, local Y is camera right. SetSized takes (X, Y, Z).
+		Greybox::SetSized(Quad, FVector(Specs[Index].HeightCm, Specs[Index].WidthCm, 1.0));
+	}
+}
+
+void AMageArenaPawn::SetVignette(double Intensity)
+{
 	VignetteValue = Intensity;
-	Camera->PostProcessSettings.bOverride_VignetteIntensity = true;
-	Camera->PostProcessSettings.VignetteIntensity = static_cast<float>(Intensity);
+	const FVignetteAperture Aperture = VignetteAperture(Intensity, bHasLayout ? Layout.BlinkVignettePeak : 1.0);
+	const bool bShow = Aperture.Opacity > 0.0;
+	if (bShow)
+	{
+		EnsureVignetteAssets();
+		if (VignetteMaterial)
+		{
+			// M_SimpleUnlitTranslucent has no Opacity scalar. Its Color vector carries the opacity in alpha.
+			VignetteMaterial->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.f, 0.f, 0.f, static_cast<float>(Aperture.Opacity)));
+		}
+		UpdateVignetteQuads(Aperture);
+	}
+	for (UStaticMeshComponent* Quad : VignetteQuads)
+	{
+		Quad->SetVisibility(bShow);
+	}
+}
+
+bool AMageArenaPawn::IsVignetteVisible() const
+{
+	for (const UStaticMeshComponent* Quad : VignetteQuads)
+	{
+		if (Quad && Quad->IsVisible())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+double AMageArenaPawn::GetVignetteOpacity() const
+{
+	FLinearColor Value;
+	if (VignetteMaterial && VignetteMaterial->GetVectorParameterValue(TEXT("Color"), Value))
+	{
+		return Value.A;
+	}
+	return -1.0;
 }
 
 double AMageArenaPawn::GetBlinkFadeOutFraction() const
