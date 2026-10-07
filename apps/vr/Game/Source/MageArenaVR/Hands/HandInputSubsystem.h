@@ -23,6 +23,9 @@ public:
 	/** Loads Game/Clips/<action>.<variant>.jsonl and plays it. This is the key path. */
 	void PlayQuickAction(FName Action, EClipVariant Variant);
 
+	/** Plays an already loaded clip on the action lane, the way PlayQuickAction plays a file. Tests use it for clips outside Clips/. */
+	void PlayLoadedClip(const FHandClip& Loaded);
+
 	/**
 	 * Hold ward-raise while bHeld is true, then reverse it on release.
 	 * Space and the right mouse button both call this. A second press while held does nothing.

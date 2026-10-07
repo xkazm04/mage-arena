@@ -61,6 +61,14 @@ void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 		UE_LOG(LogMageArena, Error, TEXT("PlayQuickAction failed for %s: %s"), *Action.ToString(), *Error);
 		return;
 	}
+	PlayLoadedClip(Loaded);
+	UE_LOG(LogMageArena, Log, TEXT("Hand clip started: action=%s variant=%s source=%s frames=%d duration=%.3fs path=%s"),
+		*Loaded.Action, *Loaded.Variant, *Loaded.Source, Loaded.GetSampleCount(), Loaded.GetDuration(), *Path);
+}
+
+void UHandInputSubsystem::PlayLoadedClip(const FHandClip& Loaded)
+{
+	EnsurePlayers();
 	const bool bUsesWardHand = Loaded.GetHands().Contains(FMageSettings::WardHand());
 	if (bUsesWardHand)
 	{
@@ -72,8 +80,6 @@ void UHandInputSubsystem::PlayQuickAction(FName Action, EClipVariant Variant)
 	}
 	ActionPlayer->Play(Loaded);
 	LastStarted = ActionPlayer;
-	UE_LOG(LogMageArena, Log, TEXT("Hand clip started: action=%s variant=%s source=%s frames=%d duration=%.3fs path=%s"),
-		*Loaded.Action, *Loaded.Variant, *Loaded.Source, Loaded.GetSampleCount(), Loaded.GetDuration(), *Path);
 }
 
 void UHandInputSubsystem::SetWardHeld(bool bHeld, EClipVariant Variant)
