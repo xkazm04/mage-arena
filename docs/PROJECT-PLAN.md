@@ -96,13 +96,13 @@ plan. October cannot remove it but can shrink it, without a headset:
 
 ---
 
-## 2. What the competition actually requires (checked 2026-10-02)
+## 2. What the competition actually requires (checked 2026-10-02, re-read 2026-10-07)
 
 These come from the Devpost rules page (`start-developer-competition-26.devpost.com/rules`) and the Meta announcement blog.
 - **Hands:** "Fully usable with hands end-to-end. Controller support optional." Gaming may be "hands-first (required) or eyes and hands".
-- **Build:** an APK on the developer dashboard "under a new release channel named 'Competition'". Hosted links are allowed only for IWSDK/WebXR apps.
+- **Build:** an APK on the developer dashboard "under a new release channel named 'Competition'". Hosted links are allowed only for IWSDK/WebXR apps. The overview page adds an Invite URL: "so judges can access and test your Project."
 - **Video:** under 3 minutes, on YouTube or Vimeo and public, showing the project "as viewed on a Meta Quest device or via XR Simulator". Judges need not watch past 3 minutes.
-- **Description:** must cover inspiration, how you built it, future plans and **a target launch date**. The rules page I read gives no word limit, so the brief's "≤500 words" is unverified. Plan for 500 and confirm on the form itself.
+- **Description:** must cover inspiration, how you built it, future plans and **a target launch date**. The rules page gives no word limit; the overview page says "suggested length: 500 words or less", so 500 is a suggestion, not a hard cap.
 - **New Experience division:** "conceived of and built within the competition window (starting September 24, 2026). No pre-existing codebases, no shipped titles, no early access builds repurposed."
 - **Judging:**
   - Stage 1 is a pass/fail viability check.
