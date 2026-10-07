@@ -2,6 +2,21 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-07 - Quest 3S ships untested
+
+> Operator, 2026-10-07 11:15 UTC, asked "Quest 3S is declared, but the planned device is a Quest 3. Should we get a 3S for
+> one test session, or ship 3S untested?": "Ship 3S untested". Note: "Operator accepts the risk: Quest 3S stays declared
+> and untested; record the acceptance in DECISIONS.md and FEASIBILITY risk 3."
+
+- Quest 3S stays declared (`+SupportedDevices=Quest3S` in `apps/vr/Game/Config/DefaultEngine.ini`). There is no 3S session
+  in V3 and no 3S on the 31 Oct device order.
+- What carries over: the performance budgets, by chip and eye buffer (FEASIBILITY Q3).
+- What stays untested: sigil legibility on the lower-resolution panel, peripheral threat cues (lens and FOV), hand-tracking
+  quality, and the 3S camera rate. The narrow-FOV mode (D3) bounds the FOV part only.
+- The constraint that forced the choice: the planned device is a Quest 3, and a 3S would be a separate purchase or loan.
+- Lost: get a 3S for one V3 session (sigil legibility, peripheral threat cues, the `Camera FPS` line, one perf capture).
+- Lost: Quest 3 only (remove `+SupportedDevices=Quest3S`).
+
 ## 2026-10-07 - Supported headsets: Quest 3 and Quest 3S
 
 > Operator, 2026-10-07 morning: chose Quest 3 and Quest 3S.
