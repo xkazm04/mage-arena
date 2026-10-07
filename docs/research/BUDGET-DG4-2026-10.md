@@ -224,3 +224,171 @@ its own floor, and this doc does not use it as a verdict.
 The automation suite after this change (`Automation RunTests MageArena`, `-nullrhi`): 176 tests, 173 pass. The 3
 failures are the known ones (`MageArenaDesign.Duel.FireSeated`, `Session.FullSeated`, `Session.Wave1Seated`).
 `MageArena.Budget.StressPopulation` and `MageArena.Input.CaptureFlags` pass.
+
+## 7. Levers for the draw-call row
+
+**Label: diagnostic. Shipping settings are unchanged, and the section 3 verdicts stay as measured.** Every run here is
+the same desktop proxy as sections 1-3: the same scene, warm-up rule, 60 s window, population checks and six `DumpStats`
+frames. Only the command-line switches named per row differ. No `Config/*.ini` and no `SessionPresentation` code changed.
+
+Section 2 names two levers: hardware occlusion queries (about 155 of the 310 draws), and one MID per part (which stops
+dynamic instancing). Each lever was measured alone, then the two together.
+
+### 7.1 Provenance
+
+- **Build:** `369a020` (`feat(budget): shared-material and occlusion-off diagnostic variants`), built with
+  `powershell -NoProfile -File apps/vr/tools/build.ps1` (exit 0, 330 s, no warnings). All six launches ran at that commit.
+- **Date:** 2026-10-08, launches started 00:23-00:43 local time. The machine, engine, RHI and resolution are the same as
+  in section 0. Before each launch, `capture-budget.ps1` waited until no `UnrealEditor`, `UnrealEditor-Cmd`,
+  `UnrealBuildTool` or `ShaderCompileWorker` was running (`Wait-UnrealLane`: a 60 s poll, for up to 30 minutes). The
+  first launch waited for another worker's editor.
+- **Commands.** Each exited 0. Each launch logged `MAGEVR_BUDGET_DONE` and two full `MAGEVR_BUDGET_POP` lines:
+
+  | Variant | Command (`powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 ...`) | Runs |
+  |---|---|---|
+  | control, no lever | `-Runs 1 -Prefix ctrl` | ctrl1 |
+  | A: occlusion queries off | `-Runs 1 -Prefix occl -ExtraArgs "-dpcvars=r.AllowOcclusionQueries=0"` | occl1 |
+  | B: shared materials | `-Runs 1 -Prefix shared -ExtraArgs "-MageArenaBudgetSharedMaterials"` | shared1 |
+  | A and B | `-Runs 3 -Prefix both -ExtraArgs "-dpcvars=r.AllowOcclusionQueries=0 -MageArenaBudgetSharedMaterials"` | both1-3 |
+
+- **Population, every run:** `enemies=20 projectiles=100 hands=2` at steady state and at the end of the window. 102 hand
+  instances. No sampled frame had fewer than 100 live projectiles. Warm-up took 10.0 s.
+- **Committed summaries:** `docs/research/budget-dg4/{ctrl1,occl1,shared1,both1,both2,both3}.summary.json`. The raw
+  CSVs, logs and dumps stay in the gitignored `runs/DG4/`.
+
+**Lever A: how it is applied, and the proof that it took effect.** `r.AllowOcclusionQueries` is an
+`FAutoConsoleVariableRef` on `GOcclusionCullEnabled` (`Renderer/Private/SceneVisibility.cpp:395-402`), which
+`DoOcclusionQueries` reads (`:404-407`). In non-shipping builds, `-dpcvars=` is applied when the device profile is
+applied (`Engine/Private/DeviceProfiles/DeviceProfileManager.cpp:737-773`, inside `#if !UE_BUILD_SHIPPING` at `:719`),
+at `ECVF_SetByDeviceProfile` priority. The project config does not set the cvar, so nothing outranks the command line.
+Each of the four lever-A logs has `Setting CommandLine Device Profile CVar: [[r.AllowOcclusionQueries:0]]` and no
+priority warning. The CSV category `DrawCall/BeginOcclusionTests` is **0 in every frame** (median 0, max 0) in occl1 and
+both1-3. It is 155 in ctrl1 and shared1.
+
+**Lever B: how it is applied, and the proof.** With `-MageArenaBudgetSharedMaterials`, the driver's own `MakePart` asks
+`BudgetSharedTint` for each colour. `BudgetSharedTint` keeps one `Greybox::Tint` of `Greybox::UnlitOpaqueMaterial()` per
+`FLinearColor` and reuses it. Counts, meshes, colours, motion and the HP-bar scale are as before. At steady state the
+driver reads the material back from all 160 parts. Every lever-B run logged
+`MAGEVR_BUDGET_MATERIALS mids=8 colours=8 parts=160`: 8 distinct materials, one per distinct colour (4 enemy kinds,
+HP back, HP fill, water, steel). Without the switch, ctrl1 and occl1 log no such line. The automation test
+`MageArena.Budget.SharedMaterials` checks the same rule without a renderer.
+
+### 7.2 Results per variant
+
+The tables give min / median / p95 / max over every frame of the 60 s window. Draw calls are `GNumDrawCallsRHI`.
+GPU-culled triangles come from the six `DumpStats` frames per run. Frame and GPU times come from the driver
+(`FApp::GetDeltaTime`, `RHIGetGPUFrameCycles`). The peak working set is that of the editor binary running `-game`.
+
+| Run | n | Draw calls | RHI primitives | GPU-culled BasePass tris | GPU-culled all-pass tris | Frame ms | GPU ms | Peak WS |
+|---|---|---|---|---|---|---|---|---|
+| ctrl1 (no lever) | 31,919 | 225 / 310 / 321 / 331 | 72,143 / 171,307 / 190,343 / 213,931 | 91,072 / 112,144 / 114,480 / 114,480 | 225,376 / 284,192 / 291,200 / 291,200 | 0.85 / 1.67 / 2.49 / 1,623 | 0.60 / 0.73 / 1.07 / 1.63 | 2,277 MB |
+| occl1 (A) | 27,072 | 165 / 183 / 186 / 189 | 201,771 / 207,595 / 213,163 / 222,171 | 90,512 / 121,808 / 123,792 / 123,792 | 251,424 / 313,728 / 318,656 / 318,656 | 0.82 / 1.69 / 3.51 / 3,011 | 0.82 / 1.07 / 5.10 / 15.3 | 4,177 MB |
+| shared1 (B) | 16,064 | 176 / 214 / 217 / 221 | 64,005 / 169,944 / 190,493 / 214,827 | 63,824 / 106,424 / 114,448 / 114,448 | 170,832 / 267,056 / 291,008 / 291,008 | 0.86 / 2.29 / 9.56 / 1,605 | 0.60 / 1.03 / 1.61 / 10.6 | 2,305 MB |
+| both1 (A+B) | 26,860 | 39 / 58 / 59 / 59 | 196,377 / 202,233 / 207,179 / 212,939 | 88,592 / 122,352 / 123,792 / 123,792 | 245,664 / 314,336 / 318,656 / 318,656 | 0.80 / 1.62 / 3.64 / 1,265 | 0.79 / 1.02 / 4.94 / 10.3 | 4,288 MB |
+| both2 (A+B) | 44,252 | 40 / 59 / 60 / 60 | 193,673 / 201,579 / 206,955 / 213,451 | 89,552 / 116,464 / 123,792 / 123,792 | 248,544 / 302,560 / 318,656 / 318,656 | 0.76 / 1.23 / 1.85 / 978 | 0.52 / 0.61 / 0.92 / 1.56 | 2,498 MB |
+| both3 (A+B) | 39,450 | 40 / 59 / 62 / 62 | 201,769 / 207,595 / 213,163 / 219,211 | 88,592 / 119,376 / 124,752 / 124,752 | 245,664 / 307,904 / 321,536 / 321,536 | 0.79 / 1.45 / 2.01 / 1,009 | 0.53 / 0.64 / 0.95 / 1.68 | 2,661 MB |
+
+As in section 2, the frame-time maximum is the single frame on which the CSV capture starts. Live particles and GPU
+emitters stay 0, not exercised.
+
+**`DrawCall/*` CSV medians.** These are shares: as section 2 warns, they swing from frame to frame. "Other" is the
+total median minus the four categories.
+
+| Run | Total | BeginOcclusionTests | Basepass | Prepass | SlateUI | Other |
+|---|---|---|---|---|---|---|
+| D-G4 run1-3 | 310 | 155 | 118 | 11 | 2 | 24 |
+| ctrl1 | 310 | 155 | 118 | 11 | 2 | 24 |
+| occl1 (A) | 183 | **0** | 145 | 11 | 2 | 25 |
+| shared1 (B) | 214 | 155 | **21** | 11 | 2 | 25 |
+| both1 / both2 / both3 | 58 / 59 / 59 | **0** | 21 | 10 / 11 / 11 | 2 | 25 |
+
+ctrl1 repeats D-G4 on today's binary and today's machine: median 310, max 331, the same category split.
+
+**Change against D-G4** (run1-3: median 310, max 335):
+
+- **A alone:** median 310 → 183 (-127), max 335 → 189. The 155 query draws are gone, but Basepass rises from 118 to
+  145, because primitives that occlusion used to cull are now drawn. Triangles rise with it: the BasePass median goes
+  from 112k to 122k, the all-pass max from 293,696 to 318,656, and the RHI median from 171k to 208k. All stay under 350k.
+- **B alone:** median 310 → 214 (-96), max 335 → 221. Basepass drops from 118 to 21: dynamic instancing merges the 160
+  stress parts into a few draws per mesh and colour. The occlusion tests stay at 155, because each primitive is still
+  tested on its own. Triangles do not change within the sampling, since the same geometry is drawn.
+- **A and B together:** median 58-59, p95 59-62 and max 62 across three runs. Every sampled frame is under 150.
+  Triangles are as for A alone: all-pass max 321,536, BasePass max 124,752.
+
+**Read frame time and memory with care.** occl1 and both1 have a peak working set of 4.2-4.3 GB and a GPU p95 near
+5 ms. both2 and both3 ran with the same switches and have 2.5-2.7 GB and a GPU p95 under 1 ms. Their GPU medians (0.61
+and 0.64 ms) are below the control's 0.73 ms. So the switches alone do not explain the outliers. Other workers were
+using the machine, and the cause was not isolated. As in section 3, the time numbers are a desktop proxy.
+
+### 7.3 Does the Quest renderer issue occlusion-query draws? Yes, under the same cvar
+
+The project ships on the mobile forward renderer (`Config/Android/AndroidEngine.ini`: `r.Mobile.ShadingPath=0`,
+`r.Mobile.MultiView=1`), on Vulkan. From the UE 5.8.3 source (paths under `Engine/Source/Runtime/Renderer/Private/`
+unless noted):
+
+- **The gate is shared.** `FMobileSceneRenderer` calls the same `DoOcclusionQueries()` (`SceneVisibility.cpp:404-412`,
+  which reads `r.AllowOcclusionQueries`) before it allocates and renders queries. It does so at
+  `MobileShadingRenderer.cpp:995-1000` (full depth prepass) and at `:2123-2129`, `:2614-2619` and `:2830-2835` (the
+  base-pass paths without a full prepass). The Adreno-mode decision at `:686` reads it too. The renderer has no
+  mobile-only cvar that turns the queries on or off.
+- **The default is hardware queries.** `r.HZBOcclusion` defaults to 0, documented as "Hardware occlusion queries"
+  (`SceneVisibility.cpp:123-131`, applied at `:3227-3230`). The mobile alternative, `r.OcclusionFeedback.Enable`
+  (`:134-139`), defaults to 0. The engine's `Meta_Quest_3` device profile sets it to 0 explicitly and sets
+  `r.Mobile.AdrenoOcclusionMode=1` (`Engine/Config/BaseDeviceProfiles.ini:1444-1449`). The project and its Android config
+  set none of these.
+- **The draws come from the same code.** `FMobileSceneRenderer::RenderOcclusion` calls the shared `BeginOcclusionTests`
+  (`SceneOcclusion.cpp:1556-1560`), which flushes the shared batchers (`:1378-1395`). Each batch is one
+  `DrawIndexedPrimitive` inside a render query (`SceneOcclusion.cpp:479-495`). Primitives that were visible last frame
+  go through the individual batcher, one box per draw (batch size 1, `SceneRendering.cpp:999`). Primitives that were
+  occluded last frame are grouped, 16 to a draw (`SceneRendering.h:422`, `SceneRendering.cpp:1000`, chosen at
+  `SceneVisibility.cpp:2989-3023`).
+- **On Quest the queries get their own pass.** With `r.Mobile.AdrenoOcclusionMode=1` on Vulkan, the queries leave the
+  main pass and run in a separate depth-read render pass after it (`MobileShadingRenderer.cpp:2225-2230`, and `:2305`
+  onward). The batchers take an instance count for instanced stereo (`SceneRendering.cpp:999-1000`). This doc did not
+  check whether mobile multiview takes that path, and so whether a query costs one draw for both eyes on the device.
+
+**So lever A is not desktop-only.** The Quest build issues hardware occlusion-query draws, about one per tested
+primitive that was visible last frame. `r.AllowOcclusionQueries=0` removes them there, through the same gate. The size
+of the saving on the device still has to be measured on the device (V1). Multiview, the separate Adreno pass and the
+device's own view all differ from this desktop view.
+
+### 7.4 Verdict per lever (desktop proxy, diagnostic)
+
+| Lever | Median / max draws | Reaches ≤150 on desktop? |
+|---|---|---|
+| A: occlusion queries off | 183 / 189 | **no** |
+| B: one material per colour | 214 / 221 | **no** |
+| A and B together | 58-59 / 62 (3 runs) | **yes**, in every frame of all three runs. The max of 62 is under half the limit. |
+
+Neither lever reaches the row alone. The pair clears it with room to spare. At 58-59 what remains is Basepass 21, Other
+(uncategorised) about 25, Prepass 11 and SlateUI 2.
+
+### 7.5 The shipping change each lever implies (not made here)
+
+- **A: one config line.** Quest only: `r.AllowOcclusionQueries=0` under `[ConsoleVariables]` in
+  `apps/vr/Game/Config/Android/AndroidEngine.ini`, or `+CVars=r.AllowOcclusionQueries=0` in a project `Meta_Quest_3`
+  device profile. Every platform: `r.AllowOcclusionQueries=False` under `[/Script/Engine.RendererSettings]` in
+  `DefaultEngine.ini` (the "Occlusion Culling" project setting, `Engine/Classes/Engine/RendererSettings.h:380`).
+  **Cost:** nothing hidden behind other geometry is culled any more. In this open arena that adds about 10k BasePass
+  triangles at the median, and about 28k all-pass triangles at the max (321,536 against the 350k row), plus the vertex
+  and pixel work to draw them. An arena with more occluders (walls, pillars, props) would lose more, and the triangle
+  row would need re-measuring with A on.
+- **B: a per-colour material cache in `SessionPresentation::MakePart`.** `SessionPresentation.cpp:91-98` (as of
+  4bd6e1c) would keep the same kind of `FLinearColor` → MID map that `BudgetSharedTint` keeps. **Cost:** recolouring at
+  runtime. `SessionPresentation` writes `Color` into a part's own MID at `:1119`, `:1189`, `:1221`, `:1286`, `:1297`
+  and `:1321`, and builds a fresh MID at `:1250`. With shared MIDs, each of those writes would recolour every part of that
+  colour. Each one must become a swap to the cached MID of the new colour (`SetMaterial(0, ...)`), or move to
+  per-primitive custom data on a material that reads it. A colour that changes every frame, such as a fade, would also
+  grow the cache without bound unless its steps are quantised. `SessionPresentation.cpp` is dirty in the owner's
+  checkout, so this change belongs to whoever owns that file.
+
+### 7.6 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`.
+2. The four commands in the 7.1 table. Each prints its summary, and exits 0 only when every launch logged
+   `MAGEVR_BUDGET_DONE` and full population lines.
+
+The automation suite at `369a020` (`Automation RunTests MageArena`, `-nullrhi`), run after the corpus was regenerated
+with the CLAUDE.md commands: 177 tests, 174 pass. The 3 failures are the known ones (`MageArenaDesign.Duel.FireSeated`,
+`Session.FullSeated` and `Session.Wave1Seated`). `MageArena.Budget.SharedMaterials`, `MageArena.Budget.StressPopulation`
+and `MageArena.Input.CaptureFlags` pass.
