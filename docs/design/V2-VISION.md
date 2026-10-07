@@ -100,7 +100,7 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
   it). Champion: high Tithe, or the Breaking attempted without allies. Betrayed: the Breaking attempted when trust is
   below 60. Breaking: all three met.
 - **Choices use the stones, never during a bout.** Spare or finish is the one exception to "choices only in scenes".
-  It happens at missio, when the bout is already over: an open palm spares, a closed fist finishes. That is a new
-  gesture, but a held pose the pipeline already reads (the stone-form fist).
+  It happens at missio, when the bout is already over: an open palm spares, a closed fist finishes. The fist is a new
+  held pose (also designed for Earth's stone form, not built yet).
 - **Slice ending:** the day closes on the aftermath of the final. The first crack is visible if the player earned it,
   and the hook is the line that the Wardstones drink.
