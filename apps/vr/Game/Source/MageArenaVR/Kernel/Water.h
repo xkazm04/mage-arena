@@ -15,6 +15,8 @@ void UpdateWater(FArenaState& State, FActor& Actor);
 double WardDrainMult(const FArenaState& State, const FActor& Actor);
 double RefundMult(const FArenaState& State, const FActor& Actor);
 void WaterAbsorbed(FArenaState& State, FActor& Actor, const FHit& Hit, double Prevented, bool bPerfect);
-void ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Projectile);
+// Mirror II-A Reflection. True when a reflected copy was spawned back at the caster. Emits nothing: the caller owns
+// the event, so the null-ruleset path (conformance) keeps its event log.
+bool ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Projectile);
 bool HasLineOfSight(const FArenaState& State, const FSimVec& A, const FSimVec& B);
 void ResetWater(FActor& Actor);

@@ -366,12 +366,12 @@ void WaterAbsorbed(FArenaState& State, FActor& Actor, const FHit& Hit, double Pr
 	}
 }
 
-void ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Projectile)
+bool ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Projectile)
 {
 	if (Projectile.bReflected || Projectile.Family != TEXT("magic") || Projectile.Tier > Target.Tier || Target.Tier < 2
 		|| !SimHasLine(Target.Water.Composition, TEXT("mirror")) || Target.Water.Composition.Branches.Mirror != TEXT("A"))
 	{
-		return;
+		return false;
 	}
 	const FActor* Owner = SimFindActor(State, Projectile.OwnerId);
 	const FSimVec Origin = Owner ? Owner->Pos : Projectile.Source;
@@ -395,6 +395,7 @@ void ReflectProjectile(FArenaState& State, FActor& Target, const FProjectile& Pr
 	Reflected.bReflected = true;
 	Reflected.BurstRadiusM = Burst;
 	Reflected.bPiercing = bPiercing;
+	return true;
 }
 
 bool HasLineOfSight(const FArenaState& State, const FSimVec& A, const FSimVec& B)

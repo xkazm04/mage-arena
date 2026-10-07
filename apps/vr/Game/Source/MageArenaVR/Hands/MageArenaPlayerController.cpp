@@ -39,6 +39,11 @@ const FQuickActionKey GQuickActionKeys[] = {
 	{ EKeys::S, TEXT("blink-back"), false },
 	{ EKeys::F, TEXT("staff-plant"), false },
 	{ EKeys::R, TEXT("both-palms"), false },
+	// The three stones beside the seat (comfort settings in cold, the stone pick in an intermission). Each key plays a
+	// reach clip; the session reads the hand over the stone like a tracked hand.
+	{ EKeys::Z, TEXT("stone-left"), false },
+	{ EKeys::X, TEXT("stone-centre"), false },
+	{ EKeys::C, TEXT("stone-right"), false },
 	{ EKeys::Escape, NAME_None, true },
 };
 }
@@ -92,6 +97,7 @@ bool IsCaptureRun(const TCHAR* CommandLine)
 		TEXT("MageArenaSettingsCapture"),
 		TEXT("MageArenaCreaturesCapture"),
 		TEXT("MageArenaStylePickCapture"),
+		TEXT("MageArenaPresetCapture"),
 	};
 	for (const TCHAR* Flag : Flags)
 	{

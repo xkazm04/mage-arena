@@ -5,6 +5,7 @@
 #include "Greybox/ArenaLayout.h"
 #include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
+#include "Session/PlayerPreset.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
 
@@ -31,6 +32,7 @@ class UWardDetectorSubsystem;
 class USettingsCaptureDriver;
 class UTeachCaptureDriver;
 class UCreaturesCaptureDriver;
+class UPresetCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -98,7 +100,10 @@ public:
 		UStaffDetectorSubsystem* InStaff = nullptr);
 	void Unbind();
 
-	/** Wave index 0, Rotation composition, human player, unless SetBout says otherwise. Clears pause. */
+	/**
+	 * Wave index 0, the VR player preset (presets.json, cassia) with the saved stone pick, human player, unless SetBout
+	 * says otherwise. Clears pause. A missing or bad presets.json fails the start.
+	 */
 	bool Start(uint32 Seed);
 	void SetBout(int32 WaveIndex, bool bInFireMages);
 	void SetPolicy(const FSeatedPolicy& InPolicy);
@@ -120,6 +125,23 @@ public:
 	void NotifyHeadsetRemoved();
 	void NotifyQuit();
 	void SetSaveDirectory(const FString& Directory);
+	/** Tests only: read the player preset from this file instead of apps/vr/data/vr/presets.json. */
+	void SetPresetPath(const FString& Path) { PresetPath = Path; }
+
+	/** The loaded player preset. Valid after a successful Start or BeginArc. */
+	const FPlayerPreset& GetPlayerPreset() const { return PlayerPreset; }
+	/** "A" or "B" once a stone pick was made or loaded from the save; empty means the preset default. */
+	const FString& GetStonePick() const { return StonePick; }
+	/** The stone pick is on offer: the intermission after the preset's afterBout, not picked, not timed out. */
+	bool IsPickOffered() const;
+	/** Seconds the pick has been on offer in this intermission. */
+	double GetPickClock() const { return PickClock; }
+	/** 0 left, 1 centre, 2 right while a palm is being held over that stone in a pick; -1 otherwise. */
+	int32 GetPickHoldStone() const { return PickHoldStone; }
+	/** 0..1 of offerHoldS for the stone being held. */
+	double GetPickHoldFraction() const;
+	/** The string key engraved on stone Index (0 left, 1 centre, 2 right) during a pick. */
+	FString PickStoneKey(int32 Index) const;
 
 	FString GetStage() const;
 	FString GetTeachStep() const;
@@ -223,6 +245,14 @@ private:
 	void AdvanceArc(double DeltaSeconds);
 	void ApplyComfort(FVrRuleset& Rules) const;
 	void PollComfortToggles();
+	/** Which of the three stones has a palm or index tip on it this frame (clip centimetres, seated origin). */
+	void StonesTouched(bool OutInside[3]) const;
+	bool LoadPlayerPresetFile(const TCHAR* Context);
+	FComposition PlayerComposition() const;
+	/** Returns true when the intermission was left (pick made, continue, or timeout). */
+	bool AdvancePick(double DeltaSeconds);
+	void ChoosePick(int32 Stone, const TCHAR* Reason);
+	void ContinueIntermission();
 	void DecideCold();
 	void DecideTeach();
 	void EnterTeach();
@@ -242,7 +272,8 @@ private:
 	bool BothPalmsRaised() const;
 	bool IsBothPalmsClip() const;
 	FString SaveFilePath() const;
-	int32 ReadSavedBout() const;
+	/** OutPick gets "A" or "B" from a tideOrbIV line, or stays empty. */
+	int32 ReadSavedBout(FString* OutPick = nullptr) const;
 	void WriteSavedBout(int32 Bout) const;
 	void ClearSavedBout() const;
 	void ContinueOffer();
@@ -359,6 +390,13 @@ private:
 	bool bClockCue = false;
 	uint32 BoutSeed = 1;
 	FString SaveDir;
+	FString PresetPath;
+	FPlayerPreset PlayerPreset;
+	FString StonePick;
+	double PickClock = 0.0;
+	double PickHold = 0.0;
+	int32 PickHoldStone = -1;
+	bool bPickClosed = false;
 	double SnapHp = 0.0;
 	double SnapDamage = 0.0;
 	double SnapDummyHp = 0.0;
@@ -418,4 +456,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<USettingsCaptureDriver> SettingsCapture;
+
+	UPROPERTY()
+	TObjectPtr<UPresetCaptureDriver> PresetCapture;
 };

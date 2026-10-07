@@ -322,10 +322,17 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
 		const int32 LastBreaks = bBound ? Live->BoundRival()->Phases.Num() : 2;
 		const bool bSignature = Live && Live->RivalRuntime.GrantTick >= 0;
-		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d breaks=%d signature=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d"),
+		// T20: the player plays cassia (Mirror II A), so perfects can reflect. Measured, not tuned.
+		int32 Reflects = 0;
+		for (const FArenaEvent& Event : Session.GetGames().State.Events)
+		{
+			Reflects += Event.Kind == TEXT("reflect") && Player && Event.ActorId == Player->Id ? 1 : 0;
+		}
+		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d breaks=%d signature=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d perfects=%d reflects=%d"),
 			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0, Breaks, bSignature ? 1 : 0,
 			Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0,
-			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants());
+			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants(),
+			Player ? Player->Metrics.Perfects : -1, Reflects);
 		bool bOne = true;
 		bOne &= TestTrue(*FString::Printf(TEXT("%s Brennic bound"), Label), bBound);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);

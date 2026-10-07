@@ -229,7 +229,15 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 			Projectile.HitIds.Add(First->Id);
 			if (Result.bPerfect)
 			{
-				ReflectProjectile(State, *First, Projectile);
+				// Read before the spawn: the reserve above keeps Projectile valid, but the owner id is what the event names.
+				const int32 Caster = Projectile.OwnerId;
+				const int32 Tier = Projectile.Tier;
+				// The reflect event is a VR overlay event (T20): conformance runs without a ruleset and its pinned event
+				// logs (mirror-2a) were recorded without it, so the null path stays byte-identical.
+				if (ReflectProjectile(State, *First, Projectile) && Rules)
+				{
+					Emit(State, TEXT("reflect"), *First, static_cast<double>(Tier), Caster);
+				}
 			}
 			if (Projectile.BurstRadiusM > 0.0 && !Result.bPerfect)
 			{

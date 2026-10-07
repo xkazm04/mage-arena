@@ -1,6 +1,6 @@
 # T20 - Cassia's preset: Mirror Reflection, and the Leviathan pick on the stones
 
-Status: open
+Status: done (verified 2026-10-07: MageArena. 191/191; design numbers unchanged because the scripted seated player scores no perfect, so Reflection never fires in the census)
 Max turns: 280
 
 ## Goal
@@ -74,3 +74,16 @@ UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDe
 ## Report
 Write `runs/T20/REPORT.md`: files, every acceptance command with real output, the design numbers before and after,
 a description of each still, and every decision the card did not specify.
+
+## Orchestrator verification (2026-10-07)
+Grok's balance was exhausted (HTTP 402), so a Claude subagent implemented the card in worktree `v2/T20` (on top of T17
+and T19). The orchestrator re-ran the build (green) and `MageArena.` (191 Success, `EXIT CODE: 0`) and looked at the
+stills. The card's assumptions were partly wrong: Reflection was already in the kernel (`ReflectProjectile` on every
+perfect, conformance vector `mirror-2a`); only the `reflect` event was missing, now emitted on the ruleset path only. No
+pinned opponent preset uses Ripple (Undertow has no Mirror, Mirror tide is already A). Leviathan Orb was already cast
+as row 6; its lane was not drawn and now is. Added beyond the card: greybox bodies for opponent mages (a dark column in
+the school colour), stone reach clips on Z/X/C (`DESKTOP-INPUT.md`). Mutation check failed the two Reflection tests as
+expected. Finding: the scripted seated player never perfects against Brennic (`perfects=0 reflects=0`), so Reflection
+cannot show in any census until the script policy changes. Presentation backlog: the opaque Leviathan lane floods the
+view, the cuff overlaps the left stone label, the prompt banner is clipped at the top, fire bolts draw in the Water
+colour (pre-existing `FamilyColour`, card T26).

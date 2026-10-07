@@ -83,6 +83,12 @@ const TCHAR* FHandClip::VariantToString(EClipVariant Variant)
 
 FString FHandClip::MakeFilePath(FName Action, EClipVariant Variant, bool bMirror)
 {
+	// The stone reaches (T20) touch fixed stones beside the seat, so a mirrored copy would touch the opposite stone.
+	// They have one normal take each, in their own folder, so the 36 action clips stay the only ones in Clips/.
+	if (Action.ToString().StartsWith(TEXT("stone-")))
+	{
+		return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("stones"), FString::Printf(TEXT("%s.normal.jsonl"), *Action.ToString()));
+	}
 	const FString Name = FString::Printf(TEXT("%s.%s.jsonl"), *Action.ToString(), VariantToString(Variant));
 	if (bMirror)
 	{
