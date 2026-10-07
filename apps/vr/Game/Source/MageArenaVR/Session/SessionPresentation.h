@@ -5,6 +5,7 @@
 #include "SessionPresentation.generated.h"
 
 class FArenaSession;
+class UArenaAudioComponent;
 class UCameraComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
@@ -25,6 +26,8 @@ public:
 
 	void Sync(const FArenaSession& Session, bool bPaused);
 	int32 GetEnemiesOnScreen() const { return EnemiesOnScreen; }
+	/** T26: the bout's audio (spatialised cues from the event stream). */
+	UArenaAudioComponent* GetAudio() const { return Audio; }
 
 private:
 	struct FBody
@@ -91,6 +94,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Root;
+
+	UPROPERTY()
+	TObjectPtr<UArenaAudioComponent> Audio;
 
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> Cylinder;

@@ -1,6 +1,8 @@
 #include "Session/SessionPresentation.h"
 
 #include "Session/ArenaSession.h"
+#include "Session/ArenaAudio.h"
+#include "Session/ElementColour.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
@@ -35,20 +37,18 @@ namespace
 {
 const FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
 const FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
-const FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
-const FLinearColor SteelColour(0.68f, 0.68f, 0.68f);
-const FLinearColor FireColour(0.760525f, 0.05448f, 0.013702f);
-const FLinearColor UnblockableBody(0.006995f, 0.006995f, 0.008023f);
-const FLinearColor UnblockableRim(0.745404f, 0.014444f, 0.009134f);
+// T26: the threat and cast colours (Water, Fire, Air, Earth, steel, the unblockable black and red) are no longer
+// constants here. ElementColour.h owns them (FElementPalette, a style file may override it) and ThreatLookFor picks one
+// from the owner's school and the family.
 const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
 // Opponent mage bodies (T20): dark tones of the school colours, so the body never reads as an absorb cue.
 const FLinearColor MageFireBody(0.30f, 0.06f, 0.03f);
 const FLinearColor MageWaterBody(0.03f, 0.22f, 0.24f);
-// T23. Air's canon colour #5f9e98 sits next to the Water turquoise, so the greybox draws Air in a light wind green
-// (linear 0.20, 0.85, 0.22; about sRGB 124, 238, 130): a green the eye does not confuse with cyan, and saturated enough
-// not to read as the white/steel of the dodge family. The body is a dark tone of it, never an absorb cue.
-const FLinearColor AirColour(0.20f, 0.85f, 0.22f);
+// T23. The body is a dark tone of the air wind green, never an absorb cue.
 const FLinearColor MageAirBody(0.05f, 0.20f, 0.06f);
+// T26: the cinder hound body was the orange its embers now draw in (0.8, 0.3, 0.05). A body must not read as an absorb
+// cue (the T20 rule for mage bodies), so the hound is a dark ember tone and its ember stands out at the mouth.
+const FLinearColor HoundBody(0.28f, 0.07f, 0.02f);
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
@@ -85,23 +85,6 @@ FVector PadForward(const FArenaSession& Session)
 	return Forward.GetSafeNormal();
 }
 
-FLinearColor FamilyColour(const FString& Family, bool bPlayerOwned)
-{
-	if (bPlayerOwned || Family == TEXT("magic"))
-	{
-		return WaterColour;
-	}
-	if (Family == TEXT("unblockable"))
-	{
-		return UnblockableBody;
-	}
-	if (Family == TEXT("fire"))
-	{
-		return FireColour;
-	}
-	return SteelColour;
-}
-
 // DF-004 option A. A magic shot or telegraph owned by an enemy whose overlay attack is a spit (a cinder hound ember).
 bool IsHoundEmber(const FGames& Games, const FVrRuleset* Rules, int32 OwnerId, const FString& Family)
 {
@@ -136,21 +119,10 @@ double SecondsToContact(const FProjectile& Projectile, const FActor& Player)
 	return FMath::Max(0.0, Along - Player.Radius - Projectile.Radius) / Speed;
 }
 
-// T23: a magic threat thrown by an air mage is absorbed like any magic threat, so it keeps the element-colour rule, in
-// the air colour. Everything else is FamilyColour unchanged.
-FLinearColor ThreatColour(const FArenaState& State, int32 OwnerId, const FString& Family, bool bPlayerOwned)
+// T26: the colour of a projectile, telegraph or cast. One rule (ElementLook): the owner's school and the family.
+FThreatLook LookOf(const FGames& Games, int32 OwnerId, const FString& Family)
 {
-	if (!bPlayerOwned && Family == TEXT("magic"))
-	{
-		if (const FActor* Owner = SimFindActor(State, OwnerId))
-		{
-			if (Owner->Air.bSchool)
-			{
-				return AirColour;
-			}
-		}
-	}
-	return FamilyColour(Family, bPlayerOwned);
+	return ElementLook(ActiveElementPalette(), Games.State, Games.PlayerId, OwnerId, Family);
 }
 }
 
@@ -159,6 +131,8 @@ ASessionPresentation::ASessionPresentation()
 	PrimaryActorTick.bCanEverTick = false;
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
+	Audio = CreateDefaultSubobject<UArenaAudioComponent>(TEXT("Audio"));
+	Audio->SetupAttachment(Root);
 }
 
 UStaticMeshComponent* ASessionPresentation::MakePart(const TCHAR* Shape, const FLinearColor& Colour)
@@ -195,7 +169,7 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FStri
 	FLinearColor Colour = ConscriptColour;
 	FString Shape = TEXT("Cylinder");
 	if (EnemyId == TEXT("slinger")) { Colour = SlingerColour; }
-	else if (EnemyId == TEXT("cinder_hound")) { Colour = FLinearColor(0.8f, 0.3f, 0.05f); Shape = TEXT("Cube"); }
+	else if (EnemyId == TEXT("cinder_hound")) { Colour = HoundBody; Shape = TEXT("Cube"); }
 	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
 	else if (EnemyId == TEXT("mage-fire")) { Colour = MageFireBody; }
 	else if (EnemyId == TEXT("mage-water")) { Colour = MageWaterBody; }
@@ -229,7 +203,8 @@ ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id, bool bSpear
 	Created.Id = Id;
 	Created.bLive = true;
 	Created.bSpear = bSpear;
-	Created.Mesh = MakePart(bSpear ? TEXT("Cylinder") : TEXT("Sphere"), bSpear ? SteelColour : WaterColour);
+	// The colour is set every frame from ElementLook; steel is only the colour of a mesh before its first frame.
+	Created.Mesh = MakePart(bSpear ? TEXT("Cylinder") : TEXT("Sphere"), ActiveElementPalette().Steel);
 	return Created;
 }
 
@@ -252,13 +227,13 @@ ASessionPresentation::FRing& ASessionPresentation::RingFor(int32 Id)
 	}
 	FRing& Created = Rings.AddDefaulted_GetRef();
 	Created.Id = Id;
-	Created.Mesh = MakePart(TEXT("Cylinder"), SteelColour);
-	Created.Rim = MakePart(TEXT("Cylinder"), UnblockableRim);
+	Created.Mesh = MakePart(TEXT("Cylinder"), ActiveElementPalette().Steel);
+	Created.Rim = MakePart(TEXT("Cylinder"), ActiveElementPalette().UnblockableRim);
 	for (int32 i = 0; i < 20; ++i)
 	{
 		Created.Beads.Add(MakePart(TEXT("Cube"), FLinearColor::White));
 	}
-	Created.Glow = MakePart(TEXT("Sphere"), WaterColour);
+	Created.Glow = MakePart(TEXT("Sphere"), ActiveElementPalette().Steel);
 	if (Created.Glow)
 	{
 		Created.Glow->SetVisibility(false);
@@ -838,6 +813,8 @@ void ASessionPresentation::EnsureDome()
 	UStaticMesh* SphereMesh = Greybox::LoadShape(TEXT("Sphere"));
 	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
 	// The eye is inside the shell, so this alpha tints the whole view. 0.10 keeps a readable veil.
+	// The planted staff is a Water defence (SCHOOL-DEFENCES E) and the player is the slice's only Water caster.
+	const FLinearColor WaterColour = ActiveElementPalette().Water;
 	const FLinearColor Water(WaterColour.R, WaterColour.G, WaterColour.B, 0.10f);
 	const FLinearColor Rib(WaterColour.R, WaterColour.G, WaterColour.B, 0.80f);
 	auto Make = [this](UStaticMesh* Shape, const FLinearColor& Colour) -> UStaticMeshComponent*
@@ -940,6 +917,8 @@ void ASessionPresentation::SyncWalls(const FArenaSession& Session)
 	if (Rules && Rules->FireWall.bEnabled)
 	{
 		UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+		// The fire wall is the Fire school's defence (SCHOOL-DEFENCES C): the Fire colour.
+		const FLinearColor FireColour = ActiveElementPalette().Fire;
 		const FLinearColor Curtain(FireColour.R, FireColour.G, FireColour.B, 0.88f);
 		for (const FVrWall& Wall : Rules->Walls)
 		{
@@ -1189,7 +1168,7 @@ void ASessionPresentation::EnsurePhaseVisuals(const FArenaSession& Session)
 		return;
 	}
 	bPhaseVisuals = true;
-	RivalFlare = MakePart(TEXT("Sphere"), FireColour);
+	RivalFlare = MakePart(TEXT("Sphere"), ActiveElementPalette().Fire);
 	if (RivalFlare)
 	{
 		RivalFlare->SetVisibility(false);
@@ -1263,7 +1242,7 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 			// T23: the flare is the rival's element colour, so the air rival flares in the air colour.
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(RivalFlare->GetMaterial(0)))
 			{
-				Mid->SetVectorParameterValue(TEXT("Color"), Rival->Air.bSchool ? AirColour : FireColour);
+				Mid->SetVectorParameterValue(TEXT("Color"), ActiveElementPalette().ElementColour(ActorElement(Session.GetGames().State, Rival->Id).Get(EElement::Fire)));
 			}
 		}
 	}
@@ -1307,6 +1286,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	{
 		return;
 	}
+	LoadStylePaletteFromCommandLine();
 	const FGames& Games = Session.GetGames();
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
@@ -1343,7 +1323,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		FLinearColor BodyColour = ConscriptColour;
 		if (Actor.bDummy) { BodyColour = TrainingDummyColour; }
 		else if (EnemyId == TEXT("slinger")) { Height = 150.f; Width = 42.f; Length = 42.f; BodyColour = SlingerColour; }
-		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = FLinearColor(0.8f, 0.3f, 0.05f); }
+		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = HoundBody; }
 		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
 		else if (EnemyId == TEXT("mage-fire")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageFireBody; }
 		else if (EnemyId == TEXT("mage-water")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageWaterBody; }
@@ -1473,7 +1453,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Mesh, FVector(160.0, 160.0, 5.0));
 				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
 				{
-					Mid->SetVectorParameterValue(TEXT("Color"), SteelColour);
+					Mid->SetVectorParameterValue(TEXT("Color"), LookOf(Games, Projectile.OwnerId, Projectile.Family).Body);
 				}
 			}
 			if (Ring.Rim)
@@ -1498,7 +1478,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			{
 				FRing& Ring = RingFor(Projectile.Id);
 				LiveRings.Add(Projectile.Id);
-				const FLinearColor Magic = FamilyColour(Projectile.Family, false);
+				const FLinearColor Magic = LookOf(Games, Projectile.OwnerId, Projectile.Family).Body;
 				UseMesh(Ring.Mesh, CylinderMesh, Magic);
 				const double Span = FMath::Max(SimDistance(Projectile.OriginPos, Projectile.AimedAt), 1.0e-4);
 				const double Progress = FMath::Clamp(SimDistance(Projectile.OriginPos, Projectile.Pos) / Span, 0.0, 1.0);
@@ -1570,7 +1550,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Shot.Mesh->SetWorldLocation(At);
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Shot.Mesh->GetMaterial(0)))
 			{
-				const FLinearColor Colour = ThreatColour(Games.State, Projectile.OwnerId, Projectile.Family, bPlayerOwned);
+				const FLinearColor Colour = LookOf(Games, Projectile.OwnerId, Projectile.Family).Body;
 				Mid->SetVectorParameterValue(TEXT("Color"), Colour);
 			}
 		}
@@ -1610,10 +1590,11 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			const FRotator Rot = Dir.Rotation();
 			const FVector Mid = From + Dir * (Length * 0.5);
 			const double Width = FMath::Max(FMath::Clamp(Telegraph.WidthM, 0.5, 3.0), 1.8) * 100.0;
-			const bool bUnblockable = Telegraph.Family == TEXT("unblockable");
-			const FLinearColor BodyColour = bUnblockable ? UnblockableBody : FamilyColour(Telegraph.Family, false);
+			const FThreatLook Look = LookOf(Games, Telegraph.OwnerId, Telegraph.Family);
+			const bool bUnblockable = Look.bRim;
+			const FLinearColor BodyColour = Look.Body;
 			UseMesh(Ring.Mesh, CubeMesh, BodyColour);
-			UseMesh(Ring.Rim, CubeMesh, UnblockableRim);
+			UseMesh(Ring.Rim, CubeMesh, Look.Rim);
 			if (Ring.Mesh)
 			{
 				Ring.Mesh->SetVisibility(true);
@@ -1633,13 +1614,14 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
 				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
 				{
-					RimMat->SetVectorParameterValue(TEXT("Color"), UnblockableRim);
+					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
 				}
 			}
 			continue;
 		}
-		UseMesh(Ring.Mesh, CylinderMesh, SteelColour);
-		UseMesh(Ring.Rim, CylinderMesh, UnblockableRim);
+		const FThreatLook Look = LookOf(Games, Telegraph.OwnerId, Telegraph.Family);
+		UseMesh(Ring.Mesh, CylinderMesh, Look.Body);
+		UseMesh(Ring.Rim, CylinderMesh, ActiveElementPalette().UnblockableRim);
 		const double Span = FMath::Max(1.0, static_cast<double>(Telegraph.ResolveTick - Telegraph.StartTick));
 		const double Left = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick));
 		const double Alpha = 1.0 - Left / Span;
@@ -1657,8 +1639,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		const FSimVec Ground = Telegraph.Kind == TEXT("projectile") ? Telegraph.Target : Telegraph.Origin;
 		FVector At = Session.KernelToUnrealCm(Ground);
 		At.Z += 4.0;
-		const bool bUnblockable = Telegraph.Family == TEXT("unblockable");
-		const FLinearColor Colour = bUnblockable ? UnblockableBody : FamilyColour(Telegraph.Family, false);
+		const bool bUnblockable = Look.bRim;
+		const FLinearColor Colour = Look.Body;
 		if (Ring.Mesh)
 		{
 			Ring.Mesh->SetVisibility(true);
@@ -1678,6 +1660,10 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, 1.0));
 				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
 				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
+				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
+				{
+					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
+				}
 			}
 		}
 
@@ -1709,7 +1695,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Glow, FVector(FMath::Lerp(8.0, 24.0, Alpha)));
 				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Glow->GetMaterial(0)))
 				{
-					Mid->SetVectorParameterValue(TEXT("Color"), FamilyColour(Telegraph.Family, false));
+					Mid->SetVectorParameterValue(TEXT("Color"), Look.Body);
 				}
 			}
 		}
@@ -1787,6 +1773,10 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+	if (Audio)
+	{
+		Audio->Sync(Session, bPaused, CamLoc, Camera ? Camera->GetComponentRotation() : FRotator::ZeroRotator);
+	}
 }
 
 void ASessionPresentation::EnsureCollarVisuals(const FArenaSession& Session)
@@ -1986,6 +1976,7 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		FSimVec To;
 		double WidthM = 0.0;
 		bool bOwned = false;
+		int32 OwnerId = 0;
 	};
 	TArray<FWant> Wants;
 	// The telegraph: a pending projectile cast of an UNBLOCKABLE orb draws its whole lane from the caster.
@@ -2007,6 +1998,7 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		Want.To = SimAdd(Actor.Pos, SimScale(Dir, Spell->RangeM));
 		Want.WidthM = (Spell->RadiusM > 0.0 ? Spell->RadiusM : KernelData().ProjectileRadiusM) * 2.0;
 		Want.bOwned = Actor.Id == Games.PlayerId;
+		Want.OwnerId = Actor.Id;
 		Wants.Add(Want);
 	}
 	// The flight: the lane the orb travels.
@@ -2024,6 +2016,7 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		Want.To = SimAdd(Projectile.Pos, SimScale(SimUnit(Projectile.Velocity), Projectile.RemainingM));
 		Want.WidthM = Projectile.Radius * 2.0;
 		Want.bOwned = Projectile.OwnerId == Games.PlayerId;
+		Want.OwnerId = Projectile.OwnerId;
 		Wants.Add(Want);
 	}
 	TSet<int32> Live;
@@ -2033,11 +2026,11 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		FOrbPath& Path = OrbPaths.FindOrAdd(Want.Key);
 		if (!Path.Body)
 		{
-			Path.Body = MakePart(TEXT("Cube"), UnblockableBody);
+			Path.Body = MakePart(TEXT("Cube"), ActiveElementPalette().UnblockableBody);
 		}
 		if (!Path.Rim)
 		{
-			Path.Rim = MakePart(TEXT("Cube"), UnblockableRim);
+			Path.Rim = MakePart(TEXT("Cube"), ActiveElementPalette().UnblockableRim);
 		}
 		FVector From = Session.KernelToUnrealCm(Want.From);
 		FVector To = Session.KernelToUnrealCm(Want.To);
@@ -2050,7 +2043,8 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		const double Width = FMath::Max(Want.WidthM, 0.3) * 100.0;
 		// Aimed at the player, the lane is the leave threat: black core, red rim. The player's own orb draws its lane in
 		// the Water colour with no rim, so it never reads as a threat to the seat.
-		const FLinearColor BodyColour = Want.bOwned ? WaterColour : UnblockableBody;
+		const FThreatLook Look = LookOf(Games, Want.OwnerId, TEXT("unblockable"));
+		const FLinearColor BodyColour = Look.Body;
 		if (Path.Body)
 		{
 			Path.Body->SetVisibility(true);
@@ -2064,7 +2058,11 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 		}
 		if (Path.Rim)
 		{
-			Path.Rim->SetVisibility(!Want.bOwned);
+			Path.Rim->SetVisibility(Look.bRim);
+			if (UMaterialInstanceDynamic* RimMaterial = Cast<UMaterialInstanceDynamic>(Path.Rim->GetMaterial(0)))
+			{
+				RimMaterial->SetVectorParameterValue(TEXT("Color"), Look.Rim);
+			}
 			Path.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 2.0));
 			Path.Rim->SetWorldRotation(Dir.Rotation());
 			Greybox::SetSized(Path.Rim, FVector(Length + 24.0, Width + 36.0, 4.0));
@@ -2124,13 +2122,18 @@ void ASessionPresentation::SyncAirVisuals(const FArenaSession& Session, double N
 	}
 	if (AirArcBeads.Num() == 0)
 	{
+		// T26: the air mage's telegraphs in its school colour (ElementLook), the lance in the unblockable look.
+		const FElementPalette& Palette = ActiveElementPalette();
+		const int32 CasterId = Caster ? Caster->Id : -1;
+		const FLinearColor AirColour = ElementLook(Palette, Games.State, Games.PlayerId, CasterId, TEXT("magic")).Body;
+		const FThreatLook Lance = ElementLook(Palette, Games.State, Games.PlayerId, CasterId, TEXT("unblockable"));
 		for (int32 Index = 0; Index < 28; ++Index)
 		{
 			AirArcBeads.Add(MakePart(TEXT("Sphere"), AirColour));
 		}
 		AirRing = MakePart(TEXT("Cylinder"), AirColour);
-		AirLineBody = MakePart(TEXT("Cube"), UnblockableBody);
-		AirLineRim = MakePart(TEXT("Cube"), UnblockableRim);
+		AirLineBody = MakePart(TEXT("Cube"), Lance.Body);
+		AirLineRim = MakePart(TEXT("Cube"), Lance.Rim);
 		for (int32 Index = 0; Index < 12; ++Index)
 		{
 			AirFormBeads.Add(MakePart(TEXT("Cube"), AirColour));

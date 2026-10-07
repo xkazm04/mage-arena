@@ -24,7 +24,14 @@ public class MageArenaVR : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"RHI",
-			"ImageWrapper"
+			"ImageWrapper",
+			// T26: the audio capture records the master submix (UAudioMixerBlueprintLibrary).
+			"AudioMixer"
 		});
+		if (Target.bBuildEditor)
+		{
+			// T26: the SFX import commandlet (Tools/ImportSfxCommandlet) uses the editor's asset import.
+			PrivateDependencyModuleNames.AddRange(new[] { "UnrealEd", "AssetTools" });
+		}
 	}
 }

@@ -8,6 +8,7 @@
 #include "Session/ArenaFlags.h"
 #include "Session/CollarLedger.h"
 #include "Session/PlayerPreset.h"
+#include "Session/SessionCue.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
 
@@ -38,6 +39,7 @@ class UPresetCaptureDriver;
 class UDayCaptureDriver;
 class UAirCaptureDriver;
 class UCollarCaptureDriver;
+class UColourAudioCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -246,6 +248,10 @@ public:
 	double GetSimSeconds() const;
 	int32 GetBlinkAccepts() const { return BlinkAccepts; }
 	bool WasSigilHit() const { return bSawSigilHit; }
+	/** T26: the recognizer's verdicts (sigil-complete, sigil-reject) in order, for the audio director's cursor. */
+	const TArray<FSessionCue>& GetSessionCues() const { return SessionCues; }
+	/** T26: a sigil pen is down on the hand or the mouse (the recognizer's stroke builders). */
+	bool IsSigilDrawing() const;
 	bool WasWardOnStone() const { return bSawWardOnStone; }
 	bool IsStaffPlanted() const;
 	FString TeachString(const TCHAR* Key) const;
@@ -261,6 +267,8 @@ public:
 
 private:
 	void HandleSigil(FName Line, float Score, double LatencyMs);
+	void HandleSigilRejected(double Distance);
+	void PushCue(const TCHAR* Kind);
 	void HandleWardRaised(double OnsetTime, FVector Facing);
 	void HandleWardLowered();
 	void HandleBlink(const FBlinkEvent& Event);
@@ -379,6 +387,7 @@ private:
 	UBlinkDetectorSubsystem* Blinks = nullptr;
 	UStaffDetectorSubsystem* Staff = nullptr;
 	FDelegateHandle SigilHandle;
+	FDelegateHandle SigilRejectHandle;
 	FDelegateHandle WardRaisedHandle;
 	FDelegateHandle WardLoweredHandle;
 	FDelegateHandle BlinkHandle;
@@ -446,6 +455,7 @@ private:
 	TOptional<FVrRuleset> RulesOverride;
 
 	TArray<FString> Chain;
+	TArray<FSessionCue> SessionCues;
 
 	FTeachTuning Tuning;
 	FDayTuning DayTuning;
@@ -578,4 +588,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UCollarCaptureDriver> CollarCapture;
+
+	UPROPERTY()
+	TObjectPtr<UColourAudioCaptureDriver> ColourAudioCapture;
 };

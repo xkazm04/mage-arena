@@ -5,6 +5,7 @@
 #include "Session/DayCapture.h"
 #include "Session/PresetCapture.h"
 #include "Session/AirCapture.h"
+#include "Session/ColourAudioCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
@@ -164,6 +165,7 @@ void FArenaSession::Bind(
 	{
 		Sigils->BindToHands(Hands);
 		SigilHandle = Sigils->OnSigilCast.AddRaw(this, &FArenaSession::HandleSigil);
+		SigilRejectHandle = Sigils->OnSigilRejected.AddRaw(this, &FArenaSession::HandleSigilRejected);
 	}
 	if (Wards)
 	{
@@ -188,6 +190,7 @@ void FArenaSession::Unbind()
 	if (Sigils)
 	{
 		Sigils->OnSigilCast.Remove(SigilHandle);
+		Sigils->OnSigilRejected.Remove(SigilRejectHandle);
 	}
 	if (Wards)
 	{
@@ -209,6 +212,7 @@ void FArenaSession::Unbind()
 		Hands->OnHandFrame().Remove(HandFrameHandle);
 	}
 	SigilHandle.Reset();
+	SigilRejectHandle.Reset();
 	WardRaisedHandle.Reset();
 	WardLoweredHandle.Reset();
 	BlinkHandle.Reset();
@@ -733,16 +737,40 @@ void FArenaSession::HandleSigil(FName Line, float Score, double LatencyMs)
 	}
 	else
 	{
+		PushCue(TEXT("sigil-reject"));
 		return;
 	}
 	if (WouldSplitRefuse(Slot))
 	{
 		Note(FString::Printf(TEXT("script split refused slot %d"), Slot));
+		PushCue(TEXT("sigil-reject"));
 		return;
 	}
+	PushCue(TEXT("sigil-complete"));
 	const bool bKeepWard = bAbsorb && !IsStaffPlanted();
 	BeginCast(Slot, *FString::Printf(TEXT("gesture sigil %s score=%.2f latency=%.0fms -> slot %d"),
 		*Line.ToString(), Score, LatencyMs, Slot), bKeepWard);
+}
+
+void FArenaSession::HandleSigilRejected(double Distance)
+{
+	(void)Distance;
+	PushCue(TEXT("sigil-reject"));
+}
+
+void FArenaSession::PushCue(const TCHAR* Kind)
+{
+	FSessionCue Cue;
+	Cue.Kind = Kind;
+	Cue.SimS = GetSimSeconds();
+	SessionCues.Add(Cue);
+}
+
+bool FArenaSession::IsSigilDrawing() const
+{
+	// A pinch that is not a sigil (a staff plant's grip, played as a clip) also puts the hand builder's pen down; only a
+	// sigil clip, live hands or the mouse count as drawing.
+	return Sigils && Sigils->IsDrawing() && !(ClipPlaying() && !ClipAction().StartsWith(TEXT("sigil")));
 }
 
 void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
@@ -2054,6 +2082,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bDayCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaDayCapture"));
 	const bool bAirCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaAirCapture"));
 	const bool bCollarCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCollarCapture"));
+	const bool bColourAudioCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaColourAudioCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -2111,6 +2140,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		CollarCapture = NewObject<UCollarCaptureDriver>(this);
 		CollarCapture->Start();
+		return;
+	}
+	if (bColourAudioCapture)
+	{
+		ColourAudioCapture = NewObject<UColourAudioCaptureDriver>(this);
+		ColourAudioCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)
