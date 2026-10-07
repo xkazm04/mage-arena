@@ -86,6 +86,7 @@ const TArray<FString>& KnownModelMisses()
 	// - extrap30 slow and some sloppy: the extrapolated stream fires the flick early (55 to 69 ms on normal, up to 125 ms on
 	//   slow), before the tip has peaked; that is consistent with a speed dip after a camera update falling under
 	//   FallFraction of the peak so far. The tip is then still fast, and the re-arm comes 56 to 181 ms late.
+	// - extrap25: the same early fire, larger: every case but two misses, normal 69 to 97 ms late, slow 167 to 194 ms.
 	// A late re-arm can only lose a second flick that follows within about 0.2 s. Fix: a detector change (the fall test
 	// and the re-arm on extrapolated and held samples), a separate run; W1 and W2 do not touch blink.
 	static const TArray<FString> Misses = []()
@@ -99,7 +100,16 @@ const TArray<FString>& KnownModelMisses()
 			TEXT("extrap30.blink-right.slow.p0"), TEXT("extrap30.blink-right.slow.p1"), TEXT("extrap30.blink-right.slow.p2"),
 			TEXT("extrap30.blink-right.sloppy.p0"), TEXT("extrap30.blink-right.sloppy.p1"),
 			TEXT("extrap30.blink-back.slow.p0"), TEXT("extrap30.blink-back.slow.p1"), TEXT("extrap30.blink-back.slow.p2"),
-			TEXT("extrap30.blink-back.sloppy.p0")};
+			TEXT("extrap30.blink-back.sloppy.p0"),
+			TEXT("extrap25.blink-left.normal.p0"), TEXT("extrap25.blink-left.normal.p1"), TEXT("extrap25.blink-left.normal.p2"),
+			TEXT("extrap25.blink-left.slow.p0"), TEXT("extrap25.blink-left.slow.p1"), TEXT("extrap25.blink-left.slow.p2"),
+			TEXT("extrap25.blink-left.sloppy.p2"),
+			TEXT("extrap25.blink-right.normal.p0"), TEXT("extrap25.blink-right.normal.p1"), TEXT("extrap25.blink-right.normal.p2"),
+			TEXT("extrap25.blink-right.slow.p0"), TEXT("extrap25.blink-right.slow.p1"), TEXT("extrap25.blink-right.slow.p2"),
+			TEXT("extrap25.blink-right.sloppy.p0"), TEXT("extrap25.blink-right.sloppy.p1"), TEXT("extrap25.blink-right.sloppy.p2"),
+			TEXT("extrap25.blink-back.normal.p0"), TEXT("extrap25.blink-back.normal.p1"), TEXT("extrap25.blink-back.normal.p2"),
+			TEXT("extrap25.blink-back.slow.p0"), TEXT("extrap25.blink-back.slow.p1"), TEXT("extrap25.blink-back.slow.p2"),
+			TEXT("extrap25.blink-back.sloppy.p0"), TEXT("extrap25.blink-back.sloppy.p1"), TEXT("extrap25.blink-back.sloppy.p2")};
 		TArray<FString> Keys;
 		for (const TCHAR* Case : Cases)
 		{
@@ -211,7 +221,7 @@ const FStream GHeld25{TEXT("held25"), EStreamModel::Held, GLowCameraHz};
 const FStream GExtrapolated25{TEXT("extrap25"), EStreamModel::Extrapolated, GLowCameraHz};
 
 /** The G1 streams the model tests run, beside the F7(b) held 30 Hz stream. */
-const FStream* const GModelStreams[] = {&GExtrapolated30};
+const FStream* const GModelStreams[] = {&GExtrapolated30, &GHeld25, &GExtrapolated25};
 
 FHandClip MakeStream(const FHandClip& Source, const FStream& Stream, double Phase)
 {
@@ -1390,7 +1400,10 @@ bool FMageArenaHeldSampleCorpusModels::RunTest(const FString& Parameters)
 	// extrap30: 9 false casts, every one an impostor-zigzag (a small three-leg mark inside the circle) cast as a line. Pinch
 	// is held in this model, so the joint extrapolation alone lets them pass the reject. Fix: a recognizer change (the reject on short jagged
 	// inner strokes), a separate run; W1 and W2 do not touch sigils.
-	const FExpected Expected[] = {{TEXT("extrap30"), 253, 9}};
+	// held25: 258/270 and no false cast, one more correct than 72 Hz. extrap25: 237/270 (87%, under the 90% sloppy floor
+	// of D-G2) and 30 false casts, all 30 impostor-zigzag clips; sigil-line2 loses most (22 of 33 wrong). The longer
+	// period lengthens the overshoot. The same recognizer fix applies.
+	const FExpected Expected[] = {{TEXT("extrap30"), 253, 9}, {TEXT("held25"), 258, 0}, {TEXT("extrap25"), 237, 30}};
 	bool bPass = true;
 	for (const FStream* Stream : GModelStreams)
 	{
