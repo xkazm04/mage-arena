@@ -197,6 +197,14 @@ void FWardDetector::NoteRewind()
 	LapBoundTime = -1.0e9;
 }
 
+void FWardDetector::CancelForSystemGesture(EControllerHand Hand)
+{
+	if (bReady && Hand == FMageSettings::WardHand())
+	{
+		NoteRewind();
+	}
+}
+
 void FWardDetector::Ingest(const FHandFrame& Frame)
 {
 	if (!bReady || Frame.Hand != FMageSettings::WardHand())
@@ -348,6 +356,7 @@ void UWardDetectorSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	HandHandle.Reset();
 	BoundHands = Hands;
 	Detector.ResetStream();
+	Gate.Reset();
 	if (Hands)
 	{
 		HandHandle = Hands->OnHandFrame().AddUObject(this, &UWardDetectorSubsystem::HandleHandFrame);
@@ -366,5 +375,14 @@ void UWardDetectorSubsystem::SetThreatFacing(const FVector& Facing, bool bTarget
 
 void UWardDetectorSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
+	bool bBegan = false;
+	if (Gate.Filter(Frame, bBegan))
+	{
+		if (bBegan)
+		{
+			Detector.CancelForSystemGesture(Frame.Hand);
+		}
+		return;
+	}
 	Detector.Ingest(Frame);
 }

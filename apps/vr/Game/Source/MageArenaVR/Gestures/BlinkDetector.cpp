@@ -83,6 +83,14 @@ void FBlinkDetector::Flush()
 	}
 }
 
+void FBlinkDetector::CancelForSystemGesture(EControllerHand Hand)
+{
+	if (Hand == FMageSettings::CastingHand())
+	{
+		Arm();
+	}
+}
+
 void FBlinkDetector::Ingest(const FHandFrame& Frame)
 {
 	if (Frame.Hand != FMageSettings::CastingHand())
@@ -195,6 +203,7 @@ void UBlinkDetectorSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	HandHandle.Reset();
 	BoundHands = Hands;
 	Detector.Reset();
+	Gate.Reset();
 	SeenBlinks = 0;
 	SeenBolts = 0;
 	if (Hands)
@@ -237,6 +246,15 @@ void UBlinkDetectorSubsystem::FlushPending()
 
 void UBlinkDetectorSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
+	bool bBegan = false;
+	if (Gate.Filter(Frame, bBegan))
+	{
+		if (bBegan)
+		{
+			Detector.CancelForSystemGesture(Frame.Hand);
+		}
+		return;
+	}
 	Detector.Ingest(Frame);
 	Publish();
 }

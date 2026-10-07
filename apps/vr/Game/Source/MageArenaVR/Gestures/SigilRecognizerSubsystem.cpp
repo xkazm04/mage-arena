@@ -108,6 +108,7 @@ void USigilRecognizerSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	BoundHands = Hands;
 	HandBuilder.Reset();
 	HandBuilder.SetStyle(DrawStyle);
+	Gate.Reset();
 	bHasHandTime = false;
 	if (Hands)
 	{
@@ -126,6 +127,18 @@ void USigilRecognizerSubsystem::ResetStrokes()
 
 void USigilRecognizerSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
+	// The pinch inside the system gesture is pen-down. Cancel the stroke so it cannot finish when the bit clears.
+	bool bBegan = false;
+	if (Gate.Filter(Frame, bBegan))
+	{
+		if (bBegan && Frame.Hand == FMageSettings::CastingHand())
+		{
+			HandBuilder.Reset();
+			HandBuilder.SetStyle(DrawStyle);
+			bHasHandTime = false;
+		}
+		return;
+	}
 	if (Frame.Hand != FMageSettings::CastingHand())
 	{
 		return;

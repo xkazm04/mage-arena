@@ -4,6 +4,7 @@
 #include "Gestures/QPointCloudRecognizer.h"
 #include "Gestures/SigilStrokeBuilder.h"
 #include "Hands/HandFrame.h"
+#include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SigilRecognizerSubsystem.generated.h"
 
@@ -46,6 +47,7 @@ private:
 	FQPointCloudRecognizer Recognizer;
 	FSigilStrokeBuilder HandBuilder;
 	FSigilStrokeBuilder MouseBuilder;
+	FSystemGestureGate Gate;
 	FDelegateHandle HandHandle;
 	TWeakObjectPtr<UHandInputSubsystem> BoundHands;
 	ESigilDrawStyle DrawStyle = ESigilDrawStyle::StyleA;

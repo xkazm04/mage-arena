@@ -28,6 +28,13 @@ void FStaffDetector::ResetWindow()
 	bLatched = false;
 }
 
+void FStaffDetector::CancelForSystemGesture(EControllerHand Hand)
+{
+	FHandSample& Slot = Hand == EControllerHand::Left ? Left : Right;
+	Slot.bSeen = false;
+	ResetWindow();
+}
+
 void FStaffDetector::Ingest(const FHandFrame& Frame)
 {
 	const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
@@ -131,6 +138,7 @@ void UStaffDetectorSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	HandHandle.Reset();
 	BoundHands = Hands;
 	Detector.Reset();
+	Gate.Reset();
 	if (Hands)
 	{
 		EnsureForwarding();
@@ -140,5 +148,14 @@ void UStaffDetectorSubsystem::BindToHands(UHandInputSubsystem* Hands)
 
 void UStaffDetectorSubsystem::HandleHandFrame(const FHandFrame& Frame)
 {
+	bool bBegan = false;
+	if (Gate.Filter(Frame, bBegan))
+	{
+		if (bBegan)
+		{
+			Detector.CancelForSystemGesture(Frame.Hand);
+		}
+		return;
+	}
 	Detector.Ingest(Frame);
 }

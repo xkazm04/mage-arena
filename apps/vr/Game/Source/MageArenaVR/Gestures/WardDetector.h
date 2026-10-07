@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Combat/AbsorbResolver.h"
 #include "Hands/HandFrame.h"
+#include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "WardDetector.generated.h"
 
@@ -51,6 +52,8 @@ public:
 	bool Init(FString& OutError);
 	void ResetStream();
 	void Ingest(const FHandFrame& Frame);
+	/** The system gesture took the ward hand. Drop the raise in progress, as a clip rewind does. */
+	void CancelForSystemGesture(EControllerHand Hand);
 
 	void SetAimFacing(const FVector& Facing);
 	void SetThreatFacing(const FVector& Facing, bool bTargeted);
@@ -137,6 +140,7 @@ private:
 	void HandleHandFrame(const FHandFrame& Frame);
 
 	FWardDetector Detector;
+	FSystemGestureGate Gate;
 	FDelegateHandle HandHandle;
 	FDelegateHandle RaisedHandle;
 	FDelegateHandle LoweredHandle;

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Hands/HandFrame.h"
+#include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "BlinkDetector.generated.h"
 
@@ -61,6 +62,8 @@ public:
 	void Reset();
 	void SetActivePad(int32 PadIndex);
 	void Ingest(const FHandFrame& Frame);
+	/** The system gesture took the casting hand. Forget the flick in progress; it must not fire when the bit clears. */
+	void CancelForSystemGesture(EControllerHand Hand);
 	/** Fire a latched peak if the clip ended before the tip slowed. */
 	void Flush();
 
@@ -125,6 +128,7 @@ private:
 	void Publish();
 
 	FBlinkDetector Detector;
+	FSystemGestureGate Gate;
 	FDelegateHandle HandHandle;
 	TWeakObjectPtr<UHandInputSubsystem> BoundHands;
 	int32 SeenBlinks = 0;

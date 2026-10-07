@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Hands/HandFrame.h"
+#include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "StaffDetector.generated.h"
 
@@ -20,6 +21,8 @@ class FStaffDetector
 public:
 	void Reset();
 	void Ingest(const FHandFrame& Frame);
+	/** The system gesture took one hand. Drop that hand's sample and the grip window; both hands must be seen again. */
+	void CancelForSystemGesture(EControllerHand Hand);
 
 	int32 GetPlantCount() const { return PlantCount; }
 	int32 GetLiftCount() const { return LiftCount; }
@@ -76,6 +79,7 @@ private:
 	void HandleHandFrame(const FHandFrame& Frame);
 
 	FStaffDetector Detector;
+	FSystemGestureGate Gate;
 	FDelegateHandle HandHandle;
 	FDelegateHandle PlantHandle;
 	FDelegateHandle LiftHandle;
