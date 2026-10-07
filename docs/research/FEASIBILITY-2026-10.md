@@ -204,6 +204,43 @@ competition rules are therefore **not re-checked** (log 1).
   - Photon-to-detection latency.
   - Phases beyond 2/90 s. They cover 22 ms of the 33 ms (30 Hz) and 40 ms (25 Hz) camera periods.
 - **D-G3 verdict:** the perfect window holds to 60 ms on both the held worst case and the extrapolated model: the hit at the authored tick and the interior hits are perfect in every case. Strict "authored tick ±1 frame" timing does not hold: the onset lands 14 to 42 ms late, from the camera grid, not from latency. W1 is not needed and would not move the onset. W2 (stamping the onset earlier by the camera lag, which needs G2's rate) is what would restore ±1 frame. Separately, the extrapolated model raises two findings for later runs: zigzag false casts (a recognizer fix) and a late blink re-arm (a detector fix).
+- **Status:** zigzag false casts fixed 2026-10-07 in 9f824a3, in the stroke builder (`Gestures/SigilStrokeBuilder`); $Q and its 26000 reject are unchanged. The blink's early fire and late re-arm are **still open**.
+  - **Diagnosis:**
+    - extrap30: 9 zigzags cast as line1 ×6, line2 ×2 and line3 ×1, at $Q 3389 to 6765.
+    - extrap25: 30 zigzags cast as line1 ×20, line3 ×7 and line2 ×3. 28 are two-stroke, at $Q 3891 to 6342. Two lost the pen-up and cast as one stroke, at 15238 and 15516.
+    - Every distance is far under the reject. Most are under the correct sigil-line2 casts (extrap30 892 to 20450) and the sloppy correct matches at 14659 and 23595. $Q scales the cloud, so a small zigzag inside a circle looks to it like a circle with a short mark. The stroke builder's inner-stroke gate is the only thing between them.
+    - What the builder saw: the zigzag's inner stroke has 40 points on every stream.
+      - Its path is ≤ 0.273 of the loop diagonal at 72 Hz, 9.75 to 9.99 cm (0.341 to 0.362) on extrap30 and 11.14 to 11.74 cm (0.359 to 0.408) on extrap25. The gate is 0.34.
+      - Its absolute turning is 240 to 254° on extrap30 and 551 to 586° on extrap25.
+      - Its reach (the bounding-box diagonal) is 4.6 to 5.4 cm, 0.152 to 0.188 of the loop diagonal, on every stream.
+      - A correct sigil-line2 inner stroke has a path of 12.8 to 27.4 cm and a reach of 12.1 to 17.1 cm (0.410 to 0.705).
+    - Why: linear extrapolation runs ahead through each zigzag corner, and through the start of the stroke, by up to one camera period of motion. The next camera sample snaps it back. Each overshoot is counted twice in the path and barely at all in the reach. The 25 Hz period is longer, so the overshoot is longer.
+    - The same effect costs extrap25 its sigil-line2 accuracy. Of the 22 wrong line2 clips, 15 fired on the circle alone. A circle-only tail has a path of about 20 cm on extrap25 against about 11 cm on held25, up to 0.769 of the loop diagonal. That passes the one-stroke `InnerTailRatio` (0.65), so the bare circle was taken as a circle drawn through into its line: 14 cast a wrong label and 1 was rejected by $Q. The line stroke after it then rejected as "no circle". The other 7 were $Q label confusions. Why line2 suffers most (and line3 next, with 7 early fires) was not isolated.
+  - **Fix:** both builder gates measure the inner mark's reach (the bounding-box diagonal), not its path. A spell line is a straight reach across the circle, so its reach is close to its path; a jagged or overshooting mark's reach stays small. The thresholds sit between the measured classes:
+    - later strokes: `MinInnerStrokeRatio` 0.28. Marks reach ≤ 0.200 on every stream; lines reach ≥ 0.385 at 72 Hz and ≥ 0.351 on the modelled streams.
+    - one-stroke tail: `InnerTailRatio` 0.53. Circle-only tails reach ≤ 0.40 at 72 Hz and ≤ 0.475 on the modelled streams; drawn-through templates and mouse clips reach ≥ 0.595.
+  - **Before and after**, seed 1000 corpus, phase 0:
+
+    | Stream | Accuracy before | Accuracy after | Impostor casts before | after | Noise casts before | after |
+    |---|---|---|---|---|---|---|
+    | 72 Hz | 257/270 | 257/270 | 0/180 | 0/180 | 0/5 | 0/5 |
+    | held30 | 256/270 | 256/270 | 0/180 | 0/180 | 0/5 | 0/5 |
+    | extrap30 | 253/270 | 253/270 | 9/180 | 0/180 | 0/5 | 0/5 |
+    | held25 | 258/270 | 258/270 | 0/180 | 0/180 | 0/5 | 0/5 |
+    | extrap25 | 237/270 (87.8%) | 251/270 (93.0%) | 30/180 | 0/180 | 0/5 | 0/5 |
+
+    - `Sigils.Accuracy` is unchanged: normal 87/90, slow 88/90, sloppy 82/90, mouse 87/90, and every impostor kind rejected 30/30. `Sigils.NoFalseCasts` is 0 over 180 s. The templates still load 12/12/12 with none skipped.
+    - All 19 extrap25 misses left are $Q labels (line2 as line3 ×10, line1 as line3 ×5, line3 as line1 ×4), not the gate.
+    - The `CorpusModels` ratchet is now extrap30 253/0, held25 258/0, extrap25 251/0.
+  - **Held-out corpus, seed 2000** (before → after): 72 Hz 258 → 258; held30 254 → 254; held25 258 → 258; extrap30 251 → 251, impostor casts 9 → 0; extrap25 221/270 (81.9%) → 243/270 (90.0%, exactly the floor), impostor casts 30 → 0. Noise casts are 0/5 throughout, and `Sigils.Accuracy` is unchanged (normal 88/90, slow 87/90, sloppy 83/90, mouse 87/90).
+    - Limit: `generate.mjs` seeds the impostor and noise clips from fixed bands, not from `--seed`. The held-out check therefore tests corpus accuracy only, and the false-cast figures are the same 180 impostors.
+  - **Mutation proof:** reverting `SigilStrokeBuilder.cpp` and `.h` to 35cd067, under the new ratchet, fails `CorpusModels` on 3 assertions: extrap25 correct 237 ≠ 251, extrap25 false casts 30 ≠ 0, extrap30 false casts 9 ≠ 0. Restored, it is green.
+  - **Proven:**
+    - `build.ps1` exit 0 before the change (121 s), and exit 0 on the clean tree after 9f824a3.
+    - The full `MageArena` suite: 175 tests and 172 pass, both before and after. The per-test diff is empty, and the failures are the 3 known ones.
+    - The boot log reads 9 files, SHA1 `11F9B16CBBC77C2469704829C518E4106236C2FF`.
+    - `check-pin.mjs` passes.
+  - **Not proven:** real Quest input. The finding and the fix rest on the G1 extrapolation **model**.
 
 ### G2. The v207 path never exposes when the cameras sampled, and the recorder rule assumes held poses
 
