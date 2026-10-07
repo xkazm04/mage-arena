@@ -61,6 +61,11 @@ void SpawnWave(FGames& Games)
 		}
 		return Count;
 	};
+	if (Games.VrRules.IsSet())
+	{
+		// A rival belongs to one wave. The next spawn binds again or leaves the runtime empty.
+		Games.VrRules->RivalRuntime = FVrRivalRuntime();
+	}
 	int32 Total = 0;
 	for (const FWaveSpawn& Spawn : Wave.Spawns)
 	{
@@ -108,6 +113,20 @@ void SpawnWave(FGames& Games)
 					Actor->Fire.bSchool = true;
 				}
 				double Level = Spawn.Competence;
+				if (Games.VrRules.IsSet())
+				{
+					FVrRuleset& RivalRules = Games.VrRules.GetValue();
+					const int32 RivalIndex = RivalRules.FindRival(Tiro.Id, Wave.N, Wave.Kind, Games.bFireMages ? TEXT("fire") : TEXT("water"));
+					if (RivalIndex != INDEX_NONE && RivalRules.RivalRuntime.ActorId < 0)
+					{
+						RivalRules.RivalRuntime.ActorId = Id;
+						RivalRules.RivalRuntime.RivalIndex = RivalIndex;
+					}
+					if (RivalRules.bActive && RivalRules.MageCompetenceOverride >= 0.0)
+					{
+						Level = RivalRules.MageCompetenceOverride;
+					}
+				}
 				if (Games.VrRules.IsSet() && Games.VrRules->bGentle)
 				{
 					Level = Games.VrRules->Gentle.Competence;

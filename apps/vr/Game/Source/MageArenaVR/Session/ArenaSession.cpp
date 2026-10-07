@@ -1456,6 +1456,18 @@ void FArenaSession::DrainEvents(const FActor* Player)
 				Note(TEXT("cue bell perfect-absorb"));
 			}
 		}
+		else if (Event.Kind == TEXT("phase"))
+		{
+			const FVrRuleset* PhaseRules = GetVrRules();
+			const FVrRival* Rival = PhaseRules ? PhaseRules->BoundRival() : nullptr;
+			Note(FString::Printf(TEXT("kernel phase %.0f/%d rival=%s actor=%d t=%.3f"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 0,
+				Rival ? *Rival->Id : TEXT("-"), Event.ActorId, GetSimSeconds()));
+		}
+		else if (Event.Kind == TEXT("cast") && Event.ActorId != Games.PlayerId && GetVrRules() && GetVrRules()->IsRival(Event.ActorId)
+			&& GetVrRules()->RivalRuntime.GrantTick == Event.Tick)
+		{
+			Note(FString::Printf(TEXT("kernel signature %s actor=%d t=%.3f"), *GetVrRules()->RivalRuntime.GrantSpell, Event.ActorId, GetSimSeconds()));
+		}
 		else if (Event.Kind == TEXT("unlock") && Event.ActorId == Games.PlayerId)
 		{
 			Note(FString::Printf(TEXT("kernel unlock tier=%.0f"), Event.Value));

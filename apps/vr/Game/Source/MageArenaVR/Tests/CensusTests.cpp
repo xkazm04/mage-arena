@@ -688,6 +688,9 @@ bool FMageArenaCensusSweep::RunTest(const FString& Parameters)
 		AddError(RulesError);
 		return false;
 	}
+	// The sweep stays the T12 knob census on the phase-less duel; its winner is what calibration-proposal.json holds.
+	// T19's phased Brennic duel is measured by MageArenaDesign.Census.Rivals, which writes no proposal.
+	Base.Rivals.Reset();
 	UGameInstance* Instance = NewObject<UGameInstance>(GetTransientPackage());
 	Instance->AddToRoot();
 	UHandInputSubsystem* Hands = NewObject<UHandInputSubsystem>(Instance);

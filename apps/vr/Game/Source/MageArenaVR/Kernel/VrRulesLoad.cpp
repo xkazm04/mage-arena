@@ -4,6 +4,7 @@
 #include "Kernel/KernelData.h"
 #include "MageArenaVR.h"
 
+#include "Kernel/SimConstants.h"
 #include "Kernel/SimMath.h"
 
 #include "Dom/JsonObject.h"
@@ -16,6 +17,7 @@
 #include "Serialization/JsonSerializer.h"
 
 #include <cmath>
+#include <initializer_list>
 
 namespace
 {
@@ -350,6 +352,165 @@ bool ReadThrow(const FJsonObject& Attack, const FEnemySpec& Conscript, const FAt
 	return true;
 }
 
+bool OnlyKnownKeys(const FJsonObject& Object, std::initializer_list<const TCHAR*> Known, const TCHAR* Where, FString& Error)
+{
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Object.Values)
+	{
+		if (Pair.Key.StartsWith(TEXT("_")))
+		{
+			continue;
+		}
+		bool bKnown = false;
+		for (const TCHAR* Name : Known)
+		{
+			bKnown |= Pair.Key == Name;
+		}
+		if (!bKnown)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s has an unknown key %s"), Where, *Pair.Key));
+		}
+	}
+	return true;
+}
+
+bool WholeNumber(double Value, double Min, double Max, int32& Out)
+{
+	const double Whole = std::round(Value);
+	if (std::abs(Value - Whole) > 1.0e-9 || Whole < Min || Whole > Max)
+	{
+		return false;
+	}
+	Out = static_cast<int32>(Whole);
+	return true;
+}
+
+// DECISIONS 2026-10-07 (DF-003 answered). Absent block: no rival, today's duel.
+bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Error)
+{
+	Out.Reset();
+	if (!Overlay.HasField(TEXT("rivals")))
+	{
+		return true;
+	}
+	const FJsonObject* Block = nullptr;
+	if (!NeedObject(Overlay, TEXT("rivals"), Block, Error))
+	{
+		return Fail(Error, TEXT("vr rules: rivals must be an object"));
+	}
+	const FKernelData& Data = KernelData();
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Block->Values)
+	{
+		if (Pair.Key.StartsWith(TEXT("_")))
+		{
+			continue;
+		}
+		const TSharedPtr<FJsonObject> Entry = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr;
+		if (!Entry.IsValid())
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: rival %s is not an object"), *Pair.Key));
+		}
+		const FString Where = FString::Printf(TEXT("rival %s"), *Pair.Key);
+		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers")}, *Where, Error))
+		{
+			return false;
+		}
+		FVrRival Rival;
+		Rival.Id = Pair.Key;
+		const FJsonObject* Applies = nullptr;
+		double Surge = 0.0;
+		if (!NeedString(*Entry, TEXT("school"), Rival.School, Error) || !NeedObject(*Entry, TEXT("appliesTo"), Applies, Error)
+			|| !NeedNumber(*Entry, TEXT("surgeTiers"), Surge, Error))
+		{
+			return false;
+		}
+		if (Rival.School != TEXT("fire") && Rival.School != TEXT("water"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s school must be fire or water (the kernel schools)"), *Where));
+		}
+		if (!WholeNumber(Surge, 0.0, static_cast<double>(TierCap - 1), Rival.SurgeTiers))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s surgeTiers must be an integer from 0 to %d"), *Where, TierCap - 1));
+		}
+		double WaveN = 0.0;
+		if (!OnlyKnownKeys(*Applies, {TEXT("tier"), TEXT("waveN"), TEXT("kind")}, *Where, Error)
+			|| !NeedString(*Applies, TEXT("tier"), Rival.TierId, Error) || !NeedNumber(*Applies, TEXT("waveN"), WaveN, Error)
+			|| !NeedString(*Applies, TEXT("kind"), Rival.WaveKind, Error))
+		{
+			return false;
+		}
+		const FArenaTier* Tier = Data.ArenaTiers.FindByPredicate([&](const FArenaTier& Candidate) { return Candidate.Id == Rival.TierId; });
+		if (!Tier)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.tier %s is not a pinned arena tier"), *Where, *Rival.TierId));
+		}
+		if (!WholeNumber(WaveN, 1.0, static_cast<double>(Tier->Waves.Num()), Rival.WaveN))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.waveN must be a wave of %s"), *Where, *Rival.TierId));
+		}
+		const FArenaWave& Wave = Tier->Waves[Rival.WaveN - 1];
+		if (Wave.N != Rival.WaveN || Wave.Kind != Rival.WaveKind)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.kind %s is not wave %d's kind"), *Where, *Rival.WaveKind, Rival.WaveN));
+		}
+		if (!Wave.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo names a wave with no mage"), *Where));
+		}
+		const TArray<TSharedPtr<FJsonValue>>* Phases = nullptr;
+		if (!Entry->TryGetArrayField(TEXT("phases"), Phases) || !Phases || Phases->Num() < 1 || Phases->Num() > 2)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s phases must list one or two breaks (two or three phases)"), *Where));
+		}
+		double Previous = 1.0;
+		int32 Signatures = 0;
+		for (const TSharedPtr<FJsonValue>& Value : *Phases)
+		{
+			const TSharedPtr<FJsonObject> PhaseJson = Value.IsValid() && Value->Type == EJson::Object ? Value->AsObject() : nullptr;
+			if (!PhaseJson.IsValid())
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s phase is not an object"), *Where));
+			}
+			FVrRivalPhase Phase;
+			if (!OnlyKnownKeys(*PhaseJson, {TEXT("atHpFraction"), TEXT("opensWith")}, *Where, Error)
+				|| !NeedNumber(*PhaseJson, TEXT("atHpFraction"), Phase.AtHpFraction, Error))
+			{
+				return false;
+			}
+			if (!(Phase.AtHpFraction > 0.0 && Phase.AtHpFraction < Previous))
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s atHpFraction must be in (0, 1) and fall phase by phase"), *Where));
+			}
+			Previous = Phase.AtHpFraction;
+			if (PhaseJson->HasField(TEXT("opensWith")))
+			{
+				if (!NeedString(*PhaseJson, TEXT("opensWith"), Phase.OpensWith, Error))
+				{
+					return false;
+				}
+				if (Rival.School != TEXT("fire") || !FindFireSpell(Phase.OpensWith))
+				{
+					return Fail(Error, FString::Printf(TEXT("vr rules: %s opensWith %s is not a pinned fire spell"), *Where, *Phase.OpensWith));
+				}
+				++Signatures;
+			}
+			Rival.Phases.Add(Phase);
+		}
+		if (Signatures > 1)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s may open only one phase with a signature"), *Where));
+		}
+		for (const FVrRival& Other : Out)
+		{
+			if (Other.TierId == Rival.TierId && Other.WaveN == Rival.WaveN && Other.School == Rival.School)
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s and %s apply to the same mage"), *Other.Id, *Rival.Id));
+			}
+		}
+		Out.Add(Rival);
+	}
+	return true;
+}
+
 bool ProposalRequested()
 {
 	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")))
@@ -462,6 +623,15 @@ bool ApplyProposal(FVrRuleset& Out, FString& Error)
 	}
 	return true;
 }
+}
+
+bool ApplyVrCalibrationProposal(FVrRuleset& Out, FString& Error)
+{
+	if (!Out.bActive)
+	{
+		return Fail(Error, TEXT("vr rules: the proposal needs a loaded overlay"));
+	}
+	return ApplyProposal(Out, Error);
 }
 
 void SetVrDataDirForTest(const FString& Dir)
@@ -729,6 +899,11 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.Gentle.Competence = Competence;
 	Out.bNarrow = false;
 	Out.bGentle = false;
+
+	if (!ReadRivals(*Overlay, Out.Rivals, Error))
+	{
+		return false;
+	}
 
 	Out.bActive = true;
 	Out.StandoffM = Standoff;

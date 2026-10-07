@@ -496,6 +496,11 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		}
 		MoveActor(State, Actor, Input, Rules);
 		ReleaseCast(State, Actor, Rules);
+		if (Rules)
+		{
+			// A rival's granted signature waits for the cast it was in. It goes before the brain's own pick.
+			Rules->TryGrantedCast(State, Actor, Input.Aim);
+		}
 		StartCast(State, Actor, Input, Rules);
 		Actor.LastInput = Input;
 		UpdateFireOngoing(State, Actor);
@@ -507,6 +512,11 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 	UpdateTelegraphs(State, Rules);
 	UpdateProjectiles(State, Rules);
 	State.Zones.RemoveAll([&State](const FZone& Zone) { return !(Zone.Until > State.Tick); });
+	if (Rules)
+	{
+		// Every hit of this tick has landed. A break surges first; the normal clock then continues from the new tier.
+		Rules->TickRivalPhases(State);
+	}
 	for (FActor& Actor : State.Actors)
 	{
 		if (!Actor.bDown)

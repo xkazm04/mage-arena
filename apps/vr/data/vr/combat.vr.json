@@ -102,6 +102,33 @@
     "_burnDamage": "Proposal. Magic damage to an enemy body that crosses the arc. A ward can chip it. Unblockable projectiles pass and do not burn by themselves. Not signed off."
   },
 
+  "rivals": {
+    "_about": "DECISIONS 2026-10-07 'v2 vision accepted', DF-003 answered: named mages fight in HP-gated phases; each break surges both tier clocks by one tier and swells the crowd; the last phase opens with the rival's signature. A VR overlay rule until the TV change request (CR-005) lands. Absent block: no rival, the duel is today's.",
+    "brennic": {
+      "school": "fire",
+      "_school": "Brennic is the Ember mage (DECISIONS 2026-10-07: 'Brennic in the semifinal'; his signature is Sunfall). Fire is the kernel school his duel runs on.",
+      "appliesTo": {
+        "tier": "tiro",
+        "waveN": 3,
+        "kind": "semifinal",
+        "_why": "DECISIONS 2026-10-07 slice: 'a full Tiro day (... Brennic in the semifinal ...)'. Pinned arena-tiers.json Tiro wave n 3 is the semifinal, one mage at competence 1. The session binds the Fire mage of that wave; the final (n 4) is not Brennic."
+      },
+      "phases": [
+        {
+          "atHpFraction": 0.66,
+          "_why": "DECISIONS 2026-10-07: 'Named mages get 2-3 HP-gated phases (proposal 66 % and 33 % HP)'. First break at 66 % of max HP: 95 x 0.66 = 62.7 at vigor 1."
+        },
+        {
+          "atHpFraction": 0.33,
+          "opensWith": "fire_sunfall",
+          "_why": "DECISIONS 2026-10-07: second threshold 33 % (95 x 0.33 = 31.35), and 'the last phase opens with the rival's signature (Brennic: Sunfall)'. fire_sunfall is the pinned spells-fire.csv row (tier 4, mana 70, damage 95, unblockable); the opening cast is granted once, ignoring the tier gate and the mana cost."
+        }
+      ],
+      "surgeTiers": 1,
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. Both the rival and the player rise one tier per break, capped at tier IV (kernel TierCap 4); the surge ignores minimumSecondsBetweenUnlocks."
+    }
+  },
+
   "narrowFov": {
     "spawnArcDeg": 40,
     "offerBelowDeg": 90,
