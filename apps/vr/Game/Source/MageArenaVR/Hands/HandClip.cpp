@@ -21,6 +21,9 @@ const TCHAR* GKeypointNames[MageHandJointCount] = {
 	TEXT("LittleMetacarpal"), TEXT("LittleProximal"), TEXT("LittleIntermediate"), TEXT("LittleDistal"), TEXT("LittleTip"),
 };
 
+const TCHAR* GSchemaV1 = TEXT("mage-arena/hand-clip@1");
+const TCHAR* GSchemaV2 = TEXT("mage-arena/hand-clip@2");
+
 const TCHAR* GSpace = TEXT("seated-origin, metres, +X forward, +Y right, +Z up (Unreal axes, cm converted to m)");
 
 bool ParseObject(const FString& Line, TSharedPtr<FJsonObject>& Out, FString& OutError, int32 LineNumber)
@@ -127,11 +130,13 @@ bool FHandClip::LoadFromFile(const FString& Path, FHandClip& OutClip, FString& O
 	}
 
 	FString Schema;
-	if (!Header->TryGetStringField(TEXT("schema"), Schema) || Schema != TEXT("mage-arena/hand-clip@1"))
+	if (!Header->TryGetStringField(TEXT("schema"), Schema) || (Schema != GSchemaV1 && Schema != GSchemaV2))
 	{
-		OutError = FString::Printf(TEXT("%s: schema is not mage-arena/hand-clip@1"), *Path);
+		OutError = FString::Printf(TEXT("%s: schema is not mage-arena/hand-clip@1 or @2"), *Path);
 		return false;
 	}
+	// @2 is @1 plus one optional frame field, sys. Objects stay closed: an @1 frame may not carry it.
+	const bool bSchemaV2 = Schema == GSchemaV2;
 	if (!Header->TryGetStringField(TEXT("name"), OutClip.Name) || OutClip.Name.IsEmpty())
 	{
 		OutError = FString::Printf(TEXT("%s: missing name"), *Path);
@@ -238,8 +243,21 @@ bool FHandClip::LoadFromFile(const FString& Path, FHandClip& OutClip, FString& O
 			return false;
 		}
 		TSharedPtr<FJsonObject> FrameObject;
-		if (!ParseObject(Lines[LineIndex], FrameObject, OutError, LineNumber)
-			|| !ExpectFieldCount(FrameObject, 5, TEXT("frame"), LineNumber, OutError))
+		if (!ParseObject(Lines[LineIndex], FrameObject, OutError, LineNumber))
+		{
+			OutError = FString::Printf(TEXT("%s: %s"), *Path, *OutError);
+			return false;
+		}
+		bool bSystemGesture = false;
+		const TSharedPtr<FJsonValue> SysValue = FrameObject->TryGetField(TEXT("sys"));
+		const bool bHasSys = SysValue.IsValid();
+		// A JSON number would also convert to bool. The schema says boolean.
+		if (bHasSys && (!bSchemaV2 || SysValue->Type != EJson::Boolean || !SysValue->TryGetBool(bSystemGesture)))
+		{
+			OutError = FString::Printf(TEXT("%s: line %d: sys needs schema @2 and a boolean"), *Path, LineNumber);
+			return false;
+		}
+		if (!ExpectFieldCount(FrameObject, bHasSys ? 6 : 5, TEXT("frame"), LineNumber, OutError))
 		{
 			OutError = FString::Printf(TEXT("%s: %s"), *Path, *OutError);
 			return false;
@@ -280,6 +298,7 @@ bool FHandClip::LoadFromFile(const FString& Path, FHandClip& OutClip, FString& O
 		Frame.TimeSeconds = TimeSeconds;
 		Frame.Confidence = static_cast<float>(Confidence);
 		Frame.Pinch = static_cast<float>(Pinch);
+		Frame.bSystemGesture = bSystemGesture;
 		Frame.Joints.SetNum(MageHandJointCount);
 		for (int32 JointIndex = 0; JointIndex < MageHandJointCount; ++JointIndex)
 		{
@@ -422,6 +441,8 @@ bool FHandClip::Sample(EControllerHand Hand, double TimeSeconds, FHandFrame& Out
 	Out.Hand = Hand;
 	Out.Confidence = FMath::Lerp(Before.Confidence, After.Confidence, Alpha);
 	Out.Pinch = FMath::Lerp(Before.Pinch, After.Pinch, Alpha);
+	// A bit cannot be blended. Either neighbour raising it blocks the sample, the safe side of the rule.
+	Out.bSystemGesture = Before.bSystemGesture || After.bSystemGesture;
 	Out.Joints.SetNum(MageHandJointCount);
 	for (int32 Index = 0; Index < MageHandJointCount; ++Index)
 	{

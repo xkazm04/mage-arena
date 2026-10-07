@@ -27,4 +27,11 @@ struct FHandFrame
 	float Confidence = 0.0f;
 	float Pinch = 0.0f;
 	TArray<FHandJointPose> Joints;
+	/**
+	 * The runtime reports the system gesture (open palm toward the headset, then a pinch). Mirrors OpenXR
+	 * XR_HAND_TRACKING_AIM_SYSTEM_GESTURE_BIT_FB (the Meta plugin's EHandStatus::SystemGestureInProgress).
+	 * VRC.Quest.Input.8: no other gesture may fire while it is set. Clips fill it now (schema @2 `sys`);
+	 * the live source fills it at V1. Keep it last so every existing initialisation compiles unchanged.
+	 */
+	bool bSystemGesture = false;
 };

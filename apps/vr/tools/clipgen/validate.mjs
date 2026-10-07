@@ -3,7 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SCHEMA = 'mage-arena/hand-clip@1';
+const SCHEMA_V1 = 'mage-arena/hand-clip@1';
+const SCHEMA_V2 = 'mage-arena/hand-clip@2';
 const SPACE = 'seated-origin, metres, +X forward, +Y right, +Z up (Unreal axes, cm converted to m)';
 const KEYPOINTS = [
   'Palm', 'Wrist',
@@ -15,6 +16,8 @@ const KEYPOINTS = [
 ];
 const HEADER_KEYS = ['schema', 'name', 'action', 'variant', 'hands', 'hz', 'space', 'keypoints', 'source', 'seed'];
 const FRAME_KEYS = ['t', 'hand', 'conf', 'pinch', 'joints'];
+// @2 adds one optional boolean, `sys`, written after `pinch`. @1 stays closed.
+const FRAME_KEYS_SYS = ['t', 'hand', 'conf', 'pinch', 'sys', 'joints'];
 const VARIANTS = new Set(['normal', 'slow', 'sloppy']);
 const SOURCES = new Set(['synthetic', 'recorded', 'mouse']);
 
@@ -70,7 +73,7 @@ function validateFile(file) {
   if (!sameKeys(header, HEADER_KEYS)) {
     errors.push(`header fields must be ${HEADER_KEYS.join(',')}`);
   }
-  if (header.schema !== SCHEMA) {
+  if (header.schema !== SCHEMA_V1 && header.schema !== SCHEMA_V2) {
     errors.push(`schema ${JSON.stringify(header.schema)}`);
   }
   if (typeof header.name !== 'string' || header.name.length === 0) {
@@ -118,6 +121,7 @@ function validateFile(file) {
     }
   }
 
+  const bSchemaV2 = header.schema === SCHEMA_V2;
   const declared = new Set(Array.isArray(header.hands) ? header.hands : []);
   const perHand = new Map();
   let prevT = -Infinity;
@@ -134,9 +138,17 @@ function validateFile(file) {
       continue;
     }
     const where = `line ${i + 1}`;
-    if (!frame || typeof frame !== 'object' || Array.isArray(frame) || !sameKeys(frame, FRAME_KEYS)) {
-      errors.push(`${where}: frame fields must be ${FRAME_KEYS.join(',')}`);
+    if (!frame || typeof frame !== 'object' || Array.isArray(frame)) {
+      errors.push(`${where}: frame is not an object`);
       continue;
+    }
+    const hasSys = Object.prototype.hasOwnProperty.call(frame, 'sys');
+    if (!sameKeys(frame, hasSys && bSchemaV2 ? FRAME_KEYS_SYS : FRAME_KEYS)) {
+      errors.push(`${where}: frame fields must be ${FRAME_KEYS.join(',')}${bSchemaV2 ? ' (sys optional after pinch)' : ''}`);
+      continue;
+    }
+    if (hasSys && typeof frame.sys !== 'boolean') {
+      errors.push(`${where}: sys must be a boolean`);
     }
     if (typeof frame.t !== 'number' || !Number.isFinite(frame.t) || frame.t < 0) {
       errors.push(`${where}: t`);

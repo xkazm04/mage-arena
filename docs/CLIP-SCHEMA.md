@@ -1,4 +1,4 @@
-# Hand clip schema `mage-arena/hand-clip@1`
+# Hand clip schema `mage-arena/hand-clip@1` and `@2`
 
 A hand clip is a stream of hand-joint poses over time. The keyboard plays one into `IHandSource`.
 November's headset recorder writes the same file (`source: "recorded"`) into that same source.
@@ -25,7 +25,7 @@ Key order is part of the synthetic bytes (recorders may use this same order).
 
 | Field | Rule |
 |---|---|
-| `schema` | Exactly `mage-arena/hand-clip@1`. |
+| `schema` | `mage-arena/hand-clip@1` or `mage-arena/hand-clip@2`. See "Schema @2". |
 | `name` | Non-empty string. Synthetic clips use the action id. |
 | `action` | Non-empty string. The twelve desktop actions are below. |
 | `variant` | `normal`, `slow`, or `sloppy`. |
@@ -46,6 +46,7 @@ One JSON object per line, one hand:
 | `hand` | `"L"` or `"R"`, and a member of the header `hands`. |
 | `conf` | Confidence in `[0, 1]`. |
 | `pinch` | Thumb-index pinch in `[0, 1]`. `1` is pen-down (tips touching). `0` is released. |
+| `sys` | `@2` only, optional, boolean. See "Schema @2". Absent means `false`. |
 | `joints` | Length 26. Each entry is `[x, y, z, qx, qy, qz, qw]`. |
 
 When both hands are present they share a timestamp: the `L` line, then the `R` line, with the same `t`.
@@ -80,6 +81,24 @@ It rotates the joint frame into seated-origin space.
 
 Chains: thumb and each finger run metacarpal to tip. The four finger MCP joints stay in the palm; curl rotates the bones beyond them. The thumb chain reaches from its metacarpal toward the pinch target.
 
+## Schema @2
+
+`mage-arena/hand-clip@2` is `@1` plus one optional frame field. Nothing else changes: the header, the time rules and the
+joints are the same.
+
+| Field | Rule |
+|---|---|
+| `sys` | Boolean, optional, written after `pinch` (and before `joints`). Absent means `false`. |
+
+`sys: true` marks a frame on which the runtime would raise the system-gesture bit (the open palm toward the headset, then
+the pinch). It mirrors OpenXR `XR_HAND_TRACKING_AIM_SYSTEM_GESTURE_BIT_FB`, and the player copies it into
+`FHandFrame::bSystemGesture`. While it is set for a hand, the ward, blink, sigil and staff detectors process no gesture
+from that hand and cancel one in progress (Meta VRC.Quest.Input.8). A sample between two frames is blocked when either
+neighbour carries the bit.
+
+Objects stay closed: an `@1` file that carries `sys` is invalid, and so is an `@2` `sys` that is not a boolean. Both
+schemas load. The `@2` clips live in `apps/vr/Game/Clips/system/`; `generate.mjs` does not rewrite any `@1` clip.
+
 ## Seated space
 
 Origin is the midpoint of the hips at seat height. `+X` is forward, `+Y` is right, `+Z` is up.
@@ -113,10 +132,10 @@ The synthetic seed is FNV-1a 32-bit of the UTF-8 bytes of `action`, a NUL byte, 
 `node apps/vr/tools/clipgen/validate.mjs <dir>` checks every `*.jsonl` in the directory and its subfolders:
 
 - UTF-8 with no BOM, LF only, trailing LF, no blank lines.
-- Header fields, types, exact `schema`, `space`, `hz`, and the 26 keypoint names.
+- Header fields, types, `schema` (`@1` or `@2`), exact `space`, `hz`, and the 26 keypoint names.
 - File name is `<action>.<variant>.jsonl`, or `<action>.<variant>.<id>.jsonl` in a corpus folder. The header `action` and `variant` match the first two name parts.
 - 26 joints of 7 finite numbers. Quaternion norm within `1e-3` of 1.
-- `conf` and `pinch` in `[0, 1]`. `hand` is declared in the header.
+- `conf` and `pinch` in `[0, 1]`. `hand` is declared in the header. `sys` is a boolean and only in `@2`.
 - Per-hand `t` starts at 0 and is strictly increasing. File order of `t` is non-decreasing.
 - Sample spacing within 10% of `1/hz`.
 - Both hands, when present, have the same count and the same timestamps, `L` then `R`.
