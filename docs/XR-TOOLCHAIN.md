@@ -180,6 +180,9 @@ or HKLM writes, and no credentials. Five defects were fixed by the orchestrator 
 - **Manifest:** the leftover `ExtraApplicationSettings` `supportedDevices` line was still in `DefaultEngine.ini`; F2
   removed it on 2026-10-07 (earlier text claiming it was already removed was wrong). Declared devices: Quest 3 and
   Quest 3S; budgets stay measured on Quest 3. `package-android.ps1` now asserts the value (`-SelfTest` checks the matcher).
+  Every editor launch re-adds the line to `DefaultEngine.ini` (`AndroidRuntimeSettings.cpp:101-117`, called from
+  `PostInitProperties` at `:235`), so until a guard lands, restore that file after any UE run and never commit the
+  re-added line.
 - **Stale APK:** `package-android.ps1` only accepts APKs written after the run started.
 - **Portable path:** the scoop Android SDK fallback is built from `%USERPROFILE%`, not a hard-coded user folder.
 
