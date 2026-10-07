@@ -1,0 +1,11 @@
+id,name,tier,shape,cast_s,cooldown_s,mana,damage,blockable,telegraph_s,range_m,momentum_gain,notes
+air_bolt,Gale Dart,0,projectile 24 m/s,0.00,0.30,4,7,absorbable,0.00,14,2 per hit,Always available on the Bolt button. Fastest bolt of the four schools (Lab projectile x1.35; damage x0.85 of Ember Dart).
+air_shear,Shear,1,two projectiles 22 m/s at +-12 deg,0.12,3.0,12,9 each,absorbable,0.12,12,4 per hit,Two blades that converge on the aim point. Reuses the Twin Tides shape.
+air_slipstream,Slipstream,1,dash 6 m,0.00,5.0,12,0,n/a,0.00,6,+30 instant,Mobility without stamina. The AI's main Momentum source. Reuses the Cinder Step dash without the trail.
+air_veer,Veering Bolt,2,curving projectile 16 m/s entering 60 deg off the line of sight,0.45,7.0,22,24,absorbable,0.50,14,6 per hit,The arc is drawn during the cast. Comes in from the flank so the seated player must read where it lands. New shape: a fixed-curvature arc.
+air_downdraft,Downdraft,2,ground circle r 2.5 m at a point,0.40,9.0,20,26,absorbable,0.70,12,5 per target,A column of air slams a pad. Reuses the Pyre Circle shape at a smaller radius.
+air_form,Air Form,2,self 3 s,0.15,14.0,10,0,n/a,0.00,0,spends 40,Defence D (SCHOOL-DEFENCES.md): evade 60 % of physical and 30 % of magic hits; unblockables are not evaded. Needs Momentum 40 or more.
+air_squall,Squall,3,four projectiles 14 m/s released 0.25 s apart,0.30,11.0,34,11 each,absorbable,0.30,12,3 per hit,A rhythm to read: each orb has its own activation id so each can be perfected. New shape: a staggered volley.
+air_eye,Eye of the Storm,3,self,0.40,16.0,28,0,n/a,0.00,0,Momentum locked at 100 for 5 s,Absorb drain x1.5 while it lasts. The gamble (the Furnace Heart pattern).
+air_tempest,Tempest Lance,4,line 16 m lightning,0.90,25.0,70,85,UNBLOCKABLE,1.20,16,10 per target,The signature. The line is drawn to the target for 1.2 s; blink off the line. Caster is rooted for the cast and can be interrupted. Reuses the Brand Lance line shape as unblockable.
+air_cyclone,Cyclone,4,channelled beam 10 m for 2.0 s,0.20,20.0,60,12 per 0.25 s tick,absorbable,0.20,10,2 per tick,Each tick has its own activation id. Reuses the Brand Wrath channel.
