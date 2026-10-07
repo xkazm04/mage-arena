@@ -112,6 +112,8 @@ Against the repo:
 **Not re-read:** the Devpost rules page. curl got a "planned maintenance" page, and WebFetch got HTTP 403. Section 2's
 competition rules are therefore **not re-checked** (log 1).
 
+- **Status:** re-read 2026-10-07 (about 14:45Z). `curl` with a browser User-Agent got HTTP 200 and 183,553 bytes from `/rules` (the page varies by a byte between fetches; 183,554 was seen earlier), and HTTP 200 and 166,848 bytes from the overview page. Raw HTML is in `runs/rules/` (gitignored). The Meta blog and download pages (`developers.meta.com`) answered `curl` with HTTP 400, so no Meta announcement blog was read; the overview page carries the same requirements text. Against PROJECT-PLAN section 2: **confirmed** with a quote: hands ("Fully usable with hands end-to-end. Controller support optional."), the "Competition" release channel, video under 3 minutes, description contents and target launch date, New Experience wording and the 2026-09-24 window start, the four 25% criteria and "min 60 fps", the freeze after the entry period, availability until the Winner Announcement, originality, the Gaming genre list, and Start membership "by the time of submission". **Newly settled:** the description length is only "suggested length: 500 words or less" (overview page; the rules page gives no limit); the build also needs an Invite URL ("so judges can access and test your Project."). **Dates:** the entry period ends "November 18, 2026 at 12:00:00 PM PT" (the owner's 2026-11-18 holds; the cut-off is noon PT, not end of day). **Not in the plan:** one Entry per individual; projects free of charge; English only; no identifiable persons and no brand or corporate logos; no unreleased Meta tools; "Don't lean on AI-generated video to carry the pitch."; the form also has a 140-character tagline; the video may show an "equivalent emulator". Nothing was changed or contradicted; no rule was found missing. Quotes are grep-verified against the raw HTML (result.json lists the commands).
+
 ### Q5. What changes a threshold, a test or the V1 plan
 
 - **Thresholds:** none now. Prediction changes what the detectors see, but the size of the change is a model until the
@@ -387,7 +389,7 @@ Ranked by how likely each one is to sink the entry.
 - VRC.Quest.Input.1 to 8 (9 to 11 return 404).
 - The Hands 2.2 blog (Aug 21, 2023; "up to 40% latency reduction in typical usage" was re-found, log 1).
 - The native "Enable Hand Tracking" page ("Apps that do not specify these flags will not see hand devices enumerated").
-- The Devpost rules page: maintenance page with HTTP 200, and 403 under WebFetch, so it was **not read**.
+- The Devpost rules page: maintenance page with HTTP 200, and 403 under WebFetch, so it was **not read** in the first pass. It was **read** later on 2026-10-07 (HTTP 200; see the Status line under "Not re-read" in Q4).
 
 ## 7. Commands run for this file, with exit codes
 
