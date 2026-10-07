@@ -186,3 +186,39 @@ between them, four routes, and all four schools playable.
 
 **Canon.** Cracks, Tithe, tier V, the phase-break clock surge, the ember spit and the four-route framing go to TV as change
 requests before they ship.
+
+## Design pack drafted (2026-10-07)
+
+Three cloud sessions drafted the pack from this log; this session copied their files in and reviewed them. Every file
+has status **proposed**, and nothing in it is built, simulated or signed off.
+
+| Part | Files |
+|---|---|
+| Story | `docs/campaign/05-v2-story-bible.md`, `docs/campaign/06-v2-tiro-day-script.md` (beat-by-beat slice script, 54-line VO manifest) |
+| Combat | `docs/gameplay/11-combat-v2.md` (rules mapped to kernel and overlay), `docs/gameplay/12-combat-v2-census.md` (targets, tests, tuning order) |
+| Canon and plan | `docs/change-requests/CR-004-collar-economy.md`, `CR-005-boss-phases-and-clock-surge.md`, `CR-006-cinder-hound-ember-spit.md`, `docs/design/V2-ROADMAP.md`, `docs/design/V2-DECISIONS-DRAFT.md` |
+
+### Merge review: inconsistencies between the drafts
+
+- **Tithe for finishing at missio:** +1 in `11-combat-v2.md` but 5 in CR-004. One value must win before T26.
+- **"Undertow"** (this log's combo example) is already Lash tier II branch A in `spells-water.csv`. The combat draft does
+  not use it; no combo may take that name.
+- **Tiro final default:** the story draft recommends **Lio (Air)** for theme. The roadmap recommends building **Corvo
+  as the default** with Air as the upgrade, which reverses the owner's Wave 5 order. Footing and Momentum are still open
+  and block any Air or Earth opponent.
+
+### Owner questions raised by the drafts (deduplicated)
+
+1. **Finish at missio:** all three drafts converge on taking the opponent's **collar token** (non-lethal; costs trust, pays Tithe). Confirm, and fix the Tithe value.
+2. **Voice:** sign the ElevenLabs voice extension as a DECISIONS entry (drafted) before any line is rendered.
+3. **Tiro final:** Lio (Air) with Corvo as the fallback (Wave 5 order), or Corvo by default (roadmap)? Corvo as a second Ember entrant needs a canon frame (Venno's wildcard, a CR).
+4. **Guaranteed Sunfall:** the phase-3 opener is scripted (no tier or mana cost, cannot be interrupted), and the seated Sunfall radius drops from 3.5 m to 2.4 m so it can be left from a pad. Accept?
+5. **Combo window:** three sigils cannot fit the 2.0 s Flow window (one sigil clip is 2.11 s). Accept a separate 2.6 s combo window?
+6. **Phase surge:** does a phase break also advance the player's tier clock?
+7. **New poses:** the mudra (palms-facing recommended over the triangle); Septima's both-wrists ritual pose, which may collide with both-palms start-over and resume; spare and finish as a palm or fist held over the stones.
+8. **First Crack:** authored for every player at the Tiro aftermath (story draft), or earned?
+9. **The Tithe secret:** when does the player learn that the Tithe feeds the Wardstones (`K-wardstones-drink`)?
+10. **Endings:** the story draft separates Champion ("break it alone") from Betrayed ("break it with a finalist whose trust is below 60"). Confirm.
+11. **Four routes:** these rewrite TV's single playable character, so CR-004 needs TV's acceptance.
+12. **Session length:** with every bout at its floor the Tiro day is about 6.2 min, under the 7-10 min target.
+13. **Still open from campaign page 04:** decisions 3 (LLM at runtime), 5 (retry against reward), 6 (story ownership), 10 (scene runtime port) and 11 (saves).
