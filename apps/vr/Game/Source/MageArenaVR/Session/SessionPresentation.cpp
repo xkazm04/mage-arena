@@ -49,6 +49,18 @@ const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
 const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
 const FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
 const FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
+// T22: a Crack is light leaking through the collar (warm white, never black with a red rim); the Wardstones are dark
+// stone that glows violet with Tithe. Neither is an element colour, steel or the unblockable pair.
+const FLinearColor CrackSeamColour(1.0f, 0.95f, 0.82f);
+const FLinearColor WardstoneDim(0.10f, 0.095f, 0.12f);
+const FLinearColor WardstoneGlow(0.50f, 0.26f, 0.95f);
+const FLinearColor WardstonePulse(0.78f, 0.58f, 1.0f);
+// Seconds of sim time a Crack seam and a Tithe pulse last.
+constexpr double CrackSeamS = 0.35;
+constexpr double TithePulseS = 0.5;
+// Wardstones: bearing from the pad's forward, and how far out to the floor edge they stand.
+constexpr double WardstoneBearingDeg = 24.0;
+constexpr double WardstoneEdgeFraction = 0.93;
 
 FVector PadForward(const FArenaSession& Session)
 {
@@ -1732,6 +1744,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 	SyncPhaseVisuals(Session, Now);
+	SyncCollarVisuals(Session);
 	SyncOrbPaths(Session);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
@@ -1742,6 +1755,129 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+}
+
+void ASessionPresentation::EnsureCollarVisuals(const FArenaSession& Session)
+{
+	if (bCollarVisuals || !GetRootComponent() || !Session.HasLayout())
+	{
+		return;
+	}
+	UCameraComponent* Camera = FindCamera();
+	if (!Camera)
+	{
+		return;
+	}
+	bCollarVisuals = true;
+	// The seam runs along the top edge of each wrist cuff: the cuff sits at (58, -26, -14) on the camera, its mirror on
+	// the other wrist, so the seam is 2 cm nearer the eye and 3.5 cm up, in front of the cuff plane.
+	for (const double Side : {-26.0, 26.0})
+	{
+		UStaticMeshComponent* Seam = MakePart(TEXT("Cube"), CrackSeamColour);
+		if (Seam)
+		{
+			Seam->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
+			Seam->SetRelativeLocation(FVector(56.0, Side, -10.5));
+			Seam->SetVisibility(false);
+			CrackSeams.Add(Seam);
+		}
+	}
+	// Two Wardstones on the floor edge, WardstoneBearingDeg either side of the centre pad's forward (inside the front
+	// 70 degree arc), found on the floor ellipse along each bearing.
+	const FArenaLayout& Layout = Session.GetLayout();
+	const FRunePad* Centre = Layout.FindPad(1);
+	if (!Centre)
+	{
+		return;
+	}
+	const FVector Forward = Layout.FlatForwardM(*Centre).GetSafeNormal2D();
+	const FVector2D From(Centre->PositionM.X, Centre->PositionM.Y);
+	for (const double Sign : {-1.0, 1.0})
+	{
+		const FVector Dir3 = Forward.RotateAngleAxis(Sign * WardstoneBearingDeg, FVector::UpVector);
+		const FVector2D Dir(Dir3.X, Dir3.Y);
+		double Lo = 0.0;
+		double Hi = 2.0 * FMath::Max(Layout.FloorRadiusXM, Layout.FloorRadiusYM) + FVector2D(From).Size();
+		for (int32 Step = 0; Step < 40; ++Step)
+		{
+			const double Mid = 0.5 * (Lo + Hi);
+			const FVector2D P = From + Dir * Mid;
+			const double E = FMath::Square(P.X / Layout.FloorRadiusXM) + FMath::Square(P.Y / Layout.FloorRadiusYM);
+			(E <= 1.0 ? Lo : Hi) = Mid;
+		}
+		const FVector2D At = From + Dir * (Lo * WardstoneEdgeFraction);
+		const double FloorZ = Layout.SurfaceHeightM(At.X, At.Y);
+		UStaticMeshComponent* Stone = MakePart(TEXT("Cube"), WardstoneDim);
+		if (Stone)
+		{
+			Stone->SetWorldLocation(FVector(At.X, At.Y, FloorZ + 2.1) * 100.0);
+			Stone->SetWorldRotation(FRotator(0.0, Dir3.Rotation().Yaw, 0.0));
+			Greybox::SetSized(Stone, FVector(110.0, 110.0, 420.0));
+			Wardstones.Add(Stone);
+		}
+		UStaticMeshComponent* Cap = MakePart(TEXT("Sphere"), WardstoneDim);
+		if (Cap)
+		{
+			Cap->SetWorldLocation(FVector(At.X, At.Y, FloorZ + 4.55) * 100.0);
+			Greybox::SetSized(Cap, FVector(90.0));
+			WardstoneCaps.Add(Cap);
+		}
+		UE_LOG(LogMageArena, Log, TEXT("presentation wardstone at=(%.2f, %.2f) m bearing=%.0f deg"), At.X, At.Y, Sign * WardstoneBearingDeg);
+	}
+}
+
+void ASessionPresentation::SyncCollarVisuals(const FArenaSession& Session)
+{
+	EnsureCollarVisuals(Session);
+	if (!bCollarVisuals)
+	{
+		return;
+	}
+	const FCollarLedger& Collar = Session.GetCollar();
+	const double Sim = Session.GetSimSeconds();
+	const bool bFight = Session.GetGames().Phase == TEXT("active") || Session.GetGames().Phase == TEXT("intermission")
+		|| Session.GetGames().Phase == TEXT("lost") || Session.GetGames().Phase == TEXT("complete");
+	const double SinceCrack = Collar.GetLastCrackSim() >= 0.0 ? Sim - Collar.GetLastCrackSim() : 1.0e9;
+	const bool bSeam = bFight && SinceCrack >= 0.0 && SinceCrack < CrackSeamS;
+	for (UStaticMeshComponent* Seam : CrackSeams)
+	{
+		if (!Seam)
+		{
+			continue;
+		}
+		Seam->SetVisibility(bSeam);
+		if (bSeam)
+		{
+			// The seam opens fast and thins out: 3 cm of light at the crack, a hairline at the end.
+			const double Alpha = FMath::Clamp(SinceCrack / CrackSeamS, 0.0, 1.0);
+			Greybox::SetSized(Seam, FVector(0.4, FMath::Lerp(18.0, 22.0, Alpha), FMath::Lerp(3.0, 0.4, Alpha)));
+		}
+	}
+	const double Full = FMath::Max(1.0, Collar.GetWeights().WardstoneFullTithe);
+	const float Glow = static_cast<float>(FMath::Clamp(static_cast<double>(Session.GetDayTithe()) / Full, 0.0, 1.0));
+	const double SinceTithe = Collar.GetLastTitheSim() >= 0.0 ? Sim - Collar.GetLastTitheSim() : 1.0e9;
+	const float Pulse = bFight && SinceTithe >= 0.0 && SinceTithe < TithePulseS ? static_cast<float>(1.0 - SinceTithe / TithePulseS) : 0.f;
+	const FLinearColor Body = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, Glow), WardstonePulse, 0.6f * Pulse);
+	const FLinearColor Crown = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, FMath::Min(1.f, 0.25f + Glow)), WardstonePulse, Pulse);
+	for (UStaticMeshComponent* Stone : Wardstones)
+	{
+		if (UMaterialInstanceDynamic* Mid = Stone ? Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)) : nullptr)
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Body);
+		}
+	}
+	for (UStaticMeshComponent* Cap : WardstoneCaps)
+	{
+		if (!Cap)
+		{
+			continue;
+		}
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Cap->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Crown);
+		}
+		Greybox::SetSized(Cap, FVector(90.0 + 50.0 * Pulse));
+	}
 }
 
 void ASessionPresentation::SyncTablet(const FArenaSession& Session)
@@ -1761,7 +1897,7 @@ void ASessionPresentation::SyncTablet(const FArenaSession& Session)
 		{
 			TabletText->SetupAttachment(GetRootComponent());
 			TabletText->SetWidgetSpace(EWidgetSpace::World);
-			TabletText->SetDrawSize(FVector2D(1000.f, 640.f));
+			TabletText->SetDrawSize(FVector2D(1320.f, 800.f));
 			TabletText->SetPivot(FVector2D(0.5f, 0.5f));
 			TabletText->SetTwoSided(true);
 			TabletText->SetBlendMode(EWidgetBlendMode::Transparent);
@@ -1789,7 +1925,7 @@ void ASessionPresentation::SyncTablet(const FArenaSession& Session)
 		TabletSlab->SetVisibility(bShow);
 		TabletSlab->SetWorldLocation(At);
 		TabletSlab->SetWorldRotation(Forward.Rotation());
-		Greybox::SetSized(TabletSlab, FVector(10.0, 124.0, 84.0));
+		Greybox::SetSized(TabletSlab, FVector(10.0, 160.0, 98.0));
 	}
 	if (TabletText)
 	{

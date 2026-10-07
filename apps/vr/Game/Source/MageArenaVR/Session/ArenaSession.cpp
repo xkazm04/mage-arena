@@ -1,6 +1,7 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/CreaturesCapture.h"
+#include "Session/CollarCapture.h"
 #include "Session/DayCapture.h"
 #include "Session/PresetCapture.h"
 #include "Session/SessionPresentation.h"
@@ -227,7 +228,7 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: kernel data is not ready (%s)"), *KernelData().Error);
 		return false;
 	}
-	if (!LoadPlayerPresetFile(TEXT("Session start failed")))
+	if (!LoadPlayerPresetFile(TEXT("Session start failed")) || !LoadCollarFile(TEXT("Session start failed")))
 	{
 		return false;
 	}
@@ -398,6 +399,10 @@ bool FArenaSession::Start(uint32 Seed)
 	if (FActor* Player = SimFindActor(Games.State, Games.PlayerId))
 	{
 		SeatOnActivePad(*Player);
+	}
+	{
+		const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+		Collar.BeginBout(Player ? Player->Water.Crests : 0);
 	}
 	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=%s mirror=%s tideOrbIV=%s"), Seed, BoutWave + 1,
 		*PlayerPreset.Id, *Composition.Branches.Mirror, *Composition.Branches.TideOrb));
@@ -1669,6 +1674,8 @@ void FArenaSession::CheckEnd()
 	{
 		bLoggedEnd = true;
 		Note(FString::Printf(TEXT("Session victory t=%.2f waves=%d tick=%d"), GetSimSeconds(), Games.WavesCleared, Games.State.Tick));
+		Note(FString::Printf(TEXT("collar bout=%d won cracks=%d tithe=%d %s"), Games.Wave + 1,
+			Collar.GetBoutCracks(), Collar.GetBoutTithe(), *Collar.Breakdown()));
 		if (bDay)
 		{
 			RecordBout(true);
@@ -1683,6 +1690,8 @@ void FArenaSession::CheckEnd()
 		bLoggedEnd = true;
 		const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 		Note(FString::Printf(TEXT("Session defeat t=%.2f tick=%d hp=%.1f"), GetSimSeconds(), Games.State.Tick, Player ? Player->Hp : 0.0));
+		Note(FString::Printf(TEXT("collar bout=%d lost cracks=%d tithe=%d %s"), Games.Wave + 1, Collar.GetBoutCracks(), Collar.GetBoutTithe(),
+			*Collar.Breakdown()));
 		if (bDay)
 		{
 			RecordBout(false);
@@ -1843,8 +1852,45 @@ void FArenaSession::StepKernel()
 			}
 		}
 	}
+	ObserveCollar(*After, Input.Slot);
 	DrainEvents(After);
 	CheckEnd();
+}
+
+void FArenaSession::ObserveCollar(const FActor& Player, int32 Slot)
+{
+	const double Sim = GetSimSeconds();
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		const FSpell* Spell = nullptr;
+		if (Event.Kind == TEXT("cast") && Event.ActorId == Games.PlayerId)
+		{
+			// Every tier III-IV Water spell has a cast or telegraph time, so the cast is still pending at the end of the
+			// step that started it. The slot is the fallback for an instant cast.
+			if (Player.Pending.IsSet() && Player.Pending->SpellId.IsSet() && Player.Pending->StartTick == Event.Tick)
+			{
+				Spell = FindSpellById(Player.Pending->SpellId.GetValue());
+			}
+			else
+			{
+				Spell = SpellFor(Player, Slot);
+			}
+		}
+		const int32 CracksBefore = Collar.GetBoutCracks();
+		const int32 TitheBefore = Collar.GetBoutTithe();
+		Collar.Observe(Event, Games.PlayerId, Spell, Sim);
+		if (Collar.GetBoutCracks() != CracksBefore || Collar.GetBoutTithe() != TitheBefore)
+		{
+			Note(FString::Printf(TEXT("collar %s cracks=%d tithe=%d t=%.3f"), *Event.Kind, Collar.GetBoutCracks(), Collar.GetBoutTithe(), Sim));
+		}
+	}
+	const int32 TitheBefore = Collar.GetBoutTithe();
+	Collar.ObserveCrests(Player.Water.Crests, Sim);
+	if (Collar.GetBoutTithe() != TitheBefore)
+	{
+		Note(FString::Printf(TEXT("collar crest cracks=%d tithe=%d t=%.3f"), Collar.GetBoutCracks(), Collar.GetBoutTithe(), Sim));
+	}
 }
 
 void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
@@ -1945,6 +1991,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 	const bool bPresetCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaPresetCapture"));
 	const bool bDayCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaDayCapture"));
+	const bool bCollarCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCollarCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1990,6 +2037,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		DayCapture = NewObject<UDayCaptureDriver>(this);
 		DayCapture->Start();
+		return;
+	}
+	if (bCollarCapture)
+	{
+		CollarCapture = NewObject<UCollarCaptureDriver>(this);
+		CollarCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)

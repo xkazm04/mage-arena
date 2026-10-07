@@ -6,6 +6,7 @@
 #include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
 #include "Session/ArenaFlags.h"
+#include "Session/CollarLedger.h"
 #include "Session/PlayerPreset.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
@@ -35,6 +36,7 @@ class UTeachCaptureDriver;
 class UCreaturesCaptureDriver;
 class UPresetCaptureDriver;
 class UDayCaptureDriver;
+class UCollarCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -156,8 +158,21 @@ public:
 	FString FlagsFilePath() const;
 	/** "fire" or "water": the kernel school of the opponent mage for this Tiro wave index in the day. */
 	FString DaySchool(int32 WaveIndex) const;
-	/** The tablet text in the aftermath: one row per bout from the flags. Empty outside the aftermath. */
+	/**
+	 * The tablet text in the aftermath: one row per bout from the flags (result, time, tries, Cracks, Tithe), the day's
+	 * totals and the lifetime Cracks. Empty outside the aftermath. The only place the collar shows numbers.
+	 */
 	FString GetTabletText() const;
+	/** T22: the collar ledger (weights, this bout's tally, lifetime totals). */
+	const FCollarLedger& GetCollar() const { return Collar; }
+	/**
+	 * The day's Cracks or Tithe: the recorded bouts' flags plus the bout in progress. Outside a day (a single Start), the
+	 * bout's own tally.
+	 */
+	int32 GetDayCracks() const;
+	int32 GetDayTithe() const;
+	/** collar.ledger.json next to bout.txt: the lifetime totals. */
+	FString CollarFilePath() const;
 	/** The stones carry one choice (the centre stone): prologue skip, end the day, or end it after a lost final. */
 	bool AreStoryStonesShown() const;
 	FString StoryStoneKey(int32 Index) const;
@@ -248,6 +263,10 @@ private:
 	void StepKernel();
 	void DecideScript();
 	void DrainEvents(const FActor* PlayerBefore);
+	/** T22: feeds this step's events (from EventCursor, before DrainEvents moves it) and the Crest counter to the ledger. */
+	void ObserveCollar(const FActor& Player, int32 Slot);
+	bool LoadCollarFile(const TCHAR* Context);
+	int32 DayCollar(const TCHAR* Field, int32 BoutValue) const;
 	void Note(const FString& Line);
 	void BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard);
 	bool WouldSplitRefuse(int32 Slot) const;
@@ -434,6 +453,7 @@ private:
 	int32 BoutPerfectsStart = 0;
 	int32 StaffPlantsAtBout = 0;
 	FArenaFlags Flags;
+	FCollarLedger Collar;
 	FString StartOverPhase;
 	bool bStartOverArmed = false;
 	TMap<FString, FString> Strings;
@@ -544,4 +564,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UDayCaptureDriver> DayCapture;
+
+	UPROPERTY()
+	TObjectPtr<UCollarCaptureDriver> CollarCapture;
 };

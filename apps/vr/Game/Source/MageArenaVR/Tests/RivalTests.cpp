@@ -49,6 +49,9 @@ const FComposition* RivalReferencePreset()
 
 // The Tiro semifinal (wave index 2) with Fire mages, the reference water player, and the VR overlay.
 // Digest = MD5 of every event line plus the final state hash. Seeds 1-3.
+// T22 adds the collar events (miss, dodge, reflectHit) on the ruleset path. They only report what happened, so the digest
+// is taken with them filtered out of the log (and out of the hashed state): equal to the pinned digest means the duel
+// itself, tick for tick, is unchanged. The summary counts them.
 FString DuelDigest(const FVrRuleset& Rules, FString& Summary, int32* OutPhaseEvents = nullptr)
 {
 	FString Lines;
@@ -66,13 +69,19 @@ FString DuelDigest(const FVrRuleset& Rules, FString& Summary, int32* OutPhaseEve
 		{
 			StepGames(Games);
 		}
-		for (const FArenaEvent& Event : Games.State.Events)
+		FArenaState Filtered = Games.State;
+		const int32 CollarEvents = Filtered.Events.RemoveAll([](const FArenaEvent& Event)
+		{
+			return Event.Kind == TEXT("miss") || Event.Kind == TEXT("dodge") || Event.Kind == TEXT("reflectHit");
+		});
+		for (const FArenaEvent& Event : Filtered.Events)
 		{
 			Lines += FString::Printf(TEXT("%d %s %d %.17g %d\n"), Event.Tick, *Event.Kind, Event.ActorId, Event.Value, Event.TargetId.Get(-1));
 			PhaseEvents += Event.Kind == TEXT("phase") ? 1 : 0;
 		}
-		Lines += FString::Printf(TEXT("seed %u phase %s tick %d hash %s\n"), Seed, *Games.Phase, Games.State.Tick, *StateHash(Games.State));
-		Summary += FString::Printf(TEXT("seed=%u phase=%s tick=%d events=%d; "), Seed, *Games.Phase, Games.State.Tick, Games.State.Events.Num());
+		Lines += FString::Printf(TEXT("seed %u phase %s tick %d hash %s\n"), Seed, *Games.Phase, Filtered.Tick, *StateHash(Filtered));
+		Summary += FString::Printf(TEXT("seed=%u phase=%s tick=%d events=%d collar=%d; "), Seed, *Games.Phase, Games.State.Tick,
+			Filtered.Events.Num(), CollarEvents);
 	}
 	if (OutPhaseEvents)
 	{

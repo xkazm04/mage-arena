@@ -138,7 +138,7 @@ void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 	}
 	if (Actor.Pending->Kind == TEXT("spell"))
 	{
-		ReleaseSpell(State, Actor);
+		ReleaseSpell(State, Actor, Rules);
 		return;
 	}
 	if (Actor.Pending->Kind == TEXT("fire"))

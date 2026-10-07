@@ -155,7 +155,7 @@ bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, c
 	return true;
 }
 
-void ReleaseSpell(FArenaState& State, FActor& Actor)
+void ReleaseSpell(FArenaState& State, FActor& Actor, const FVrRuleset* Rules)
 {
 	if (!Actor.Pending.IsSet() || Actor.Pending->Kind != TEXT("spell"))
 	{
@@ -195,6 +195,7 @@ void ReleaseSpell(FArenaState& State, FActor& Actor)
 	{
 		const FSimVec Centre = Spell->Kind == TEXT("zone") ? Pending.Aim : Actor.Pos;
 		const double Range = Spell->Kind == TEXT("zone") ? Spell->RadiusM : Spell->RangeM;
+		bool bDamagedAny = false;
 		for (FActor& Target : State.Actors)
 		{
 			if (Target.bDown || Target.Team == Actor.Team || SimDistance(Centre, Target.Pos) > Range
@@ -206,10 +207,16 @@ void ReleaseSpell(FArenaState& State, FActor& Actor)
 			Area.Source = Centre;
 			Area.Delivery = TEXT("area");
 			const FSimHitResult Result = ResolveHit(State, Target, Area);
+			bDamagedAny |= Result.Damage > 0.0;
 			if (!Result.bPerfect && Result.Damage > 0.0)
 			{
 				ApplyControl(State, Actor, Target, *Spell);
 			}
+		}
+		// T22 miss, ruleset path only (conformance passes no ruleset): a team-0 area that could damage and damaged nobody.
+		if (Rules && Actor.Team == 0 && Hit.Damage > 0.0 && !bDamagedAny)
+		{
+			Emit(State, TEXT("miss"), Actor, static_cast<double>(Spell->Tier));
 		}
 	}
 	else if (Spell->Kind == TEXT("zone"))

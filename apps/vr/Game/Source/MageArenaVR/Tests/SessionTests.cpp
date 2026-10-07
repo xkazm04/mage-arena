@@ -228,6 +228,10 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 		DamageTaken,
 		Session.GetBlinkAccepts(),
 		Perfects);
+	// T22, measured, not asserted: the bout's collar tally.
+	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated collar %s cracks=%d tithe=%d %s"),
+		FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("proposal") : TEXT("live"),
+		Session.GetCollar().GetBoutCracks(), Session.GetCollar().GetBoutTithe(), *Session.GetCollar().Breakdown());
 	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f"),
 		Measured, PinnedWindowLo, PinnedWindowHi,
 		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
@@ -628,12 +632,20 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
 		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts);
 		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), Perfects);
+		double Cracks = -1.0;
+		double Tithe = -1.0;
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), Cracks);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), Tithe);
 		Won += bFought && bWon ? 1 : 0;
 		FightS += bFought ? Seconds : 0.0;
-		UE_LOG(LogMageArena, Log, TEXT("FullSeated bout %d %s outcome=%s fight=%.2f s intro=%.2f s attempts=%.0f perfects=%.0f school=%s"),
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated bout %d %s outcome=%s fight=%.2f s intro=%.2f s attempts=%.0f perfects=%.0f cracks=%.0f tithe=%.0f school=%s"),
 			WaveN, bProposal ? TEXT("proposal") : TEXT("live"), bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"),
-			Seconds, IntroS[WaveN - 1], Attempts, Perfects, *Session.DaySchool(WaveN - 1));
+			Seconds, IntroS[WaveN - 1], Attempts, Perfects, Cracks, Tithe, *Session.DaySchool(WaveN - 1));
 	}
+	// T22, measured, not asserted: the day's collar (the -1 rows above were not fought) and the collar's lifetime.
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated collar %s day cracks=%d tithe=%d lifetimeCracks=%d lifetimeTithe=%d"),
+		bProposal ? TEXT("proposal") : TEXT("live"), Session.GetDayCracks(), Session.GetDayTithe(), Session.GetCollar().GetLifetimeCracks(),
+		Session.GetCollar().GetLifetimeTithe());
 	const double WithTeachS = FirstLaunchS + DayS;
 	UE_LOG(LogMageArena, Log, TEXT("FullSeated phases ritual=%.2f intro=%.2f active=%.2f intermission=%.2f aftermath=%.2f lost=%.2f"),
 		PhaseS.FindRef(TEXT("ritual")), PhaseS.FindRef(TEXT("intro")), PhaseS.FindRef(TEXT("active")), PhaseS.FindRef(TEXT("intermission")),

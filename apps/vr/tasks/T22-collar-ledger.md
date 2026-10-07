@@ -1,6 +1,6 @@
 # T22 - The collar ledger: Cracks and Tithe
 
-Status: open
+Status: done with a design finding (verified 2026-10-07: MageArena. 214/214; Tithe dominated by missed bolts - DF-009)
 Max turns: 260
 
 ## Goal
@@ -69,3 +69,11 @@ the conformance evidence.)
 ## Report
 `runs/T22/REPORT.md` (or the final reply): files, every acceptance command with real output, Cracks and Tithe per
 bout in the measured runs, a description of each still, and every decision the card did not specify.
+
+## Orchestrator verification (2026-10-07)
+A Claude subagent implemented the card in worktree `v2/T22`. The orchestrator re-ran the build (green) and
+`MageArena.` (214 Success, `EXIT CODE: 0`) and looked at the Wardstones still (two violet pillars at the arena edge, no
+numbers on screen). With `miss`, `dodge` and `reflectHit` filtered out, Brennic's duel matches the pinned pre-change
+digest, so no combat changed. Mutation check failed `Collar.MissedCasts` as expected. Accepted choices: a third event
+`reflectHit` (the only exact way to award the reflected-hit point), a miss per cast not per projectile, Crests read from
+the kernel counter, lifetime Tithe kept as well as Cracks, Wardstones at +-24 degrees. Finding DF-009 (weights).

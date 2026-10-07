@@ -2,6 +2,8 @@
 
 #include "Kernel/SimTypes.h"
 
+struct FVrRuleset;
+
 // Null is the pinned cast: Flow, Crest mana, and the crest multiplier. The overlay passes a mod.
 struct FSpellCastMod
 {
@@ -10,7 +12,8 @@ struct FSpellCastMod
 };
 
 bool TrySpellCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FSpellCastMod* Mod = nullptr);
-void ReleaseSpell(FArenaState& State, FActor& Actor);
+// Rules is only read for the T22 miss event (ruleset path only); null is the pinned path.
+void ReleaseSpell(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nullptr);
 void UpdateWater(FArenaState& State, FActor& Actor);
 double WardDrainMult(const FArenaState& State, const FActor& Actor);
 double RefundMult(const FArenaState& State, const FActor& Actor);
