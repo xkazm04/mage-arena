@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Combat/AbsorbResolver.h"
+#include "Gestures/HeldPointRate.h"
 #include "Hands/HandFrame.h"
 #include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
@@ -94,6 +95,9 @@ private:
 	FWardState State;
 	FWardEvent LastRaise;
 	TArray<FSample> History;
+	/** Palm speed over held samples: a re-sent pose carries the last measured speed instead of reading 0. */
+	FHeldPointRate PalmRate;
+	double LastSpeedMps = 0.0;
 	FVector AimFacing = FVector::ForwardVector;
 	FVector ThreatFacing = FVector::ForwardVector;
 	double LastTime = 0.0;

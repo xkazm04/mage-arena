@@ -80,6 +80,8 @@ bool FWardDetector::Init(FString& OutError)
 void FWardDetector::ResetStream()
 {
 	History.Reset();
+	PalmRate.Reset();
+	LastSpeedMps = 0.0;
 	State = FWardState();
 	LastRaise = FWardEvent();
 	LastTime = 0.0;
@@ -186,6 +188,8 @@ void FWardDetector::NoteRewind()
 		OnLowered.Broadcast();
 	}
 	History.Reset();
+	PalmRate.Reset();
+	LastSpeedMps = 0.0;
 	State = FWardState();
 	LastRaise = FWardEvent();
 	bRaised = false;
@@ -230,16 +234,19 @@ void FWardDetector::Ingest(const FHandFrame& Frame)
 	const double AngleDeg = AngleToFacingDeg(Normal, ReferenceFacing());
 	const FVector PalmCm = Frame.Joints[Palm].Location;
 
-	double Speed = 0.0;
-	if (History.Num() > 0)
+	// A held sample keeps the last measured speed, so neither onset walk stops on a re-sent pose (F7(b)).
+	FVector DeltaCm;
+	double Dt = 0.0;
+	const FHeldPointRate::EStep Step = PalmRate.Step(PalmCm, Frame.TimeSeconds, DeltaCm, Dt);
+	if (Step == FHeldPointRate::EStep::Measured)
 	{
-		const double Dt = Frame.TimeSeconds - History.Last().Time;
-		if (Dt >= 1.0e-6)
-		{
-			const double DistM = FVector::Distance(PalmCm, History.Last().PalmCm) / MageClipMetresToCentimetres;
-			Speed = DistM / Dt;
-		}
+		LastSpeedMps = Dt >= 1.0e-6 ? DeltaCm.Size() / MageClipMetresToCentimetres / Dt : 0.0;
 	}
+	else if (Step == FHeldPointRate::EStep::First)
+	{
+		LastSpeedMps = 0.0;
+	}
+	const double Speed = LastSpeedMps;
 
 	FSample Sample;
 	Sample.Time = Frame.TimeSeconds;

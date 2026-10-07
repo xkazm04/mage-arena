@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Gestures/HeldPointRate.h"
 #include "Hands/HandFrame.h"
 #include "Hands/SystemGestureGate.h"
 #include "Subsystems/GameInstanceSubsystem.h"
@@ -90,7 +91,8 @@ private:
 	bool bLatched = false;
 	double QuietFor = 0.0;
 	double LastTime = 0.0;
-	FVector PrevIndexTip = FVector::ZeroVector;
+	/** Index-tip motion over held samples: a re-sent pose is no new sample, so it can neither peak nor release a flick. */
+	FHeldPointRate TipRate;
 	double HottestSpeed = 0.0;
 	double HottestOmega = 0.0;
 	double HottestYaw = 0.0;

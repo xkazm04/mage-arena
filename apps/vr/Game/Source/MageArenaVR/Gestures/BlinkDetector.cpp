@@ -21,7 +21,7 @@ void FBlinkDetector::Arm()
 	bLatched = false;
 	QuietFor = 0.0;
 	LastTime = 0.0;
-	PrevIndexTip = FVector::ZeroVector;
+	TipRate.Reset();
 	HottestSpeed = 0.0;
 	HottestOmega = 0.0;
 	HottestYaw = 0.0;
@@ -115,18 +115,22 @@ void FBlinkDetector::Ingest(const FHandFrame& Frame)
 	const FVector Index = Frame.Joints[IndexTip].Location;
 	const FVector Wrist = Frame.Joints[WristIndex].Location;
 	const FVector Middle = Frame.Joints[MiddleTip].Location;
+	FVector Delta;
+	double Dt = 0.0;
 	if (!bHasPrev)
 	{
 		bHasPrev = true;
 		LastTime = Frame.TimeSeconds;
-		PrevIndexTip = Index;
+		TipRate.Step(Index, Frame.TimeSeconds, Delta, Dt);
 		return;
 	}
 
-	const double Dt = Frame.TimeSeconds - LastTime;
 	LastTime = Frame.TimeSeconds;
-	const FVector Previous = PrevIndexTip;
-	PrevIndexTip = Index;
+	// A held tip is no new sample (F7(b)). Read as speed 0 it would release the flick after its first stepped burst.
+	if (TipRate.Step(Index, Frame.TimeSeconds, Delta, Dt) != FHeldPointRate::EStep::Measured)
+	{
+		return;
+	}
 	if (Dt < 1.0e-5)
 	{
 		return;
@@ -137,7 +141,6 @@ void FBlinkDetector::Ingest(const FHandFrame& Frame)
 		return;
 	}
 
-	const FVector Delta = Index - Previous;
 	const double Horizontal = FVector2D(Delta.X, Delta.Y).Size() / Dt / 100.0;
 	const FVector Relative = Index - Wrist;
 	const FVector Velocity = Delta / Dt;
