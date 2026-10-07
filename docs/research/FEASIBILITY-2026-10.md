@@ -166,6 +166,42 @@ competition rules are therefore **not re-checked** (log 1).
   only in the worst case.
 - **Verifiable headless:** yes.
 - **Registry:** N2 `hand-tracked-timing-windows`.
+- **Status:** applied 2026-10-07, tests only (no detector, threshold or window changed). Before, `Tests/HeldSampleTests.cpp` had the held 30 Hz stream and nothing else. After, it also has `MakeExtrapolatedClip`, a **model**: linear from the last two camera samples to the frame time, capped at one camera period; rotations move by the same fraction; pinch is held. Both models run at 30 and 25 Hz, at camera phases 0, 1/90 and 2/90 s. Six new tests (`HeldSample.ModelsAreReal`, `.Latency`, `.WardModels`, `.BlinkModels`, `.CorpusModels`, `.Staff`) check against two-sided ratchets, and every entry is explained in the code.
+  - **Latency** (D-G3 model of `Ward.OnsetCompensation`, 0 to 100 ms, ward-raise normal, slow and sloppy):
+    - The onset error does not change with latency on any stream. At 72 Hz it is 0 ms: go 12/12.
+    - On the held and the extrapolated 30 Hz streams it is +13.9 to +41.7 ms, depending only on the camera phase. The go predicate (onset within one 72 Hz frame) holds in 12/36 cases on each stream; the 48 misses are listed.
+    - The hit at the authored tick and the interior probes (onset + 0.05 and + 0.10 s) are perfect in 36/36 cases on each stream.
+  - **Ward onset** against 72 Hz: +13.9 / +27.8 / +41.7 ms (min / median / max) on held30, extrap30, held25 and extrap25 alike. It is within the bound (47.2 ms at 30 Hz, 53.9 ms at 25 Hz) in 9/9 cases per stream, and the interior probes are perfect in 9/9.
+  - **Blink:**
+    - Count and direction match 72 Hz in 27/27 cases on every stream, with no false blink and no bolt.
+    - Re-arm within the bound: held30 18/27 (slow 167 to 236 ms late), extrap30 14/27, held25 27/27, extrap25 2/27 (up to 194 ms late).
+    - The extrapolated stream fires the flick 55 to 125 ms early, before the tip peaks, and that early fire is what delays its re-arm.
+  - **Sigil corpus** (phase 0, noise 0/5 everywhere):
+
+    | Stream | Accuracy | Impostor casts |
+    |---|---|---|
+    | 72 Hz | 257/270 | 0/180 |
+    | held30 | 256/270 | 0/180 |
+    | extrap30 | 253/270 | 9/180 |
+    | held25 | 258/270 | 0/180 |
+    | extrap25 | 237/270 (87%) | 30/180 |
+
+    Every false cast is an `impostor-zigzag`. With pinch extrapolated as well, extrap30 gave 254/270 and 30 casts.
+  - **Staff:** lift and plant match 72 Hz in 18/18 cases on held30 and on extrap30.
+- **Proven:**
+  - `build.ps1` exit 0.
+  - The full `MageArena` suite: 172 tests, 169 pass. The failures are the same 3 known ones (`MageArenaDesign.Duel.FireSeated`, `Session.FullSeated`, `Session.Wave1Seated`); before there were 166 tests and 163 passed.
+  - Mutation proofs, each restored and green afterwards:
+    - The extrapolation returning its source, with 25 Hz set to 72: 99 + 99 "differs from its source" and 93 + 66 held25 pose-count failures.
+    - A zero extrapolation fraction: 99 + 99 "differs from the held stream" failures.
+    - No latency slowdown: 9 "confirm tracks the injected latency" failures.
+    - No still tail on the blink clips: 24 "did not fire and re-arm" failures.
+- **Not proven:**
+  - The real camera rate, and whether it drops to 25 Hz.
+  - Meta's real extrapolation method and horizon, and whether pinch is extrapolated.
+  - Photon-to-detection latency.
+  - Phases beyond 2/90 s. They cover 22 ms of the 33 ms (30 Hz) and 40 ms (25 Hz) camera periods.
+- **D-G3 verdict:** the perfect window holds to 60 ms on both the held worst case and the extrapolated model: the hit at the authored tick and the interior hits are perfect in every case. Strict "authored tick ±1 frame" timing does not hold: the onset lands 14 to 42 ms late, from the camera grid, not from latency. W1 is not needed and would not move the onset. W2 (stamping the onset earlier by the camera lag, which needs G2's rate) is what would restore ±1 frame. Separately, the extrapolated model raises two findings for later runs: zigzag false casts (a recognizer fix) and a late blink re-arm (a detector fix).
 
 ### G2. The v207 path never exposes when the cameras sampled, and the recorder rule assumes held poses
 
