@@ -526,63 +526,129 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFullSeated, "MageArenaDesign.Session.
 
 bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 {
+	// T21: the whole Tiro day as the reference script plays it, measured, not tuned. The ritual (the script holds both
+	// palms), four bouts with their intro lines, the intermissions (continued at once by a raised palm, as before; the
+	// T20 pick is not taken), and the aftermath (the script palms the centre stone). The prologue and the teach are
+	// skipped as before; a second, first-launch session measures cold + prologue + teach for the total with the teach.
+	// Plan target: a 7-10 minute session (docs/campaign/04-vr-campaign-design.md section 1, Games day 6-10 min, and the
+	// V2-ROADMAP mechanics gate). A bout the script loses is the end of the run: the script is deterministic, so a retry
+	// of bouts 1-3 loses again; a lost final goes to the aftermath on the centre stone.
+	const bool bProposal = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal"));
+	const double PlanLoS = 7.0 * 60.0;
+	const double PlanHiS = 10.0 * 60.0;
+	const double Dt = 1.0 / 72.0;
 	FSessionRig Rig;
 	if (!Rig.Open(*this)) return false;
+
+	// First launch: cold -> prologue -> teach, until the ritual.
+	double FirstLaunchS = 0.0;
+	{
+		FArenaSession First;
+		First.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+		First.SetScripted(true);
+		const FString FirstDir = ScratchSaveDir();
+		First.SetSaveDirectory(FirstDir);
+		if (!First.BeginArc(1))
+		{
+			AddError(TEXT("first launch BeginArc failed"));
+			Rig.Close(First);
+			return false;
+		}
+		int32 Guard = 0;
+		while (First.GetStage() != TEXT("ritual") && Guard < 72 * 300)
+		{
+			First.Advance(Dt, true);
+			FirstLaunchS += Dt;
+			++Guard;
+		}
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated first launch: cold+prologue+teach=%.2f s (teach %.3f s) stage=%s"),
+			FirstLaunchS, First.GetTeachSeconds(), *First.GetStage());
+		TestEqual(TEXT("the first launch reaches the ritual"), First.GetStage(), FString(TEXT("ritual")));
+		First.Unbind();
+		IFileManager::Get().DeleteDirectory(*FirstDir, false, true);
+	}
+
 	FArenaSession Session;
 	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 	Session.SetScripted(true);
-	Session.SetSaveDirectory(ScratchSaveDir());
-	if (!Session.Start(1))
+	const FString Dir = ScratchSaveDir();
+	Session.SetSaveDirectory(Dir);
+	if (!Session.BeginArc(1))
 	{
-		AddError(TEXT("Session.Start failed"));
+		AddError(TEXT("BeginArc failed"));
 		Rig.Close(Session);
 		return false;
 	}
+	Session.SkipTeach();
 
-	const double Dt = 1.0 / 72.0;
+	TMap<FString, double> PhaseS;
+	double IntroS[4] = {0.0, 0.0, 0.0, 0.0};
+	double DayS = 0.0;
 	int32 Guard = 0;
-	bool bWasIntermission = false;
-	
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Starting session"));
-
-	double BoutStartTime = 0.0;
-	int32 CurrentBout = Session.GetGames().Wave;
-
-	while (Session.GetGames().Phase != TEXT("complete") && Session.GetGames().Phase != TEXT("lost") && Guard < 100000)
+	bool bStopped = false;
+	FString LastStage;
+	while (Session.GetStage() != TEXT("closed") && Guard < 72 * 1800)
 	{
-		if (Session.GetGames().Phase == TEXT("intermission") && !bWasIntermission)
+		const FString Stage = Session.GetStage();
+		if (Stage != LastStage)
 		{
-			bWasIntermission = true;
-			double BoutDuration = Session.GetSimSeconds() - BoutStartTime;
-			UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d won in %.2f s. Triggering intermission advance..."), CurrentBout, BoutDuration);
-			// Trigger palm raise to continue
-			Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-			
-			// Next bout will start
-			CurrentBout = Session.GetGames().Wave;
-			BoutStartTime = Session.GetSimSeconds();
+			UE_LOG(LogMageArena, Log, TEXT("FullSeated stage=%s bout=%d t=%.2f"), *Stage, Session.GetGames().Wave + 1, DayS);
+			if (Stage == TEXT("intermission"))
+			{
+				Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+			}
+			LastStage = Stage;
 		}
-		else if (Session.GetGames().Phase == TEXT("active"))
+		if (Stage == TEXT("lost") && Session.GetGames().Wave < 3)
 		{
-			bWasIntermission = false;
+			bStopped = true;
+			break;
 		}
-		
 		Session.Advance(Dt, true);
+		PhaseS.FindOrAdd(Stage) += Dt;
+		if (Stage == TEXT("intro") && Session.GetGames().Wave >= 0 && Session.GetGames().Wave < 4)
+		{
+			IntroS[Session.GetGames().Wave] += Dt;
+		}
+		DayS += Dt;
 		++Guard;
 	}
 
-	double FinalBoutDuration = Session.GetSimSeconds() - BoutStartTime;
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d ended in phase=%s in %.2f s"), CurrentBout, *Session.GetGames().Phase, FinalBoutDuration);
-
-	const double Measured = Session.GetSimSeconds();
-	const double TotalWithTeach = Measured + 63.3; // teach measured at 63.3 s
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Session ended with phase=%s t=%.2f minutes=%.2f (total with teach: %.2f s, %.2f minutes). Plan: 7-10 mins."),
-		*Session.GetGames().Phase, Measured, Measured / 60.0, TotalWithTeach, TotalWithTeach / 60.0);
+	const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
+	FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("../T21/fullseated%s-chain.log"), bProposal ? TEXT("-proposal") : TEXT(""))));
+	int32 Won = 0;
+	double FightS = 0.0;
+	for (int32 WaveN = 1; WaveN <= 4; ++WaveN)
+	{
+		bool bWon = false;
+		double Seconds = -1.0;
+		double Attempts = 0.0;
+		double Perfects = 0.0;
+		const bool bFought = Session.GetFlags().GetBool(FArenaFlags::TiroKey(WaveN, TEXT("won")), bWon);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), Perfects);
+		Won += bFought && bWon ? 1 : 0;
+		FightS += bFought ? Seconds : 0.0;
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated bout %d %s outcome=%s fight=%.2f s intro=%.2f s attempts=%.0f perfects=%.0f school=%s"),
+			WaveN, bProposal ? TEXT("proposal") : TEXT("live"), bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"),
+			Seconds, IntroS[WaveN - 1], Attempts, Perfects, *Session.DaySchool(WaveN - 1));
+	}
+	const double WithTeachS = FirstLaunchS + DayS;
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated phases ritual=%.2f intro=%.2f active=%.2f intermission=%.2f aftermath=%.2f lost=%.2f"),
+		PhaseS.FindRef(TEXT("ritual")), PhaseS.FindRef(TEXT("intro")), PhaseS.FindRef(TEXT("active")), PhaseS.FindRef(TEXT("intermission")),
+		PhaseS.FindRef(TEXT("aftermath")), PhaseS.FindRef(TEXT("lost")));
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated day %s: stage=%s won=%d/4 fights=%.2f s day=%.2f s (%.2f min) with teach=%.2f s (%.2f min) plan=7-10 min %s"),
+		bProposal ? TEXT("proposal") : TEXT("live"), *Session.GetStage(), Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
+		WithTeachS >= PlanLoS && WithTeachS <= PlanHiS ? TEXT("INSIDE") : TEXT("OUTSIDE"));
 
 	bool bPass = true;
-	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 100000);
-	bPass &= TestEqual(TEXT("Session completes (all bouts won)"), Session.GetGames().Phase, FString(TEXT("complete")));
-
+	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 72 * 1800);
+	bPass &= TestFalse(*FString::Printf(TEXT("the script did not lose bout %d"), Session.GetGames().Wave + 1), bStopped);
+	bPass &= TestEqual(TEXT("the day closes"), Session.GetStage(), FString(TEXT("closed")));
+	bPass &= TestEqual(TEXT("all four bouts won"), Won, 4);
+	bPass &= TestTrue(*FString::Printf(TEXT("the day with the teach (%.2f s) is in the plan's 7-10 min"), WithTeachS), WithTeachS >= PlanLoS && WithTeachS <= PlanHiS);
+	IFileManager::Get().DeleteDirectory(*Dir, false, true);
 	Rig.Close(Session);
 	return bPass;
 }

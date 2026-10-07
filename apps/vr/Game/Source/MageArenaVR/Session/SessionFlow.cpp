@@ -338,10 +338,17 @@ bool FArenaSession::MakeQuietArena(uint32 Seed)
 bool FArenaSession::BeginArc(uint32 Seed)
 {
 	BoutSeed = Seed;
-	if (!LoadTeachData() || !LoadStrings())
+	if (!LoadTeachData() || !LoadStrings() || !LoadDayData())
 	{
 		return false;
 	}
+	bDay = true;
+	bFinalWon = false;
+	PhaseClock = 0.0;
+	StoryHold = 0.0;
+	StoryHoldStone = -1;
+	bStoryCue = false;
+	Flags.Load(FlagsFilePath());
 	bKeepChain = false;
 	Chain.Reset();
 	bResumeGate = false;
@@ -403,9 +410,10 @@ bool FArenaSession::BeginArc(uint32 Seed)
 
 void FArenaSession::SkipTeach()
 {
-	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
+	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("prologue") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
 	{
-		Start(BoutSeed);
+		Note(TEXT("day skip to the ritual"));
+		EnterRitual();
 	}
 }
 
@@ -421,9 +429,13 @@ void FArenaSession::NotifyHeadsetRemoved()
 
 void FArenaSession::NotifyQuit()
 {
-	if (Games.Phase == TEXT("active"))
+	if (Games.Phase == TEXT("active") || Games.Phase == TEXT("intro"))
 	{
 		WriteSavedBout(Games.Wave);
+	}
+	else if (Games.Phase == TEXT("ritual"))
+	{
+		WriteSavedBout(BoutWave);
 	}
 }
 
@@ -594,13 +606,48 @@ FString FArenaSession::GetPromptText() const
 	{
 		return TeachString(TEXT("offer.continue"));
 	}
+	if (Games.Phase == TEXT("prologue"))
+	{
+		return TeachString(TEXT("story.prologue.tableau"));
+	}
+	if (Games.Phase == TEXT("ritual"))
+	{
+		return TeachString(PhaseClock + 1.0e-9 >= DayTuning.RitualLineS ? TEXT("story.ritual.offer") : TEXT("story.ritual.septima"));
+	}
+	if (Games.Phase == TEXT("intro"))
+	{
+		const bool bFinal = KernelData().bReady && KernelData().ArenaTiers.Num() > 0 && Games.Wave == KernelData().ArenaTiers[0].Waves.Num() - 1;
+		if (bFinal)
+		{
+			const FVrRuleset* Rules = GetVrRules();
+			const FString Rival = Rules && !Rules->TiroFinal.Rival.IsEmpty() ? Rules->TiroFinal.Rival : FString(TEXT("corvo"));
+			return TeachString(*FString::Printf(TEXT("story.bout4.intro.%s"), *Rival));
+		}
+		return TeachString(*FString::Printf(TEXT("story.bout%d.intro"), Games.Wave + 1));
+	}
+	if (Games.Phase == TEXT("aftermath"))
+	{
+		if (PhaseClock + 1.0e-9 < DayTuning.AftermathTabletS)
+		{
+			return TeachString(TEXT("story.aftermath.tablet"));
+		}
+		return TeachString(bFinalWon ? TEXT("story.aftermath.close") : TEXT("story.aftermath.close.lost"));
+	}
+	if (Games.Phase == TEXT("closed"))
+	{
+		return TeachString(TEXT("story.closed"));
+	}
 	if (Games.Phase == TEXT("intermission"))
 	{
 		return TeachString(IsPickOffered() ? TEXT("intermission.pick") : TEXT("intermission"));
 	}
 	if (Games.Phase == TEXT("lost"))
 	{
-		return TeachString(TEXT("offer.continue")); // Or just keep it empty?
+		if (AreStoryStonesShown())
+		{
+			return TeachString(TEXT("lost.final"));
+		}
+		return TeachString(TEXT("offer.continue"));
 	}
 	if (Games.Phase != TEXT("teach"))
 	{
@@ -933,14 +980,17 @@ void FArenaSession::FinishTeach()
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_TEACH_SECONDS %.3f"), TeachElapsed);
 	TeachStep = ETeachStep::Done;
 	bKeepChain = true;
-	Start(BoutSeed);
+	// The teach is done for good: the next launch offers Bout 1 instead of the prologue and the teach.
+	BoutWave = 0;
+	WriteSavedBout(0);
+	EnterRitual();
 }
 
 void FArenaSession::ContinueOffer()
 {
-	ClearSavedBout();
+	// T21: the save stays. It remembers the bout to play, and that the teach is done, until the day moves on.
 	bOfferContinue = false;
-	Start(BoutSeed);
+	EnterRitual();
 }
 
 void FArenaSession::MaybeSpawnGlob()
@@ -1271,7 +1321,7 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		int32 Steps = 0;
 		while (Accumulator + 1.0e-9 >= Step && Steps < 8 && bRunning)
 		{
-			if (Games.Phase != TEXT("cold") && Games.Phase != TEXT("offer") && Games.Phase != TEXT("teach") && Games.Phase != TEXT("intermission") && Games.Phase != TEXT("lost"))
+			if (!IsArcPhase(Games.Phase))
 			{
 				break;
 			}
@@ -1281,6 +1331,10 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		}
 	};
 
+	if (AdvanceDay(DeltaSeconds))
+	{
+		return;
+	}
 	if (Games.Phase == TEXT("cold"))
 	{
 		ArcClock += DeltaSeconds;
@@ -1294,7 +1348,9 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		}
 		if (bColdRaised)
 		{
-			EnterTeach();
+			// Cold only opens a first launch (no bout.txt), so the prologue follows it.
+			bColdRaised = false;
+			EnterPrologue();
 			return;
 		}
 		Accumulator = FMath::Min(Accumulator + DeltaSeconds, FrameCap());
@@ -1318,7 +1374,19 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 
 	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
-		if (BothPalmsRaised())
+		// T21: "both palms to start over" needs palms raised in this phase. Palms still up from the ritual's offer (a
+		// desktop clip's last frame stays the hand's latest) must not restart the teach in the next intermission.
+		if (StartOverPhase != Games.Phase)
+		{
+			StartOverPhase = Games.Phase;
+			bStartOverArmed = false;
+		}
+		const bool bBothPalms = BothPalmsRaised();
+		if (!bBothPalms)
+		{
+			bStartOverArmed = true;
+		}
+		if (bBothPalms && bStartOverArmed)
 		{
 			OfferHold += DeltaSeconds;
 			bOfferContinue = false;
@@ -1326,6 +1394,10 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 			{
 				BoutWave = 0;
 				ClearSavedBout();
+				// Starting over forgets the day's arena flags too.
+				Flags.Reset();
+				IFileManager::Get().Delete(*FlagsFilePath(), false, true, true);
+				Note(TEXT("day start over"));
 				EnterTeach();
 				return;
 			}
@@ -1351,7 +1423,15 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 				}
 				else if (Games.Phase == TEXT("lost"))
 				{
-					Start(BoutSeed);
+					if (bDay)
+					{
+						// Defeat offers the same bout again, with its intro.
+						StartDayBout(Games.Wave);
+					}
+					else
+					{
+						Start(BoutSeed);
+					}
 				}
 				else
 				{
@@ -1527,10 +1607,20 @@ void FArenaSession::ChoosePick(int32 Stone, const TCHAR* Reason)
 
 void FArenaSession::ContinueIntermission()
 {
+	// The day picks the opponent school per bout (Brennic's Fire semifinal, the tiroFinal school). SetBout pins it.
+	if (!bSchoolPinned && DayFire.IsValidIndex(Games.Wave + 1))
+	{
+		Games.bFireMages = DayFire[Games.Wave + 1];
+	}
 	if (TryAdvanceGames(Games))
 	{
 		BoutWave = Games.Wave;
 		WriteSavedBout(BoutWave);
+		ResetBoutScript();
+		if (bDay)
+		{
+			EnterIntro();
+		}
 	}
 	else
 	{

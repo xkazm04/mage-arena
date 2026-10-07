@@ -157,6 +157,14 @@
     }
   },
 
+  "tiroFinal": {
+    "school": "fire",
+    "rival": null,
+    "_why": "DECISIONS 2026-10-07 'v2 vision accepted': the slice day ends with 'the final against a second school', and the cut rule: 'First cut if the Fri 23 Oct checkpoint slips: the second school; the final becomes Corvo, a second Ember entrant on the Fire kernel.' The second school is Air (same entry, card T23). Until T23 lands an Air rival, the final is Corvo: pinned arena-tiers.json Tiro wave n 4 (kind final, one mage at competence 1.5) as a Fire mage with no phases.",
+    "_school": "The kernel school of the final's mage. Without a rival it must be a kernel school (fire or water). With a rival it must be that rival's school. T23's merge switches this block to { \"school\": \"air\", \"rival\": \"lio\" }; until rivals.lio exists, that value fails the load.",
+    "_rival": "null: no HP-gated phases, and no entry in rivals may apply to the final in this school. A rival id: that entry in rivals, whose appliesTo must be tier tiro, waveN 4, kind final, in the same school. The bout 4 intro line is strings.json story.bout4.intro.<rival>, or story.bout4.intro.corvo when null."
+  },
+
   "narrowFov": {
     "spawnArcDeg": 40,
     "offerBelowDeg": 90,

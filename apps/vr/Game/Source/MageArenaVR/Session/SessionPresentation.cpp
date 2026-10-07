@@ -1030,7 +1030,9 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 	const bool bCold = Session.GetStage() == TEXT("cold") && !Session.IsScripted();
 	// T20: the same stones carry the Tide Orb IV pick in the intermission after Bout 1.
 	const bool bPick = Session.IsPickOffered();
-	const bool bStones = bCold || bPick;
+	// T21: the centre stone skips the prologue and ends the day (the aftermath, or after a lost final).
+	const bool bStory = Session.AreStoryStonesShown();
+	const bool bStones = bCold || bPick || bStory;
 	if (bStones)
 	{
 		EnsureComfortVisuals();
@@ -1054,11 +1056,18 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		}
 		StoneRoot->SetVisibility(bStones && Seat != nullptr, true);
 	}
-	const FString Keys[] = {
+	FString Keys[] = {
 		bPick ? Session.PickStoneKey(0) : FString(FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right")),
 		bPick ? Session.PickStoneKey(1) : FString(FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide")),
 		bPick ? Session.PickStoneKey(2) : FString(FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off")),
 	};
+	if (bStory && !bPick)
+	{
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			Keys[Index] = Session.StoryStoneKey(Index);
+		}
+	}
 	for (int32 Index = 0; Index < StoneLabels.Num(); ++Index)
 	{
 		UWidgetComponent* Label = StoneLabels[Index];
@@ -1069,14 +1078,14 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		Label->SetVisibility(bStones && Seat != nullptr);
 		if (TSharedPtr<STextBlock> Text = StaticCastSharedPtr<STextBlock>(Label->GetSlateWidget()))
 		{
-			Text->SetText(FText::FromString(Session.TeachString(*Keys[Index])));
+			Text->SetText(FText::FromString(Keys[Index].IsEmpty() ? FString() : Session.TeachString(*Keys[Index])));
 		}
 		Label->RequestRenderUpdate();
 	}
 	// The stone under a held palm glows toward white as the offerHoldS hold fills (campaign design section 3: "The stone
 	// glows during the hold"). Presentation only; white is not a threat colour.
-	const int32 Held = bPick ? Session.GetPickHoldStone() : -1;
-	const double Fill = Held >= 0 ? Session.GetPickHoldFraction() : 0.0;
+	const int32 Held = bPick ? Session.GetPickHoldStone() : (bStory ? Session.GetStoryHoldStone() : -1);
+	const double Fill = Held >= 0 ? (bPick ? Session.GetPickHoldFraction() : Session.GetStoryHoldFraction()) : 0.0;
 	for (int32 Index = 0; Index < ComfortStones.Num() && Index < StoneBase.Num(); ++Index)
 	{
 		UStaticMeshComponent* Stone = ComfortStones[Index];
@@ -1726,12 +1735,77 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	SyncOrbPaths(Session);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
+	SyncTablet(Session);
 	EventCursor = Games.State.Events.Num();
 
 	TSet<int32> LiveAll = LiveBodies;
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+}
+
+void ASessionPresentation::SyncTablet(const FArenaSession& Session)
+{
+	const FString Text = Session.GetTabletText();
+	const bool bShow = !Text.IsEmpty();
+	if (!bShow && !TabletSlab)
+	{
+		return;
+	}
+	if (!TabletSlab && GetRootComponent())
+	{
+		// Greybox stone: the comfort stones' grey, not a threat colour.
+		TabletSlab = MakePart(TEXT("Cube"), FLinearColor(0.30f, 0.31f, 0.33f));
+		TabletText = NewObject<UWidgetComponent>(this, TEXT("AftermathTablet"));
+		if (TabletText)
+		{
+			TabletText->SetupAttachment(GetRootComponent());
+			TabletText->SetWidgetSpace(EWidgetSpace::World);
+			TabletText->SetDrawSize(FVector2D(1000.f, 640.f));
+			TabletText->SetPivot(FVector2D(0.5f, 0.5f));
+			TabletText->SetTwoSided(true);
+			TabletText->SetBlendMode(EWidgetBlendMode::Transparent);
+			TabletText->SetBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 0.f));
+			TabletText->SetTintColorAndOpacity(FLinearColor::White);
+			TabletText->SetTickMode(ETickMode::Enabled);
+			TabletText->SetTickWhenOffscreen(true);
+			TabletText->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			TabletText->SetCastShadow(false);
+			TabletText->RegisterComponent();
+			AddInstanceComponent(TabletText);
+			TabletText->SetSlateWidget(
+				SNew(STextBlock)
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 50))
+				.ColorAndOpacity(FLinearColor(0.08f, 0.07f, 0.06f, 1.f))
+				.Justification(ETextJustify::Left));
+		}
+	}
+	const FVector Forward = PadForward(Session);
+	const FVector Pad = Session.KernelToUnrealCm(Session.PadKernel(Session.GetActivePad()));
+	// On the dais, 150 cm ahead of the pad and below the rail prompt (220 cm ahead, 162 cm up), so both read at once.
+	const FVector At = Pad + Forward * 150.0 + FVector(0.0, 0.0, 70.0);
+	if (TabletSlab)
+	{
+		TabletSlab->SetVisibility(bShow);
+		TabletSlab->SetWorldLocation(At);
+		TabletSlab->SetWorldRotation(Forward.Rotation());
+		Greybox::SetSized(TabletSlab, FVector(10.0, 124.0, 84.0));
+	}
+	if (TabletText)
+	{
+		TabletText->SetVisibility(bShow);
+		TabletText->SetWorldLocation(At - Forward * 6.0);
+		TabletText->SetWorldRotation((-Forward).Rotation());
+		TabletText->SetWorldScale3D(FVector(0.115f));
+		if (bShow)
+		{
+			if (TSharedPtr<STextBlock> Label = StaticCastSharedPtr<STextBlock>(TabletText->GetSlateWidget()))
+			{
+				Label->SetText(FText::FromString(Text));
+			}
+			TabletText->RequestRenderUpdate();
+		}
+	}
 }
 
 void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)

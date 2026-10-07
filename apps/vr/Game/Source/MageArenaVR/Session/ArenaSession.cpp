@@ -1,6 +1,7 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/CreaturesCapture.h"
+#include "Session/DayCapture.h"
 #include "Session/PresetCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
@@ -259,7 +260,39 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session bout %d is outside Tiro waves [0, %d); refusing to spawn"), BoutWave, Waves);
 		return false;
 	}
-	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bFireMages, &Rules))
+	// T21: the day picks the opponent school per Tiro wave: the semifinal is the school of the rival bound to it (Brennic,
+	// Fire; Fire when no rival names it, DECISIONS 2026-10-07), the final is combat.vr.json tiroFinal.school. SetBout pins
+	// one school for every wave instead (the design tests and captures).
+	DayFire.Reset();
+	if (const FArenaTier* DayTier = KernelData().ArenaTiers.Num() > 0 ? &KernelData().ArenaTiers[0] : nullptr)
+	{
+		for (int32 Index = 0; Index < DayTier->Waves.Num(); ++Index)
+		{
+			const FArenaWave& Wave = DayTier->Waves[Index];
+			bool bFire = false;
+			if (Wave.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+			{
+				if (Index == DayTier->Waves.Num() - 1)
+				{
+					bFire = Rules.TiroFinal.School == TEXT("fire");
+				}
+				else
+				{
+					bFire = true;
+					for (const FVrRival& Rival : Rules.Rivals)
+					{
+						if (Rival.TierId == DayTier->Id && Rival.WaveN == Wave.N)
+						{
+							bFire = Rival.School == TEXT("fire");
+						}
+					}
+				}
+			}
+			DayFire.Add(bFire);
+		}
+	}
+	const bool bBoutFire = bSchoolPinned ? bFireMages : (DayFire.IsValidIndex(BoutWave) && DayFire[BoutWave]);
+	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bBoutFire, &Rules))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -333,9 +366,14 @@ bool FArenaSession::Start(uint32 Seed)
 	bClipWasPlaying = false;
 	SplitCasts = 0;
 	StaffPlants = 0;
-	bWingSeat = bFireMages;
+	bWingSeat = bBoutFire;
 	bWingSeated = false;
 	SunfallPad = -1;
+	bRecorded = false;
+	BoutStartTick = Games.State.Tick;
+	StartOverPhase.Reset();
+	BoutPerfectsStart = 0;
+	StaffPlantsAtBout = 0;
 	if (Hands)
 	{
 		Hands->StopAll();
@@ -370,6 +408,7 @@ void FArenaSession::SetBout(int32 WaveIndex, bool bInFireMages)
 {
 	BoutWave = WaveIndex;
 	bFireMages = bInFireMages;
+	bSchoolPinned = true;
 }
 
 void FArenaSession::SetPolicy(const FSeatedPolicy& InPolicy)
@@ -698,7 +737,9 @@ void FArenaSession::HandleSigil(FName Line, float Score, double LatencyMs)
 
 void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 {
-	const bool bBoth = ClipAction() == TEXT("both-palms");
+	// T21: only while the both-palms clip plays. Its name outlives the clip, and after the ritual a later single palm
+	// (continue an intermission, fight a lost bout again) must still count.
+	const bool bBoth = ClipPlaying() && ClipAction() == TEXT("both-palms");
 	if (bResumeGate || bBoth)
 	{
 		return;
@@ -711,6 +752,12 @@ void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
 		bOfferContinue = true;
+		return;
+	}
+	// T21: no single-palm choice in the prologue, the ritual (both palms), a bout intro or the aftermath (stones).
+	if (Games.Phase == TEXT("prologue") || Games.Phase == TEXT("ritual") || Games.Phase == TEXT("intro")
+		|| Games.Phase == TEXT("aftermath") || Games.Phase == TEXT("closed"))
+	{
 		return;
 	}
 	if (bSuppressWard)
@@ -1168,7 +1215,7 @@ bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
 	}
 	const bool bMeleeWindow = MeleeEta <= 0.30 && MeleeEta >= 0.22;
 	const bool bStoneWindow = ProjectileEta <= 0.30 && ProjectileEta >= 0.22;
-	if (!bWingSeated && ActivePad == 1 && !bMeleeWindow && !bStoneWindow && GetSimSeconds() >= 0.4)
+	if (!bWingSeated && ActivePad == 1 && !bMeleeWindow && !bStoneWindow && BoutSeconds() >= 0.4)
 	{
 		if (PlayBlinkToward(0))
 		{
@@ -1212,6 +1259,7 @@ void FArenaSession::DecideScript()
 	double EmberEta = 1.0e6;
 	ScanThreats(MeleeEta, ProjectileEta, MagicEta, EmberEta);
 	const double Now = GetSimSeconds();
+	const double BoutNow = BoutSeconds();
 	const bool bPlaying = ClipPlaying();
 	const FString Action = ClipAction();
 
@@ -1323,8 +1371,9 @@ void FArenaSession::DecideScript()
 	const bool bStaffFree = !bPlaying && !Player->Pending.IsSet();
 	if (Policy.bPlant && bStaffFree && Rules && Rules->Staff.bEnabled && Player->Mana >= UpFront + 12.0 && MeleeGap > 0.8)
 	{
-		const bool bOpening = StaffPlants == 0 && Now >= 1.5 && Now < Policy.OpeningPlantEndS && (bTideStarted || Now >= 2.5);
-		const bool bHurt = Player->Hp < Policy.PlantHurtHp && Now >= 3.0;
+		// T21: the openings count from the bout's start, so a bout chained after an intermission opens like a fresh one.
+		const bool bOpening = StaffPlants == StaffPlantsAtBout && BoutNow >= 1.5 && BoutNow < Policy.OpeningPlantEndS && (bTideStarted || BoutNow >= 2.5);
+		const bool bHurt = Player->Hp < Policy.PlantHurtHp && BoutNow >= 3.0;
 		const int32 SplitCap = Rules->Split.bEnabled ? Rules->Split.MaxTier : 2;
 		const bool bHighTier = bAbsorb && Player->Tier > SplitCap;
 		if (bOpening || bHurt || bHighTier)
@@ -1428,7 +1477,7 @@ void FArenaSession::DecideScript()
 	const bool bFirstStone = !WasWardOnStone() && ProjectileEta <= 1.15 && ProjectileEta >= 0.20;
 	const bool bStoneFallback = ProjectileEta <= 1.05 && ProjectileEta >= 0.20 && MeleeGap > 0.9 && Player->Stamina < 50.0;
 	const bool bPerfectMagic = MagicEta <= 0.14 && MagicEta >= 0.02 && MeleeGap > 0.9;
-	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || bPerfectMagic || Now < 0.4))
+	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || bPerfectMagic || BoutNow < 0.4))
 	{
 		RaiseWard();
 	}
@@ -1445,7 +1494,7 @@ void FArenaSession::DecideScript()
 	}
 
 	// Opening tide with the ward already up. The right hand draws; the left keeps the palm.
-	if (!bTideStarted && MeleeGap > 1.2 && Now < 4.0 && Player->Mana >= Policy.SplitSigilMana)
+	if (!bTideStarted && MeleeGap > 1.2 && BoutNow < 4.0 && Player->Mana >= Policy.SplitSigilMana)
 	{
 		ReleaseForCast();
 		PlayAction(TEXT("sigil-line1"));
@@ -1620,12 +1669,24 @@ void FArenaSession::CheckEnd()
 	{
 		bLoggedEnd = true;
 		Note(FString::Printf(TEXT("Session victory t=%.2f waves=%d tick=%d"), GetSimSeconds(), Games.WavesCleared, Games.State.Tick));
+		if (bDay)
+		{
+			RecordBout(true);
+			if (Games.Phase == TEXT("complete"))
+			{
+				EnterAftermath(true);
+			}
+		}
 	}
 	else if (Games.Phase == TEXT("lost"))
 	{
 		bLoggedEnd = true;
 		const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 		Note(FString::Printf(TEXT("Session defeat t=%.2f tick=%d hp=%.1f"), GetSimSeconds(), Games.State.Tick, Player ? Player->Hp : 0.0));
+		if (bDay)
+		{
+			RecordBout(false);
+		}
 	}
 }
 
@@ -1813,7 +1874,7 @@ void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 		bClipWasPlaying = ClipPlaying();
 		return;
 	}
-	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
+	if (IsArcPhase(Games.Phase))
 	{
 		AdvanceArc(DeltaSeconds);
 		bClipWasPlaying = ClipPlaying();
@@ -1883,6 +1944,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bCreaturesCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreaturesCapture"));
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
 	const bool bPresetCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaPresetCapture"));
+	const bool bDayCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaDayCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1922,6 +1984,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		PresetCapture = NewObject<UPresetCaptureDriver>(this);
 		PresetCapture->Start();
+		return;
+	}
+	if (bDayCapture)
+	{
+		DayCapture = NewObject<UDayCaptureDriver>(this);
+		DayCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)
@@ -1973,6 +2041,7 @@ void UArenaSessionSubsystem::PollPlatform()
 bool UArenaSessionSubsystem::Start(uint32 Seed, bool bScripted)
 {
 	Session.SetScripted(bScripted);
+	Session.LeaveDay();
 	const bool bOk = Session.Start(Seed);
 	bRunning = bOk;
 	UE_LOG(LogMageArena, Log, TEXT("MageArena.Session.Start seed=%u scripted=%d ok=%d"), Seed, bScripted ? 1 : 0, bOk ? 1 : 0);

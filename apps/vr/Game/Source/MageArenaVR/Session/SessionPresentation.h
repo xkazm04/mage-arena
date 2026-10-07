@@ -83,6 +83,7 @@ private:
 	void SyncComfortVisuals(const FArenaSession& Session);
 	UWidgetComponent* MakeStoneLabel(const TCHAR* Name);
 	void EnsurePhaseVisuals(const FArenaSession& Session);
+	void SyncTablet(const FArenaSession& Session);
 	void SyncPhaseVisuals(const FArenaSession& Session, double Now);
 	UCameraComponent* FindCamera() const;
 
@@ -219,6 +220,13 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> CrowdBand;
 
 	bool bPhaseVisuals = false;
+
+	// T21 aftermath: a greybox stone tablet on the dais with one row per bout (results and times from the arena flags).
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> TabletSlab;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> TabletText;
 	double PhaseAt = -1.0;
 	int32 PhaseRivalId = 0;
 };

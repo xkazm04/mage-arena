@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "_about": "T21: the Tiro day's own timings (prologue, ritual, bout intros, aftermath). Session pacing only, no combat number. The ritual's hold is teach.json offerHoldS (docs/campaign/04-vr-campaign-design.md section 3). A missing or bad file fails the day (BeginArc).",
+  "prologueMaxS": 10,
+  "_prologueMaxS": "Card T21: the first-launch prologue is 'a static placeholder tableau line for up to 10 s, skippable by palming the centre stone'.",
+  "ritualLineS": 3,
+  "_ritualLineS": "How long Warden Septima's line stands before the offer line replaces it (one line at a time, docs/campaign/04-vr-campaign-design.md section 2). Placeholder pacing until the C2 cue sheet and its voice lines set the real length.",
+  "ritualTimeoutS": 20,
+  "_ritualTimeoutS": "Card T21: 'a soft timeout of 20 s continues anyway'. Counted from the start of the ritual, the same 20 s as the never-blocking stone choices (V2-ROADMAP row 14).",
+  "introS": 3,
+  "_introS": "Each bout opens on one intro line on the dais rail while the opponents stand on the sand; the kernel steps only after it. Placeholder pacing for C2.",
+  "aftermathTabletS": 4,
+  "_aftermathTabletS": "The aftermath first shows the tablet with its heading line, then the closing line (card T21: 'a greybox stone tablet ... then the closing placeholder line'). Palming the centre stone ends the day only once the closing line stands."
+}

@@ -1,6 +1,6 @@
 # T21 - The Tiro day: ritual, four bouts, aftermath, in one session
 
-Status: open
+Status: done, FullSeated red (verified 2026-10-07: MageArena. 206/206; the day loses Bout 1 live and Bout 3 to Brennic on the proposal; 3.0 min with the teach against 7-10)
 Max turns: 320
 
 ## Goal
@@ -75,3 +75,15 @@ the conformance evidence.)
 `runs/T21/REPORT.md` (or the final reply, if the worker cannot write it): files, every acceptance command with real
 output, the measured day (per bout and total, live and proposal), a description of each still, and every decision the
 card did not specify.
+
+## Orchestrator verification (2026-10-07)
+A Claude subagent implemented the card in worktree `v2/T21` (cut once by a usage limit and resumed from its working
+tree). The orchestrator re-ran the build (green) and `MageArena.` (206 Success, `EXIT CODE: 0`) and looked at the
+aftermath tablet still. Mutation checks failed the Day tests as expected. Measured day (FullSeated): live loses Bout 1
+at 23.25 s (known); the proposal wins Bouts 1-2 and loses Bout 3 to Brennic at 35.82 s while carrying Bout 2's damage
+(the earlier green 103 s baseline ran Bouts 3-4 as water proxies), 3.02 min with the teach - added to DF-006. Accepted
+worker choices: `day.json` pacing file, a 3 s un-stepped intro before every bout, the save kept on continue (a T13
+change, needed to know the teach is done), flags reset at the next day's Bout 1, two real input fixes (a lingering
+both-palms clip name; a stale palms pose restarting the teach). For T23's merge: besides `tiroFinal`, the session's
+school-to-kernel flag in `Start` and `ContinueIntermission` needs the Air case. Stills are staged (2.5 s bouts).
+Presentation backlog: the cuff overlaps the tablet's last row; the hands stay raised after the last clip frame.

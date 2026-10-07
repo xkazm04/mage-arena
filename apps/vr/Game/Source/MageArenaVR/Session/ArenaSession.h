@@ -5,6 +5,7 @@
 #include "Greybox/ArenaLayout.h"
 #include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
+#include "Session/ArenaFlags.h"
 #include "Session/PlayerPreset.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
@@ -33,6 +34,7 @@ class USettingsCaptureDriver;
 class UTeachCaptureDriver;
 class UCreaturesCaptureDriver;
 class UPresetCaptureDriver;
+class UDayCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -80,6 +82,18 @@ struct FTeachTuning
 };
 
 /**
+ * T21 day timings from data/vr/day.json. Strict: a missing or bad file fails BeginArc.
+ */
+struct FDayTuning
+{
+	double PrologueMaxS = 10.0;
+	double RitualLineS = 3.0;
+	double RitualTimeoutS = 20.0;
+	double IntroS = 3.0;
+	double AftermathTabletS = 4.0;
+};
+
+/**
  * Owns one Tiro bout. Gestures become kernel inputs. Kernel actors stay in kernel
  * metres; presentation reads them. The player is pinned to the active pad on every
  * tick. There is no move input. Blink is the only position change: one roll edge
@@ -105,6 +119,7 @@ public:
 	 * says otherwise. Clears pause. A missing or bad presets.json fails the start.
 	 */
 	bool Start(uint32 Seed);
+	/** Pins the opponent school for every wave (true: Fire mages). Without it the day picks the school per bout. */
 	void SetBout(int32 WaveIndex, bool bInFireMages);
 	void SetPolicy(const FSeatedPolicy& InPolicy);
 	void SetRulesOverride(const FVrRuleset& Rules);
@@ -116,11 +131,40 @@ public:
 	void SetFrameHold(bool bHold) { bFrameHold = bHold; }
 
 	/**
-	 * Cold start, then the teach, then Wave 1. Start() stays the bout launcher so the
-	 * design tests that call it directly keep their timing.
+	 * The Tiro day (T21). Start() stays the bout launcher so the design tests that call it directly keep their timing;
+	 * only BeginArc runs the day. Phases (GetStage):
+	 *   first launch (no bout.txt): cold -> prologue -> teach -> ritual
+	 *   resume (bout.txt names the next bout): offer -> ritual (palm) or offer -> teach -> ritual (both palms)
+	 *   then for each bout: intro -> active -> intermission (after bouts 1-3; the T20 pick after Bout 1 only)
+	 *   defeat: lost -> intro of the same bout (palm); in the final also lost -> aftermath (centre stone)
+	 *   after the final, won or lost: aftermath -> closed (centre stone)
+	 * prologue: story.prologue.tableau for up to day.json prologueMaxS, skipped by a palm held over the centre stone.
+	 * ritual: Septima's line for ritualLineS, then the offer line; both palms held for teach.json offerHoldS lock the
+	 * collar, and ritualTimeoutS (from the start of the ritual) continues anyway.
+	 * intro: the bout's intro line for introS while the opponents stand; the kernel steps only from active on.
 	 */
 	bool BeginArc(uint32 Seed);
+	/** Testing only: from cold, prologue, offer or the teach straight to the ritual. */
 	void SkipTeach();
+	/** Leaves the day: Start() is a single bout again (the MageArena.Session.Start console command). */
+	void LeaveDay() { bDay = false; }
+	bool IsDay() const { return bDay; }
+	const FDayTuning& GetDayTuning() const { return DayTuning; }
+	/** Seconds in the current day phase (prologue, ritual, intro, aftermath, closed). */
+	double GetPhaseClock() const { return PhaseClock; }
+	const FArenaFlags& GetFlags() const { return Flags; }
+	FString FlagsFilePath() const;
+	/** "fire" or "water": the kernel school of the opponent mage for this Tiro wave index in the day. */
+	FString DaySchool(int32 WaveIndex) const;
+	/** The tablet text in the aftermath: one row per bout from the flags. Empty outside the aftermath. */
+	FString GetTabletText() const;
+	/** The stones carry one choice (the centre stone): prologue skip, end the day, or end it after a lost final. */
+	bool AreStoryStonesShown() const;
+	FString StoryStoneKey(int32 Index) const;
+	int32 GetStoryHoldStone() const { return StoryHoldStone; }
+	double GetStoryHoldFraction() const;
+	/** The aftermath reports a won final. */
+	bool WasFinalWon() const { return bFinalWon; }
 	void NotifyFocusLost();
 	void NotifyHeadsetRemoved();
 	void NotifyQuit();
@@ -241,6 +285,23 @@ private:
 	};
 
 	bool LoadTeachData();
+	bool LoadDayData();
+	static bool IsArcPhase(const FString& Phase);
+	void EnterPrologue();
+	void EnterRitual();
+	void StartDayBout(int32 Wave);
+	void EnterIntro();
+	void EnterAftermath(bool bWon);
+	void EndDay();
+	/** Prologue, ritual, intro, aftermath, closed and the lost final's stone. True when it handled the phase. */
+	bool AdvanceDay(double DeltaSeconds);
+	/** Palm held over the centre stone for offerHoldS. */
+	bool HoldCentreStone(double DeltaSeconds);
+	void RecordBout(bool bWon);
+	void SaveFlags() const;
+	void ResetBoutScript();
+	/** Seconds since the current bout started (the reference script's opening timings are per bout). */
+	double BoutSeconds() const;
 	bool LoadStrings();
 	bool MakeQuietArena(uint32 Seed);
 	void AdvanceArc(double DeltaSeconds);
@@ -358,6 +419,23 @@ private:
 	TArray<FString> Chain;
 
 	FTeachTuning Tuning;
+	FDayTuning DayTuning;
+	bool bDay = false;
+	bool bSchoolPinned = false;
+	// Per Tiro wave index: the day's opponent is a Fire mage. From the loaded ruleset at Start.
+	TArray<bool> DayFire;
+	double PhaseClock = 0.0;
+	double StoryHold = 0.0;
+	int32 StoryHoldStone = -1;
+	bool bStoryCue = false;
+	bool bFinalWon = false;
+	bool bRecorded = false;
+	int32 BoutStartTick = 0;
+	int32 BoutPerfectsStart = 0;
+	int32 StaffPlantsAtBout = 0;
+	FArenaFlags Flags;
+	FString StartOverPhase;
+	bool bStartOverArmed = false;
 	TMap<FString, FString> Strings;
 	ETeachStep TeachStep = ETeachStep::None;
 	double TeachClock = 0.0;
@@ -463,4 +541,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UPresetCaptureDriver> PresetCapture;
+
+	UPROPERTY()
+	TObjectPtr<UDayCaptureDriver> DayCapture;
 };

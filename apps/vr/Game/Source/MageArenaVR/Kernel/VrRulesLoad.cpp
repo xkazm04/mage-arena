@@ -511,6 +511,80 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 	return true;
 }
 
+// T21. Required. The Tiro final's opponent: { school, rival }. Rival null is a mage of that school with no phases, so no
+// rival may apply to the final in that school. A named rival must exist in rivals (already validated, so its school is
+// a kernel school) and apply to the final in the same school. Until T23 brings an Air rival, school "air" fails here.
+bool ReadTiroFinal(const FJsonObject& Overlay, const TArray<FVrRival>& Rivals, FVrTiroFinal& Out, FString& Error)
+{
+	Out = FVrTiroFinal();
+	const FJsonObject* Block = nullptr;
+	if (!NeedObject(Overlay, TEXT("tiroFinal"), Block, Error))
+	{
+		return false;
+	}
+	if (!OnlyKnownKeys(*Block, {TEXT("school"), TEXT("rival")}, TEXT("tiroFinal"), Error))
+	{
+		return false;
+	}
+	if (!NeedString(*Block, TEXT("school"), Out.School, Error))
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.school must be a string"));
+	}
+	const TSharedPtr<FJsonValue> RivalValue = Block->TryGetField(TEXT("rival"));
+	if (!RivalValue.IsValid())
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.rival is missing (null for a mage with no phases)"));
+	}
+	if (RivalValue->Type == EJson::String)
+	{
+		Out.Rival = RivalValue->AsString();
+		if (Out.Rival.IsEmpty())
+		{
+			return Fail(Error, TEXT("vr rules: tiroFinal.rival is empty (use null for a mage with no phases)"));
+		}
+	}
+	else if (RivalValue->Type != EJson::Null)
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.rival must be a rival id or null"));
+	}
+	const FKernelData& Data = KernelData();
+	if (Data.ArenaTiers.Num() == 0 || Data.ArenaTiers[0].Waves.Num() == 0)
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal needs the pinned Tiro waves"));
+	}
+	const FArenaTier& Tiro = Data.ArenaTiers[0];
+	const FArenaWave& Final = Tiro.Waves.Last();
+	if (Final.Kind != TEXT("final") || !Final.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+	{
+		return Fail(Error, TEXT("vr rules: the last pinned Tiro wave is not a final with a mage"));
+	}
+	if (Out.Rival.IsEmpty())
+	{
+		if (Out.School != TEXT("fire") && Out.School != TEXT("water"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.school %s is not a kernel school (fire or water)"), *Out.School));
+		}
+		for (const FVrRival& Rival : Rivals)
+		{
+			if (Rival.TierId == Tiro.Id && Rival.WaveN == Final.N && Rival.School == Out.School)
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.rival is null but rival %s applies to the final"), *Rival.Id));
+			}
+		}
+		return true;
+	}
+	const FVrRival* Named = Rivals.FindByPredicate([&Out](const FVrRival& Rival) { return Rival.Id == Out.Rival; });
+	if (!Named)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.rival %s is not in rivals"), *Out.Rival));
+	}
+	if (Named->TierId != Tiro.Id || Named->WaveN != Final.N || Named->WaveKind != Final.Kind || Named->School != Out.School)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: rival %s does not apply to the Tiro final in school %s"), *Out.Rival, *Out.School));
+	}
+	return true;
+}
+
 // DF-004 option A. The hound's spit is an overlay row standing in for the pinned bite. Every number is tied to a pinned
 // one: family, tier and damage are the pinned onDeath ember_burst, the windup is above the positional telegraph floor,
 // the speed is slower than the pinned steel (sling_stone), and the range is the conscript throw's (checked by the caller).
@@ -994,6 +1068,10 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.bGentle = false;
 
 	if (!ReadRivals(*Overlay, Out.Rivals, Error))
+	{
+		return false;
+	}
+	if (!ReadTiroFinal(*Overlay, Out.Rivals, Out.TiroFinal, Error))
 	{
 		return false;
 	}

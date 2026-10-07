@@ -524,6 +524,12 @@ bool FMageArenaPresetStonePickSaves::RunTest(const FString& Parameters)
 		bPass &= TestEqual(TEXT("loaded pick A"), Session.GetStonePick(), FString(TEXT("A")));
 		Next.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 		Session.Advance(0.1, true);
+		// T21: the collar ritual stands between the offer and the bout; with no hands it continues at its 20 s timeout.
+		bPass &= TestEqual(TEXT("the ritual after the offer"), Session.GetStage(), FString(TEXT("ritual")));
+		for (int32 Step = 0; Step < 60 * 25 && Session.GetStage() == TEXT("ritual"); ++Step)
+		{
+			Session.Advance(1.0 / 60.0, true);
+		}
 		bPass &= TestEqual(TEXT("continued into Bout 2"), Session.GetGames().Wave, 1);
 		if (const FActor* Player = PlayerOf(Session))
 		{

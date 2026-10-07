@@ -159,6 +159,15 @@ struct FVrRival
 	int32 SurgeTiers = 1;
 };
 
+// T21: who fights the Tiro final (the last Tiro wave). combat.vr.json tiroFinal. Rival empty: a mage of School with no
+// phases (DECISIONS 2026-10-07 cut rule: Corvo, a second Ember entrant on the Fire kernel). Rival set: the named entry
+// in rivals, which must apply to that final in that school.
+struct FVrTiroFinal
+{
+	FString School;
+	FString Rival;
+};
+
 // Runtime for one bout. Not part of the pinned state hash. A copied ruleset starts empty (ClearRuntime),
 // and every wave spawn clears it before binding.
 struct FVrRivalRuntime
@@ -193,6 +202,7 @@ struct FVrRuleset
 	FVrNarrowFov Narrow;
 	FVrGentle Gentle;
 	TArray<FVrRival> Rivals;
+	FVrTiroFinal TiroFinal;
 	// Harness seam for the census and the design tests: every opponent mage spawns at this competence.
 	// Below zero keeps the pinned spawn competence. Not read from JSON. Gentle still wins.
 	double MageCompetenceOverride = -1.0;
