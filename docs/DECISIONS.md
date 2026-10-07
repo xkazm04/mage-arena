@@ -2,6 +2,36 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-07 - v2 vision accepted; the 18 Nov build is its Tiro-day slice
+
+> Owner, 2026-10-07, after the vision interview (waves 0-5, answers verbatim in `docs/design/V2-VISION.md`): "Take
+> please https://github.com/xkazm04/mage-arena/pull/1, merge, sync with local main, and start to execute implementation
+> per the design doc"
+
+- The one-page synthesis in `V2-VISION.md` is the v2 direction. The slice build order, card list and canon change
+  requests are in `docs/design/V2-ROADMAP.md`. The vision file stays the history; this entry is what binds.
+- **DF-003 answered: HP-gated phases.** Named mages get 2-3 HP-gated phases (proposal 66 % and 33 % HP); each break
+  surges both tier clocks by one tier and swells the crowd; the last phase opens with the rival's signature (Brennic:
+  Sunfall). Census targets: signature in 100 % of duels that reach the last phase, median 45-80 s, win rate >= 70 % at
+  competence 1 and 40-60 % at 1.5. The clock surge is shared semantics, so it goes to TV as a change request; until then
+  it is a VR overlay rule.
+- **DF-004 answered: option A, ember spit.** Hounds spit slow, telegraphed magic embers from range; the death burst
+  throws one last ember. A VR overlay attack until the TV change request lands.
+- **Split hands:** the perfect latch clears after the casting hand is idle about 0.3 s; a split Bolt at Flow 5 is
+  allowed and does not spend the Crest. Overlay rules, no change request.
+- **The collar economy:** Cracks (clean play, saved across days, open the Breaking) and Tithe (spilled magic: renown
+  now, a stronger jailer later). The collar caps at tier IV until the Summa's Breaking. New canon, change request
+  before it ships.
+- **Slice (18 Nov):** prologue, teach, a full Tiro day (ritual, soldiers, creatures, Brennic in the semifinal, the final
+  against a second school). **First cut if the Fri 23 Oct checkpoint slips: the second school**; the final becomes
+  Corvo, a second Ember entrant on the Fire kernel.
+- **ElevenLabs approval extends to pre-rendered voice lines** (ritual, taunts, crowd chorus, 10 words or fewer each),
+  generated from a written cue sheet with the count stated on the card. No runtime calls.
+- Four routes, one per member of the Four (Cassia, Brennic, Garran, Iskar); Cassia's (Water) is the slice. All four
+  schools playable at launch (spring 2027).
+- Lost: the cautious campaign proposal (90 s of story per day, static tableaux, no personal arc), sliders for Sunfall
+  (earlier unlock or a scripted beat), DF-004 options B and C.
+
 ## 2026-10-07 - Q9: reuse of the TV kernel, data and design accepted provisionally, and we ask
 
 > Operator, 2026-10-07, asked "Q9, due before 12 Oct: may the VR entry reuse the TV kernel, combat data and design, all
