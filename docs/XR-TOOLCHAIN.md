@@ -181,3 +181,12 @@ or HKLM writes, and no credentials. Five defects were fixed by the orchestrator 
   (the section above already said it was removed; the file had not caught up).
 - **Stale APK:** `package-android.ps1` only accepts APKs written after the run started.
 - **Portable path:** the scoop Android SDK fallback is built from `%USERPROFILE%`, not a hard-coded user folder.
+
+## 5.8.3 re-check (2026-10-07)
+
+The T05 runs above were on UE 5.8.2; the decision record stays as written. The engine has since moved to 5.8.3.
+
+- **Engine:** `C:\Program Files\Epic Games\UE_5.8\Engine\Build\Build.version` reads version 5.8.3, `Changelist` 58210709, `CompatibleChangelist` 55116800.
+- **Plugin match:** the plugin BuildId `55116800` still matches the engine (`docs/research/STACK-OPPORTUNITIES-2026-10.md`, F9 "Local": both plugins' `UnrealEditor.modules` and the engine's `UnrealEditor.version` share it).
+- **Editor build:** in a builder worktree on 5.8.3, the editor build exited 0 in 393 s without the MetaXR plugins (run 4f661fa7, commit 1f9b0ea).
+- **Not re-proven on 5.8.3:** that the editor loads the plugin modules, and the simulator boot marker `MAGEVR_BOOT_OK`. Both need the plugins in the main checkout, so they are an owner step.

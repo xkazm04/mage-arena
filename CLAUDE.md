@@ -40,6 +40,16 @@ place; changes go back as change requests. A `combat.json` copied from a contest
 `powershell -NoProfile -File apps/vr/tools/build.ps1` (editor target, Win64 Development; verified 2026-10-02: succeeded in
 54 s on UE 5.8.2). Call `Build.bat` through PowerShell's `&`; quoting it through `cmd /c` from Git Bash fails.
 
+The engine has been UE 5.8.3 (CL 58210709) since 2026-10-03. A fresh worktree without the MetaXR plugins (marked
+Optional in the `.uproject`) builds the editor target cold in about 393 s (2026-10-07).
+
+Before the full `MageArena` suite in a fresh checkout or worktree, regenerate the gitignored sigil test corpus:
+`node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs`
+(verified 2026-10-07: they wrote 270 corpus, 5 noise and 180 impostor clips, then 90 mouse clips, and `git status` stayed
+clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Never run `generate.mjs` bare or with
+`--templates` for this: both rewrite tracked clips. As of 24bcdfc, three suite failures are known on a clean tree:
+`MageArenaDesign.Duel.FireSeated`, `Session.FullSeated` and `Session.Wave1Seated`.
+
 Binary assets (`.uasset`, `.umap`) go through Git LFS (`.gitattributes`). `Binaries/`, `Intermediate/`, `Saved/`
 and `DerivedDataCache/` are never committed.
 
