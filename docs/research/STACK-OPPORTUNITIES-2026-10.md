@@ -325,6 +325,8 @@ Short paths resolve as follows:
 
 ### F9. The engine moved to 5.8.3 under a toolchain record that says 5.8.2
 
+- **Status:** applied 2026-10-07, before the records said 5.8.2, after `docs/XR-TOOLCHAIN.md` (a dated re-check section) and the `CLAUDE.md` Build section record 5.8.3 (CL 58210709); proven: `Build.version`, the plugin BuildId match, and a 393 s Win64 editor build in a builder worktree without the MetaXR plugins; not proven: the plugin load and the simulator boot (`MAGEVR_BOOT_OK`) on 5.8.3, and the freeze on launcher auto-updates, which is the owner's call.
+
 - **Upstream statements:**
   - The 5.8.3 hotfix (2026-09-22) includes "OpenXR: retry xrCreateSwapchain without XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT
     when creation fails with it requested."
