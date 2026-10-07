@@ -1,6 +1,32 @@
 # Package an arm64 ASTC Android APK and check the hand-tracking manifest markers.
 # Success follows the markers, not the UAT exit code.
+param([switch]$SelfTest)
 $ErrorActionPreference = 'Stop'
+
+# The supportedDevices tokens must be quest3 and quest3s, with neither quest2 nor questpro. The legacy `quest` token
+# the Meta XR APL adds for any Quest* setting is allowed.
+function Test-SupportedDevices([string]$Value) {
+    $tokens = @($Value -split '\|' | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
+    return (($tokens -contains 'quest3') -and ($tokens -contains 'quest3s') -and
+        -not ($tokens -contains 'quest2') -and -not ($tokens -contains 'questpro'))
+}
+
+if ($SelfTest) {
+    $cases = @(
+        @{ Value = 'quest|quest3|quest3s'; Expect = $true }
+        @{ Value = 'quest2|questpro|quest3|quest3s|quest|quest3'; Expect = $false }
+        @{ Value = 'quest|quest3'; Expect = $false }
+    )
+    $bad = 0
+    foreach ($case in $cases) {
+        $got = Test-SupportedDevices $case.Value
+        $ok = ($got -eq $case.Expect)
+        if (-not $ok) { $bad++ }
+        Write-Host ("SELFTEST '{0}' expect={1} got={2} {3}" -f $case.Value, $case.Expect, $got, $(if ($ok) { 'OK' } else { 'WRONG' }))
+    }
+    exit $(if ($bad -eq 0) { 0 } else { 1 })
+}
+
 . "$PSScriptRoot\install-xr.ps1"
 
 $VrRoot = Split-Path -Parent $PSScriptRoot
@@ -136,6 +162,15 @@ $hasPermission = $markerText -match 'com\.oculus\.permission\.HAND_TRACKING'
 $hasFeature = $markerText -match 'oculus\.software\.handtracking'
 # Meta refuses an upload below 34 and the immersive cap is 34, so the badging must say exactly 34.
 $hasTargetSdk = $markerText -match "targetSdkVersion:'34'"
+# aapt prints the value as  A: android:value(0x01010024)="quest|quest3|quest3s"  after the supportedDevices name line;
+# aapt2 badging prints  meta-data: name='com.oculus.supportedDevices' value='...'.
+$supportedDevices = ''
+$devicesPattern = '(?s)com\.oculus\.supportedDevices[^\r\n]*?(?:value=''([^'']*)''|[\r\n]+[^\r\n]*android:value[^=\r\n]*="([^"]*)")'
+if ($markerText -match $devicesPattern) {
+    $supportedDevices = if ($Matches[1]) { $Matches[1] } else { $Matches[2] }
+}
+$hasDevices = Test-SupportedDevices $supportedDevices
+Write-Host ("MARKER_SUPPORTED_DEVICES=" + $(if ($hasDevices) { 'yes' } else { 'no' }) + " value=" + $supportedDevices)
 Write-Host ("MARKER_ARM64=" + $(if ($hasArm) { 'yes' } else { 'no' }))
 Write-Host ("MARKER_HAND_PERMISSION=" + $(if ($hasPermission) { 'yes' } else { 'no' }))
 Write-Host ("MARKER_HAND_FEATURE=" + $(if ($hasFeature) { 'yes' } else { 'no' }))
@@ -151,11 +186,12 @@ $markerLog = Join-Path $LogDir 'apk-markers.txt'
     "MARKER_HAND_PERMISSION=$(if ($hasPermission) { 'yes' } else { 'no' })"
     "MARKER_HAND_FEATURE=$(if ($hasFeature) { 'yes' } else { 'no' })"
     "MARKER_TARGET_SDK_34=$(if ($hasTargetSdk) { 'yes' } else { 'no' })"
+    "MARKER_SUPPORTED_DEVICES=$(if ($hasDevices) { 'yes' } else { 'no' }) value=$supportedDevices"
     ''
     $markerText
 ) | Set-Content -LiteralPath $markerLog -Encoding UTF8
 
-if ($hasArm -and $hasPermission -and $hasFeature -and $hasTargetSdk) {
+if ($hasArm -and $hasPermission -and $hasFeature -and $hasTargetSdk -and $hasDevices) {
     Write-Host 'MARKER_RESULT=PASS'
     exit 0
 }
