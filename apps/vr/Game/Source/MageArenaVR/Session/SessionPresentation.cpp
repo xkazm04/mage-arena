@@ -18,6 +18,7 @@
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "Kernel/ArenaKernel.h"
+#include "Kernel/Catalog.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimMath.h"
 #include "Kernel/SimTypes.h"
@@ -39,6 +40,9 @@ const FLinearColor FireColour(0.760525f, 0.05448f, 0.013702f);
 const FLinearColor UnblockableBody(0.006995f, 0.006995f, 0.008023f);
 const FLinearColor UnblockableRim(0.745404f, 0.014444f, 0.009134f);
 const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
+// Opponent mage bodies (T20): dark tones of the school colours, so the body never reads as an absorb cue.
+const FLinearColor MageFireBody(0.30f, 0.06f, 0.03f);
+const FLinearColor MageWaterBody(0.03f, 0.22f, 0.24f);
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
@@ -124,6 +128,8 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FStri
 	if (EnemyId == TEXT("slinger")) { Colour = SlingerColour; }
 	else if (EnemyId == TEXT("cinder_hound")) { Colour = FLinearColor(0.8f, 0.3f, 0.05f); Shape = TEXT("Cube"); }
 	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
+	else if (EnemyId == TEXT("mage-fire")) { Colour = MageFireBody; }
+	else if (EnemyId == TEXT("mage-water")) { Colour = MageWaterBody; }
 	Created.Mesh = MakePart(*Shape, Colour);
 	Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f, 0.02f, 0.02f));
 	Created.HpFill = MakePart(TEXT("Cube"), HpColour);
@@ -958,6 +964,7 @@ void ASessionPresentation::EnsureComfortVisuals()
 	const TCHAR* LabelNames[] = {TEXT("StoneHand"), TEXT("StoneFov"), TEXT("StoneGentle")};
 	for (int32 Index = 0; Index < 3; ++Index)
 	{
+		StoneBase.Add(Colours[Index]);
 		UStaticMeshComponent* Stone = MakePart(TEXT("Cube"), Colours[Index]);
 		if (Stone)
 		{
@@ -978,7 +985,10 @@ void ASessionPresentation::EnsureComfortVisuals()
 void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 {
 	const bool bCold = Session.GetStage() == TEXT("cold") && !Session.IsScripted();
-	if (bCold)
+	// T20: the same stones carry the Tide Orb IV pick in the intermission after Bout 1.
+	const bool bPick = Session.IsPickOffered();
+	const bool bStones = bCold || bPick;
+	if (bStones)
 	{
 		EnsureComfortVisuals();
 	}
@@ -999,12 +1009,12 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 			StoneRoot->AttachToComponent(Seat, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			StoneRoot->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
 		}
-		StoneRoot->SetVisibility(bCold && Seat != nullptr, true);
+		StoneRoot->SetVisibility(bStones && Seat != nullptr, true);
 	}
-	const TCHAR* Keys[] = {
-		FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right"),
-		FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide"),
-		FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off"),
+	const FString Keys[] = {
+		bPick ? Session.PickStoneKey(0) : FString(FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right")),
+		bPick ? Session.PickStoneKey(1) : FString(FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide")),
+		bPick ? Session.PickStoneKey(2) : FString(FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off")),
 	};
 	for (int32 Index = 0; Index < StoneLabels.Num(); ++Index)
 	{
@@ -1013,12 +1023,32 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		{
 			continue;
 		}
-		Label->SetVisibility(bCold && Seat != nullptr);
+		Label->SetVisibility(bStones && Seat != nullptr);
 		if (TSharedPtr<STextBlock> Text = StaticCastSharedPtr<STextBlock>(Label->GetSlateWidget()))
 		{
-			Text->SetText(FText::FromString(Session.TeachString(Keys[Index])));
+			Text->SetText(FText::FromString(Session.TeachString(*Keys[Index])));
 		}
 		Label->RequestRenderUpdate();
+	}
+	// The stone under a held palm glows toward white as the offerHoldS hold fills (campaign design section 3: "The stone
+	// glows during the hold"). Presentation only; white is not a threat colour.
+	const int32 Held = bPick ? Session.GetPickHoldStone() : -1;
+	const double Fill = Held >= 0 ? Session.GetPickHoldFraction() : 0.0;
+	for (int32 Index = 0; Index < ComfortStones.Num() && Index < StoneBase.Num(); ++Index)
+	{
+		UStaticMeshComponent* Stone = ComfortStones[Index];
+		if (!Stone)
+		{
+			continue;
+		}
+		const bool bGlow = Index == Held;
+		const float Alpha = bGlow ? static_cast<float>(0.35 + 0.65 * Fill) : 0.f;
+		const FLinearColor Colour = FMath::Lerp(StoneBase[Index], FLinearColor(1.f, 0.97f, 0.88f), Alpha) * (bGlow ? 1.f + 1.5f * static_cast<float>(Fill) : 1.f);
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Colour);
+		}
+		Greybox::SetSized(Stone, bGlow ? FVector(12.0 + 4.0 * Fill) : FVector(12.0));
 	}
 
 	const bool bArc = FMageSettings::IsNarrow();
@@ -1203,11 +1233,14 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			continue;
 		}
-		if (!Actor.Enemy.IsSet() && !Actor.bDummy)
+		// T20: an opponent mage (the Water proxies, the Fire mages, Brennic) had no greybox body, so a reflected bolt
+		// flew back at nothing. It stands as a column in a dark tone of its school colour (not a threat colour).
+		const bool bMage = !Actor.Enemy.IsSet() && !Actor.bDummy && Actor.Team != 0;
+		if (!Actor.Enemy.IsSet() && !Actor.bDummy && !bMage)
 		{
 			continue;
 		}
-		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id : TEXT("");
+		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id : (bMage ? (Actor.Fire.bSchool ? TEXT("mage-fire") : TEXT("mage-water")) : TEXT(""));
 		FBody& Body = BodyFor(Actor.Id, EnemyId);
 		LiveBodies.Add(Actor.Id);
 		float Height = 176.f;
@@ -1218,6 +1251,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		else if (EnemyId == TEXT("slinger")) { Height = 150.f; Width = 42.f; Length = 42.f; BodyColour = SlingerColour; }
 		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = FLinearColor(0.8f, 0.3f, 0.05f); }
 		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
+		else if (EnemyId == TEXT("mage-fire")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageFireBody; }
+		else if (EnemyId == TEXT("mage-water")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageWaterBody; }
 
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
 		Centre.Z += Height * 0.5f;
@@ -1532,6 +1567,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 	SyncPhaseVisuals(Session, Now);
+	SyncOrbPaths(Session);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
 	EventCursor = Games.State.Events.Num();
@@ -1540,4 +1576,134 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+}
+
+void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
+{
+	const FGames& Games = Session.GetGames();
+	struct FWant
+	{
+		int32 Key = 0;
+		FSimVec From;
+		FSimVec To;
+		double WidthM = 0.0;
+		bool bOwned = false;
+	};
+	TArray<FWant> Wants;
+	// The telegraph: a pending projectile cast of an UNBLOCKABLE orb draws its whole lane from the caster.
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (Actor.bDown || !Actor.Pending.IsSet() || Actor.Pending->Kind != TEXT("spell") || !Actor.Pending->SpellId.IsSet())
+		{
+			continue;
+		}
+		const FSpell* Spell = FindSpellById(Actor.Pending->SpellId.GetValue());
+		if (!Spell || Spell->Kind != TEXT("projectile") || Spell->Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		const FSimVec Dir = SimUnit(SimSub(Actor.Pending->Aim, Actor.Pos), Actor.Facing);
+		FWant Want;
+		Want.Key = Actor.Pending->ActivationId;
+		Want.From = Actor.Pos;
+		Want.To = SimAdd(Actor.Pos, SimScale(Dir, Spell->RangeM));
+		Want.WidthM = (Spell->RadiusM > 0.0 ? Spell->RadiusM : KernelData().ProjectileRadiusM) * 2.0;
+		Want.bOwned = Actor.Id == Games.PlayerId;
+		Wants.Add(Want);
+	}
+	// The flight: the lane the orb travels.
+	for (const FProjectile& Projectile : Games.State.Projectiles)
+	{
+		if (Projectile.Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		FWant Want;
+		Want.Key = Projectile.ActivationId;
+		// The whole lane, from where the orb was loosed to the end of its range: seen from the seat, a lane that starts
+		// at the orb hides behind a 3 m orb.
+		Want.From = Projectile.OriginPos;
+		Want.To = SimAdd(Projectile.Pos, SimScale(SimUnit(Projectile.Velocity), Projectile.RemainingM));
+		Want.WidthM = Projectile.Radius * 2.0;
+		Want.bOwned = Projectile.OwnerId == Games.PlayerId;
+		Wants.Add(Want);
+	}
+	TSet<int32> Live;
+	for (const FWant& Want : Wants)
+	{
+		Live.Add(Want.Key);
+		FOrbPath& Path = OrbPaths.FindOrAdd(Want.Key);
+		if (!Path.Body)
+		{
+			Path.Body = MakePart(TEXT("Cube"), UnblockableBody);
+		}
+		if (!Path.Rim)
+		{
+			Path.Rim = MakePart(TEXT("Cube"), UnblockableRim);
+		}
+		FVector From = Session.KernelToUnrealCm(Want.From);
+		FVector To = Session.KernelToUnrealCm(Want.To);
+		From.Z += 10.0;
+		To.Z = From.Z;
+		const FVector Delta = To - From;
+		const double Length = FMath::Max(Delta.Size(), 20.0);
+		const FVector Dir = Delta.GetSafeNormal();
+		const FVector Mid = From + Dir * (Length * 0.5);
+		const double Width = FMath::Max(Want.WidthM, 0.3) * 100.0;
+		// Aimed at the player, the lane is the leave threat: black core, red rim. The player's own orb draws its lane in
+		// the Water colour with no rim, so it never reads as a threat to the seat.
+		const FLinearColor BodyColour = Want.bOwned ? WaterColour : UnblockableBody;
+		if (Path.Body)
+		{
+			Path.Body->SetVisibility(true);
+			Path.Body->SetWorldLocation(Mid);
+			Path.Body->SetWorldRotation(Dir.Rotation());
+			Greybox::SetSized(Path.Body, FVector(Length, Width, 6.0));
+			if (UMaterialInstanceDynamic* Material = Cast<UMaterialInstanceDynamic>(Path.Body->GetMaterial(0)))
+			{
+				Material->SetVectorParameterValue(TEXT("Color"), BodyColour);
+			}
+		}
+		if (Path.Rim)
+		{
+			Path.Rim->SetVisibility(!Want.bOwned);
+			Path.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 2.0));
+			Path.Rim->SetWorldRotation(Dir.Rotation());
+			Greybox::SetSized(Path.Rim, FVector(Length + 24.0, Width + 36.0, 4.0));
+		}
+	}
+	for (TPair<int32, FOrbPath>& Pair : OrbPaths)
+	{
+		if (Live.Contains(Pair.Key))
+		{
+			continue;
+		}
+		if (Pair.Value.Body)
+		{
+			Pair.Value.Body->SetVisibility(false);
+		}
+		if (Pair.Value.Rim)
+		{
+			Pair.Value.Rim->SetVisibility(false);
+		}
+	}
+	// Keep the map small: forget hidden paths beyond a handful.
+	if (OrbPaths.Num() > 16)
+	{
+		for (auto It = OrbPaths.CreateIterator(); It; ++It)
+		{
+			if (!Live.Contains(It.Key()))
+			{
+				if (It.Value().Body)
+				{
+					It.Value().Body->DestroyComponent();
+				}
+				if (It.Value().Rim)
+				{
+					It.Value().Rim->DestroyComponent();
+				}
+				It.RemoveCurrent();
+			}
+		}
+	}
 }

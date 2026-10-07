@@ -193,6 +193,17 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> ArcEdges;
 
 	bool bComfortVisuals = false;
+	TArray<FLinearColor> StoneBase;
+
+	// T20: the drawn path of a Leviathan Orb (spells-water.csv tide_orb IV A, UNBLOCKABLE: "the orb's path is drawn;
+	// leave it or break the caster"), for the 1.00 s telegraph and the flight. Keyed by activation id.
+	struct FOrbPath
+	{
+		TObjectPtr<UStaticMeshComponent> Body;
+		TObjectPtr<UStaticMeshComponent> Rim;
+	};
+	TMap<int32, FOrbPath> OrbPaths;
+	void SyncOrbPaths(const FArenaSession& Session);
 
 	// T19 phase break beat: the rival flares in its element colour, a ring pulses on both wrists (the surge), and the
 	// crowd band brightens (the swell placeholder; audio is T26). No new threat colours.

@@ -1,6 +1,7 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/CreaturesCapture.h"
+#include "Session/PresetCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
@@ -31,18 +32,6 @@
 
 namespace
 {
-const FComposition* FindRotation()
-{
-	for (const FComposition& Preset : KernelData().Presets)
-	{
-		if (Preset.Name == TEXT("Rotation"))
-		{
-			return &Preset;
-		}
-	}
-	return nullptr;
-}
-
 double NearestLiving(const FGames& Games, const FActor& Player, int32* OutWithin, double WithinM)
 {
 	double Best = 1.0e9;
@@ -117,7 +106,7 @@ void StartSessionCommand(const TArray<FString>& Args)
 
 FAutoConsoleCommand GSessionStart(
 	TEXT("MageArena.Session.Start"),
-	TEXT("Start pinned Tiro wave 1 (Rotation) against the human player. Optional seed."),
+	TEXT("Start pinned Tiro wave 1 (the presets.json player preset) against the human player. Optional seed."),
 	FConsoleCommandWithArgsDelegate::CreateStatic(&StartSessionCommand));
 
 void SkipTeachCommand(const TArray<FString>& Args)
@@ -236,12 +225,11 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: kernel data is not ready (%s)"), *KernelData().Error);
 		return false;
 	}
-	const FComposition* Preset = FindRotation();
-	if (!Preset)
+	if (!LoadPlayerPresetFile(TEXT("Session start failed")))
 	{
-		UE_LOG(LogMageArena, Error, TEXT("Session start failed: Rotation preset is missing"));
 		return false;
 	}
+	const FComposition Composition = PlayerComposition();
 	FString Error;
 	bHasLayout = Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error);
 	if (!bHasLayout)
@@ -270,7 +258,7 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session bout %d is outside Tiro waves [0, %d); refusing to spawn"), BoutWave, Waves);
 		return false;
 	}
-	if (!TryCreateGames(Games, Seed, Preset, BoutWave, false, bFireMages, &Rules))
+	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bFireMages, &Rules))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -324,6 +312,10 @@ bool FArenaSession::Start(uint32 Seed)
 	bStoneHeld[1] = false;
 	bStoneHeld[2] = false;
 	bOfferContinue = false;
+	PickClock = 0.0;
+	PickHold = 0.0;
+	PickHoldStone = -1;
+	bPickClosed = false;
 	bFlowCue = false;
 	bClockCue = false;
 	WristUntil = -1.0;
@@ -366,7 +358,8 @@ bool FArenaSession::Start(uint32 Seed)
 	{
 		SeatOnActivePad(*Player);
 	}
-	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=Rotation"), Seed, BoutWave + 1));
+	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=%s mirror=%s tideOrbIV=%s"), Seed, BoutWave + 1,
+		*PlayerPreset.Id, *Composition.Branches.Mirror, *Composition.Branches.TideOrb));
 	return true;
 }
 
@@ -497,40 +490,8 @@ void FArenaSession::PollComfortToggles()
 	{
 		return;
 	}
-	// Clip centimetres, seated origin. Clear of the scripted ward palm at (36, -12, 36).
-	const FVector Stones[] = {
-		FVector(55.0, -28.0, 18.0),
-		FVector(55.0, 0.0, 18.0),
-		FVector(55.0, 28.0, 18.0),
-	};
-	const double Radius = 6.0;
 	bool bInside[3] = {false, false, false};
-	auto Consider = [&](const FHandFrame& Frame)
-	{
-		const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
-		const int32 Tip = static_cast<int32>(EHandKeypoint::IndexTip);
-		for (int32 Index = 0; Index < 3; ++Index)
-		{
-			if (Frame.Joints.IsValidIndex(Palm) && FVector::Dist(Frame.Joints[Palm].Location, Stones[Index]) <= Radius)
-			{
-				bInside[Index] = true;
-			}
-			if (Frame.Joints.IsValidIndex(Tip) && FVector::Dist(Frame.Joints[Tip].Location, Stones[Index]) <= Radius)
-			{
-				bInside[Index] = true;
-			}
-		}
-	};
-	FHandFrame Left;
-	FHandFrame Right;
-	if (Hands->GetLatest(EControllerHand::Left, Left))
-	{
-		Consider(Left);
-	}
-	if (Hands->GetLatest(EControllerHand::Right, Right))
-	{
-		Consider(Right);
-	}
+	StonesTouched(bInside);
 	for (int32 Index = 0; Index < 3; ++Index)
 	{
 		if (bInside[Index] && !bStoneHeld[Index])
@@ -554,6 +515,50 @@ void FArenaSession::PollComfortToggles()
 		{
 			bStoneHeld[Index] = false;
 		}
+	}
+}
+
+void FArenaSession::StonesTouched(bool OutInside[3]) const
+{
+	OutInside[0] = false;
+	OutInside[1] = false;
+	OutInside[2] = false;
+	if (!Hands)
+	{
+		return;
+	}
+	// Clip centimetres, seated origin. Clear of the scripted ward palm at (36, -12, 36).
+	const FVector Stones[] = {
+		FVector(55.0, -28.0, 18.0),
+		FVector(55.0, 0.0, 18.0),
+		FVector(55.0, 28.0, 18.0),
+	};
+	const double Radius = 6.0;
+	auto Consider = [&](const FHandFrame& Frame)
+	{
+		const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+		const int32 Tip = static_cast<int32>(EHandKeypoint::IndexTip);
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			if (Frame.Joints.IsValidIndex(Palm) && FVector::Dist(Frame.Joints[Palm].Location, Stones[Index]) <= Radius)
+			{
+				OutInside[Index] = true;
+			}
+			if (Frame.Joints.IsValidIndex(Tip) && FVector::Dist(Frame.Joints[Tip].Location, Stones[Index]) <= Radius)
+			{
+				OutInside[Index] = true;
+			}
+		}
+	};
+	FHandFrame Left;
+	FHandFrame Right;
+	if (Hands->GetLatest(EControllerHand::Left, Left))
+	{
+		Consider(Left);
+	}
+	if (Hands->GetLatest(EControllerHand::Right, Right))
+	{
+		Consider(Right);
 	}
 }
 
@@ -1771,6 +1776,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
 	const bool bCreaturesCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreaturesCapture"));
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
+	const bool bPresetCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaPresetCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1804,6 +1810,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		SettingsCapture = NewObject<USettingsCaptureDriver>(this);
 		SettingsCapture->Start();
+		return;
+	}
+	if (bPresetCapture)
+	{
+		PresetCapture = NewObject<UPresetCaptureDriver>(this);
+		PresetCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)

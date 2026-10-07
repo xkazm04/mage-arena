@@ -38,6 +38,7 @@ Mouse draw (Oct)   -> fingertip path --------+         (sigil / ward / blink)
 | Planted staff | both hands grip and thrust the staff down; the same key lifts it | `F` | - |
 | Pause / resume | palm-up menu gesture | `Esc` (instant). Safety pauses resume with `R` | - |
 | Both palms (resume) | both palms raised toward the arena | `R` | - |
+| Palm over the left / centre / right stone (comfort settings in cold; the stone pick in an intermission, held 0.40 s) | reach over the stone beside the seat and hold | `Z` / `X` / `C` (one normal take each, `Clips/stones/`) | - |
 
 Clip variants are selected with a modifier (`Shift` = sloppy, `Ctrl` = slow) so the desktop player can feel what an
 imperfect hand does to recognition.
