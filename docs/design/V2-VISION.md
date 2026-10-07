@@ -104,3 +104,25 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
   held pose (also designed for Earth's stone form, not built yet).
 - **Slice ending:** the day closes on the aftermath of the final. The first crack is visible if the player earned it,
   and the hook is the line that the Wardstones drink.
+
+## Wave 3 - combat core (2026-10-07)
+
+| Question | Owner's answer |
+|---|---|
+| Reliable climax (DF-003) | **HP-gated boss phases**: named mages get 2-3 HP-gated phases; each break surges both collars (tier clock +1) and swells the crowd; the last phase opens with the rival's signature spell (Brennic: Sunfall). |
+| Bout 2 perfect practice (DF-004) | **Option A, ember spit**: hounds spit slow, telegraphed magic embers from range, and a death burst throws one last ember. |
+| Split hands | **The latch clears, and a Bolt is allowed at Flow 5**: perfects return after the casting hand has been idle about 0.3 s; a split Bolt at Flow 5 does not spend the Crest. |
+| Signature moments in the slice | **All four**: Mirror II = Reflection (a VR player preset), the Leviathan / Rain of Orbs pick at the first intermission, the two-hand mudra seal for tier IV, and element-correct colour plus threat audio. |
+
+### What changes
+
+- **DF-003 gets a direction instead of a knob set.** The census targets become: the rival's signature spell in 100 % of
+  duels that reach the last phase, duel median 45-80 s, win rate at least 70 % at competence 1 and 40-60 % at 1.5. Phase
+  thresholds (proposal: 66 % and 33 % HP) and the surge live in the VR overlay. The kernel needs one new rule: on a
+  phase break the mage's tier clock jumps one tier. That is a CR to TV, since the clock is shared semantics.
+- **DF-004 is closed as option A.** It needs a new ember attack row in `enemies.json` (a CR to TV), or, until that
+  lands, a VR overlay attack.
+- **Split hands:** two overlay rules (latch idle time 0.3 s, Bolt allowed at Flow 5 without Crest). No CR needed.
+- **The signatures need a VR-owned player preset** (Mirror A, Tide Orb IV picked on the stones) in the overlay, because
+  the pinned presets cannot be edited. The mudra needs a pose detector, a 1.5 s data window and a deliberate seal shape
+  (BACKLOG). Audio is the first `UAudioComponent` in the build: A05 SFX plus new threat cues (ElevenLabs).
