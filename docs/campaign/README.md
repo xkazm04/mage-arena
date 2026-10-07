@@ -6,6 +6,10 @@ verified-against: mage-arena-vr 46643e2; mage-arena-int b1efd46; mage-arena a796
 sources: [docs/DECISIONS.md, docs/PROJECT-PLAN.md, apps/vr/data/README.md, apps/vr/data/PINNED.json, docs/change-requests/CR-002-fire-school.md, mage-arena-int:docs/MAGE-ARENA-PLAN.md, mage-arena-int:docs/design/reconciled/data/season.json, mage-arena:docs/campaign/README.md]
 ---
 
+> **Sources moved 2026-10-07.** `mage-arena` and `mage-arena-int` are now one repository, `kiro/mage-arena-tv`
+> (`main`). Hashes changed in the history rewrite: `b1efd46` is `1ccfd04`, `a7964ad` is unchanged. Map:
+> `mage-arena-tv/docs/history-rewrite-2026-10-07.tsv`. Paths cited as `mage-arena-int:<path>` are at the same path there.
+
 # VR campaign - index
 
 For the VR channel, "campaign" means the story-bearing progression a player goes through in the headset. Today that is

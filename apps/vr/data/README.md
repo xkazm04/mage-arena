@@ -1,7 +1,7 @@
 # Pinned combat data
 
 The authoritative combat data (spells, enemies, tier clock, Flow, arena tiers) is owned by the Mage Arena core
-project, `kiro/mage-arena` and its arena worktree, where a headless simulator calibrated it (plan section 3).
+project, `kiro/mage-arena-tv` (formerly `kiro/mage-arena` and its arena worktree), where a headless simulator calibrated it (plan section 3).
 
 This folder holds a **copy pinned to one committed revision** of that data. The manifest is `PINNED.json`
 (`{ "source", "commit", "copied", "files": [ { "path", "sha256", "bytes" } ] }`). Rules:
@@ -12,6 +12,6 @@ This folder holds a **copy pinned to one committed revision** of that data. The 
 
 ## Current pin
 
-- Commit `68a4d68d315856c89339d331ac0db7f4784d566f` (`68a4d68`) of `mage-arena` (worktree `mage-arena-arena`, branch `arena`). Copied 2026-10-02. Nine files under `apps/vr/data/pinned/`, at the same paths as in that commit. Sizes and sha256 are in `apps/vr/data/PINNED.json`.
-- Verify: `node apps/vr/tools/check-pin.mjs`. Byte-compare to the source commit: `node apps/vr/tools/check-pin.mjs --source C:/Users/kazda/kiro/mage-arena-arena`. Prove a flipped byte fails the gate: `node apps/vr/tools/check-pin.mjs --self-test`.
+- Commit `baeac6641790dcf526ec6d3bde35985553f84028` (`baeac66`) of `mage-arena-tv`. It was `68a4d68` (worktree `mage-arena-arena`, branch `arena`) before the 2026-10-07 history rewrite; the pinned bytes are unchanged (`docs/REPO-LAYOUT.md`). Copied 2026-10-02. Nine files under `apps/vr/data/pinned/`, at the same paths as in that commit. Sizes and sha256 are in `apps/vr/data/PINNED.json`.
+- Verify: `node apps/vr/tools/check-pin.mjs`. Byte-compare to the source commit: `node apps/vr/tools/check-pin.mjs --source C:/Users/kazda/kiro/mage-arena-tv`. Prove a flipped byte fails the gate: `node apps/vr/tools/check-pin.mjs --self-test`.
 - Re-pin: choose a commit, read each file with `git -C <source> show <commit>:<path>` (never the working tree), write those bytes under `apps/vr/data/pinned/`, rewrite `apps/vr/data/PINNED.json`, then run the three commands above. Do not reformat the files or change their line endings.

@@ -1,6 +1,6 @@
 {
-  "source": "mage-arena (worktree mage-arena-arena, branch arena)",
-  "commit": "68a4d68d315856c89339d331ac0db7f4784d566f",
+  "source": "mage-arena-tv (main; was mage-arena-arena branch arena commit 68a4d68 before the 2026-10-07 history rewrite)",
+  "commit": "baeac6641790dcf526ec6d3bde35985553f84028",
   "copied": "2026-10-02",
   "files": [
     {

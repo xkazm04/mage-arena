@@ -2,7 +2,8 @@
 
 A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** (C++ project in `apps/vr/Game/`). Entry for
 the Meta VR Start Developer Competition 2026 (Gaming track; deadline **2026-11-18**). One of three channels of one game:
-TV (sister build), VR (this repo), PC (future).
+TV (`kiro/mage-arena-tv`, the canon owner), VR (this repo), PC (future, joins the TV repo).
+Repository layout and what is shared: `docs/REPO-LAYOUT.md`.
 
 ## Read first
 
@@ -24,7 +25,7 @@ TV (sister build), VR (this repo), PC (future).
 
 ## Combat data has one owner
 
-The tuned combat numbers (spells, enemies, tier clock, Flow) live in the PC/TS project `kiro/mage-arena` and its
+The tuned combat numbers (spells, enemies, tier clock, Flow) live in the TV/TS project `kiro/mage-arena-tv` and its
 calibrated simulator. This repo consumes a **pinned commit** of that data (see `apps/vr/data/README.md`) and never edits it in
 place; changes go back as change requests. A `combat.json` copied from a contest folder is stale - do not use it.
 

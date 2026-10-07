@@ -2,6 +2,19 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-07 - Two repositories, TV and VR; evidence out of git
+
+> "We have now two repos for TV and VR, all the other should ideally disappear split into those two, gitignore carefully
+> not to overweight github repos." Then: "Approved procedure in your recommended order. Names: mage-arena-tv,
+> mage-arena-vr. Review evidence outside archive. PNG evidence can be dropped."
+
+- Two repositories, one checkout each: `kiro/mage-arena-tv` (GitHub `mage-arena-tv`, was `mage-arena-pc`) owns the canon
+  (combat data, simulator, story, quests); `kiro/mage-arena-vr` (GitHub `mage-arena-vr`, was `mage-arena`) owns the VR
+  channel. VR keeps consuming TV through the pin. This supersedes `MONOREPO.md` (the monorepo plan).
+- The lane folders are retired; parallel work uses short-lived `.worktrees/`.
+- Review evidence media lives in `kiro/mage-arena-archive/`, not in git, and was dropped from TV history. Shipped media
+  is in LFS. What was done, and the old-to-new commit map: `REPO-LAYOUT.md`.
+
 ## 2026-10-07 - Quest 3S ships untested
 
 > Operator, 2026-10-07 11:15 UTC, asked "Quest 3S is declared, but the planned device is a Quest 3. Should we get a 3S for

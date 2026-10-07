@@ -20,7 +20,7 @@ const repoRoot = join(vrRoot, '..', '..');
 const manifestPath = join(vrRoot, 'data', 'PINNED.json');
 const pinnedDir = join(vrRoot, 'data', 'pinned');
 const outDir = join(vrRoot, 'data', 'conformance');
-const sourceRepo = process.env.MAGE_ARENA_ARENA || 'C:/Users/kazda/kiro/mage-arena-arena';
+const sourceRepo = process.env.MAGE_ARENA_ARENA || 'C:/Users/kazda/kiro/mage-arena-tv';
 const tsxCli = join(sourceRepo, 'packages/core/node_modules/tsx/dist/cli.mjs');
 
 const compilerReads = [

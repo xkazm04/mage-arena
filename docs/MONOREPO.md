@@ -1,5 +1,8 @@
 # One repository for every Mage Arena channel
 
+> **Superseded 2026-10-07.** The owner chose two repositories (TV and VR) instead; see `REPO-LAYOUT.md` and
+> `DECISIONS.md`. Phase A below happened and stays as history; Phase B will not happen.
+
 Owner decision 2026-10-02 (`DECISIONS.md`): "merge the codebases so we don't split folder for each subproject". The
 home is **this public repository**, renamed from `mage-arena-vr` to **`mage-arena`** on GitHub. VR moves first; the
 PC/TV lane branches fold in later, at a quiet point of their own orchestrator.
