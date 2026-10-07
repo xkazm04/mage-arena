@@ -51,3 +51,30 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
    perfect-timing plus line rotation, and little else.
 6. **Pacing:** with the proposal values the full session is about 2.8 min against a 7-10 min target. That gap is room
    for story beats and for longer, phased duels.
+
+## Wave 1 - story pillars (2026-10-07)
+
+| Question | Owner's answer |
+|---|---|
+| Story spine | **Breaking the collar**: Cassia learns the Wardstones drink the magic spilled in the arena; the arc runs from obedient entrant to the Breaking at the Summa. |
+| The Ember mage | **Brennic, one of the Four**: collared with Cassia at the ford, so it is a personal duel. |
+| Tone | **Mythic and operatic**: ritual language, a chorus-like crowd, the weight of the gods on the collar. |
+| Collar mechanics | **All four**: cracks from mastery, a collar ritual each Games day, power the collar withholds, jailers feed on your magic. |
+
+### What the design does with it (proposal for Wave 2 onward)
+
+- **One collar, two pulls: Precision against Spectacle.** Every bout produces two quantities from the existing kernel
+  events: **Cracks** (perfect absorbs, reflections, a clean blink through a black core, sparing) and **Tithe** (magic
+  spilled into the sand: tier III-IV area spells, missed casts, Crests spent on spectacle). Cracks persist across Games
+  days and open the Breaking. Tithe feeds the Wardstones: the crowd and the Lanista love it (renown), the jailers grow
+  stronger (later bouts gain wards and harder opponents). This turns "fight cleanly or fight loudly" into the moral
+  choice, without a menu.
+- **The collar withholds tier V.** Tier IV stays the cap the collar allows. Crack thresholds unseal story beats, and the
+  Breaking bout at the Summa unlocks one uncapped tier V spell per school: the climax the duel lacks today.
+- **The collar ritual opens every Games day.** Warden Septima locks the collar while the player offers both wrists (the
+  existing both-palms pose). The ritual words are the day's mythic framing, and the crack count shows as light leaking
+  from the collar's seams in a mirror held to the player.
+- **Operatic tone within VR limits.** Spoken lines stay at 10 words or fewer, world-locked. The opera comes from
+  ritual repetition, a crowd chorus (chants that react to Cracks against Tithe), music and staging, not from long text.
+- **Canon impact.** Cracks, Tithe and tier V are new canon, so they go to TV as one change request before they ship.
+  `K-wardstones-drink` already supports Tithe.
