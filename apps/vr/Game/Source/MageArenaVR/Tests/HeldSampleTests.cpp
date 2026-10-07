@@ -616,6 +616,131 @@ bool RunCorpus(FAutomationTestBase& Test, bool bHeld, FCorpusFigures& Out)
 	Rig.Close();
 	return bPass;
 }
+
+/**
+ * RATCHET for D-G3 under injected latency on modelled streams (G1), with the rules of KnownHeldMisses. Asserted for latency
+ * <= 60 ms only. Key: "<stream>.ward-raise.<variant>.p<phase index>.l<latency ms>"; the 72 Hz reference stream is "72hz" and
+ * has phase 0 only.
+ */
+const TArray<FString>& KnownLatencyMisses()
+{
+	// Each case below misses at 0, 20, 40 and 60 ms alike: the onset error does not grow with latency, so onset
+	// compensation holds. The miss is the camera grid. The detector can stamp the onset no earlier than the first frame
+	// that shows the motion, and on a 30 Hz stream that frame comes 13.9 to 41.7 ms after the 72 Hz onset, by phase. Over
+	// 13.9 ms (one 72 Hz frame) the go predicate fails, though the hit at the authored tick and both interior probes stay
+	// perfect: the window moves late, it is not lost. The extrapolated model misses the same cases by the same amount,
+	// because a raise from rest gives nothing to extrapolate until the first moving camera sample. What would fix it:
+	// W2, an onset stamped earlier by the camera lag (needs the camera rate, G2), or a detector that stamps the onset at
+	// the last still sample. Not W1: a wider window does not move the onset.
+	static const TArray<FString> Misses = []()
+	{
+		const TCHAR* Cases[] = {
+			TEXT("held30.ward-raise.normal.p1"), TEXT("held30.ward-raise.normal.p2"),
+			TEXT("held30.ward-raise.slow.p0"), TEXT("held30.ward-raise.slow.p1"),
+			TEXT("held30.ward-raise.sloppy.p0"), TEXT("held30.ward-raise.sloppy.p1"),
+			TEXT("extrap30.ward-raise.normal.p1"), TEXT("extrap30.ward-raise.normal.p2"),
+			TEXT("extrap30.ward-raise.slow.p0"), TEXT("extrap30.ward-raise.slow.p1"),
+			TEXT("extrap30.ward-raise.sloppy.p0"), TEXT("extrap30.ward-raise.sloppy.p1")};
+		TArray<FString> Keys;
+		for (const TCHAR* Case : Cases)
+		{
+			for (const int32 LatencyMs : {0, 20, 40, 60})
+			{
+				Keys.Add(FString::Printf(TEXT("%s.l%d"), Case, LatencyMs));
+			}
+		}
+		return Keys;
+	}();
+	return Misses;
+}
+
+constexpr double GLatenciesS[] = {0.0, 0.020, 0.040, 0.060, 0.080, 0.100};
+/** The D-G3 gate: the perfect event at the authored tick +-1 frame for injected latency of 60 ms or less. */
+constexpr double GLatencyGateS = 0.060;
+
+/** The first frame whose palm moves at the ward onset speed: the authored onset, as in Ward.OnsetCompensation. */
+double PalmSpeedOnsetS(const FHandClipTrack& Track)
+{
+	const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+	for (int32 Index = 1; Index < Track.Frames.Num(); ++Index)
+	{
+		const FHandFrame& Prev = Track.Frames[Index - 1];
+		const FHandFrame& Frame = Track.Frames[Index];
+		const double Dt = Frame.TimeSeconds - Prev.TimeSeconds;
+		if (!Frame.Joints.IsValidIndex(Palm) || !Prev.Joints.IsValidIndex(Palm) || Dt < 1.0e-6)
+		{
+			continue;
+		}
+		const double Speed = FVector::Distance(Frame.Joints[Palm].Location, Prev.Joints[Palm].Location) / MageClipMetresToCentimetres / Dt;
+		if (Speed >= FWardThresholds::OnsetSpeedMps)
+		{
+			return Frame.TimeSeconds;
+		}
+	}
+	return -1.0;
+}
+
+const FHandClipTrack* WardTrack(const FHandClip& Clip)
+{
+	for (const FHandClipTrack& Track : Clip.Tracks)
+	{
+		if (Track.Hand == FMageSettings::WardHand() && Track.Frames.Num() > 1)
+		{
+			return &Track;
+		}
+	}
+	return nullptr;
+}
+
+/**
+ * The latency model of Ward.OnsetCompensation as a clip: 72 Hz output frames up to EndS, and after Anchor the source time
+ * runs at Scale, so the pose that confirms the raise arrives the injected latency late while the onset is unchanged.
+ */
+FHandClip MakeLatencyClip(const FHandClip& Source, double Anchor, double Scale, double EndS)
+{
+	FHandClip Out = Source;
+	const double Frame = 1.0 / 72.0;
+	const int32 Count = FMath::CeilToInt(EndS / Frame) + 1;
+	for (FHandClipTrack& Track : Out.Tracks)
+	{
+		Track.Frames.Reset();
+		for (int32 Index = 0; Index < Count; ++Index)
+		{
+			const double Output = Index * Frame;
+			const double SourceTime = FMath::Clamp(Output > Anchor ? Anchor + (Output - Anchor) * Scale : Output, 0.0, Source.GetDuration());
+			FHandFrame Sampled;
+			if (Source.Sample(Track.Hand, SourceTime, Sampled))
+			{
+				Sampled.TimeSeconds = Output;
+				Sampled.Hand = Track.Hand;
+				Track.Frames.Add(Sampled);
+			}
+		}
+	}
+	Out.Duration = (Count - 1) * Frame;
+	return Out;
+}
+
+/** Feeds the ward-hand track to a fresh detector until it raises. Returns false when it never raises. */
+bool RaiseOn(const FHandClip& Clip, FWardDetector& Detector, double& OutConfirmS)
+{
+	OutConfirmS = -1.0;
+	const FHandClipTrack* Track = WardTrack(Clip);
+	if (Track == nullptr)
+	{
+		return false;
+	}
+	for (const FHandFrame& Frame : Track->Frames)
+	{
+		Detector.Ingest(Frame);
+		if (Detector.GetState().bRaised)
+		{
+			OutConfirmS = Frame.TimeSeconds;
+			return true;
+		}
+	}
+	return false;
+}
 }
 
 using namespace HeldSampleTestsImpl;
@@ -830,6 +955,147 @@ bool FMageArenaHeldSampleSigilCorpus::RunTest(const FString& Parameters)
 		Held.AccuracyPercentFloor() >= HeldAccuracyFloorPercent);
 	bPass &= TestTrue(*FString::Printf(TEXT("held false casts %d at or below %d"), Held.FalseCasts(), HeldFalseCastCeiling),
 		Held.FalseCasts() <= HeldFalseCastCeiling);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleLatency, "MageArena.Hands.HeldSample.Latency",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleLatency::RunTest(const FString& Parameters)
+{
+	// D-G3 (docs/PROJECT-PLAN.md:204) on modelled streams: the latency model of Ward.OnsetCompensation applied to the three
+	// ward-raise variants, then played through the held and the extrapolated 30 Hz streams at every phase. The go predicate
+	// is the one Ward.OnsetCompensation asserts: the onset within one 72 Hz frame of the authored onset, and a hit at the
+	// authored tick (authored onset + window) perfect, or the frame before it when the onset is early. The 72 Hz stream is
+	// the reference. Also logged: the literal "perfect at the tick +-1 frame", and the interior probes with the stream bound.
+	struct FLatencyStream
+	{
+		const TCHAR* Name;
+		const FStream* Stream;
+	};
+	const FLatencyStream Streams[] = {{TEXT("72hz"), nullptr}, {GHeld30.Name, &GHeld30}, {GExtrapolated30.Name, &GExtrapolated30}};
+	constexpr int32 StreamCount = UE_ARRAY_COUNT(Streams);
+
+	const FMageSettingsState Saved = FMageSettings::Get();
+	FMageSettings::Restore(FMageSettingsState());
+	FAbsorbResolver Resolver;
+	FString Error;
+	if (!Resolver.Init(Error))
+	{
+		AddError(Error);
+		FMageSettings::Restore(Saved);
+		return false;
+	}
+	const double Frame = 1.0 / 72.0;
+	const double Window = Resolver.Rules().WindowS;
+	bool bPass = true;
+	TArray<double> GateErrorsMs[StreamCount];
+	int32 GateCases[StreamCount] = {};
+	int32 GateGo[StreamCount] = {};
+	int32 GateInterior[StreamCount] = {};
+	for (int32 VariantIndex = 0; VariantIndex < 3; ++VariantIndex)
+	{
+		FHandClip Source;
+		if (!LoadActionClip(*this, TEXT("ward-raise"), VariantIndex, Source))
+		{
+			bPass = false;
+			continue;
+		}
+		const FHandClipTrack* Track = WardTrack(Source);
+		const double GeoOnset = Track ? PalmSpeedOnsetS(*Track) : -1.0;
+		FWardDetector Clean;
+		double ConfirmStamp = -1.0;
+		const bool bClean = Clean.Init(Error) && RaiseOn(Source, Clean, ConfirmStamp);
+		const double Anchor = GeoOnset + 2.0 * Frame;
+		if (GeoOnset < 0.0 || !bClean || !(ConfirmStamp > Anchor))
+		{
+			AddError(FString::Printf(TEXT("ward-raise.%s has no usable 72 Hz onset %.4f and confirm %.4f: the reference is broken"),
+				VariantNames[VariantIndex], GeoOnset, ConfirmStamp));
+			bPass = false;
+			continue;
+		}
+		const double AuthoredTick = GeoOnset + Window;
+		for (const double Latency : GLatenciesS)
+		{
+			const double Scale = (ConfirmStamp - Anchor) / (ConfirmStamp - Anchor + Latency);
+			const FHandClip Delayed = MakeLatencyClip(Source, Anchor, Scale, ConfirmStamp + Latency + 0.5);
+			const bool bGate = Latency <= GLatencyGateS + 1.0e-9;
+			const int32 LatencyMs = FMath::RoundToInt(Latency * 1000.0);
+			for (int32 StreamIndex = 0; StreamIndex < StreamCount; ++StreamIndex)
+			{
+				const FLatencyStream& Entry = Streams[StreamIndex];
+				const int32 Phases = Entry.Stream ? GPhaseCount : 1;
+				const double BoundMs = Entry.Stream ? OnsetBoundMs(Entry.Stream->CameraHz) : Frame * 1000.0;
+				for (int32 PhaseIndex = 0; PhaseIndex < Phases; ++PhaseIndex)
+				{
+					const FHandClip Played = Entry.Stream ? MakeStream(Delayed, *Entry.Stream, GPhases[PhaseIndex]) : Delayed;
+					FWardDetector Trial;
+					double Confirm = -1.0;
+					const bool bRaised = Trial.Init(Error) && RaiseOn(Played, Trial, Confirm);
+					const FWardState State = Trial.GetState();
+					auto Perfect = [&](double Tick)
+					{
+						return bRaised && Resolver.Resolve(Tick, EAbsorbHitKind::Magic, 3, State.Facing, State).bPerfect;
+					};
+					const double ErrorS = bRaised ? Trial.GetLastRaise().OnsetTime - GeoOnset : 0.0;
+					const bool bWithinFrame = bRaised && FMath::Abs(ErrorS) <= Frame + 1.0e-6;
+					const bool bAtTick = Perfect(AuthoredTick);
+					const bool bBefore = Perfect(AuthoredTick - Frame);
+					const bool bAfter = Perfect(AuthoredTick + Frame);
+					const bool bEarly = ErrorS < -1.0e-9;
+					const bool bGo = bWithinFrame && (bAtTick || (bEarly && bBefore));
+					const bool bInterior = Perfect(GeoOnset + GInteriorProbesS[0]) && Perfect(GeoOnset + GInteriorProbesS[1]);
+					const bool bWithinBound = bRaised && FMath::Abs(ErrorS) * 1000.0 <= BoundMs + 1.0e-6;
+					const FString Key = FString::Printf(TEXT("%s.ward-raise.%s.p%d.l%d"), Entry.Name, VariantNames[VariantIndex], PhaseIndex, LatencyMs);
+					const bool bKnown = KnownLatencyMisses().Contains(Key);
+					const FString Line = FString::Printf(TEXT("HeldSample latency %s raised=%d onsetErrorMs=%.3f confirmShiftMs=%.3f go=%d withinFrame=%d perfect(tick-1,tick,tick+1)=%d,%d,%d interior=%d within%.1fms=%d gate=%d known=%d"),
+						*Key, bRaised ? 1 : 0, ErrorS * 1000.0, bRaised ? (Confirm - ConfirmStamp) * 1000.0 : 0.0, bGo ? 1 : 0, bWithinFrame ? 1 : 0,
+						bBefore ? 1 : 0, bAtTick ? 1 : 0, bAfter ? 1 : 0, bInterior ? 1 : 0, BoundMs, bWithinBound ? 1 : 0, bGate ? 1 : 0, bKnown ? 1 : 0);
+					UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+					AddInfo(Line);
+					if (!bGate)
+					{
+						continue;
+					}
+					if (!Entry.Stream)
+					{
+						// The latency transform is real: on the 72 Hz stream the confirm moves by the injected latency, to one
+						// frame, as Ward.OnsetCompensation asserts.
+						bPass &= TestTrue(*FString::Printf(TEXT("%s confirm tracks the injected latency"), *Key),
+							bRaised && FMath::Abs(Confirm - ConfirmStamp - Latency) <= Frame + 1.0e-4);
+					}
+					++GateCases[StreamIndex];
+					GateGo[StreamIndex] += bGo ? 1 : 0;
+					GateInterior[StreamIndex] += bInterior ? 1 : 0;
+					if (bRaised)
+					{
+						GateErrorsMs[StreamIndex].Add(ErrorS * 1000.0);
+					}
+					if (!bGo && !bKnown)
+					{
+						AddError(FString::Printf(TEXT("%s misses the D-G3 go and is not in KnownLatencyMisses"), *Key));
+						bPass = false;
+					}
+					if (bGo && bKnown)
+					{
+						AddError(FString::Printf(TEXT("%s is in KnownLatencyMisses but now holds the D-G3 go: remove it"), *Key));
+						bPass = false;
+					}
+				}
+			}
+		}
+	}
+	for (int32 StreamIndex = 0; StreamIndex < StreamCount; ++StreamIndex)
+	{
+		TArray<double>& Errors = GateErrorsMs[StreamIndex];
+		Errors.Sort();
+		const FString Line = FString::Printf(TEXT("HeldSample latency %s to 60 ms: go %d/%d, interior perfect %d/%d, onset error ms min=%.3f max=%.3f"),
+			Streams[StreamIndex].Name, GateGo[StreamIndex], GateCases[StreamIndex], GateInterior[StreamIndex], GateCases[StreamIndex],
+			Errors.Num() ? Errors[0] : 0.0, Errors.Num() ? Errors.Last() : 0.0);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+		AddInfo(Line);
+	}
+	FMageSettings::Restore(Saved);
 	return bPass;
 }
 
