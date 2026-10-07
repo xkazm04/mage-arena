@@ -2,6 +2,39 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-07 - Q9: reuse of the TV kernel, data and design accepted provisionally, and we ask
+
+> Operator, 2026-10-07, asked "Q9, due before 12 Oct: may the VR entry reuse the TV kernel, combat data and design, all
+> made on 1-2 Oct? The rules re-read today still say No pre-existing codebases.": "Accept now and ask too". Note: "record
+> the reuse as provisionally accepted in DECISIONS.md with the dated evidence, and draft the question for the operator to
+> post to the organizers before 12 Oct. A no comes back as a scope ask."
+
+- Provisionally accepted: the VR entry reuses the TV rules kernel, the pinned combat data and the game design. All were
+  authored on 1-2 Oct 2026, after the window opened on 24 Sep.
+- Evidence, rules (`/rules`, fetched 2026-10-07, HTTP 200, 183,554 bytes, `grep -F` exit 0): "conceived of and built within
+  the competition window (starting September 24, 2026). No pre-existing codebases, no shipped titles, no early access
+  builds repurposed". Also "The Project must be ORIGINAL to each Entrant".
+- Evidence, dates (read-only git on `kiro/mage-arena-tv`):
+  - `git log --reverse --format='%h %ad %cd %s' --date=iso | head -5`: first commit `1e9de1c` at 2026-10-01 23:46:39 +0200;
+    kernel commit `13256c6` at 2026-10-02 00:08:42 +0200.
+  - `git log -1 --format='%h %ad %cd %s' --date=iso baeac66`: the pinned combat data commit, 2026-10-02 13:48:12 +0200
+    (it was `68a4d68` before the 2026-10-07 history rewrite, see `REPO-LAYOUT.md`).
+  - `git log --format='%ad' --date=short | sort | head -1`: 2026-10-01, the earliest author date in the TV repo.
+  - This repo: `git log --reverse --format='%h %ad %s' --date=iso | head -1`: `5bc06ee` at 2026-10-02 17:09:32 +0200.
+  - `git grep` for any date before 2026-09-24 at `1e9de1c` and at `baeac66`: no hit in either.
+  - Caveat: author and committer dates are equal for the three commits above, but 5 of 116 TV commits differ by seconds to
+    minutes, so the rewrite did touch some dates. The earliest committer date is also 2026-10-01.
+- The constraint that forced the choice: the rule says "No pre-existing codebases"; a breach means disqualification
+  (PROJECT-PLAN R8, very high impact); and the rules page names no contact channel. It links the competition's Discussions
+  page (`/forum_topics`) and the Devpost contact page, with no mailto and no manager email.
+- Lost: accept on the dates without asking (a silent disqualification risk we can cheaply remove).
+- Lost: ask first and keep Q9 open until the reply (no reply is guaranteed, and the plan cannot wait on one).
+- Disclosure, pof: the studio tool `kiro/pof` predates the window (PROJECT-PLAN section 2, eligibility paragraph, and section 8 decision (b);
+  `build-5_8-game.log` is dated 2026-06-18). It is editor tooling and does not ship in the APK (the `MageArenaDev` row in section 7). The drafted
+  question asks about it separately, so the owner can cut that part.
+- Next: the owner posts the drafted question before 12 Oct 2026, from `docs/submission/ORGANIZER-QUESTION-Q9.md`
+  (status: draft, not sent). A "no" from the organizers comes back to the owner as a scope decision.
+
 ## 2026-10-07 - Two repositories, TV and VR; evidence out of git
 
 > "We have now two repos for TV and VR, all the other should ideally disappear split into those two, gitignore carefully
