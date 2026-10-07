@@ -189,7 +189,8 @@ private:
 	FString ClipAction() const;
 	bool ClipPlaying() const;
 	FSimVec ComputeAim(int32 Slot) const;
-	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const;
+	/** EmberEta is a hound ember's time to contact (DF-004 option A). Embers are not in ProjectileEta or MagicEta. */
+	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const;
 	/** Stamina, recovery and a blink clip already playing. No side effects. */
 	bool CanBlink(const FActor& Player) const;
 	bool TryScriptBlink();
@@ -302,6 +303,9 @@ private:
 	bool bWardStarted = false;
 	bool bWardReleased = false;
 	double WardReleaseSim = 0.0;
+	// DF-004 option A: a ward raised for one hound ember, held until that ember has landed, then dropped.
+	bool bEmberWard = false;
+	double EmberWardUntil = 0.0;
 	bool bTideStarted = false;
 	int32 SideToggle = 0;
 	bool bSawSigilHit = false;

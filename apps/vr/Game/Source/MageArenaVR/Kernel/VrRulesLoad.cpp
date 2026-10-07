@@ -318,6 +318,71 @@ bool ReadThrow(const FJsonObject& Attack, const FEnemySpec& Conscript, const FAt
 	return true;
 }
 
+// DF-004 option A. The hound's spit is an overlay row standing in for the pinned bite. Every number is tied to a pinned
+// one: family, tier and damage are the pinned onDeath ember_burst, the windup is above the positional telegraph floor,
+// the speed is slower than the pinned steel (sling_stone), and the range is the conscript throw's (checked by the caller).
+bool ReadSpit(const FJsonObject& Attack, const FEnemySpec& Hound, const FAttackSpec& Bite, const FAttackSpec& Stone, FVrAttackMode& Mode, FString& Error)
+{
+	FString ModeName;
+	FString AttackId;
+	if (!NeedString(Attack, TEXT("mode"), ModeName, Error) || !NeedString(Attack, TEXT("attackId"), AttackId, Error))
+	{
+		return false;
+	}
+	if (ModeName != TEXT("spit") || AttackId != Bite.Id)
+	{
+		return Fail(Error, TEXT("vr rules: cinder_hound mode must be spit in place of bite"));
+	}
+	if (Attack.HasField(TEXT("recoveryS")) || Attack.HasField(TEXT("cooldownS")))
+	{
+		return Fail(Error, TEXT("vr rules: cinder_hound recovery and cooldown stay on the pinned bite row"));
+	}
+	if (!Hound.OnDeath.IsSet())
+	{
+		return Fail(Error, TEXT("vr rules: pinned cinder_hound has no onDeath ember_burst"));
+	}
+	const FDeathSpec& Death = Hound.OnDeath.GetValue();
+	double Tier = 0.0;
+	if (!NeedString(Attack, TEXT("family"), Mode.Family, Error)
+		|| !NeedNumber(Attack, TEXT("tier"), Tier, Error)
+		|| !NeedNumber(Attack, TEXT("damage"), Mode.Damage, Error)
+		|| !NeedNumber(Attack, TEXT("windupS"), Mode.WindupS, Error)
+		|| !NeedNumber(Attack, TEXT("projectileMps"), Mode.ProjectileMps, Error)
+		|| !NeedNumber(Attack, TEXT("rangeM"), Mode.RangeM, Error)
+		|| !NeedBool(Attack, TEXT("deathEmber"), Mode.bDeathEmber, Error))
+	{
+		return false;
+	}
+	const TCHAR* Whys[] = {TEXT("_family"), TEXT("_tier"), TEXT("_damage"), TEXT("_windupS"), TEXT("_projectileMps"), TEXT("_rangeM"), TEXT("_deathEmber")};
+	for (const TCHAR* Why : Whys)
+	{
+		FString Text;
+		if (!Attack.TryGetStringField(Why, Text) || Text.TrimStartAndEnd().IsEmpty())
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: cinder_hound spit needs %s"), Why));
+		}
+	}
+	if (Mode.Family != Death.Family || !Near(Tier, static_cast<double>(Death.Tier)) || !Near(Mode.Damage, Death.Damage))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: spit family/tier/damage must be the pinned %s (%s / %d / %.4f)"),
+			*Death.Id, *Death.Family, Death.Tier, Death.Damage));
+	}
+	Mode.Tier = Death.Tier;
+	if (!(Mode.WindupS > KernelData().MinimumTelegraphPositionalS))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: spit windup must be above the positional telegraph floor %.2f s"),
+			KernelData().MinimumTelegraphPositionalS));
+	}
+	if (!Stone.ProjectileMps.IsSet() || !(Mode.ProjectileMps > 0.0) || !(Mode.ProjectileMps < Stone.ProjectileMps.GetValue()))
+	{
+		return Fail(Error, TEXT("vr rules: spit speed must be above zero and slower than the pinned sling stone"));
+	}
+	Mode.bThrow = true;
+	Mode.bSpit = true;
+	Mode.EnemyId = Hound.Id;
+	return true;
+}
+
 bool ProposalRequested()
 {
 	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")))
@@ -516,7 +581,9 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	}
 	bool bConscript = false;
 	bool bSlinger = false;
+	bool bHound = false;
 	FVrAttackMode Throw;
+	FVrAttackMode Spit;
 	for (const TSharedPtr<FJsonValue>& Value : *Attacks)
 	{
 		const TSharedPtr<FJsonObject> Attack = Value.IsValid() ? Value->AsObject() : nullptr;
@@ -556,6 +623,28 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 			}
 			bSlinger = true;
 		}
+		else if (EnemyId == TEXT("cinder_hound") && ModeName == TEXT("spit"))
+		{
+			if (bHound)
+			{
+				return Fail(Error, TEXT("vr rules: cinder_hound listed twice"));
+			}
+			const FEnemySpec* Hound = FindEnemy(TEXT("cinder_hound"));
+			const FAttackSpec* Bite = Hound ? FindAttack(*Hound, TEXT("bite")) : nullptr;
+			if (!Hound || !Bite)
+			{
+				return Fail(Error, TEXT("vr rules: pinned cinder_hound bite is missing"));
+			}
+			if (!ReadSpit(*Attack, *Hound, *Bite, *Stone, Spit, Error))
+			{
+				return false;
+			}
+			bHound = true;
+		}
+		else if (ModeName == TEXT("spit"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s spit is not a mode this overlay knows; only cinder_hound spits"), *EnemyId));
+		}
 		else if (ModeName == TEXT("throw"))
 		{
 			return Fail(Error, FString::Printf(TEXT("vr rules: %s throw is not a wave-1 mode this overlay knows"), *EnemyId));
@@ -568,6 +657,10 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	if (!bConscript || !bSlinger)
 	{
 		return Fail(Error, TEXT("vr rules: attacks must name conscript and slinger"));
+	}
+	if (bHound && !Near(Spit.RangeM, Throw.RangeM))
+	{
+		return Fail(Error, TEXT("vr rules: spit rangeM must be the conscript throw reach"));
 	}
 	const FSimVec Spawn = KernelData().PlayerSpawn;
 	const FSimVec Centre{
@@ -694,6 +787,10 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.Dais.MinY = Centre.Y - HalfY;
 	Out.Dais.MaxY = Centre.Y + HalfY;
 	Out.Throws.Add(Throw);
+	if (bHound)
+	{
+		Out.Throws.Add(Spit);
+	}
 	if (bHonorProposalSwitch && ProposalRequested())
 	{
 		if (!ApplyProposal(Out, Error))

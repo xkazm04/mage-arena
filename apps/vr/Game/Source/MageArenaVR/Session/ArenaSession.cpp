@@ -26,6 +26,7 @@
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
 #include "Kernel/KernelData.h"
+#include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Misc/Parse.h"
 
@@ -295,6 +296,8 @@ bool FArenaSession::Start(uint32 Seed)
 	CameraPad = 1;
 	bWardStarted = false;
 	bWardReleased = false;
+	bEmberWard = false;
+	EmberWardUntil = 0.0;
 	bTideStarted = false;
 	SideToggle = 0;
 	bSawSigilHit = false;
@@ -778,17 +781,32 @@ void FArenaSession::HandleStaffLift()
 	Note(TEXT("gesture staff-lift"));
 }
 
-void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const
+void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const
 {
 	MeleeEta = 1.0e6;
 	ProjectileEta = 1.0e6;
 	MagicEta = 1.0e6;
+	EmberEta = 1.0e6;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	if (!Player)
 	{
 		return;
 	}
 	const double Step = SimDt();
+	// DF-004 option A. A hound ember (a spit or a death ember) is magic, so the script wards it for a perfect instead of
+	// blinking it as steel. It has its own ETA, so the ward rules for other magic stay as they were. Its time is to
+	// contact (body plus projectile radius), the moment the perfect is judged.
+	const FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
+	auto IsEmber = [this, Rules](int32 OwnerId, const FString& Family) -> bool
+	{
+		if (!Rules || !Rules->bActive || Family != TEXT("magic"))
+		{
+			return false;
+		}
+		const FActor* Owner = SimFindActor(Games.State, OwnerId);
+		return Owner && Owner->Enemy.IsSet() && Rules->FindSpit(Owner->Enemy->Id) != nullptr;
+	};
+	const double ContactM = Player->Radius + KernelData().ProjectileRadiusM;
 	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
 	{
 		if (Telegraph.OwnerId == Games.PlayerId)
@@ -804,6 +822,12 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		{
 			if (SimDistance(Telegraph.Target, Player->Pos) > 1.35)
 			{
+				continue;
+			}
+			if (IsEmber(Telegraph.OwnerId, Telegraph.Family) && Telegraph.SpeedMps > 0.1)
+			{
+				const double Flight = FMath::Max(0.0, SimDistance(Telegraph.Origin, Player->Pos) - ContactM) / Telegraph.SpeedMps;
+				EmberEta = FMath::Min(EmberEta, UntilResolve + Flight);
 				continue;
 			}
 			const double Flight = Telegraph.SpeedMps > 0.1 ? SimDistance(Telegraph.Origin, Telegraph.Target) / Telegraph.SpeedMps : 0.0;
@@ -847,6 +871,11 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		const FSimVec Closest = SimAdd(Projectile.Pos, SimScale(Direction, Along));
 		if (SimDistance(Closest, Player->Pos) > Player->Radius + Projectile.Radius + 0.4)
 		{
+			continue;
+		}
+		if (IsEmber(Projectile.OwnerId, Projectile.Family))
+		{
+			EmberEta = FMath::Min(EmberEta, FMath::Max(0.0, Along - Player->Radius - Projectile.Radius) / Speed);
 			continue;
 		}
 		ProjectileEta = FMath::Min(ProjectileEta, Along / Speed);
@@ -900,8 +929,7 @@ double FArenaSession::SoonestThreat(double MeleeEta, double ProjectileEta, bool 
 		{
 			if (const FVrAttackMode* Mode = Rules->FindThrow(Spec->Id))
 			{
-				Attack.ProjectileMps = Mode->ProjectileMps;
-				Attack.RangeM = Mode->RangeM;
+				VrApplyAttackMode(*Mode, Attack);
 			}
 		}
 		const bool bRanged = Attack.ProjectileMps.IsSet();
@@ -1150,6 +1178,21 @@ bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
 	return false;
 }
 
+namespace
+{
+// DF-004 option A, reference seat only (not combat numbers). Measured on the seated rig (T18): see the report.
+// EmberRaiseLeadS: the script starts the ward this long before an ember's contact, so the kernel raise lands inside
+// combat.json absorb.perfect.windowS 0.15. Measured T18: SetWardHeld to HandleWardRaised is 0.167 s (10 ticks) on this
+// rig, and the kernel takes the raise on the next step, so 0.25 lands the fresh tick about 0.05-0.08 s before contact.
+constexpr double EmberRaiseLeadS = 0.25;
+// The measured gesture latency above. The kernel ward is up only for the lead minus this, plus EmberAfterContactS.
+constexpr double EmberGestureLatencyS = 0.167;
+// EmberHoldFireS: before that, the casting hand stops starting bolts, so no flick is in flight when the ward goes up.
+constexpr double EmberHoldFireS = 0.35;
+// EmberAfterContactS: the ember ward stays up this long past the predicted contact, then drops for the next one.
+constexpr double EmberAfterContactS = 0.10;
+}
+
 void FArenaSession::DecideScript()
 {
 	if (!Hands || Games.Phase != TEXT("active"))
@@ -1164,7 +1207,8 @@ void FArenaSession::DecideScript()
 	double MeleeEta = 1.0e6;
 	double ProjectileEta = 1.0e6;
 	double MagicEta = 1.0e6;
-	ScanThreats(MeleeEta, ProjectileEta, MagicEta);
+	double EmberEta = 1.0e6;
+	ScanThreats(MeleeEta, ProjectileEta, MagicEta, EmberEta);
 	const double Now = GetSimSeconds();
 	const bool bPlaying = ClipPlaying();
 	const FString Action = ClipAction();
@@ -1292,6 +1336,68 @@ void FArenaSession::DecideScript()
 			bWardReleased = true;
 			PlayAction(TEXT("staff-plant"));
 			Note(TEXT("script staff plant"));
+			return;
+		}
+	}
+
+	// DF-004 option A. The reference seat wards each hound ember for a perfect: a fresh raise that lands inside
+	// combat.json absorb.perfect.windowS (0.15 s) before contact. While an ember is close the casting hand holds fire:
+	// a bolt flick with the ward up is a split cast, which cannot perfect, and one with the ward down suppresses it.
+	// A planted seat does not: measured T18, warding every ember under the dome holds fire so often that the seat lost
+	// Bout 2 (live 20.45 s, proposal 29.22 s, 19 and 27 perfects). The dome's own reduction answers the embers there.
+	if (bEmberWard)
+	{
+		if (Now < EmberWardUntil)
+		{
+			return;
+		}
+		if (Hands->IsWardHeld())
+		{
+			Hands->SetWardHeld(false, EClipVariant::Normal);
+		}
+		bEmberWard = false;
+		bWardReleased = true;
+		bWardStarted = false;
+	}
+	// Mana to raise the ember ward and hold it past contact (combat.json absorb.raiseCostMana and drainPerSecond).
+	const double EmberWardMana = KernelData().Absorb.RaiseCostMana
+		+ KernelData().Absorb.DrainPerSecond(Player->Ranks.Nerve) * (EmberRaiseLeadS - EmberGestureLatencyS + EmberAfterContactS);
+	if (!bPlanted && EmberEta <= EmberRaiseLeadS + EmberHoldFireS)
+	{
+		const double RaiseMana = EmberWardMana;
+		if (EmberEta <= EmberRaiseLeadS)
+		{
+			if (!bAbsorb && !Hands->IsWardHeld() && Player->Mana >= RaiseMana)
+			{
+				RaiseWard();
+				bEmberWard = true;
+				EmberWardUntil = Now + EmberEta + EmberAfterContactS;
+				Note(FString::Printf(TEXT("script ember ward eta=%.3f t=%.3f"), EmberEta, Now));
+				return;
+			}
+		}
+		else if (bAbsorb || Hands->IsWardHeld())
+		{
+			// A stale ward cannot perfect. Drop it now so the raise for this ember is fresh (absorb.minReleaseBeforeReRaiseS).
+			if (Hands->IsWardHeld())
+			{
+				Hands->SetWardHeld(false, EClipVariant::Normal);
+			}
+			bWardReleased = true;
+			bWardStarted = false;
+		}
+		if (Player->Mana >= RaiseMana)
+		{
+			return;
+		}
+	}
+	// While any ember is telegraphed or in the air, keep the mana for its ward: no cast that would spend below it.
+	if (!bPlanted && EmberEta < 1.0e5)
+	{
+		const FSpell* Bolt = SpellFor(*Player, 0);
+		const double BoltMana = Bolt ? Bolt->Mana : 0.0;
+		if (Player->Mana - BoltMana < EmberWardMana)
+		{
 			return;
 		}
 	}

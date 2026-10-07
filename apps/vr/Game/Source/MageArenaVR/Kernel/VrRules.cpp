@@ -35,6 +35,25 @@ const FVrAttackMode* FVrRuleset::FindThrow(const FString& EnemyId) const
 	return nullptr;
 }
 
+const FVrAttackMode* FVrRuleset::FindSpit(const FString& EnemyId) const
+{
+	const FVrAttackMode* Mode = FindThrow(EnemyId);
+	return Mode && Mode->bSpit ? Mode : nullptr;
+}
+
+void VrApplyAttackMode(const FVrAttackMode& Mode, FAttackSpec& Attack)
+{
+	Attack.ProjectileMps = Mode.ProjectileMps;
+	Attack.RangeM = Mode.RangeM;
+	if (Mode.bSpit)
+	{
+		Attack.Family = Mode.Family;
+		Attack.Tier = Mode.Tier;
+		Attack.Damage = Mode.Damage;
+		Attack.WindupS = Mode.WindupS;
+	}
+}
+
 FVrAabb FVrRuleset::HoldBox() const
 {
 	return Dais.Expanded(StandoffM);
