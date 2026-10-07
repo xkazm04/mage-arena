@@ -267,6 +267,12 @@ function clipsRoot() {
   return path.resolve(here, '..', '..', 'Game', 'Clips');
 }
 
+// The generated test clips (corpus, impostors, noise, mouse). Kept out of Game/Clips, which the package stages whole.
+export function testClipsRoot() {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(here, '..', '..', 'Game', 'TestClips');
+}
+
 function wipeJsonl(dir) {
   fs.mkdirSync(dir, { recursive: true });
   for (const name of fs.readdirSync(dir)) {
@@ -500,7 +506,7 @@ export function buildNoiseClips() {
 }
 
 function writeNoise(used) {
-  const dir = path.join(clipsRoot(), 'noise');
+  const dir = path.join(testClipsRoot(), 'noise');
   wipeJsonl(dir);
   const seconds = 36;
   let total = 0;
@@ -526,7 +532,7 @@ function writeNoise(used) {
   if (Math.abs(total - 180) > 1e-6) {
     throw new Error(`noise total ${total}s is not 180s`);
   }
-  process.stdout.write(`wrote ${NOISE_PLAN.length} noise clips (${total.toFixed(3)}s) to Game/Clips/noise\n`);
+  process.stdout.write(`wrote ${NOISE_PLAN.length} noise clips (${total.toFixed(3)}s) to Game/TestClips/noise\n`);
 }
 
 function impostorPhase(kind) {
@@ -675,7 +681,7 @@ export function sampleImpostor(kind, params, t) {
 }
 
 function writeImpostors(used) {
-  const dir = path.join(clipsRoot(), 'impostors');
+  const dir = path.join(testClipsRoot(), 'impostors');
   wipeJsonl(dir);
   let count = 0;
   for (let k = 0; k < IMPOSTOR_KINDS.length; k++) {
@@ -702,18 +708,18 @@ function writeImpostors(used) {
       count++;
     }
   }
-  process.stdout.write(`wrote ${count} impostor clips to Game/Clips/impostors\n`);
+  process.stdout.write(`wrote ${count} impostor clips to Game/TestClips/impostors\n`);
 }
 
 export function writeCorpus(n, baseSeed) {
   const root = clipsRoot();
-  const dir = path.join(root, 'corpus');
+  const dir = path.join(testClipsRoot(), 'corpus');
   wipeJsonl(dir);
   const used = canonicalSeedSet();
   for (const seed of seedsOnDisk(path.join(root, 'templates'))) {
     used.add(seed);
   }
-  for (const seed of seedsOnDisk(path.join(root, 'mouse'))) {
+  for (const seed of seedsOnDisk(path.join(testClipsRoot(), 'mouse'))) {
     used.add(seed);
   }
   let count = 0;
@@ -738,7 +744,7 @@ export function writeCorpus(n, baseSeed) {
       }
     }
   }
-  process.stdout.write(`wrote ${count} corpus clips to Game/Clips/corpus\n`);
+  process.stdout.write(`wrote ${count} corpus clips to Game/TestClips/corpus\n`);
   writeNoise(used);
   writeImpostors(used);
 }

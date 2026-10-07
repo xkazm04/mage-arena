@@ -717,9 +717,10 @@ struct FCorpusFigures
 	int32 FalseCasts() const { return ImpostorCasts + NoiseCasts; }
 };
 
+/** Sub is a generated test-clip folder (corpus, impostors, noise), kept out of the staged Clips folder. */
 void CollectJsonl(const TCHAR* Sub, TArray<FString>& Out)
 {
-	IFileManager::Get().FindFilesRecursive(Out, *FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), Sub), TEXT("*.jsonl"), true, false);
+	IFileManager::Get().FindFilesRecursive(Out, *FPaths::Combine(FPaths::ProjectDir(), TEXT("TestClips"), Sub), TEXT("*.jsonl"), true, false);
 	Out.Sort();
 }
 

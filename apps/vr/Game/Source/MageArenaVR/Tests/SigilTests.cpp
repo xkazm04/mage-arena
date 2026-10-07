@@ -24,6 +24,12 @@ FString ClipsDir()
 	return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"));
 }
 
+/** The generated corpus, impostors, noise and mouse clips (clipgen). Not under Clips, which the package stages whole. */
+FString TestClipsDir()
+{
+	return FPaths::Combine(FPaths::ProjectDir(), TEXT("TestClips"));
+}
+
 void CollectJsonl(const FString& Directory, TArray<FString>& OutFiles)
 {
 	IFileManager::Get().FindFilesRecursive(OutFiles, *Directory, TEXT("*.jsonl"), true, false);
@@ -369,7 +375,7 @@ bool FMageArenaSigilsAccuracy::RunTest(const FString& Parameters)
 	};
 
 	TArray<FString> Corpus;
-	CollectJsonl(FPaths::Combine(ClipsDir(), TEXT("corpus")), Corpus);
+	CollectJsonl(FPaths::Combine(TestClipsDir(), TEXT("corpus")), Corpus);
 	for (const FString& Path : Corpus)
 	{
 		FHandClip Clip;
@@ -381,7 +387,7 @@ bool FMageArenaSigilsAccuracy::RunTest(const FString& Parameters)
 		Consume(Clip, false);
 	}
 	TArray<FString> MouseFiles;
-	CollectJsonl(FPaths::Combine(ClipsDir(), TEXT("mouse")), MouseFiles);
+	CollectJsonl(FPaths::Combine(TestClipsDir(), TEXT("mouse")), MouseFiles);
 	for (const FString& Path : MouseFiles)
 	{
 		FHandClip Clip;
@@ -397,7 +403,7 @@ bool FMageArenaSigilsAccuracy::RunTest(const FString& Parameters)
 	FImpostorBucket Impostors[UE_ARRAY_COUNT(ImpostorNames)];
 	TArray<double> ImpostorDistances;
 	TArray<FString> ImpostorFiles;
-	CollectJsonl(FPaths::Combine(ClipsDir(), TEXT("impostors")), ImpostorFiles);
+	CollectJsonl(FPaths::Combine(TestClipsDir(), TEXT("impostors")), ImpostorFiles);
 	for (const FString& Path : ImpostorFiles)
 	{
 		FHandClip Clip;
@@ -530,7 +536,7 @@ bool FMageArenaSigilsNoFalseCasts::RunTest(const FString& Parameters)
 	const FQPointCloudRecognizer& Recognizer = Sigils->GetRecognizer();
 
 	TArray<FString> Files;
-	CollectJsonl(FPaths::Combine(ClipsDir(), TEXT("noise")), Files);
+	CollectJsonl(FPaths::Combine(TestClipsDir(), TEXT("noise")), Files);
 	bPass &= TestTrue(TEXT("noise clips exist"), Files.Num() > 0);
 
 	int32 Casts = 0;

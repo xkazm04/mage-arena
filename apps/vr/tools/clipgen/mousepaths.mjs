@@ -2,14 +2,12 @@
 // 30 paths per class. Seeds sit in the mouse band and never overlap templates or the corpus.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { SIGIL_CLASSES, MOUSE_BASE, buildVariedClip } from './corpus.mjs';
+import { SIGIL_CLASSES, MOUSE_BASE, buildVariedClip, testClipsRoot } from './corpus.mjs';
 
 const PER_CLASS = 30;
 
 function main() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const dir = path.resolve(here, '..', '..', 'Game', 'Clips', 'mouse');
+  const dir = path.join(testClipsRoot(), 'mouse');
   fs.mkdirSync(dir, { recursive: true });
   for (const name of fs.readdirSync(dir)) {
     if (name.endsWith('.jsonl')) {
@@ -26,7 +24,7 @@ function main() {
       count++;
     }
   }
-  process.stdout.write(`wrote ${count} mouse clips to Game/Clips/mouse\n`);
+  process.stdout.write(`wrote ${count} mouse clips to Game/TestClips/mouse\n`);
 }
 
 main();
