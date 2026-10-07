@@ -100,6 +100,60 @@ bool FArenaSession::LoadDayData()
 	return true;
 }
 
+FString FArenaSession::CollarFilePath() const
+{
+	return FPaths::Combine(FPaths::GetPath(SaveFilePath()), TEXT("collar.ledger.json"));
+}
+
+bool FArenaSession::LoadCollarFile(const TCHAR* Context)
+{
+	FCollarWeights Weights;
+	FString Error;
+	if (!LoadCollarWeights(Weights, Error))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("%s: %s"), Context, *Error);
+		return false;
+	}
+	Collar.SetWeights(Weights);
+	return true;
+}
+
+int32 FArenaSession::DayCollar(const TCHAR* Field, int32 BoutValue) const
+{
+	if (!bDay)
+	{
+		return BoutValue;
+	}
+	int32 Sum = 0;
+	if (const FArenaTier* Tier = Tiro())
+	{
+		for (const FArenaWave& Wave : Tier->Waves)
+		{
+			double Value = 0.0;
+			if (Flags.GetNumber(FArenaFlags::TiroKey(Wave.N, Field), Value))
+			{
+				Sum += static_cast<int32>(Value);
+			}
+		}
+	}
+	// The bout in progress is not in the flags until it ends.
+	if (Games.Phase == TEXT("active") && !bRecorded)
+	{
+		Sum += BoutValue;
+	}
+	return Sum;
+}
+
+int32 FArenaSession::GetDayCracks() const
+{
+	return DayCollar(TEXT("cracks"), Collar.GetBoutCracks());
+}
+
+int32 FArenaSession::GetDayTithe() const
+{
+	return DayCollar(TEXT("tithe"), Collar.GetBoutTithe());
+}
+
 FString FArenaSession::FlagsFilePath() const
 {
 	return FPaths::Combine(FPaths::GetPath(SaveFilePath()), TEXT("arena-flags.json"));
@@ -154,6 +208,7 @@ void FArenaSession::ResetBoutScript()
 	StaffPlantsAtBout = StaffPlants;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	BoutPerfectsStart = Player ? Player->Metrics.Perfects : 0;
+	Collar.BeginBout(Player ? Player->Water.Crests : 0);
 	if (Hands)
 	{
 		Hands->StopAll();
@@ -293,9 +348,24 @@ void FArenaSession::RecordBout(bool bWon)
 	Flags.SetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts + 1.0);
 	Flags.SetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), static_cast<double>(Perfects));
 	Flags.SetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
+	// T22: cracks and tithe add up over every attempt of the bout this day (a lost attempt still cracked the collar and
+	// still spilled magic); the day's totals are the sum over the bouts.
+	double DayCracks = 0.0;
+	double DayTithe = 0.0;
+	Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), DayCracks);
+	Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), DayTithe);
+	Flags.SetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), DayCracks + Collar.GetBoutCracks());
+	Flags.SetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), DayTithe + Collar.GetBoutTithe());
 	SaveFlags();
+	Collar.CommitBout();
+	if (!Collar.SaveLifetime(CollarFilePath()))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("Could not save the collar ledger to %s"), *CollarFilePath());
+	}
 	Note(FString::Printf(TEXT("day bout=%d %s t=%.2f attempts=%.0f perfects=%d"), WaveN, bWon ? TEXT("won") : TEXT("lost"), Seconds,
 		Attempts + 1.0, Perfects));
+	Note(FString::Printf(TEXT("day collar bout=%d cracks=%d tithe=%d lifetimeCracks=%d lifetimeTithe=%d"), WaveN, Collar.GetBoutCracks(),
+		Collar.GetBoutTithe(), Collar.GetLifetimeCracks(), Collar.GetLifetimeTithe()));
 }
 
 void FArenaSession::EnterAftermath(bool bWon)
@@ -402,14 +472,21 @@ FString FArenaSession::GetTabletText() const
 	{
 		return FString();
 	}
+	// T22: the only place the collar's numbers show. Columns: bout, kind, result, time, tries, Cracks, Tithe.
 	TArray<FString> Rows;
 	Rows.Add(TeachString(TEXT("tablet.title")));
+	Rows.Add(FString::Printf(TEXT("%s  %s  %s"), *TeachString(TEXT("tablet.columns")), *TeachString(TEXT("tablet.cracks")),
+		*TeachString(TEXT("tablet.tithe"))));
+	int32 DayCracks = 0;
+	int32 DayTithe = 0;
 	for (int32 Index = 0; Index < Tier->Waves.Num(); ++Index)
 	{
 		const FArenaWave& Wave = Tier->Waves[Index];
 		bool bWon = false;
 		double Seconds = 0.0;
 		double Attempts = 0.0;
+		double Cracks = 0.0;
+		double Tithe = 0.0;
 		const bool bHave = Flags.GetBool(FArenaFlags::TiroKey(Wave.N, TEXT("won")), bWon)
 			&& Flags.GetNumber(FArenaFlags::TiroKey(Wave.N, TEXT("time")), Seconds)
 			&& Flags.GetNumber(FArenaFlags::TiroKey(Wave.N, TEXT("attempts")), Attempts);
@@ -418,8 +495,17 @@ FString FArenaSession::GetTabletText() const
 			Rows.Add(FString::Printf(TEXT("%d  %s  -"), Wave.N, *Wave.Kind));
 			continue;
 		}
-		Rows.Add(FString::Printf(TEXT("%d  %s  %s  %.1f s  tries %.0f"), Wave.N, *Wave.Kind, bWon ? TEXT("won") : TEXT("lost"), Seconds, Attempts));
+		Flags.GetNumber(FArenaFlags::TiroKey(Wave.N, TEXT("cracks")), Cracks);
+		Flags.GetNumber(FArenaFlags::TiroKey(Wave.N, TEXT("tithe")), Tithe);
+		DayCracks += static_cast<int32>(Cracks);
+		DayTithe += static_cast<int32>(Tithe);
+		Rows.Add(FString::Printf(TEXT("%d  %s  %s  %.1f s  x%.0f  %.0f  %.0f"), Wave.N, *Wave.Kind, bWon ? TEXT("won") : TEXT("lost"), Seconds,
+			Attempts, Cracks, Tithe));
 	}
+	const FString CracksLabel = TeachString(TEXT("tablet.cracks"));
+	const FString TitheLabel = TeachString(TEXT("tablet.tithe"));
+	Rows.Add(FString::Printf(TEXT("%s:  %s %d  %s %d"), *TeachString(TEXT("tablet.day")), *CracksLabel, DayCracks, *TitheLabel, DayTithe));
+	Rows.Add(FString::Printf(TEXT("%s:  %s %d"), *TeachString(TEXT("tablet.lifetime")), *CracksLabel, Collar.GetLifetimeCracks()));
 	return FString::Join(Rows, TEXT("\n"));
 }
 

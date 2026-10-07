@@ -338,7 +338,7 @@ bool FArenaSession::MakeQuietArena(uint32 Seed)
 bool FArenaSession::BeginArc(uint32 Seed)
 {
 	BoutSeed = Seed;
-	if (!LoadTeachData() || !LoadStrings() || !LoadDayData())
+	if (!LoadTeachData() || !LoadStrings() || !LoadDayData() || !LoadCollarFile(TEXT("Arc failed")))
 	{
 		return false;
 	}
@@ -349,6 +349,9 @@ bool FArenaSession::BeginArc(uint32 Seed)
 	StoryHoldStone = -1;
 	bStoryCue = false;
 	Flags.Load(FlagsFilePath());
+	// T22: the lifetime collar. A missing file is a new collar; a corrupt one starts at 0, like a corrupt save.
+	Collar.LoadLifetime(CollarFilePath());
+	Collar.BeginBout();
 	bKeepChain = false;
 	Chain.Reset();
 	bResumeGate = false;
@@ -1394,7 +1397,8 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 			{
 				BoutWave = 0;
 				ClearSavedBout();
-				// Starting over forgets the day's arena flags too.
+				// Starting over forgets the day's arena flags too, and with them the day's Cracks and Tithe tally. The lifetime
+				// Cracks in collar.ledger.json stay: the collar remembers every crack, whatever day the player starts over.
 				Flags.Reset();
 				IFileManager::Get().Delete(*FlagsFilePath(), false, true, true);
 				Note(TEXT("day start over"));

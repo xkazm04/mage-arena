@@ -30,6 +30,59 @@ EAbsorbHitKind KindFromFamily(const FString& Family)
 	return EAbsorbHitKind::Magic;
 }
 
+// T22 collar events. They exist on the ruleset path only: conformance runs without a ruleset and its pinned event logs
+// were recorded without them, so the null path stays byte-identical. Team 0 is the player's side (the slice seats one
+// actor there).
+bool IsUnblockableThreatTo(const FActor& Target, const FActor* Owner, const FString& Family)
+{
+	return Family == TEXT("unblockable") && Target.Team == 0 && !Target.bDown && (!Owner || Owner->Team != 0);
+}
+
+// A team-0 projectile that has stopped (RemainingM at or below the epsilon) ends its activation when no other
+// projectile of that activation is still flying or stops later in the list. The activation is a miss when none of its
+// hits damaged anyone. An opposing unblockable that stops without touching a team-0 actor was left: a dodge.
+void CollarProjectileDone(FArenaState& State, FVrRuleset& Rules, int32 DoneIndex)
+{
+	const FProjectile Done = State.Projectiles[DoneIndex];
+	const FActor* Owner = SimFindActor(State, Done.OwnerId);
+	if (Done.bReflected)
+	{
+		Rules.ReflectedCasters.Remove(Done.Id);
+	}
+	else if (Owner && Owner->Team == 0)
+	{
+		bool bLast = true;
+		for (int32 Index = 0; Index < State.Projectiles.Num(); ++Index)
+		{
+			const FProjectile& Other = State.Projectiles[Index];
+			if (Index != DoneIndex && Other.ActivationId == Done.ActivationId && Other.OwnerId == Done.OwnerId
+				&& (Other.RemainingM > ProjectileRemainEpsilon || Index > DoneIndex))
+			{
+				bLast = false;
+				break;
+			}
+		}
+		if (bLast)
+		{
+			if (!Rules.CollarDamaged.Contains(Done.ActivationId))
+			{
+				Emit(State, TEXT("miss"), *Owner, static_cast<double>(Done.Tier));
+			}
+			Rules.CollarDamaged.Remove(Done.ActivationId);
+		}
+	}
+	if (Done.Family == TEXT("unblockable") && (!Owner || Owner->Team != 0))
+	{
+		for (const FActor& Actor : State.Actors)
+		{
+			if (IsUnblockableThreatTo(Actor, Owner, Done.Family) && !Done.HitIds.Contains(Actor.Id))
+			{
+				Emit(State, TEXT("dodge"), Actor, static_cast<double>(Done.Tier), Done.OwnerId);
+			}
+		}
+	}
+}
+
 bool WallClaimsProjectile(const FArenaState& State, const FVrWall& Wall, const FProjectile& Projectile, const FActor* ProjectileOwner)
 {
 	if (Projectile.OwnerId == Wall.OwnerId)
@@ -89,25 +142,33 @@ void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 		else
 		{
 			const FSimVec End = SimAdd(Telegraph.Origin, SimScale(Direction, Telegraph.RangeM));
+			auto InShape = [&Telegraph, &Direction, &End](const FSimVec& Pos, double Radius)
+			{
+				if (Telegraph.Kind == TEXT("area"))
+				{
+					return SimDistance(Telegraph.Target, Pos) <= Telegraph.WidthM + Radius;
+				}
+				if (Telegraph.Kind == TEXT("melee"))
+				{
+					return SimDistance(Telegraph.Origin, Pos) <= Telegraph.RangeM + Radius
+						&& SimInArc(Direction, SimSub(Pos, Telegraph.Origin), Telegraph.WidthM);
+				}
+				return SimSegmentHit(Telegraph.Origin, End, Pos, Telegraph.WidthM * 0.5 + Radius).IsSet();
+			};
+			bool bDamagedAny = false;
 			for (FActor& Target : State.Actors)
 			{
 				if (Target.Team == Owner->Team || Target.bDown)
 				{
 					continue;
 				}
-				bool bInShape = false;
-				if (Telegraph.Kind == TEXT("area"))
+				const bool bInShape = InShape(Target.Pos, Target.Radius);
+				// T22 dodge: an unblockable that resolves on a blinking target, or off a target it was aimed at (its
+				// aim point is inside its own shape, so staying put would have been a hit).
+				if (Rules && IsUnblockableThreatTo(Target, Owner, Telegraph.Family)
+					&& (bInShape ? State.Tick < Target.ImmuneUntil : InShape(Telegraph.Target, Target.Radius)))
 				{
-					bInShape = SimDistance(Telegraph.Target, Target.Pos) <= Telegraph.WidthM + Target.Radius;
-				}
-				else if (Telegraph.Kind == TEXT("melee"))
-				{
-					bInShape = SimDistance(Telegraph.Origin, Target.Pos) <= Telegraph.RangeM + Target.Radius
-						&& SimInArc(Direction, SimSub(Target.Pos, Telegraph.Origin), Telegraph.WidthM);
-				}
-				else
-				{
-					bInShape = SimSegmentHit(Telegraph.Origin, End, Target.Pos, Telegraph.WidthM * 0.5 + Target.Radius).IsSet();
+					Emit(State, TEXT("dodge"), Target, static_cast<double>(Telegraph.Tier), Telegraph.OwnerId);
 				}
 				if (!bInShape)
 				{
@@ -127,6 +188,7 @@ void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 				Hit.bPierceShields = Telegraph.bPierceShields;
 				Hit.Delivery = Telegraph.Kind == TEXT("melee") ? TEXT("melee") : TEXT("area");
 				const FSimHitResult Result = ResolveHit(State, Target, Hit, Rules);
+				bDamagedAny |= Result.Damage > 0.0;
 				if (!bImmune && !Result.bPerfect && !Result.bEvaded && !Target.bDown)
 				{
 					if (Telegraph.RootS > 0.0)
@@ -140,6 +202,11 @@ void UpdateTelegraphs(FArenaState& State, FVrRuleset* Rules)
 						Target.Pos = ConstrainToArena(SimAdd(Target.Pos, SimScale(PullDirection, Amount)), Target.Radius);
 					}
 				}
+			}
+			// T22 miss: a team-0 area, lane or melee that could damage and damaged nobody.
+			if (Rules && Owner->Team == 0 && Telegraph.Damage > 0.0 && !bDamagedAny)
+			{
+				Emit(State, TEXT("miss"), *Owner, static_cast<double>(Telegraph.Tier));
 			}
 			if (Telegraph.Kind == TEXT("charge"))
 			{
@@ -247,8 +314,27 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 			Hit.bPierceShields = Projectile.bPierceShields;
 			Hit.Delivery = (Projectile.BurstRadiusM > 0.0 || Projectile.bPiercing) ? TEXT("area") : TEXT("projectile");
 			Hit.MomentumOnHit = Projectile.MomentumOnHit;
+			// T22 dodge: an opposing unblockable reaching a team-0 actor in blink i-frames.
+			const bool bBlinkedThrough = Rules && IsUnblockableThreatTo(*First, Owner, Projectile.Family) && State.Tick < First->ImmuneUntil;
 			const FSimHitResult Result = ResolveHit(State, *First, Hit, Rules);
 			Projectile.HitIds.Add(First->Id);
+			if (bBlinkedThrough)
+			{
+				Emit(State, TEXT("dodge"), *First, static_cast<double>(Projectile.Tier), Projectile.OwnerId);
+			}
+			if (Rules && Result.Damage > 0.0)
+			{
+				if (Owner && Owner->Team == 0 && !Projectile.bReflected)
+				{
+					Rules->CollarDamaged.Add(Projectile.ActivationId);
+				}
+				// T22: a reflected projectile that damages the caster it came from.
+				const int32* From = Projectile.bReflected ? Rules->ReflectedCasters.Find(Projectile.Id) : nullptr;
+				if (From && *From == First->Id && Owner)
+				{
+					Emit(State, TEXT("reflectHit"), *Owner, Result.Damage, First->Id);
+				}
+			}
 			if (Result.bEvaded)
 			{
 				// Air Form: the bolt passes through the evading body and flies on. It cannot hit that body again.
@@ -275,6 +361,7 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 				else if (ReflectProjectile(State, *First, Projectile) && Rules)
 				{
 					Emit(State, TEXT("reflect"), *First, static_cast<double>(Tier), Caster);
+					Rules->ReflectedCasters.Add(State.Projectiles.Last().Id, Caster);
 				}
 			}
 			if (Projectile.BurstRadiusM > 0.0 && !Result.bPerfect)
@@ -287,8 +374,12 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 						FHit Burst = Hit;
 						Burst.Source = First->Pos;
 						Burst.Delivery = TEXT("area");
-						ResolveHit(State, Target, Burst, Rules);
+						const FSimHitResult BurstResult = ResolveHit(State, Target, Burst, Rules);
 						Projectile.HitIds.Add(Target.Id);
+						if (Rules && BurstResult.Damage > 0.0 && Owner && Owner->Team == 0 && !Projectile.bReflected)
+						{
+							Rules->CollarDamaged.Add(Projectile.ActivationId);
+						}
 					}
 				}
 			}
@@ -319,6 +410,16 @@ void UpdateProjectiles(FArenaState& State, FVrRuleset* Rules)
 		else
 		{
 			MoveOn(Projectile);
+		}
+	}
+	if (Rules)
+	{
+		for (int32 Index = 0; Index < State.Projectiles.Num(); ++Index)
+		{
+			if (!(State.Projectiles[Index].RemainingM > ProjectileRemainEpsilon))
+			{
+				CollarProjectileDone(State, *Rules, Index);
+			}
 		}
 	}
 	State.Projectiles.RemoveAll([](const FProjectile& Projectile) { return !(Projectile.RemainingM > ProjectileRemainEpsilon); });

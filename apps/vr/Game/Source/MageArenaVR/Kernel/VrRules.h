@@ -220,6 +220,11 @@ struct FVrRuleset
 	TMap<int32, int32> SplitIdleTicks;
 	TArray<FString> Refusals;
 	FVrRivalRuntime RivalRuntime;
+	// T22 collar events, runtime only and never hashed. Activation ids of team-0 casts that damaged someone (a miss is
+	// emitted for an activation that ends without one), and the original caster of each live reflected projectile, by
+	// projectile id (a reflectHit is emitted when it damages that caster).
+	TSet<int32> CollarDamaged;
+	TMap<int32, int32> ReflectedCasters;
 
 	const FVrAttackMode* FindThrow(const FString& EnemyId) const;
 	// The spit mode for this enemy id, or null. A spit is also returned by FindThrow.

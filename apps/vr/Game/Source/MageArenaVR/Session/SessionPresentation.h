@@ -85,6 +85,8 @@ private:
 	void EnsurePhaseVisuals(const FArenaSession& Session);
 	void SyncTablet(const FArenaSession& Session);
 	void SyncPhaseVisuals(const FArenaSession& Session, double Now);
+	void EnsureCollarVisuals(const FArenaSession& Session);
+	void SyncCollarVisuals(const FArenaSession& Session);
 	UCameraComponent* FindCamera() const;
 
 	UPROPERTY()
@@ -227,6 +229,19 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> TabletText;
+
+	// T22 diegetic collar feedback, no numbers: a bright seam flashes on both wrist cuffs on each Crack, and two greybox
+	// Wardstones at the arena edge (inside the front 70 degree arc) glow with the day's Tithe and pulse on each point.
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CrackSeams;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Wardstones;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> WardstoneCaps;
+
+	bool bCollarVisuals = false;
 	double PhaseAt = -1.0;
 	int32 PhaseRivalId = 0;
 

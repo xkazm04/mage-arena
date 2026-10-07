@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "_about": "T22: the collar ledger. Every bout tallies Cracks (clean play) and Tithe (magic spilled into the sand) from kernel events; the ledger reads events and never writes the kernel, so no combat number lives here. Cracks persist across Games days (lifetime, collar.ledger.json next to bout.txt) and will open the Breaking; Tithe feeds the Wardstones. Each weight is the points one event adds. Strict loader: every number needs its _<key> line, unknown keys fail the load, and a missing or bad file fails the session start. The weights are proposals: DECISIONS 2026-10-07 'v2 vision accepted' (the collar economy) names the sources, not the numbers.",
+  "cracks": {
+    "perfect": 1,
+    "_perfect": "Proposal, owner sign-off pending. DECISIONS 2026-10-07 'v2 vision accepted': 'Cracks (clean play ...)'; V2-VISION wave 2 lists perfect absorbs first. One kernel perfect event on the player.",
+    "reflect": 1,
+    "_reflect": "Proposal, owner sign-off pending. DECISIONS 2026-10-07 (the collar economy); V2-VISION wave 2: 'reflections'. One kernel reflect event by the player (Mirror II-A sends the projectile back, T20).",
+    "reflectHitsCaster": 1,
+    "_reflectHitsCaster": "Proposal, owner sign-off pending. Card T22: 'a reflected projectile that hits its caster: +1 more'. One reflectHit event: a projectile the player reflected damages the mage who cast it.",
+    "unblockableBlinked": 2,
+    "_unblockableBlinked": "Proposal, owner sign-off pending. DECISIONS 2026-10-07 (the collar economy); V2-VISION wave 2: 'a clean blink through a black core'. One dodge event: an opposing unblockable resolves while the player is in blink i-frames, or off the player when its aim would have hit them.",
+    "_spare": "Reserved for T25 (sparing at missio). Accepted and ignored until it has a source.",
+    "_interrupt": "Reserved for T29 (a hit inside a mage's cast tell). Accepted and ignored until it has a source."
+  },
+  "tithe": {
+    "areaCastTier3Plus": 2,
+    "_areaCastTier3Plus": "Proposal, owner sign-off pending. DECISIONS 2026-10-07 'v2 vision accepted': 'Tithe (spilled magic ...)'; V2-VISION wave 2: 'tier III-IV area spells'. One player cast of a tier III or IV spell whose shape is an area (cone, ring, damaging zone, the Return Tide wave, a burst) or several projectiles (Twin Tides, Rain of Orbs).",
+    "missedCast": 1,
+    "_missedCast": "Proposal, owner sign-off pending. V2-VISION wave 2: 'missed casts'. One miss event: a player projectile cast (all its projectiles) or a player area ends without damaging anyone. Bolts count.",
+    "crest": 1,
+    "_crest": "Proposal, owner sign-off pending. V2-VISION wave 2: 'Crests spent on spectacle'. One Crest the player spends (the kernel's Crest counter rises; a split Bolt at Flow 5 does not spend it, DECISIONS 2026-10-07 split hands)."
+  },
+  "wardstones": {
+    "fullGlowTithe": 30,
+    "_fullGlowTithe": "Presentation only, proposal. The day's Tithe at which the two greybox Wardstones reach full glow (V2-VISION wave 4: 'the Wardstones pulse ... on Tithe'). Brightness rises linearly from dim at 0."
+  }
+}

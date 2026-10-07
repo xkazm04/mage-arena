@@ -388,6 +388,8 @@ void FVrRuleset::ClearRuntime()
 	SplitIdleTicks.Reset();
 	Refusals.Reset();
 	RivalRuntime = FVrRivalRuntime();
+	CollarDamaged.Reset();
+	ReflectedCasters.Reset();
 }
 
 bool FVrRuleset::IsPlanted(int32 ActorId) const

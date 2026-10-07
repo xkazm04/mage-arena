@@ -823,7 +823,8 @@ bool FMageArenaDayFlags::RunTest(const FString& Parameters)
 	FArenaFlags Read;
 	bPass &= TestTrue(TEXT("flags file loads"), Read.Load(Session.FlagsFilePath()));
 	bPass &= TestEqual(TEXT("flags file path"), Session.FlagsFilePath(), FPaths::Combine(Rig.Dir, TEXT("arena-flags.json")));
-	bPass &= TestEqual(TEXT("eight flags (two bouts, four fields)"), Read.Num(), 8);
+	// T22 adds .cracks and .tithe per bout (both 0 here: an idle seat).
+	bPass &= TestEqual(TEXT("twelve flags (two bouts, six fields)"), Read.Num(), 12);
 	double FileTime = 0.0;
 	bPass &= TestTrue(TEXT("file w1.time"), Read.GetNumber(TEXT("arena.tiro.1.w1.time"), FileTime) && FMath::IsNearlyEqual(FileTime, 121.0 / 60.0, 1.0e-9));
 	Session.Unbind();
