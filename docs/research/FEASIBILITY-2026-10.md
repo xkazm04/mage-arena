@@ -238,6 +238,9 @@ competition rules are therefore **not re-checked** (log 1).
     - declare the structs by hand from the spec, since the engine header lacks them.
     - That gives the real camera rate and the prediction horizon on every trace. It also lets V2 replay either stream.
   - This needs an OpenXR module dependency in `MageArenaVR.Build.cs`. Another worker holds that file, as in F8.
+- **Status:** text applied 2026-10-07 in 8e30100. Before, the plan rows said "sensor time" and `CLIP-SCHEMA.md` said repeated poses mark the camera rate. After, `PROJECT-PLAN.md:202`, `:331` and `:390` say "display time"; `CLIP-SCHEMA.md:149` says recorded poses are extrapolated to display time by default and reserves `captureTime` for a later schema version; the V1 week row (`PROJECT-PLAN.md:227`) has the `Camera FPS` day-one step in its measured-by text.
+  - **Proven:** the text is in place on master.
+  - **Not proven or not done:** the day-one probe and the recorder's `captureTime`, both V1. The V1 day-one probe also checks whether the runtime extrapolates pinch strength. In G1's model, extrapolated pinch tripled the zigzag false casts at 30 Hz, from 9/180 to 30/180.
 - **Cost:** M (text S).
 - **When:** the text before the gate; the probe and recorder at V1.
 - **Verifiable headless:** the text and the schema yes; the rate and horizon no.
@@ -270,6 +273,7 @@ competition rules are therefore **not re-checked** (log 1).
   - Do it after hands work, as Meta's page says, not before the gate.
   - The alternative is to keep `ControllersAndHands` and add a "put the controllers down" screen on the switch. That
     is more work for no gain in a hands-only game.
+- **Status:** not applied. Scheduled for V1, after hands work on device: `HandsOnly`, plus a `required="true"` assertion in `package-android.ps1`, as Meta's page says.
 - **Cost:** S.
 - **When:** V1, after the first on-device hands run.
 - **Verifiable headless:** yes, the manifest marker.
@@ -298,6 +302,8 @@ competition rules are therefore **not re-checked** (log 1).
       on Quest 3);
     - the room light, since FMM regresses in low light.
   - Keep LOW as the default (F7(a)).
+- **Status:** text applied 2026-10-07 in 6562a93. Before, STACK F7(c) said "Never choose MAX" with no reason and the A/B had no instrument. After, F7(c) says MAX equals HIGH, that the A/B is LOW against HIGH, and that it logs the `Camera FPS` line, the OVR Metrics CPU and GPU levels, and the room light.
+  - **Not done:** the A/B itself, V2.
 - **Cost:** S on top of F7(c)'s M.
 - **When:** V2.
 - **Verifiable headless:** no.
@@ -316,6 +322,10 @@ Ranked by how likely each one is to sink the entry.
    - **Desktop part:** G1 can retire the model question before 10-31. It shows whether the detector survives an
      extrapolated 30 Hz or 25 Hz stream, so the gate knows if W1 (the 0.20 s window) or W2 (onset compensation) is
      needed. It cannot retire the true latency.
+     - **Status 2026-10-07 (G1, 1a7487d):** on modelled 30 Hz hands, held and extrapolated, the hit at the authored tick
+       and the interior hits are perfect in 36/36 cases, with 0 to 100 ms of injected latency. The onset lands 14 to 42 ms
+       late from the camera grid, independent of latency, so strict ±1 frame holds in 12/36. W1 is not needed. W2 waits
+       for the camera rate from the V1 day-one probe. The true latency still needs V2.
 2. **Tracking loss and jitter on fast gestures.**
    - **The evidence:** blink is a flick (arming at 1.2 m/s). Meta advises FMM only "if you observe high tracking loss
      due to fast hand motion" (STACK F7), and FMM costs jitter and headroom.
