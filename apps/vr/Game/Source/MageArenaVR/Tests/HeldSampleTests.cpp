@@ -38,13 +38,29 @@ constexpr int32 GPhaseCount = UE_ARRAY_COUNT(GPhases);
  */
 const TArray<FString>& KnownHeldMisses()
 {
-	// blink-back.sloppy: the held stream turns the back flick into a bolt in all three phases (follow-up: BlinkDetector yaw
-	// classification, ForwardYawDeg 35 against a flick whose measured yaw shifts when the pose steps every third frame).
-	static const TArray<FString> Misses = {
-		TEXT("blink-back.sloppy.p0"),
-		TEXT("blink-back.sloppy.p1"),
-		TEXT("blink-back.sloppy.p2"),
-	};
+	// Empty since Gestures/HeldPointRate.h. blink-back.sloppy was listed in all three phases: the held stream released the
+	// flick on the zero-speed repeat after its first stepped burst, a wind-up at yaw 6 to 10 degrees, so it read as a bolt.
+	static const TArray<FString> Misses;
+	return Misses;
+}
+
+/** The F7(b) follow-up bound on the held ward onset: one 30 Hz camera interval plus one 72 Hz frame, 47.2 ms. */
+constexpr double GOnsetBoundMs = (1.0 / 30.0 + 1.0 / 72.0) * 1000.0;
+/**
+ * Hits after the 72 Hz onset that sit inside the 0.15 s perfect window with room for the onset bound on both sides. The
+ * window edges themselves (onset and onset + 0.15 s) are logged only: a 30 Hz onset is quantized and cannot keep them.
+ */
+constexpr double GInteriorProbesS[] = {0.05, 0.10};
+
+/**
+ * RATCHET for the ward timing (F7(b) follow-up), with the rules of KnownHeldMisses. A ward case misses when its held onset is
+ * more than GOnsetBoundMs from the 72 Hz onset, or when a hit at an interior probe is not perfect on held hands. A miss that
+ * is not listed fails; a listed case that now holds fails too. Key: "ward-raise.<variant>.p<phase index>".
+ */
+const TArray<FString>& KnownHeldWardMisses()
+{
+	// Empty: with Gestures/HeldPointRate.h every case holds the bound and both interior probes.
+	static const TArray<FString> Misses;
 	return Misses;
 }
 
@@ -279,8 +295,17 @@ bool LoadActionClip(FAutomationTestBase& Test, const TCHAR* Action, int32 Varian
 	return true;
 }
 
+/** What the ward cases measured, for the summary line of HeldSample.Ward. */
+struct FWardFigures
+{
+	TArray<double> OnsetDeltasMs;
+	int32 Cases = 0;
+	int32 InteriorHeld = 0;
+	int32 WithinBound = 0;
+};
+
 /** Runs one action over every variant and phase against the ratchet. Returns false on a failure. */
-bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, TArray<double>* OutOnsetDeltasMs)
+bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, FWardFigures* OutWard)
 {
 	FRig Rig;
 	if (!Rig.Open(Test))
@@ -331,16 +356,23 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, TArr
 			const FString HeldResult = Relevant(Rig, Kind);
 			const bool bMatch = HeldResult == Reference;
 			FString Extra;
+			bool bWardHolds = false;
 			if (Kind == EKind::Ward)
 			{
+				if (OutWard)
+				{
+					++OutWard->Cases;
+				}
+				if (ReferenceWards < 1)
+				{
+					Test.AddError(Key + TEXT(" raised no ward at 72 Hz: the reference is broken"));
+					bPass = false;
+				}
 				if (ReferenceWards >= 1 && Rig.WardRaised >= 1)
 				{
 					const double DeltaMs = (Rig.FirstOnset - ReferenceOnset) * 1000.0;
-					if (OutOnsetDeltasMs)
-					{
-						OutOnsetDeltasMs->Add(DeltaMs);
-					}
 					// The perfect window of Ward.OnsetCompensation: a hit at the 72 Hz onset and one at its window end.
+					// These two boundary probes are information only; the interior probes below are asserted.
 					const double Window = Resolver.Rules().WindowS;
 					auto Perfect = [&Resolver](const FWardEvent& Raise, double Tick)
 					{
@@ -358,6 +390,41 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, TArr
 					const bool bEndHeld = Perfect(HeldRaise, ReferenceOnset + Window);
 					Extra = FString::Printf(TEXT(" onset72=%.4f onsetHeld=%.4f onsetDeltaMs=%.3f perfect(start,end) 72Hz=%d,%d held=%d,%d perfectChanged=%d"),
 						ReferenceOnset, Rig.FirstOnset, DeltaMs, bStart72, bEnd72, bStartHeld, bEndHeld, (bStart72 != bStartHeld || bEnd72 != bEndHeld) ? 1 : 0);
+					bool bInteriorHeld = true;
+					for (const double Probe : GInteriorProbesS)
+					{
+						const bool bProbe72 = Perfect(ReferenceRaise, ReferenceOnset + Probe);
+						const bool bProbeHeld = Perfect(HeldRaise, ReferenceOnset + Probe);
+						bInteriorHeld &= bProbeHeld;
+						Extra += FString::Printf(TEXT(" perfect(+%.2f) 72Hz=%d held=%d"), Probe, bProbe72 ? 1 : 0, bProbeHeld ? 1 : 0);
+						if (!bProbe72)
+						{
+							Test.AddError(FString::Printf(TEXT("%s: a hit at the 72 Hz onset + %.2f s is not perfect at 72 Hz: the reference is broken"), *Key, Probe));
+							bPass = false;
+						}
+					}
+					const bool bWithin = FMath::Abs(DeltaMs) <= GOnsetBoundMs;
+					bWardHolds = bWithin && bInteriorHeld;
+					Extra += FString::Printf(TEXT(" onsetWithin%.1fms=%d interiorHeld=%d"), GOnsetBoundMs, bWithin ? 1 : 0, bInteriorHeld ? 1 : 0);
+					if (OutWard)
+					{
+						OutWard->OnsetDeltasMs.Add(DeltaMs);
+						OutWard->WithinBound += bWithin ? 1 : 0;
+						OutWard->InteriorHeld += bInteriorHeld ? 1 : 0;
+					}
+				}
+				const bool bKnownWard = KnownHeldWardMisses().Contains(Key);
+				Extra += FString::Printf(TEXT(" wardHolds=%d knownWard=%d"), bWardHolds ? 1 : 0, bKnownWard ? 1 : 0);
+				if (!bWardHolds && !bKnownWard)
+				{
+					Test.AddError(FString::Printf(TEXT("%s held onset is not within %.1f ms of the 72 Hz onset, or an interior hit is not perfect, and it is not in KnownHeldWardMisses"),
+						*Key, GOnsetBoundMs));
+					bPass = false;
+				}
+				if (bWardHolds && bKnownWard)
+				{
+					Test.AddError(FString::Printf(TEXT("%s is in KnownHeldWardMisses but now holds: remove it"), *Key));
+					bPass = false;
 				}
 			}
 			const bool bKnown = KnownHeldMisses().Contains(Key);
@@ -510,8 +577,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleWard, "MageArena.Hands.Held
 
 bool FMageArenaHeldSampleWard::RunTest(const FString& Parameters)
 {
-	TArray<double> Deltas;
-	const bool bPass = RunRatchet(*this, TEXT("ward-raise"), EKind::Ward, &Deltas);
+	FWardFigures Figures;
+	const bool bPass = RunRatchet(*this, TEXT("ward-raise"), EKind::Ward, &Figures);
+	TArray<double>& Deltas = Figures.OnsetDeltasMs;
 	if (Deltas.Num() > 0)
 	{
 		Deltas.Sort();
@@ -520,6 +588,10 @@ bool FMageArenaHeldSampleWard::RunTest(const FString& Parameters)
 		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
 		AddInfo(Line);
 	}
+	const FString Bound = FString::Printf(TEXT("HeldSample ward onset within %.1f ms %d/%d, interior perfect (+0.05, +0.10) held %d/%d, known ward misses %d"),
+		GOnsetBoundMs, Figures.WithinBound, Figures.Cases, Figures.InteriorHeld, Figures.Cases, KnownHeldWardMisses().Num());
+	UE_LOG(LogMageArena, Log, TEXT("%s"), *Bound);
+	AddInfo(Bound);
 	return bPass;
 }
 
