@@ -146,7 +146,7 @@ It prints one line per clip and a summary, and exits non-zero if any clip is inv
 
 A device recording is this schema with `source: "recorded"` and `seed: 0`.
 
-- Write at 72 Hz and keep repeated poses as they arrive, with no smoothing and no interpolation: if the hands update slower than 72 Hz, the same pose repeats on consecutive lines. `t` is seconds from the first sample, not the headset clock.
+- Write at 72 Hz and keep repeated poses as they arrive, with no smoothing and no interpolation. The runtime extrapolates hand poses to the predicted display time by default (Meta, cited in `research/FEASIBILITY-2026-10.md` Q2), so a device recording looks smooth at 72 Hz and its repeats cannot measure the camera rate. An optional per-sample capture time (`captureTime`, from `XR_META_hand_tracking_unextrapolated_poses`) is reserved for a later schema version; `@1` and `@2` do not carry it (G2). `t` is seconds from the first sample, not the headset clock.
 - Keep the gap within 10% of `1/72`. If tracking drops, still write the sample: repeat the last joints and set `conf` low. Do not leave a hole.
 - Write one line per tracked hand per sample. Left before right when both are tracked. A one-hand clip lists only that hand.
 - Convert device centimetres to metres. Stay in seated-origin space with Unreal axes (`+X` forward, `+Y` right, `+Z` up). Do not write a stage-space or OpenXR-space clip.
