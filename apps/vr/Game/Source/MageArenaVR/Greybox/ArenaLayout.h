@@ -34,7 +34,7 @@ struct FArenaProp
 
 /**
  * One demo threat. ColourClass is the threat language:
- * turquoise, vermilion, steel, or black-core-red-rim.
+ * turquoise, ember-orange (T26; was vermilion), steel, or black-core-red-rim.
  */
 struct FThreatSpec
 {

@@ -1,6 +1,6 @@
 # T26 - Element-correct colour, and the first audio: A05 SFX and threat cues, spatialised
 
-Status: open
+Status: done (verified 2026-10-07: MageArena. 226/226; colours by owner school; 20 SFX imported idempotently and playing spatialised; audio capture -23.2 LUFS, not yet heard by a person)
 Max turns: 300
 
 ## Goal
@@ -71,3 +71,15 @@ the conformance evidence.)
 ## Report
 `runs/T26/REPORT.md` (or the final reply): files, every acceptance command with real output, the gain table and why,
 a description of each still and of the audio capture, and every decision the card did not specify.
+
+## Orchestrator verification (2026-10-07)
+A Claude subagent implemented the card in worktree `v2/T26`. The orchestrator re-ran the build (green) and
+`MageArena.` (226 Success, `EXIT CODE: 0`), confirmed the `.uasset` files route through LFS, and looked at the
+side-by-side still (hound embers and Brennic's bolt in ember orange, the player's bolts turquoise, Lio's Squall wind
+green). The import ran twice with identical hashes. Mutation check failed the hound-ember colour tests as expected.
+Accepted choices: 20 cues (the pack has 20, not 18), fire as ember orange (0.90, 0.26, 0.02) so it does not sit next to
+the unblockable rim red, darker hound bodies, the mire maw as Water, player-owned casts always in the player's colour,
+UI cues placed at the cuff (diegetic) against the registry's positionless default, a -3 dB master to keep the true peak
+under 0 dBFS. **Owner:** the audio capture (`runs/T26/audio/brennic-opening.wav`) has not been listened to by a person.
+Gaps: no Water impact cue and no incoming Air cue in the A05 pack (future SFX cue sheet); T16's style loader should
+route through `ApplyStylePalette` when it merges.
