@@ -753,6 +753,129 @@ bool LoadEnemies(const FJsonObject& Root, FKernelData& Data, const FString& Path
 	return true;
 }
 
+bool ParseWaveSpawn(const FJsonObject& SpawnObject, FWaveSpawn& Spawn, const FString& Path, FKernelData& Data)
+{
+	double Count = 0.0;
+	if (SpawnObject.TryGetNumberField(TEXT("count"), Count))
+	{
+		Spawn.Count = static_cast<int32>(std::llround(Count));
+	}
+	double Echo = 0.0;
+	if (SpawnObject.TryGetNumberField(TEXT("orEchoFromLoop"), Echo))
+	{
+		Spawn.EchoFromLoop = static_cast<int32>(std::llround(Echo));
+	}
+	if (SpawnObject.TryGetStringField(TEXT("enemy"), Spawn.EnemyId))
+	{
+		Spawn.bEnemy = true;
+	}
+	else if (SpawnObject.TryGetStringField(TEXT("mage"), Spawn.MageId))
+	{
+		Spawn.bEnemy = false;
+		if (!NeedNumber(SpawnObject, TEXT("competence"), Spawn.Competence, Path, Data))
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return Fail(Data, Path + TEXT(" spawn is neither an enemy nor a mage"));
+	}
+	return true;
+}
+
+bool ParseArenaWave(const FJsonObject& WaveObject, FArenaWave& Wave, const FString& Path, FKernelData& Data)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Spawns = nullptr;
+	if (!NeedInt(WaveObject, TEXT("n"), Wave.N, Path, Data) || !NeedString(WaveObject, TEXT("kind"), Wave.Kind, Path, Data)
+		|| !WaveObject.TryGetArrayField(TEXT("spawns"), Spawns) || Spawns->Num() == 0)
+	{
+		if (Data.Error.IsEmpty())
+		{
+			Fail(Data, Path + TEXT(" wave is missing spawns"));
+		}
+		return false;
+	}
+	const TArray<TSharedPtr<FJsonValue>>* Band = nullptr;
+	if (WaveObject.TryGetArrayField(TEXT("targetDurationS"), Band) && Band && Band->Num() == 2)
+	{
+		double Min = 0.0;
+		double Max = 0.0;
+		if (!(*Band)[0].IsValid() || !(*Band)[0]->TryGetNumber(Min) || !(*Band)[1].IsValid() || !(*Band)[1]->TryGetNumber(Max))
+		{
+			return Fail(Data, Path + TEXT(" targetDurationS is not a pair of numbers"));
+		}
+		Wave.TargetMinS = Min;
+		Wave.TargetMaxS = Max;
+	}
+	for (const TSharedPtr<FJsonValue>& SpawnValue : *Spawns)
+	{
+		const TSharedPtr<FJsonObject>* SpawnObject = nullptr;
+		if (!SpawnValue.IsValid() || !SpawnValue->TryGetObject(SpawnObject) || SpawnObject == nullptr)
+		{
+			return Fail(Data, Path + TEXT(" spawn is not an object"));
+		}
+		FWaveSpawn Spawn;
+		if (!ParseWaveSpawn(**SpawnObject, Spawn, Path, Data))
+		{
+			return false;
+		}
+		Wave.Spawns.Add(Spawn);
+	}
+	return true;
+}
+
+// payoutGold and renown: lists of whole numbers.
+bool ReadIntList(const TArray<TSharedPtr<FJsonValue>>& Values, const TCHAR* Field, TArray<int32>& Out, const FString& Path, FKernelData& Data)
+{
+	for (const TSharedPtr<FJsonValue>& Value : Values)
+	{
+		double Number = 0.0;
+		if (!Value.IsValid() || !Value->TryGetNumber(Number))
+		{
+			return Fail(Data, Path + TEXT(" ") + Field + TEXT(" entry is not a number"));
+		}
+		Out.Add(static_cast<int32>(std::llround(Number)));
+	}
+	return true;
+}
+
+bool ParseArenaTier(const FJsonObject& TierObject, FArenaTier& Tier, const FString& Path, FKernelData& Data)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Waves = nullptr;
+	const TArray<TSharedPtr<FJsonValue>>* Gold = nullptr;
+	const TArray<TSharedPtr<FJsonValue>>* Renown = nullptr;
+	if (!NeedString(TierObject, TEXT("id"), Tier.Id, Path, Data)
+		|| !NeedString(TierObject, TEXT("name"), Tier.Name, Path, Data)
+		|| !NeedInt(TierObject, TEXT("requiresMastery"), Tier.RequiresMastery, Path, Data)
+		|| !TierObject.TryGetArrayField(TEXT("waves"), Waves) || Waves->Num() == 0
+		|| !TierObject.TryGetArrayField(TEXT("payoutGold"), Gold)
+		|| !TierObject.TryGetArrayField(TEXT("renown"), Renown))
+	{
+		if (Data.Error.IsEmpty())
+		{
+			Fail(Data, Path + TEXT(" tier is missing waves or payouts"));
+		}
+		return false;
+	}
+	for (const TSharedPtr<FJsonValue>& WaveValue : *Waves)
+	{
+		const TSharedPtr<FJsonObject>* WaveObject = nullptr;
+		if (!WaveValue.IsValid() || !WaveValue->TryGetObject(WaveObject) || WaveObject == nullptr)
+		{
+			return Fail(Data, Path + TEXT(" wave is not an object"));
+		}
+		FArenaWave Wave;
+		if (!ParseArenaWave(**WaveObject, Wave, Path, Data))
+		{
+			return false;
+		}
+		Tier.Waves.Add(MoveTemp(Wave));
+	}
+	return ReadIntList(*Gold, TEXT("payoutGold"), Tier.PayoutGold, Path, Data)
+		&& ReadIntList(*Renown, TEXT("renown"), Tier.Renown, Path, Data);
+}
+
 bool LoadArenaTiers(FKernelData& Data)
 {
 	const FString Path = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/arena-tiers.json"));
@@ -774,107 +897,9 @@ bool LoadArenaTiers(FKernelData& Data)
 			return Fail(Data, Path + TEXT(" tier is not an object"));
 		}
 		FArenaTier Tier;
-		const TArray<TSharedPtr<FJsonValue>>* Waves = nullptr;
-		const TArray<TSharedPtr<FJsonValue>>* Gold = nullptr;
-		const TArray<TSharedPtr<FJsonValue>>* Renown = nullptr;
-		if (!NeedString(**TierObject, TEXT("id"), Tier.Id, Path, Data)
-			|| !NeedString(**TierObject, TEXT("name"), Tier.Name, Path, Data)
-			|| !NeedInt(**TierObject, TEXT("requiresMastery"), Tier.RequiresMastery, Path, Data)
-			|| !(*TierObject)->TryGetArrayField(TEXT("waves"), Waves) || Waves->Num() == 0
-			|| !(*TierObject)->TryGetArrayField(TEXT("payoutGold"), Gold)
-			|| !(*TierObject)->TryGetArrayField(TEXT("renown"), Renown))
+		if (!ParseArenaTier(**TierObject, Tier, Path, Data))
 		{
-			if (Data.Error.IsEmpty())
-			{
-				Fail(Data, Path + TEXT(" tier is missing waves or payouts"));
-			}
 			return false;
-		}
-		for (const TSharedPtr<FJsonValue>& WaveValue : *Waves)
-		{
-			const TSharedPtr<FJsonObject>* WaveObject = nullptr;
-			if (!WaveValue.IsValid() || !WaveValue->TryGetObject(WaveObject) || WaveObject == nullptr)
-			{
-				return Fail(Data, Path + TEXT(" wave is not an object"));
-			}
-			FArenaWave Wave;
-			const TArray<TSharedPtr<FJsonValue>>* Spawns = nullptr;
-			if (!NeedInt(**WaveObject, TEXT("n"), Wave.N, Path, Data) || !NeedString(**WaveObject, TEXT("kind"), Wave.Kind, Path, Data)
-				|| !(*WaveObject)->TryGetArrayField(TEXT("spawns"), Spawns) || Spawns->Num() == 0)
-			{
-				if (Data.Error.IsEmpty())
-				{
-					Fail(Data, Path + TEXT(" wave is missing spawns"));
-				}
-				return false;
-			}
-			const TArray<TSharedPtr<FJsonValue>>* Band = nullptr;
-			if ((*WaveObject)->TryGetArrayField(TEXT("targetDurationS"), Band) && Band && Band->Num() == 2)
-			{
-				double Min = 0.0;
-				double Max = 0.0;
-				if (!(*Band)[0].IsValid() || !(*Band)[0]->TryGetNumber(Min) || !(*Band)[1].IsValid() || !(*Band)[1]->TryGetNumber(Max))
-				{
-					return Fail(Data, Path + TEXT(" targetDurationS is not a pair of numbers"));
-				}
-				Wave.TargetMinS = Min;
-				Wave.TargetMaxS = Max;
-			}
-			for (const TSharedPtr<FJsonValue>& SpawnValue : *Spawns)
-			{
-				const TSharedPtr<FJsonObject>* SpawnObject = nullptr;
-				if (!SpawnValue.IsValid() || !SpawnValue->TryGetObject(SpawnObject) || SpawnObject == nullptr)
-				{
-					return Fail(Data, Path + TEXT(" spawn is not an object"));
-				}
-				FWaveSpawn Spawn;
-				double Count = 0.0;
-				if ((*SpawnObject)->TryGetNumberField(TEXT("count"), Count))
-				{
-					Spawn.Count = static_cast<int32>(std::llround(Count));
-				}
-				double Echo = 0.0;
-				if ((*SpawnObject)->TryGetNumberField(TEXT("orEchoFromLoop"), Echo))
-				{
-					Spawn.EchoFromLoop = static_cast<int32>(std::llround(Echo));
-				}
-				if ((*SpawnObject)->TryGetStringField(TEXT("enemy"), Spawn.EnemyId))
-				{
-					Spawn.bEnemy = true;
-				}
-				else if ((*SpawnObject)->TryGetStringField(TEXT("mage"), Spawn.MageId))
-				{
-					Spawn.bEnemy = false;
-					if (!NeedNumber(**SpawnObject, TEXT("competence"), Spawn.Competence, Path, Data))
-					{
-						return false;
-					}
-				}
-				else
-				{
-					return Fail(Data, Path + TEXT(" spawn is neither an enemy nor a mage"));
-				}
-				Wave.Spawns.Add(Spawn);
-			}
-			Tier.Waves.Add(MoveTemp(Wave));
-		}
-		for (const TSharedPtr<FJsonValue>& Value : *Gold)
-		{
-			double Number = 0.0;
-			if (!Value.IsValid() || !Value->TryGetNumber(Number))
-			{
-				return Fail(Data, Path + TEXT(" payoutGold entry is not a number"));
-			}
-			Tier.PayoutGold.Add(static_cast<int32>(std::llround(Number)));
-		}
-		for (const TSharedPtr<FJsonValue>& Value : *Renown)
-		{
-			double Number = 0.0;
-			if (!Value.IsValid() || !Value->TryGetNumber(Number))
-			{
-				return Fail(Data, Path + TEXT(" renown entry is not a number"));
-			}
-			Tier.Renown.Add(static_cast<int32>(std::llround(Number)));
 		}
 		Data.ArenaTiers.Add(MoveTemp(Tier));
 	}
