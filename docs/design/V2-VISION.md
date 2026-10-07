@@ -150,3 +150,39 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
 - **Tension to settle in Wave 5:** the Wave 1 spine is Cassia's story, and four playable schools means four
   protagonists. Canon offers a natural answer: the **Four** betrayed at the ford are the four Tent mains (Cassia,
   Brennic, Garran, Iskar), so each school is one of the Four, on one shared ladder seen from four sides.
+
+## Wave 5 - fit to schedule and execution (2026-10-07)
+
+| Question | Owner's answer |
+|---|---|
+| Protagonist with four playable schools | **The Four, one route each**: Cassia (Water), Brennic (Fire), Garran (Earth), Iskar (Air), one shared ladder seen from four sides. Cassia's route is the slice and ships first. |
+| First cut if the 23 Oct checkpoint slips | **The second school goes; Corvo is the fallback**: the Tiro final becomes a second Ember entrant on the Fire kernel already built. |
+| Voice | **Yes, for the slice**: ElevenLabs approval extends to pre-rendered voice lines (ritual, taunts, crowd chorus, 10 words or fewer), with no runtime calls. To be recorded in DECISIONS. |
+| Execution | **Parallel cloud sessions**: 2-3 Claude cloud sessions draft the design pack in parallel; this session reviews and merges. |
+
+## v2 in one page (synthesis, for the owner's sign-off)
+
+**Story.** Four mages were betrayed at the ford and collared by the legion that used them. Now they fight in the Games,
+and the Wardstones drink every drop of magic spilled on the sand. Each launch is one Games day: Septima's collar ritual,
+four bouts, scenes at the intermissions, an aftermath. The tone is mythic and operatic, carried by ritual, a crowd
+chorus and voiced lines of 10 words or fewer. One route per member of the Four; Cassia (Water) ships first.
+
+**The collar is the system.** Clean play (perfects, reflections, interrupts, sparing) cracks the collar for good.
+Spilled spectacle pays the Tithe: renown now, a stronger jailer later. The collar caps you at tier IV until the Summa's
+Breaking unleashes tier V. Endings: **Breaking** (enough Cracks, the Knowing `K-wardstones-drink`, allies with trust of
+60 or more), **Champion** (the jailers fed), **Betrayed** (the Breaking attempted without enough trust). Choices: spare
+(open palm) or finish (fist) at missio, whom to hear at intermissions, pacts with other Tents.
+
+**Combat.** Named rivals with a signature kit, tells and taunts, fought in HP-gated phases that guarantee a climax
+(Brennic's last phase opens with Sunfall). Mastery means reading tells to interrupt, named line combos, reflection
+rallies and pad angles. Split hands: the latch clears and a Bolt is allowed at Flow 5. The hounds spit embers.
+Signatures: Mirror Reflection, the Leviathan pick, the mudra seal, fire that reads as fire, and threat audio.
+
+**Slice (18 Nov).** Prologue, teach, a full Tiro day: soldiers, creatures, Brennic (semifinal, phased), then the final
+against a second school (fallback Corvo). It ends on the first crack and the Wardstones line.
+
+**Campaign (spring 2027).** One authored story day per tier (Tiro, Veteranus, Primus, Summa) with exhibition bouts
+between them, four routes, and all four schools playable.
+
+**Canon.** Cracks, Tithe, tier V, the phase-break clock surge, the ember spit and the four-route framing go to TV as change
+requests before they ship.
