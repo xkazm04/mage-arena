@@ -75,20 +75,38 @@ const TArray<FString>& KnownHeldWardMisses()
 
 /**
  * RATCHET for the action results on the G1 streams (extrapolated 30 Hz, held and extrapolated 25 Hz, and staff on every
- * stream), with the rules of KnownHeldMisses. Key: "<stream>.<action>.<variant>.p<phase index>", plus ".x2" for a clip
- * played twice in one stream (the blink re-arm).
+ * stream), with the rules of KnownHeldMisses. Key: "<stream>.<action>.<variant>.p<phase index>", plus ".rearm" for the
+ * blink re-arm check of HeldSample.BlinkModels.
  */
 const TArray<FString>& KnownModelMisses()
 {
-	// held30 slow blinks played twice (MakeTwiceClip): at 72 Hz both flicks fire (blink-back.slow reads its second flick as
-	// a bolt there); on held 30 Hz the second flick fires nothing, in all three phases, while the first fires 0 to 27.8 ms
-	// late. That reads as a re-arm that comes too late for a second flick with no pause before it; the latch itself is not
-	// visible to this test. Normal and sloppy, and the extrapolated stream, do not miss. Fix: a detector change (the re-arm
-	// quiet time on held samples), a separate run; not W1 or W2.
-	static const TArray<FString> Misses = {
-		TEXT("held30.blink-left.slow.p0.x2"), TEXT("held30.blink-left.slow.p1.x2"), TEXT("held30.blink-left.slow.p2.x2"),
-		TEXT("held30.blink-right.slow.p0.x2"), TEXT("held30.blink-right.slow.p1.x2"), TEXT("held30.blink-right.slow.p2.x2"),
-		TEXT("held30.blink-back.slow.p0.x2"), TEXT("held30.blink-back.slow.p1.x2"), TEXT("held30.blink-back.slow.p2.x2")};
+	// Every entry is a blink re-arm (".rearm", HeldSample.BlinkModels); every blink result itself matches 72 Hz.
+	// - held30 slow: the re-arm comes 167 to 236 ms late, while the flick fires 14 to 42 ms late. held25 does not miss, so
+	//   this is a phase effect of the 30 Hz grid on the slow decay, not a bound that grows with the period.
+	// - extrap30 slow and some sloppy: the extrapolated stream fires the flick early (55 to 69 ms on normal, up to 125 ms on
+	//   slow), before the tip has peaked; that is consistent with a speed dip after a camera update falling under
+	//   FallFraction of the peak so far. The tip is then still fast, and the re-arm comes 56 to 181 ms late.
+	// A late re-arm can only lose a second flick that follows within about 0.2 s. Fix: a detector change (the fall test
+	// and the re-arm on extrapolated and held samples), a separate run; W1 and W2 do not touch blink.
+	static const TArray<FString> Misses = []()
+	{
+		const TCHAR* Cases[] = {
+			TEXT("held30.blink-left.slow.p0"), TEXT("held30.blink-left.slow.p1"), TEXT("held30.blink-left.slow.p2"),
+			TEXT("held30.blink-right.slow.p0"), TEXT("held30.blink-right.slow.p1"), TEXT("held30.blink-right.slow.p2"),
+			TEXT("held30.blink-back.slow.p0"), TEXT("held30.blink-back.slow.p1"), TEXT("held30.blink-back.slow.p2"),
+			TEXT("extrap30.blink-left.slow.p0"), TEXT("extrap30.blink-left.slow.p1"), TEXT("extrap30.blink-left.slow.p2"),
+			TEXT("extrap30.blink-left.sloppy.p2"),
+			TEXT("extrap30.blink-right.slow.p0"), TEXT("extrap30.blink-right.slow.p1"), TEXT("extrap30.blink-right.slow.p2"),
+			TEXT("extrap30.blink-right.sloppy.p0"), TEXT("extrap30.blink-right.sloppy.p1"),
+			TEXT("extrap30.blink-back.slow.p0"), TEXT("extrap30.blink-back.slow.p1"), TEXT("extrap30.blink-back.slow.p2"),
+			TEXT("extrap30.blink-back.sloppy.p0")};
+		TArray<FString> Keys;
+		for (const TCHAR* Case : Cases)
+		{
+			Keys.Add(FString::Printf(TEXT("%s.rearm"), Case));
+		}
+		return Keys;
+	}();
 	return Misses;
 }
 
@@ -233,26 +251,70 @@ int32 DistinctPoses(const FHandClipTrack& Track)
 	return Count;
 }
 
-/**
- * The clip, then the clip again one frame after its end, in one stream that never rewinds. A detector that has not re-armed
- * by the end of the first copy loses the second gesture (G1: extrapolation overshoot can delay the blink re-arm).
- */
-FHandClip MakeTwiceClip(const FHandClip& Source)
+/** The clip with its last pose held still for StillS more, so a latched flick has room to re-arm before the clip ends. */
+FHandClip MakeStillTailClip(const FHandClip& Source, double StillS)
 {
-	FHandClip Twice = Source;
-	const double Offset = Source.GetDuration() + 1.0 / 72.0;
-	for (FHandClipTrack& Track : Twice.Tracks)
+	FHandClip Out = Source;
+	const double Frame = 1.0 / 72.0;
+	const int32 Count = FMath::CeilToInt(StillS / Frame);
+	for (FHandClipTrack& Track : Out.Tracks)
 	{
-		const int32 Count = Track.Frames.Num();
-		for (int32 Index = 0; Index < Count; ++Index)
+		if (Track.Frames.Num() == 0)
 		{
-			FHandFrame Copy = Track.Frames[Index];
-			Copy.TimeSeconds += Offset;
-			Track.Frames.Add(Copy);
+			continue;
+		}
+		const FHandFrame Last = Track.Frames.Last();
+		for (int32 Index = 1; Index <= Count; ++Index)
+		{
+			FHandFrame Still = Last;
+			Still.TimeSeconds = Last.TimeSeconds + Index * Frame;
+			Track.Frames.Add(Still);
 		}
 	}
-	Twice.Duration = Offset + Source.GetDuration();
-	return Twice;
+	Out.Duration = Source.GetDuration() + Count * Frame;
+	return Out;
+}
+
+/** The first flick of a stream and its re-arm, read from a bare blink detector on the casting-hand track. */
+struct FRearm
+{
+	int32 Fires = 0;
+	double FireFrameS = -1.0;
+	double RearmS = -1.0;
+};
+
+/**
+ * The detector latches a fired flick until the tip has been quiet for RearmQuietS. HottestSpeed stays at or above the arming
+ * speed while it is latched and drops below it on the re-arm, so the first frame after the fire with a hottest speed under
+ * MinTipSpeedMps is the re-arm.
+ */
+FRearm MeasureRearm(const FHandClip& Clip)
+{
+	FRearm Out;
+	FBlinkDetector Detector;
+	Detector.Reset();
+	for (const FHandClipTrack& Track : Clip.Tracks)
+	{
+		if (Track.Hand != FMageSettings::CastingHand())
+		{
+			continue;
+		}
+		for (const FHandFrame& Frame : Track.Frames)
+		{
+			Detector.Ingest(Frame);
+			const int32 Fires = Detector.GetBlinkCount() + Detector.GetBoltCount();
+			if (Fires > Out.Fires && Out.FireFrameS < 0.0)
+			{
+				Out.FireFrameS = Frame.TimeSeconds;
+			}
+			else if (Out.FireFrameS >= 0.0 && Out.RearmS < 0.0 && Detector.GetHottestSpeed() < FBlinkThresholds::MinTipSpeedMps)
+			{
+				Out.RearmS = Frame.TimeSeconds;
+			}
+			Out.Fires = Fires;
+		}
+	}
+	return Out;
 }
 
 struct FRig
@@ -451,10 +513,10 @@ struct FWardFigures
 /**
  * Runs one action over every variant and phase of a stream against the ratchet. Returns false on a failure. The F7(b)
  * cases use KnownHeldMisses and KnownHeldWardMisses with plain keys; bModelTables selects the G1 tables and stream-prefixed
- * keys. bTwice plays every clip twice in one stream (MakeTwiceClip), at 72 Hz and on the stream alike.
+ * keys.
  */
 bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, const FStream& Stream, FWardFigures* OutWard,
-	bool bModelTables = false, bool bTwice = false)
+	bool bModelTables = false)
 {
 	const double BoundMs = OnsetBoundMs(Stream.CameraHz);
 	const TArray<FString>& Misses = bModelTables ? KnownModelMisses() : KnownHeldMisses();
@@ -487,10 +549,6 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 			bPass = false;
 			continue;
 		}
-		if (bTwice)
-		{
-			Source = MakeTwiceClip(Source);
-		}
 		if (!Rig.Play(Source))
 		{
 			Test.AddError(FString::Printf(TEXT("%s.%s at 72 Hz did not play"), Action, VariantNames[VariantIndex]));
@@ -505,7 +563,7 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 		for (int32 PhaseIndex = 0; PhaseIndex < GPhaseCount; ++PhaseIndex)
 		{
 			const FString Key = bModelTables
-				? FString::Printf(TEXT("%s.%s%s"), Stream.Name, *CaseKey(Action, VariantIndex, PhaseIndex), bTwice ? TEXT(".x2") : TEXT(""))
+				? FString::Printf(TEXT("%s.%s"), Stream.Name, *CaseKey(Action, VariantIndex, PhaseIndex))
 				: CaseKey(Action, VariantIndex, PhaseIndex);
 			const FHandClip Held = MakeStream(Source, Stream, GPhases[PhaseIndex]);
 			if (!Rig.Play(Held))
@@ -616,7 +674,7 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 		}
 	}
 	const FString Summary = bModelTables
-		? FString::Printf(TEXT("HeldSample %s %s%s matches %d/%d"), Stream.Name, Action, bTwice ? TEXT(" x2") : TEXT(""), Matches, Cases)
+		? FString::Printf(TEXT("HeldSample %s %s matches %d/%d"), Stream.Name, Action, Matches, Cases)
 		: FString::Printf(TEXT("HeldSample %s matches %d/%d"), Action, Matches, Cases);
 	UE_LOG(LogMageArena, Log, TEXT("%s"), *Summary);
 	Test.AddInfo(Summary);
@@ -1235,18 +1293,84 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleBlinkModels, "MageArena.Han
 bool FMageArenaHeldSampleBlinkModels::RunTest(const FString& Parameters)
 {
 	// G1: blink left, right and back on every G1 stream against 72 Hz: a false blink, a bolt or a wrong direction changes
-	// the result. Every clip also plays twice in one stream, on held30 too, so a re-arm that comes too late for the second
-	// flick changes the result as well. The per-blink time delta is logged.
+	// the result. Then the re-arm, on held30 too: every clip gets 0.5 s of still tail, and the time the detector lets go of
+	// its first flick is compared with 72 Hz. A case misses when 72 Hz re-arms and the stream does not, or re-arms later than
+	// the stream's onset bound (one camera interval plus one 72 Hz frame).
 	bool bPass = true;
-	for (const TCHAR* Action : {TEXT("blink-left"), TEXT("blink-right"), TEXT("blink-back")})
+	const TCHAR* Actions[] = {TEXT("blink-left"), TEXT("blink-right"), TEXT("blink-back")};
+	for (const TCHAR* Action : Actions)
 	{
-		bPass &= RunRatchet(*this, Action, EKind::Blink, GHeld30, nullptr, true, true);
 		for (const FStream* Stream : GModelStreams)
 		{
-			bPass &= RunRatchet(*this, Action, EKind::Blink, *Stream, nullptr, true, false);
-			bPass &= RunRatchet(*this, Action, EKind::Blink, *Stream, nullptr, true, true);
+			bPass &= RunRatchet(*this, Action, EKind::Blink, *Stream, nullptr, true);
 		}
 	}
+
+	const FMageSettingsState Saved = FMageSettings::Get();
+	FMageSettings::Restore(FMageSettingsState());
+	TArray<const FStream*> Streams = {&GHeld30};
+	Streams.Append(GModelStreams, UE_ARRAY_COUNT(GModelStreams));
+	for (const FStream* Stream : Streams)
+	{
+		TArray<double> DelaysMs;
+		int32 Cases = 0;
+		int32 Holds = 0;
+		for (const TCHAR* Action : Actions)
+		{
+			for (int32 VariantIndex = 0; VariantIndex < 3; ++VariantIndex)
+			{
+				FHandClip Source;
+				if (!LoadActionClip(*this, Action, VariantIndex, Source))
+				{
+					bPass = false;
+					continue;
+				}
+				const FHandClip Tailed = MakeStillTailClip(Source, 0.5);
+				const FRearm Reference = MeasureRearm(Tailed);
+				if (Reference.Fires < 1 || Reference.RearmS < 0.0)
+				{
+					AddError(FString::Printf(TEXT("%s.%s at 72 Hz did not fire and re-arm: the reference is broken"), Action, VariantNames[VariantIndex]));
+					bPass = false;
+					continue;
+				}
+				for (int32 PhaseIndex = 0; PhaseIndex < GPhaseCount; ++PhaseIndex)
+				{
+					const FString Key = FString::Printf(TEXT("%s.%s.rearm"), Stream->Name, *CaseKey(Action, VariantIndex, PhaseIndex));
+					const FRearm Measured = MeasureRearm(MakeStream(Tailed, *Stream, GPhases[PhaseIndex]));
+					const bool bRearmed = Measured.Fires >= 1 && Measured.RearmS >= 0.0;
+					const double DelayMs = bRearmed ? (Measured.RearmS - Reference.RearmS) * 1000.0 : 0.0;
+					const bool bHolds = bRearmed && DelayMs <= OnsetBoundMs(Stream->CameraHz) + 1.0e-6;
+					const bool bKnown = KnownModelMisses().Contains(Key);
+					const FString Line = FString::Printf(TEXT("HeldSample rearm %s fire72=%.4f rearm72=%.4f fire=%.4f rearm=%.4f rearmDelayMs=%.3f holds=%d known=%d"),
+						*Key, Reference.FireFrameS, Reference.RearmS, Measured.FireFrameS, Measured.RearmS, DelayMs, bHolds ? 1 : 0, bKnown ? 1 : 0);
+					UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+					AddInfo(Line);
+					++Cases;
+					Holds += bHolds ? 1 : 0;
+					if (bRearmed)
+					{
+						DelaysMs.Add(DelayMs);
+					}
+					if (!bHolds && !bKnown)
+					{
+						AddError(FString::Printf(TEXT("%s re-arms late or not at all and is not in KnownModelMisses"), *Key));
+						bPass = false;
+					}
+					if (bHolds && bKnown)
+					{
+						AddError(FString::Printf(TEXT("%s is in KnownModelMisses but now re-arms in time: remove it"), *Key));
+						bPass = false;
+					}
+				}
+			}
+		}
+		DelaysMs.Sort();
+		const FString Summary = FString::Printf(TEXT("HeldSample rearm %s within %.1f ms %d/%d, delay ms min=%.3f max=%.3f"), Stream->Name,
+			OnsetBoundMs(Stream->CameraHz), Holds, Cases, DelaysMs.Num() ? DelaysMs[0] : 0.0, DelaysMs.Num() ? DelaysMs.Last() : 0.0);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Summary);
+		AddInfo(Summary);
+	}
+	FMageSettings::Restore(Saved);
 	return bPass;
 }
 
