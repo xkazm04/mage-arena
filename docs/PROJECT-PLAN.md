@@ -1,7 +1,7 @@
 # Mage Arena VR: project plan for the Meta VR Start Developer Competition 2026
 
 Written 2026-10-02 by the lead-analyst session (Claude Opus 5.5). This is a plan, not a status report: nothing below has been built beyond the repo scaffold (`5bc06ee`), and every "measured" number is a target until a command produces it.
-Competition: Gaming track, New Experience division. Submission deadline **Wed 18 Nov 2026**; winners about 11 Dec 2026.
+Competition: Gaming track, New Experience division. Submission deadline **Wed 18 Nov 2026, 12:00 PT (20:00 UTC)**; winners about 11 Dec 2026.
 Sibling project: the PC Mage Arena (`C:\Users\kazda\kiro\mage-arena`, plan `docs/MAGE-ARENA-PLAN.md`). This VR slice is a sibling, not a replacement. Section 3 covers what the two share.
 
 Revised 2026-10-02 after the owner's decisions in DECISIONS.md; superseded content was rewritten, not kept.
@@ -48,7 +48,7 @@ never moves into November.
 | V1 Device | Wed 4 Nov | Hand-tracked APK on the device: joints ≥60 Hz for 5 min, ≥95% high-confidence frames; cold start ≤15 s; first device perf capture |
 | V2 Hands | Sun 8 Nov | On real hands: recognizer ≥95% / ≥85%, ≤1 false cast per minute, ≤30 ms p95 compute; ward p95 ≤60 ms; owner ≥3 perfects in 10; p95 frame time ≤13.9 ms, ≤1 hitch per minute |
 | Beta / RC | Wed 11 / Fri 13 Nov | Beta on the "Competition" channel; RC after 3 cold device playtests |
-| **Store-upload freeze** | Mon 16 Nov | Last build uploaded; the buffer to Wed 18 Nov is for the video and form only |
+| **Store-upload freeze** | Mon 16 Nov | Last build uploaded; the buffer to Wed 18 Nov (12:00 PT, 20:00 UTC) is for the video and form only |
 
 **The November risk, stated plainly.** Every headset-dependent step falls in about 18 days: buying and receiving the
 device, developer mode, the toolchain on hardware (Meta XR v207 is built against 5.7 and fails to load on 5.8, an
@@ -96,7 +96,7 @@ plan. October cannot remove it but can shrink it, without a headset:
 
 ---
 
-## 2. What the competition actually requires (checked 2026-10-02, re-read 2026-10-07)
+## 2. What the competition actually requires (checked 2026-10-02; the 2026-10-07 re-read is in force)
 
 These come from the Devpost rules page (`start-developer-competition-26.devpost.com/rules`) and the Meta announcement blog.
 - **Hands:** "Fully usable with hands end-to-end. Controller support optional." Gaming may be "hands-first (required) or eyes and hands".
@@ -110,9 +110,22 @@ These come from the Devpost rules page (`start-developer-competition-26.devpost.
   - AI tools may assist judging; humans decide.
 - **Freeze:** the entry cannot change after the entry period, and must stay available until winners are announced.
 - **Genre fit:** the blog lists the Gaming genres as "puzzle, strategy, casual, social, narrative". An action duel is not on that list. Pitch it as a **strategy duel of reading and timing**: compositions, threat language, and the tier clock as a resource decision. Lead the video with deliberate play, not twitch play.
+- **Deadline:** the entry period ends "November 18, 2026 at 12:00:00 PM PT". The cut-off is **noon PT, not the end of the day**. On 18 Nov US daylight time has ended (1 Nov) and Central European summer time has ended (25 Oct), so PST is UTC-8 and CET is UTC+1: noon PT is **20:00 UTC, 21:00 in Prague**.
+
+**Rules the plan did not list** (rules page, re-read 2026-10-07 14:45Z and again later that day; each quote is `grep -F`-verified):
+- **One entry per individual:** "Each individual is limited to submitting one (1) Entry in this Contest." One entry for the owner; the TV or PC channel cannot also be entered by the same individual.
+- **Free of charge:** "Projects must be made available free of charge". No paid release or paywall in the build.
+- **English:** "Projects must be entirely in the English language or include English subtitles." All in-game text and the video voice-over in English, or subtitled.
+- **No identifiable persons:** "Projects may not mention or depict any identifiable person other than Entrants." The owner on camera is the entrant; nobody else is shown or named, including in voice or likeness.
+- **No advertising or logos:** "Projects must not contain any commercial or corporate advertising" (the rule goes on to list corporate logos, brand names and slogans). No brand marks in the build, video or art.
+- **No unreleased Meta tools:** "Use of Meta tools, SDKs, or features that have not been released to the Start Program or the general public is not permitted." Only released SDK and engine features; check any experimental MetaXR plugin option against this.
+- **No AI-generated video as the pitch:** "Don't lean on AI-generated video to carry the pitch." The P10 video lane must be real captured gameplay; generated video is at most garnish.
+- **Tagline:** the submission form has "Submission tagline (140 characters)" (overview page). Write it with the description.
+- **Emulator footage is allowed:** the video may be "as viewed on a Meta Quest device or via XR Simulator or another equivalent emulator".
+- **Sponsor funding:** "must not have previously received or currently be receiving direct funding from Sponsor" (the rule's full wording: the Project must not have received it under a separate agreement). Confirm the Start membership carries no such funding [confirm, owner].
 - **Originality:** the project must be original to the entrant, public domain, or Meta-provided. Treat Fab or Marketplace packs and stock music as a risk until confirmed. Prefer generated or authored assets (section 12, Q8).
 
-Consequence for eligibility: the game repo must be **new**. Do not build inside pof's existing `PoF.uproject`, which predates the window (it was on 5.8 by June; `build-5_8-game.log` is dated 2026-06-18). The PC sibling's kernel and art were created on 2026-10-01/02, after the window opened (first commit `1e9de1c`, Thu 1 Oct 23:46). Reusing them is defensible, but confirm it (Q9). pof itself is tooling and does not ship in the APK, provided the bridge stays editor-only (P1).
+Consequence for eligibility: the game repo must be **new**. Do not build inside pof's existing `PoF.uproject`, which predates the window (it was on 5.8 by June; `build-5_8-game.log` is dated 2026-06-18). The PC sibling's kernel and art were created on 2026-10-01/02, after the window opened (first commit `1e9de1c`, Thu 1 Oct 23:46). Reuse is **provisionally accepted** (DECISIONS.md, 2026-10-07); the question to the organizers is drafted in `docs/submission/ORGANIZER-QUESTION-Q9.md` (Q9). pof itself is tooling and does not ship in the APK, provided the bridge stays editor-only (P1).
 
 ---
 
@@ -227,7 +240,7 @@ The two projects meet at four seams only:
 | **V1** Sun 1 - Wed 4 Nov | **Device bring-up:** delivery, developer mode, install, hands on device, on-device perf of the full session. **Gate Wed 4 Nov.** | **P2** install and launch half, **P3** device recorder, **P6** device half | Phase-1 draft of `standalone-headset-frame-budgets`, with the first device captures | Headless: logcat boot marker within 60 s; perf gate on pulled captures. **Owner: 4 h.** Day-one step (10 min, FEASIBILITY G2): on each available headset, run `adb logcat -e 'Camera FPS'` at LOW with hands in view, and record the line. |
 | **V2** Thu 5 - Sun 8 Nov | **Real hands:** 180-trace corpus (P3), L1 clips re-recorded, templates and reject threshold re-tuned, style A or B fixed, ward latency by the flash method, census on **measured** distributions, perf to budget. **Hands gate Sun 8 Nov.** | P3, P4, P5, P6 | N1, N2 evidence; the desktop-to-hands delta is the lesson | Headless: P4 on the real-hand corpus; census; perf gate. **Owner: 5 h** plus a second person for 20 min. |
 | **V3** Mon 9 - Fri 13 Nov | **Beta Wed 11 Nov, RC Fri 13 Nov:** comfort pass, narrow-FOV check, pause on headset removal and tracking loss, device-only art fixes, 3 cold device playtests | **P11** release lane, **P10** headset pull | N3, N4 evidence (**felt**); draft `deadline-slice-scoping` from the cut log | Headless: RC regression (all gates), package size, boot smoke via adb. **Owner: 4 h** plus hosting 3 playtests (about 1.5 h). |
-| **Submit** Sat 14 - Wed 18 Nov | Video Sat-Sun 14-15 Nov; **store-upload freeze Mon 16 Nov**; invite URL tested from a second account; form Mon 16 Nov (target), buffer to Wed 18 Nov | P10 replay re-render (optional) | Evidence collection for the post-submission reconcile | **Owner: 4 h** (video, final play-through, form). |
+| **Submit** Sat 14 - Wed 18 Nov | Video Sat-Sun 14-15 Nov; **store-upload freeze Mon 16 Nov**; invite URL tested from a second account; form Mon 16 Nov (target), buffer to Wed 18 Nov 12:00 PT (20:00 UTC) | P10 replay re-render (optional) | Evidence collection for the post-submission reconcile | **Owner: 4 h** (video, final play-through, form). |
 | **After** 19 Nov - 11 Dec | Freeze (no changes allowed) | pof retrospective | Phase-2 reconcile of every drafted subject (draft → forged), EXTENDS harvest, autonomy-coverage ledger (section 9) | — |
 
 **Total owner time:** about 13 hours at the desk in October and about 19 hours in the headset across 1-16 Nov. The November block is the binding constraint (risk R9).
@@ -535,7 +548,7 @@ That table is the only honest answer to "what is the level of tooling for autono
 | R5 | **First game for pof:** pof's assumptions (ARPG, GAS, Win64, one project) do not fit, and pof work crowds out game work | High | Medium | pof items are thin and test-first; P0/P1/P2 before anything else; GAS bypassed; an item may ship "thin" if its acceptance test passes |
 | R6 | **Quest performance with Niagara and translucency**, unmeasurable until V1 | Medium | High | Count budgets (D-G4) and P15 from week 1; CPU-sim particles; the stress scene packaged so V1 measures it on day one; P-1 to P-3 |
 | R7 | **Kernel divergence** between the TS oracle and the C++ port, or drift in shared data (the PC stream is actively editing) | Medium | Medium | Commit pins only; P7 vectors; P8 drift alarm; change requests through the PC orchestrator; the `vr-sim/` adapter as a fallback |
-| R8 | **Eligibility:** Start membership approved 2026-10-02 (required at submission); remaining: "no pre-existing codebases"; reuse of the PC kernel and art; licensed assets | Medium | Very high (disqualification) | Owner applies in week 1 (Q1); a new repo and project; PC material dated after 24 Sep; no Fab or stock packs; ask on the Devpost forum before 12 Oct (Q9) |
+| R8 | **Eligibility:** Start membership approved 2026-10-02 (required at submission); remaining: "no pre-existing codebases"; reuse of the PC kernel and art; licensed assets | Medium | Very high (disqualification) | Owner applies in week 1 (Q1); a new repo and project; PC material dated after 24 Sep; no Fab or stock packs; the reuse is provisionally accepted (DECISIONS.md, 2026-10-07); the question is drafted in `docs/submission/ORGANIZER-QUESTION-Q9.md`, and **the owner** posts it before 12 Oct (Q9) |
 | R9 | **Owner time:** about 19 headset hours inside 1-16 Nov (13 desk hours in October) | High | High | Checklists written in D4; everything else headless; a second tester recruited in October |
 | R10 | **Genre fit:** action is outside the listed Gaming genres; Stage 1 viability | Low-Medium | Medium | Pitch strategy and reading; lead the video with deliberate perfects and composition |
 | R11 | **Comfort complaints** (blink, threats at the edge of view) | Low | Medium | Snap plus vignette, ±70° default arc, nothing from behind, Gentle mode |
@@ -596,7 +609,7 @@ Answered 2026-10-02 and removed: the WebXR pivot (rejected), the repo location, 
 6. **A second person** for the sigil samples (D1 mouse, V2 hands), plus 2 cold desktop testers (D4) and 3 cold device playtesters (V3).
 7. **Paid tools:** answered 2026-10-02 - ElevenLabs only; anything else (e.g. Tripo 3D/animation credits) by written request with reasoning.
 8. **Asset policy:** generated and authored only, or are licensed packs acceptable after checking the rules?
-9. **Eligibility check:** are you comfortable reusing the PC kernel, data and art created 1-2 Oct, after the 24 Sep window opened? Should we ask on the Devpost forum?
+9. **Eligibility check:** provisionally answered 2026-10-07, "Accept now and ask too" (DECISIONS.md): the reuse of the PC kernel, data and design created 1-2 Oct is accepted for now. **Open only for the organizers' reply:** the owner posts `docs/submission/ORGANIZER-QUESTION-Q9.md` before 12 Oct; a "no" comes back as a scope decision.
 
 ---
 
