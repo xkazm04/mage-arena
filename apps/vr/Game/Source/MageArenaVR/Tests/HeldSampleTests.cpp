@@ -344,6 +344,8 @@ struct FRig
 	int32 Bolts = 0;
 	TArray<FName> Casts;
 	int32 Rejects = 0;
+	int32 Plants = 0;
+	int32 Lifts = 0;
 
 	bool Open(FAutomationTestBase& Test)
 	{
@@ -377,6 +379,8 @@ struct FRig
 		Blinks->OnBolt.AddLambda([this](const FBoltFlickEvent&) { ++Bolts; });
 		Sigils->OnSigilCast.AddLambda([this](FName Line, float, double) { Casts.Add(Line); });
 		Sigils->OnSigilRejected.AddLambda([this](double) { ++Rejects; });
+		Staff->OnPlant.AddLambda([this]() { ++Plants; });
+		Staff->OnLift.AddLambda([this]() { ++Lifts; });
 		return true;
 	}
 
@@ -423,6 +427,8 @@ struct FRig
 		Bolts = 0;
 		Casts.Reset();
 		Rejects = 0;
+		Plants = 0;
+		Lifts = 0;
 		Hands->PlayLoadedClip(Clip);
 		UHandClipPlayer* Player = Hands->GetClipPlayer();
 		if (!Player || !Player->IsPlaying())
@@ -470,7 +476,8 @@ enum class EKind : uint8
 {
 	Ward,
 	Blink,
-	Sigil
+	Sigil,
+	Staff
 };
 
 FString Relevant(const FRig& Rig, EKind Kind)
@@ -488,6 +495,8 @@ FString Relevant(const FRig& Rig, EKind Kind)
 		}
 		return Out + FString::Printf(TEXT(" bolt x%d"), Rig.Bolts);
 	}
+	case EKind::Staff:
+		return FString::Printf(TEXT("plant x%d lift x%d"), Rig.Plants, Rig.Lifts);
 	default:
 	{
 		FString Out = FString::Printf(TEXT("sigil x%d"), Rig.Casts.Num());
@@ -1428,6 +1437,23 @@ bool FMageArenaHeldSampleCorpusModels::RunTest(const FString& Parameters)
 		}
 		bPass &= TestEqual(*FString::Printf(TEXT("%s corpus correct (ratchet)"), Stream->Name), Figures.Correct, Found->Correct);
 		bPass &= TestEqual(*FString::Printf(TEXT("%s false casts (ratchet)"), Stream->Name), Figures.FalseCasts(), Found->FalseCasts);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleStaff, "MageArena.Hands.HeldSample.Staff",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleStaff::RunTest(const FString& Parameters)
+{
+	// G1, report only: staff-lift and staff-plant on held and extrapolated 30 Hz against 72 Hz, in KnownModelMisses.
+	bool bPass = true;
+	for (const TCHAR* Action : {TEXT("staff-lift"), TEXT("staff-plant")})
+	{
+		for (const FStream* Stream : {&GHeld30, &GExtrapolated30})
+		{
+			bPass &= RunRatchet(*this, Action, EKind::Staff, *Stream, nullptr, true);
+		}
 	}
 	return bPass;
 }
