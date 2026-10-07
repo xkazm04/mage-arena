@@ -26,7 +26,7 @@ row below is built **greybox first** (current phase rule) and measured headless 
 | 4 | T20 | VR player preset: Mirror II = Reflection, and the Leviathan / Rain of Orbs pick on the stones at the first intermission | - | VR data only |
 | 5 | T21 | The Tiro day chain: ritual (both palms), soldiers, creatures, Brennic semifinal, final (Corvo placeholder until row 7), aftermath; `FullSeated` measures the day against 7-10 min | 2, 3 | - |
 | 6 | T22 | Collar ledger: Cracks and Tithe tallied from kernel events per bout, saved across days, shown only on the aftermath tablet (greybox) | 5 | CR-006 (Cracks, Tithe, tier V cap) |
-| 7 | T23 | Second school as an AI opponent (Earth or Air: spells, defence B or D, AI tuning) for the Tiro final | owner pick, 3 | CR-007 |
+| 7 | T23 | Air as an AI opponent (Gale Tent, spells, defence D air form, AI tuning) for the Tiro final | 3 | CR-007 |
 
 ## Lane B - signature moments and choice (desktop core gate)
 
@@ -69,8 +69,6 @@ CR-001 to CR-003 pattern). Numbers stay overlay-only until TV accepts.
 
 ## Open owner questions
 
-1. **Second school for the Tiro final: Earth (Stone Tent: Garran or Senna) or Air (Gale Tent: Iskar or Lio)?**
-   Recommendation: Earth. Its stone form (defence B) reuses the closed fist built for spare or finish (T25), and its
-   heavy, slow spells contrast best with Brennic's fire. Needed before T23 is dispatched; the cut date is 23 Oct.
+1. Answered 2026-10-07: the second school is **Air** (Gale Tent: Iskar or Lio, defence D). See DECISIONS.
 2. DF-003's knob sets (`wide` and the others) stay unadopted: T19 measures phases on the live overlay and on the
    proposal, and the owner picks from those numbers.

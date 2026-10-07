@@ -27,6 +27,8 @@ Newest first. Quotes are the owner's words; the lines under them are what the pl
   Corvo, a second Ember entrant on the Fire kernel.
 - **ElevenLabs approval extends to pre-rendered voice lines** (ritual, taunts, crowd chorus, 10 words or fewer each),
   generated from a written cue sheet with the count stated on the card. No runtime calls.
+- **Second school for the Tiro final: Air** (owner, 2026-10-07, asked "Earth, Air, or Corvo now?": "Air"). The Gale Tent
+  entrant (Iskar or Lio) as an AI opponent with defence D (air form). Card T23; Corvo stays the 23 Oct fallback.
 - Four routes, one per member of the Four (Cassia, Brennic, Garran, Iskar); Cassia's (Water) is the slice. All four
   schools playable at launch (spring 2027).
 - Lost: the cautious campaign proposal (90 s of story per day, static tableaux, no personal arc), sliders for Sunfall
