@@ -12,7 +12,7 @@ fill in November. The recognizer, the ward detector and the blink detector run o
 VR. A shortcut that bypasses the pipeline and calls `CastLine()` directly would test nothing the headset needs.
 
 ```
-Headset (Nov)      -> joint stream (72 Hz) --+
+Headset (Nov)      -> joint stream (emitted at 72 Hz) --+
 Keyboard clip (Oct) -> joint stream (replay) -+--> smoothing -> gesture detectors -> intents -> combat kernel
 Mouse draw (Oct)   -> fingertip path --------+         (sigil / ward / blink)
 ```

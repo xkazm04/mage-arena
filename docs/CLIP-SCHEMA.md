@@ -30,7 +30,7 @@ Key order is part of the synthetic bytes (recorders may use this same order).
 | `action` | Non-empty string. The twelve desktop actions are below. |
 | `variant` | `normal`, `slow`, or `sloppy`. |
 | `hands` | Non-empty subset of `["L","R"]`. `L` before `R` when both are present. No duplicates. |
-| `hz` | `72`. Schema v1 is the Quest sample rate. |
+| `hz` | `72`. 72 is the rate a clip is emitted at. The hands may update more slowly underneath (about 30 Hz at LOW, unconfirmed first-party, see F7 in `docs/research/STACK-OPPORTUNITIES-2026-10.md`). |
 | `space` | Exactly `seated-origin, metres, +X forward, +Y right, +Z up (Unreal axes, cm converted to m)`. |
 | `keypoints` | The 26 `EHandKeypoint` names, enum order, listed below. |
 | `source` | `synthetic`, `recorded`, or `mouse`. |
@@ -146,7 +146,7 @@ It prints one line per clip and a summary, and exits non-zero if any clip is inv
 
 A device recording is this schema with `source: "recorded"` and `seed: 0`.
 
-- Sample at 72 Hz. `t` is seconds from the first sample, not the headset clock.
+- Write at 72 Hz and keep repeated poses as they arrive, with no smoothing and no interpolation: if the hands update slower than 72 Hz, the same pose repeats on consecutive lines. `t` is seconds from the first sample, not the headset clock.
 - Keep the gap within 10% of `1/72`. If tracking drops, still write the sample: repeat the last joints and set `conf` low. Do not leave a hole.
 - Write one line per tracked hand per sample. Left before right when both are tracked. A one-hand clip lists only that hand.
 - Convert device centimetres to metres. Stay in seated-origin space with Unreal axes (`+X` forward, `+Y` right, `+Z` up). Do not write a stage-space or OpenXR-space clip.

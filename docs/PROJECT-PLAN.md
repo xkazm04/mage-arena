@@ -333,7 +333,7 @@ This spec is the VR game; in October the desktop feeds the same pipeline (`DESKT
 | `MageArenaTests` | Development only | Kernel unit tests (mirror of the 47 TS tests where in scope), conformance vectors, corpus replay tests, scenario tests. | Judged by abslog markers (pof convention). |
 | `MageArenaDev` | Editor only | pof bridge hooks, recorder controls. | Never packaged (eligibility and size). |
 
-**Gesture pipeline:** joints (72 Hz) → smoothing (One-Euro filter) → pen state (pinch, or point pose for style B) → stroke buffer → resample to 32 points per stroke → PCA plane fit, projected to 2D → $Q match against the templates for the 3 slotted lines → reject if the score is below threshold or the circle is missing → `CastLine(line)` event.
+**Gesture pipeline:** joints (emitted at 72 Hz) → smoothing (One-Euro filter) → pen state (pinch, or point pose for style B) → stroke buffer → resample to 32 points per stroke → PCA plane fit, projected to 2D → $Q match against the templates for the 3 slotted lines → reject if the score is below threshold or the circle is missing → `CastLine(line)` event.
 - The tier IV path waits up to 1.5 s for `MudraDetector`.
 - Templates are the owner's draws (5 per class), stored as data so they can be tuned without code: mouse draws in October, re-recorded from real hands in V2.
 
