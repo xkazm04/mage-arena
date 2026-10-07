@@ -78,3 +78,29 @@ From reading `docs/campaign/`, `docs/gameplay/`, `docs/design-findings/` and the
   ritual repetition, a crowd chorus (chants that react to Cracks against Tithe), music and staging, not from long text.
 - **Canon impact.** Cracks, Tithe and tier V are new canon, so they go to TV as one change request before they ship.
   `K-wardstones-drink` already supports Tithe.
+
+## Wave 2 - campaign structure (2026-10-07)
+
+| Question | Owner's answer |
+|---|---|
+| Collar economy | **Precision against Spectacle**: Cracks from clean play (saved, open the Breaking); Tithe from spilled magic (renown now, a stronger jailer later). |
+| Story in the 18 Nov slice | **A full Tiro day, four bouts**: prologue, teach, ritual, soldiers, creatures, Brennic in the semifinal, then the Tiro final against a second school. |
+| Full campaign shape | **Authored chapters plus a ladder**: one hand-authored story Games day per tier (Tiro, Veteranus, Primus, Summa), each with a named rival and a set-piece boss phase; optional exhibition bouts between them for mastery and Cracks. |
+| Branching choices | **Spare or finish at missio**, **secrets at intermissions**, **pacts with other Tents**. (Not picked as its own branch: an ending decided by fighting style alone. The collar economy still feeds the endings through Cracks.) |
+
+### Consequences
+
+- **The slice needs a second opponent school by mid-November.** The Tiro final is "the winner of the other semifinal",
+  an Earth (Stone Tent: Garran or Senna) or Air (Gale Tent: Iskar or Lio) entrant. That means one more school in the
+  kernel as an **AI opponent only** (spells, defence B or D, AI tuning), plus its CR to TV. This is the slice's largest
+  new scope item. Wave 5 sizes it against the 23 Oct checkpoint and the 31 Oct gate, and sets the fallback: a second
+  Fire entrant (Corvo), which needs no new school.
+- **Endings are gated by three things:** Cracks (the collar must be cracked enough), the Knowing `K-wardstones-drink`
+  (learned through intermission secrets), and trust or pacts (who stands with you at the Summa; spare or finish moves
+  it). Champion: high Tithe, or the Breaking attempted without allies. Betrayed: the Breaking attempted when trust is
+  below 60. Breaking: all three met.
+- **Choices use the stones, never during a bout.** Spare or finish is the one exception to "choices only in scenes".
+  It happens at missio, when the bout is already over: an open palm spares, a closed fist finishes. That is a new
+  gesture, but a held pose the pipeline already reads (the stone-form fist).
+- **Slice ending:** the day closes on the aftermath of the final. The first crack is visible if the player earned it,
+  and the hook is the line that the Wardstones drink.
