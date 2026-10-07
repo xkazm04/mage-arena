@@ -1,5 +1,5 @@
 # Runs the greybox capture: real RHI, offscreen 1920x1080, scripted shots, desktop budget.
-# Success is MAGEVR_CAPTURE_DONE plus the five pngs and budget.json. The editor Quit code is not the gate.
+# Success is MAGEVR_CAPTURE_DONE plus the six pngs and budget.json. The editor Quit code is not the gate.
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
 $VrDir = Split-Path -Parent $ToolsDir
@@ -54,7 +54,8 @@ $ShotNames = @(
 	"02-sigil-line2-cast.png",
 	"03-ward-arc.png",
 	"04-threats-midflight.png",
-	"05-blink-left-pad.png"
+	"05-blink-left-pad.png",
+	"06-blink-midfade.png"
 )
 
 function Get-Median([double[]]$Values) {

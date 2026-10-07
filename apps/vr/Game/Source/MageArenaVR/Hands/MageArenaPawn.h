@@ -58,6 +58,10 @@ public:
 	USceneComponent* GetSeatedOrigin() const { return SeatedOrigin; }
 	int32 GetActivePadIndex() const { return ActivePad; }
 	bool IsBlinkBusy() const { return bBlinkBusy; }
+	/** 0 outside a fade-out, else how far the fade-out has run, 0 to 1. For the capture. */
+	double GetBlinkFadeOutFraction() const;
+	/** The intensity last given to SetVignette. */
+	double GetVignetteIntensity() const { return VignetteValue; }
 
 	double GetCameraHeightAbovePadCm() const;
 	float GetFacingYawDegrees() const { return FacingYaw; }
@@ -100,4 +104,5 @@ private:
 	bool bBlinkBusy = false;
 	EBlinkPhase BlinkPhase = EBlinkPhase::Idle;
 	double BlinkPhaseStart = 0.0;
+	double VignetteValue = 0.0;
 };

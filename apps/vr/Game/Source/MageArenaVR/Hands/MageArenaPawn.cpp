@@ -282,8 +282,19 @@ void AMageArenaPawn::SetVignette(double Intensity)
 	{
 		return;
 	}
+	VignetteValue = Intensity;
 	Camera->PostProcessSettings.bOverride_VignetteIntensity = true;
 	Camera->PostProcessSettings.VignetteIntensity = static_cast<float>(Intensity);
+}
+
+double AMageArenaPawn::GetBlinkFadeOutFraction() const
+{
+	if (BlinkPhase != EBlinkPhase::FadeOut)
+	{
+		return 0.0;
+	}
+	const double Duration = FMath::Max(Layout.BlinkFadeOutS, 0.01);
+	return FMath::Clamp((FPlatformTime::Seconds() - BlinkPhaseStart) / Duration, 0.0, 1.0);
 }
 
 void AMageArenaPawn::StartFade(float FromAlpha, float ToAlpha, double Duration, bool bHold)

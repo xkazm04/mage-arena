@@ -820,7 +820,24 @@ void UGreyboxCaptureDriver::Advance()
 		{
 			Pawn->BlinkToPad(0);
 		}
-		Enter(EStep::WaitBlink);
+		Enter(EStep::WaitBlinkHalf);
+		break;
+	case EStep::WaitBlinkHalf:
+		// Fade-out is the short leg, so the shot lands near its middle. The log carries the phase the shot saw.
+		if (!Pawn || Pawn->GetBlinkFadeOutFraction() >= 0.5 || Elapsed > 2.0)
+		{
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BLINK_MID fadeOut=%.3f vignette=%.3f busy=%d"),
+				Pawn ? Pawn->GetBlinkFadeOutFraction() : -1.0, Pawn ? Pawn->GetVignetteIntensity() : -1.0,
+				Pawn && Pawn->IsBlinkBusy() ? 1 : 0);
+			RequestShot(TEXT("06-blink-midfade.png"));
+			Enter(EStep::WaitBlinkMidShot);
+		}
+		break;
+	case EStep::WaitBlinkMidShot:
+		if (ShotFinished() || Elapsed > 8.0)
+		{
+			Enter(EStep::WaitBlink);
+		}
 		break;
 	case EStep::WaitBlink:
 		if (Pawn && !Pawn->IsBlinkBusy())
@@ -851,7 +868,7 @@ void UGreyboxCaptureDriver::Advance()
 		break;
 	case EStep::WriteBudget:
 		WriteBudgetFile();
-		if (ShotNames.Num() >= 5 && bPlausible && bColoursOk && bWithinBudget)
+		if (ShotNames.Num() >= 6 && bPlausible && bColoursOk && bWithinBudget)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
 		}

@@ -44,6 +44,8 @@ private:
 		ShotThreats,
 		WaitThreatsShot,
 		PlayBlink,
+		WaitBlinkHalf,
+		WaitBlinkMidShot,
 		WaitBlink,
 		ShotBlink,
 		WaitBlinkShot,
