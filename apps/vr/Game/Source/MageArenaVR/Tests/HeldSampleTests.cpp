@@ -74,6 +74,32 @@ const TArray<FString>& KnownHeldWardMisses()
 }
 
 /**
+ * RATCHET for the action results on the G1 streams (extrapolated 30 Hz, held and extrapolated 25 Hz, and staff on every
+ * stream), with the rules of KnownHeldMisses. Key: "<stream>.<action>.<variant>.p<phase index>", plus ".x2" for a clip
+ * played twice in one stream (the blink re-arm).
+ */
+const TArray<FString>& KnownModelMisses()
+{
+	// held30 slow blinks played twice (MakeTwiceClip): at 72 Hz both flicks fire (blink-back.slow reads its second flick as
+	// a bolt there); on held 30 Hz the second flick fires nothing, in all three phases, while the first fires 0 to 27.8 ms
+	// late. That reads as a re-arm that comes too late for a second flick with no pause before it; the latch itself is not
+	// visible to this test. Normal and sloppy, and the extrapolated stream, do not miss. Fix: a detector change (the re-arm
+	// quiet time on held samples), a separate run; not W1 or W2.
+	static const TArray<FString> Misses = {
+		TEXT("held30.blink-left.slow.p0.x2"), TEXT("held30.blink-left.slow.p1.x2"), TEXT("held30.blink-left.slow.p2.x2"),
+		TEXT("held30.blink-right.slow.p0.x2"), TEXT("held30.blink-right.slow.p1.x2"), TEXT("held30.blink-right.slow.p2.x2"),
+		TEXT("held30.blink-back.slow.p0.x2"), TEXT("held30.blink-back.slow.p1.x2"), TEXT("held30.blink-back.slow.p2.x2")};
+	return Misses;
+}
+
+/** RATCHET for the ward timing on the G1 streams, with the rules of KnownHeldWardMisses. Key as in KnownModelMisses. */
+const TArray<FString>& KnownModelWardMisses()
+{
+	static const TArray<FString> Misses;
+	return Misses;
+}
+
+/**
  * Held copy of a clip. Every frame keeps its time, so hz stays 72 and the 1/72 spacing holds. Pose, pinch and confidence
  * come from the source at the latest camera time Phase + k / CameraHz that is <= the frame time, clamped to the clip start.
  * Every other frame field, bSystemGesture included, is copied from the source frame.
@@ -104,8 +130,9 @@ FHandClip MakeHeldClip(const FHandClip& Source, double CameraHz, double Phase)
  * a model and not Meta's method. Every frame keeps its time. The latest camera sample c1 = Phase + k / CameraHz <= the frame
  * time and the one before it, c0 = c1 - 1 / CameraHz, are extrapolated linearly to the frame time, capped at one camera
  * period: locations by the fraction (t - c1) * CameraHz of the step c0 to c1, rotations by the same fraction of the rotation
- * c0 to c1, pinch the same and clamped to 0..1. Confidence and every other field come as in MakeHeldClip. Until c0 exists
- * (the first camera period) the pose is held.
+ * c0 to c1. Pinch, confidence and every other field are held as in MakeHeldClip: G1 extrapolates joint locations and
+ * rotations only, and whether the runtime extrapolates pinch strength is unknown. (Measured once with pinch extrapolated too: the extrapolated
+ * 30 Hz corpus then gave 30 zigzag impostor casts instead of 9.) Until c0 exists (the first camera period) the pose is held.
  */
 FHandClip MakeExtrapolatedClip(const FHandClip& Source, double CameraHz, double Phase)
 {
@@ -141,7 +168,6 @@ FHandClip MakeExtrapolatedClip(const FHandClip& Source, double CameraHz, double 
 				const FQuat Step = To.Rotation * From.Rotation.Inverse();
 				Frame.Joints[Index].Rotation = (FQuat::Slerp(FQuat::Identity, Step, Fraction) * To.Rotation).GetNormalized();
 			}
-			Frame.Pinch = FMath::Clamp(Now.Pinch + (Now.Pinch - Before.Pinch) * static_cast<float>(Fraction), 0.0f, 1.0f);
 		}
 	}
 	return Extrapolated;
@@ -165,6 +191,9 @@ const FStream GHeld30{TEXT("held30"), EStreamModel::Held, GCameraHz};
 const FStream GExtrapolated30{TEXT("extrap30"), EStreamModel::Extrapolated, GCameraHz};
 const FStream GHeld25{TEXT("held25"), EStreamModel::Held, GLowCameraHz};
 const FStream GExtrapolated25{TEXT("extrap25"), EStreamModel::Extrapolated, GLowCameraHz};
+
+/** The G1 streams the model tests run, beside the F7(b) held 30 Hz stream. */
+const FStream* const GModelStreams[] = {&GExtrapolated30};
 
 FHandClip MakeStream(const FHandClip& Source, const FStream& Stream, double Phase)
 {
@@ -204,6 +233,28 @@ int32 DistinctPoses(const FHandClipTrack& Track)
 	return Count;
 }
 
+/**
+ * The clip, then the clip again one frame after its end, in one stream that never rewinds. A detector that has not re-armed
+ * by the end of the first copy loses the second gesture (G1: extrapolation overshoot can delay the blink re-arm).
+ */
+FHandClip MakeTwiceClip(const FHandClip& Source)
+{
+	FHandClip Twice = Source;
+	const double Offset = Source.GetDuration() + 1.0 / 72.0;
+	for (FHandClipTrack& Track : Twice.Tracks)
+	{
+		const int32 Count = Track.Frames.Num();
+		for (int32 Index = 0; Index < Count; ++Index)
+		{
+			FHandFrame Copy = Track.Frames[Index];
+			Copy.TimeSeconds += Offset;
+			Track.Frames.Add(Copy);
+		}
+	}
+	Twice.Duration = Offset + Source.GetDuration();
+	return Twice;
+}
+
 struct FRig
 {
 	UGameInstance* Instance = nullptr;
@@ -217,6 +268,7 @@ struct FRig
 	int32 WardRaised = 0;
 	double FirstOnset = -1.0;
 	TArray<int32> BlinkDirections;
+	TArray<double> BlinkTimes;
 	int32 Bolts = 0;
 	TArray<FName> Casts;
 	int32 Rejects = 0;
@@ -245,7 +297,11 @@ struct FRig
 			FirstOnset = WardRaised == 0 ? Onset : FirstOnset;
 			++WardRaised;
 		});
-		Blinks->OnBlink.AddLambda([this](const FBlinkEvent& Event) { BlinkDirections.Add(static_cast<int32>(Event.Direction)); });
+		Blinks->OnBlink.AddLambda([this](const FBlinkEvent& Event)
+		{
+			BlinkDirections.Add(static_cast<int32>(Event.Direction));
+			BlinkTimes.Add(Event.TimeSeconds);
+		});
 		Blinks->OnBolt.AddLambda([this](const FBoltFlickEvent&) { ++Bolts; });
 		Sigils->OnSigilCast.AddLambda([this](FName Line, float, double) { Casts.Add(Line); });
 		Sigils->OnSigilRejected.AddLambda([this](double) { ++Rejects; });
@@ -291,6 +347,7 @@ struct FRig
 		WardRaised = 0;
 		FirstOnset = -1.0;
 		BlinkDirections.Reset();
+		BlinkTimes.Reset();
 		Bolts = 0;
 		Casts.Reset();
 		Rejects = 0;
@@ -391,10 +448,19 @@ struct FWardFigures
 	int32 WithinBound = 0;
 };
 
-/** Runs one action over every variant and phase of a stream against the ratchet. Returns false on a failure. */
-bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, const FStream& Stream, FWardFigures* OutWard)
+/**
+ * Runs one action over every variant and phase of a stream against the ratchet. Returns false on a failure. The F7(b)
+ * cases use KnownHeldMisses and KnownHeldWardMisses with plain keys; bModelTables selects the G1 tables and stream-prefixed
+ * keys. bTwice plays every clip twice in one stream (MakeTwiceClip), at 72 Hz and on the stream alike.
+ */
+bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, const FStream& Stream, FWardFigures* OutWard,
+	bool bModelTables = false, bool bTwice = false)
 {
 	const double BoundMs = OnsetBoundMs(Stream.CameraHz);
+	const TArray<FString>& Misses = bModelTables ? KnownModelMisses() : KnownHeldMisses();
+	const TArray<FString>& WardMisses = bModelTables ? KnownModelWardMisses() : KnownHeldWardMisses();
+	const TCHAR* MissesName = bModelTables ? TEXT("KnownModelMisses") : TEXT("KnownHeldMisses");
+	const TCHAR* WardMissesName = bModelTables ? TEXT("KnownModelWardMisses") : TEXT("KnownHeldWardMisses");
 	FRig Rig;
 	if (!Rig.Open(Test))
 	{
@@ -421,6 +487,10 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 			bPass = false;
 			continue;
 		}
+		if (bTwice)
+		{
+			Source = MakeTwiceClip(Source);
+		}
 		if (!Rig.Play(Source))
 		{
 			Test.AddError(FString::Printf(TEXT("%s.%s at 72 Hz did not play"), Action, VariantNames[VariantIndex]));
@@ -431,9 +501,12 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 		const int32 ReferenceWards = Rig.WardRaised;
 		const double ReferenceOnset = Rig.FirstOnset;
 		const FWardEvent ReferenceRaise = Rig.Wards->GetLastRaise();
+		const TArray<double> ReferenceBlinkTimes = Rig.BlinkTimes;
 		for (int32 PhaseIndex = 0; PhaseIndex < GPhaseCount; ++PhaseIndex)
 		{
-			const FString Key = CaseKey(Action, VariantIndex, PhaseIndex);
+			const FString Key = bModelTables
+				? FString::Printf(TEXT("%s.%s%s"), Stream.Name, *CaseKey(Action, VariantIndex, PhaseIndex), bTwice ? TEXT(".x2") : TEXT(""))
+				: CaseKey(Action, VariantIndex, PhaseIndex);
 			const FHandClip Held = MakeStream(Source, Stream, GPhases[PhaseIndex]);
 			if (!Rig.Play(Held))
 			{
@@ -444,6 +517,14 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 			const FString HeldResult = Relevant(Rig, Kind);
 			const bool bMatch = HeldResult == Reference;
 			FString Extra;
+			if (Kind == EKind::Blink)
+			{
+				// How late each blink fires against 72 Hz, when the counts agree.
+				for (int32 Index = 0; Index < Rig.BlinkTimes.Num() && Index < ReferenceBlinkTimes.Num(); ++Index)
+				{
+					Extra += FString::Printf(TEXT(" blink%dDeltaMs=%.3f"), Index, (Rig.BlinkTimes[Index] - ReferenceBlinkTimes[Index]) * 1000.0);
+				}
+			}
 			bool bWardHolds = false;
 			if (Kind == EKind::Ward)
 			{
@@ -501,21 +582,21 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 						OutWard->InteriorHeld += bInteriorHeld ? 1 : 0;
 					}
 				}
-				const bool bKnownWard = KnownHeldWardMisses().Contains(Key);
+				const bool bKnownWard = WardMisses.Contains(Key);
 				Extra += FString::Printf(TEXT(" wardHolds=%d knownWard=%d"), bWardHolds ? 1 : 0, bKnownWard ? 1 : 0);
 				if (!bWardHolds && !bKnownWard)
 				{
-					Test.AddError(FString::Printf(TEXT("%s held onset is not within %.1f ms of the 72 Hz onset, or an interior hit is not perfect, and it is not in KnownHeldWardMisses"),
-						*Key, BoundMs));
+					Test.AddError(FString::Printf(TEXT("%s onset is not within %.1f ms of the 72 Hz onset, or an interior hit is not perfect, and it is not in %s"),
+						*Key, BoundMs, WardMissesName));
 					bPass = false;
 				}
 				if (bWardHolds && bKnownWard)
 				{
-					Test.AddError(FString::Printf(TEXT("%s is in KnownHeldWardMisses but now holds: remove it"), *Key));
+					Test.AddError(FString::Printf(TEXT("%s is in %s but now holds: remove it"), *Key, WardMissesName));
 					bPass = false;
 				}
 			}
-			const bool bKnown = KnownHeldMisses().Contains(Key);
+			const bool bKnown = Misses.Contains(Key);
 			const FString Line = FString::Printf(TEXT("HeldSample case %s 72Hz=[%s] held=[%s] match=%d known=%d%s"),
 				*Key, *Reference, *HeldResult, bMatch ? 1 : 0, bKnown ? 1 : 0, *Extra);
 			UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
@@ -524,17 +605,19 @@ bool RunRatchet(FAutomationTestBase& Test, const TCHAR* Action, EKind Kind, cons
 			Matches += bMatch ? 1 : 0;
 			if (!bMatch && !bKnown)
 			{
-				Test.AddError(FString::Printf(TEXT("%s held misses its 72 Hz result and is not in KnownHeldMisses"), *Key));
+				Test.AddError(FString::Printf(TEXT("%s misses its 72 Hz result and is not in %s"), *Key, MissesName));
 				bPass = false;
 			}
 			if (bMatch && bKnown)
 			{
-				Test.AddError(FString::Printf(TEXT("%s is in KnownHeldMisses but now matches: remove it"), *Key));
+				Test.AddError(FString::Printf(TEXT("%s is in %s but now matches: remove it"), *Key, MissesName));
 				bPass = false;
 			}
 		}
 	}
-	const FString Summary = FString::Printf(TEXT("HeldSample %s matches %d/%d"), Action, Matches, Cases);
+	const FString Summary = bModelTables
+		? FString::Printf(TEXT("HeldSample %s %s%s matches %d/%d"), Stream.Name, Action, bTwice ? TEXT(" x2") : TEXT(""), Matches, Cases)
+		: FString::Printf(TEXT("HeldSample %s matches %d/%d"), Action, Matches, Cases);
 	UE_LOG(LogMageArena, Log, TEXT("%s"), *Summary);
 	Test.AddInfo(Summary);
 	Rig.Close();
@@ -563,8 +646,8 @@ void CollectJsonl(const TCHAR* Sub, TArray<FString>& Out)
 	Out.Sort();
 }
 
-/** The corpus, impostors and noise through the pipeline, at 72 Hz (bHeld false) or held at phase 0. */
-bool RunCorpus(FAutomationTestBase& Test, bool bHeld, FCorpusFigures& Out)
+/** The corpus, impostors and noise through the pipeline, at 72 Hz (no stream) or on a stream at phase 0. */
+bool RunCorpus(FAutomationTestBase& Test, const FStream* Stream, FCorpusFigures& Out)
 {
 	FRig Rig;
 	if (!Rig.Open(Test))
@@ -587,7 +670,7 @@ bool RunCorpus(FAutomationTestBase& Test, bool bHeld, FCorpusFigures& Out)
 				bPass = false;
 				continue;
 			}
-			const FHandClip Played = bHeld ? MakeHeldClip(Clip, GCameraHz, GPhases[0]) : Clip;
+			const FHandClip Played = Stream ? MakeStream(Clip, *Stream, GPhases[0]) : Clip;
 			if (!Rig.Play(Played))
 			{
 				Test.AddError(FString::Printf(TEXT("%s did not play"), *Path));
@@ -597,21 +680,45 @@ bool RunCorpus(FAutomationTestBase& Test, bool bHeld, FCorpusFigures& Out)
 			Consume(Clip);
 		}
 	};
+	const TCHAR* StreamName = Stream ? Stream->Name : TEXT("72hz");
+	// Every wrong corpus clip and every false cast is logged with its file, so a finding names its clips.
+	auto Note = [&](const TCHAR* What, const FHandClip& Clip)
+	{
+		FString Lines;
+		for (const FName Line : Rig.Casts)
+		{
+			Lines += Line.ToString() + TEXT(" ");
+		}
+		UE_LOG(LogMageArena, Log, TEXT("HeldSample corpus %s %s %s casts=[%s] rejects=%d"), StreamName, What, *Clip.Name, *Lines.TrimEnd(), Rig.Rejects);
+	};
 	Run(TEXT("corpus"), [&](const FHandClip& Clip)
 	{
 		++Out.Clips;
 		const FString Expected = Clip.Action.Right(5);
-		Out.Correct += (Rig.Casts.Num() >= 1 && Rig.Casts[0].ToString() == Expected) ? 1 : 0;
+		const bool bCorrect = Rig.Casts.Num() >= 1 && Rig.Casts[0].ToString() == Expected;
+		Out.Correct += bCorrect ? 1 : 0;
+		if (!bCorrect)
+		{
+			Note(TEXT("wrong"), Clip);
+		}
 	});
-	Run(TEXT("impostors"), [&](const FHandClip&)
+	Run(TEXT("impostors"), [&](const FHandClip& Clip)
 	{
 		++Out.Impostors;
 		Out.ImpostorCasts += Rig.Casts.Num();
+		if (Rig.Casts.Num() > 0)
+		{
+			Note(TEXT("impostor-cast"), Clip);
+		}
 	});
-	Run(TEXT("noise"), [&](const FHandClip&)
+	Run(TEXT("noise"), [&](const FHandClip& Clip)
 	{
 		++Out.Noise;
 		Out.NoiseCasts += Rig.Casts.Num();
+		if (Rig.Casts.Num() > 0)
+		{
+			Note(TEXT("noise-cast"), Clip);
+		}
 	});
 	Rig.Close();
 	return bPass;
@@ -939,8 +1046,8 @@ bool FMageArenaHeldSampleSigilCorpus::RunTest(const FString& Parameters)
 
 	FCorpusFigures Normal;
 	FCorpusFigures Held;
-	bool bPass = RunCorpus(*this, false, Normal);
-	bPass &= RunCorpus(*this, true, Held);
+	bool bPass = RunCorpus(*this, nullptr, Normal);
+	bPass &= RunCorpus(*this, &GHeld30, Held);
 	const FString Line72 = FString::Printf(TEXT("HeldSample corpus 72Hz accuracy %d/%d (%d%% floor), impostor casts %d/%d, noise casts %d/%d"),
 		Normal.Correct, Normal.Clips, Normal.AccuracyPercentFloor(), Normal.ImpostorCasts, Normal.Impostors, Normal.NoiseCasts, Normal.Noise);
 	const FString LineHeld = FString::Printf(TEXT("HeldSample corpus held accuracy %d/%d (%d%% floor), impostor casts %d/%d, noise casts %d/%d"),
@@ -1096,6 +1203,95 @@ bool FMageArenaHeldSampleLatency::RunTest(const FString& Parameters)
 		AddInfo(Line);
 	}
 	FMageSettings::Restore(Saved);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleWardModels, "MageArena.Hands.HeldSample.WardModels",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleWardModels::RunTest(const FString& Parameters)
+{
+	// G1: the ward onset bound (one camera interval plus one 72 Hz frame) and the interior perfect probes of
+	// HeldSample.Ward, on every G1 stream.
+	bool bPass = true;
+	for (const FStream* Stream : GModelStreams)
+	{
+		FWardFigures Figures;
+		bPass &= RunRatchet(*this, TEXT("ward-raise"), EKind::Ward, *Stream, &Figures, true);
+		TArray<double>& Deltas = Figures.OnsetDeltasMs;
+		Deltas.Sort();
+		const FString Line = FString::Printf(TEXT("HeldSample %s ward onset delta ms min=%.3f median=%.3f max=%.3f n=%d, within %.1f ms %d/%d, interior perfect %d/%d"),
+			Stream->Name, Deltas.Num() ? Deltas[0] : 0.0, Deltas.Num() ? Deltas[Deltas.Num() / 2] : 0.0, Deltas.Num() ? Deltas.Last() : 0.0, Deltas.Num(),
+			OnsetBoundMs(Stream->CameraHz), Figures.WithinBound, Figures.Cases, Figures.InteriorHeld, Figures.Cases);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+		AddInfo(Line);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleBlinkModels, "MageArena.Hands.HeldSample.BlinkModels",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleBlinkModels::RunTest(const FString& Parameters)
+{
+	// G1: blink left, right and back on every G1 stream against 72 Hz: a false blink, a bolt or a wrong direction changes
+	// the result. Every clip also plays twice in one stream, on held30 too, so a re-arm that comes too late for the second
+	// flick changes the result as well. The per-blink time delta is logged.
+	bool bPass = true;
+	for (const TCHAR* Action : {TEXT("blink-left"), TEXT("blink-right"), TEXT("blink-back")})
+	{
+		bPass &= RunRatchet(*this, Action, EKind::Blink, GHeld30, nullptr, true, true);
+		for (const FStream* Stream : GModelStreams)
+		{
+			bPass &= RunRatchet(*this, Action, EKind::Blink, *Stream, nullptr, true, false);
+			bPass &= RunRatchet(*this, Action, EKind::Blink, *Stream, nullptr, true, true);
+		}
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaHeldSampleCorpusModels, "MageArena.Hands.HeldSample.CorpusModels",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaHeldSampleCorpusModels::RunTest(const FString& Parameters)
+{
+	// G1: the sigil corpus, impostors and noise on every G1 stream at phase 0. Two-sided: the correct count and the false
+	// casts must equal what was measured, so a loss fails and a gain fails until this table is updated.
+	struct FExpected
+	{
+		const TCHAR* Stream;
+		int32 Correct;
+		int32 FalseCasts;
+	};
+	// extrap30: 9 false casts, every one an impostor-zigzag (a small three-leg mark inside the circle) cast as a line. Pinch
+	// is held in this model, so the joint extrapolation alone lets them pass the reject. Fix: a recognizer change (the reject on short jagged
+	// inner strokes), a separate run; W1 and W2 do not touch sigils.
+	const FExpected Expected[] = {{TEXT("extrap30"), 253, 9}};
+	bool bPass = true;
+	for (const FStream* Stream : GModelStreams)
+	{
+		FCorpusFigures Figures;
+		bPass &= RunCorpus(*this, Stream, Figures);
+		const FString Line = FString::Printf(TEXT("HeldSample corpus %s accuracy %d/%d (%d%% floor), impostor casts %d/%d, noise casts %d/%d"),
+			Stream->Name, Figures.Correct, Figures.Clips, Figures.AccuracyPercentFloor(), Figures.ImpostorCasts, Figures.Impostors, Figures.NoiseCasts, Figures.Noise);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+		AddInfo(Line);
+		bPass &= TestEqual(*FString::Printf(TEXT("%s corpus clips"), Stream->Name), Figures.Clips, 270);
+		bPass &= TestEqual(*FString::Printf(TEXT("%s impostor clips"), Stream->Name), Figures.Impostors, 180);
+		const FExpected* Found = nullptr;
+		for (const FExpected& Entry : Expected)
+		{
+			Found = FCString::Strcmp(Entry.Stream, Stream->Name) == 0 ? &Entry : Found;
+		}
+		if (!Found)
+		{
+			AddError(FString::Printf(TEXT("%s has no expected corpus figures"), Stream->Name));
+			bPass = false;
+			continue;
+		}
+		bPass &= TestEqual(*FString::Printf(TEXT("%s corpus correct (ratchet)"), Stream->Name), Figures.Correct, Found->Correct);
+		bPass &= TestEqual(*FString::Printf(TEXT("%s false casts (ratchet)"), Stream->Name), Figures.FalseCasts(), Found->FalseCasts);
+	}
 	return bPass;
 }
 
