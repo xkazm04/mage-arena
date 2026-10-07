@@ -98,6 +98,7 @@ bool IsCaptureRun(const TCHAR* CommandLine)
 		TEXT("MageArenaCreaturesCapture"),
 		TEXT("MageArenaStylePickCapture"),
 		TEXT("MageArenaPresetCapture"),
+		TEXT("MageArenaAirCapture"),
 	};
 	for (const TCHAR* Flag : Flags)
 	{

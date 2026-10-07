@@ -219,4 +219,24 @@ private:
 	bool bPhaseVisuals = false;
 	double PhaseAt = -1.0;
 	int32 PhaseRivalId = 0;
+
+	// T23 air telegraphs, drawn from the air mage's pending cast: the Veering Bolt's arc (beads along the flown arc, in
+	// the air colour) with a shrinking ring where it lands, Downdraft's shrinking ring, and the Tempest Lance line
+	// (black core, red rim: the only leave-threat Air has). Air Form: a ring of air-coloured beads around the mage.
+	void SyncAirVisuals(const FArenaSession& Session, double Now);
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AirArcBeads;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirRing;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirLineBody;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirLineRim;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AirFormBeads;
 };

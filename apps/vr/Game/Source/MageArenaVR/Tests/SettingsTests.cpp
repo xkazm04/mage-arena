@@ -353,13 +353,23 @@ bool SpellTelegraph(int32 Span, double Mult)
 // wrath 0.20 -> 12 / 24.
 bool FirePending(const FActor& Actor, double Mult)
 {
-	if (!Actor.Pending.IsSet() || Actor.Pending->Kind != TEXT("fire") || !Actor.Pending->SpellId.IsSet())
+	if (!Actor.Pending.IsSet() || (Actor.Pending->Kind != TEXT("fire") && Actor.Pending->Kind != TEXT("air")) || !Actor.Pending->SpellId.IsSet())
 	{
 		return false;
 	}
 	const bool bDouble = Mult > 1.5;
 	const int32 Span = Actor.Pending->ReleaseTick - Actor.Pending->StartTick;
 	const FString Id = Actor.Pending->SpellId.GetValue();
+	// T23 air rows (spells-air.csv): max(cast_s, telegraph_s) at 60 Hz, and the gentle x2 seconds ceil'd to ticks.
+	if (Id == TEXT("air_bolt") || Id == TEXT("air_slipstream")) return Span == 0 || Span == 1;
+	if (Id == TEXT("air_shear")) return Span == (bDouble ? 15 : 8);
+	if (Id == TEXT("air_veer")) return Span == (bDouble ? 60 : 30);
+	if (Id == TEXT("air_downdraft")) return Span == (bDouble ? 84 : 42);
+	if (Id == TEXT("air_form")) return Span == (bDouble ? 18 : 9);
+	if (Id == TEXT("air_squall")) return Span == (bDouble ? 36 : 18);
+	if (Id == TEXT("air_eye")) return Span == (bDouble ? 48 : 24);
+	if (Id == TEXT("air_tempest")) return Span == (bDouble ? 144 : 72);
+	if (Id == TEXT("air_cyclone")) return Span == (bDouble ? 24 : 12);
 	if (Id == TEXT("fire_bolt") || Id == TEXT("fire_cinderstep")) return Span == 0 || Span == 1;
 	if (Id == TEXT("fire_flick")) return Span == (bDouble ? 18 : 9);
 	if (Id == TEXT("fire_kindle")) return Span == (bDouble ? 48 : 24);
@@ -1033,9 +1043,9 @@ bool FMageArenaSettingsGentle::RunTest(const FString& Parameters)
 				{
 					++PendingChecks;
 				}
-				else if (Actor.Pending.IsSet() && Actor.Pending->Kind == TEXT("fire"))
+				else if (Actor.Pending.IsSet() && (Actor.Pending->Kind == TEXT("fire") || Actor.Pending->Kind == TEXT("air")))
 				{
-					AddError(FString::Printf(TEXT("%s fire windup span %d"), Label,
+					AddError(FString::Printf(TEXT("%s school windup span %d"), Label,
 						Actor.Pending->ReleaseTick - Actor.Pending->StartTick));
 					bBout = false;
 				}
@@ -1099,7 +1109,8 @@ bool FMageArenaSettingsGentle::RunTest(const FString& Parameters)
 
 	bool bPass = RunBout(0, false, true, TEXT("wave1-on"));
 	bPass &= RunBout(2, true, true, TEXT("fire-on"));
-	bPass &= RunBout(3, true, false, TEXT("fire-off"));
+	// T23: the school final is Lio's air mage now, so this bout checks the air windups raw.
+	bPass &= RunBout(3, true, false, TEXT("air-final-off"));
 	Rig.Close();
 	return bPass;
 }

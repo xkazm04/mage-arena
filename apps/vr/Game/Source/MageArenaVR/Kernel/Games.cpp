@@ -34,6 +34,20 @@ FString JsNumber(double Value)
 	return FString::Printf(TEXT("%g"), Value);
 }
 
+FString MageSchool(const FGames& Games, int32 WaveIndex)
+{
+	const FArenaTier& Tiro = TiroTier();
+	if (!Games.bFireMages)
+	{
+		return TEXT("water");
+	}
+	if (Games.bAirFinal && Tiro.Waves.IsValidIndex(WaveIndex) && Tiro.Waves[WaveIndex].Kind == TEXT("final"))
+	{
+		return TEXT("air");
+	}
+	return TEXT("fire");
+}
+
 void SpawnWave(FGames& Games)
 {
 	const FKernelData& Data = KernelData();
@@ -98,8 +112,10 @@ void SpawnWave(FGames& Games)
 			}
 			else
 			{
-				// games.ts labels the duelists as water proxies. Fire duels opt in and keep that preset attached.
-				const TCHAR* Label = Games.bFireMages ? TEXT("Tiro entrant \u00B7 Ember mage") : TEXT("Tiro entrant \u00B7 Water proxy");
+				// games.ts labels the duelists as water proxies. Fire and air duels opt in and keep that preset attached.
+				const FString School = MageSchool(Games, Games.Wave);
+				const TCHAR* Label = School == TEXT("air") ? TEXT("Tiro entrant \u00B7 Gale mage")
+					: School == TEXT("fire") ? TEXT("Tiro entrant \u00B7 Ember mage") : TEXT("Tiro entrant \u00B7 Water proxy");
 				Id = AddMage(Games.State, 1, Pos, Label).Id;
 				const int32 PresetIndex = Games.Wave - 2;
 				checkf(Data.OpponentPresets.IsValidIndex(PresetIndex), TEXT("no opponent preset for Tiro wave %d"), Games.Wave);
@@ -108,15 +124,19 @@ void SpawnWave(FGames& Games)
 				FActor* Actor = SimFindActor(Games.State, Id);
 				check(Actor);
 				Actor->Water = NewWaterState(Preset);
-				if (Games.bFireMages)
+				if (School == TEXT("fire"))
 				{
 					Actor->Fire.bSchool = true;
+				}
+				else if (School == TEXT("air"))
+				{
+					Actor->Air.bSchool = true;
 				}
 				double Level = Spawn.Competence;
 				if (Games.VrRules.IsSet())
 				{
 					FVrRuleset& RivalRules = Games.VrRules.GetValue();
-					const int32 RivalIndex = RivalRules.FindRival(Tiro.Id, Wave.N, Wave.Kind, Games.bFireMages ? TEXT("fire") : TEXT("water"));
+					const int32 RivalIndex = RivalRules.FindRival(Tiro.Id, Wave.N, Wave.Kind, School);
 					if (RivalIndex != INDEX_NONE && RivalRules.RivalRuntime.ActorId < 0)
 					{
 						RivalRules.RivalRuntime.ActorId = Id;
@@ -132,8 +152,8 @@ void SpawnWave(FGames& Games)
 					Level = Games.VrRules->Gentle.Competence;
 				}
 				AttachMageAI(*Actor, Level, Games.State.Tick);
-				Kind = Games.bFireMages
-					? FString::Printf(TEXT("Ember mage %s"), *JsNumber(Level))
+				Kind = School == TEXT("air") ? FString::Printf(TEXT("Gale mage %s"), *JsNumber(Level))
+					: School == TEXT("fire") ? FString::Printf(TEXT("Ember mage %s"), *JsNumber(Level))
 					: FString::Printf(TEXT("Water proxy %s"), *JsNumber(Level));
 			}
 			FSpawnRecord Record;
@@ -174,7 +194,12 @@ bool FiniteActor(const FActor& Actor)
 }
 }
 
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer, bool bFireMages, const FVrRuleset* Rules)
+FString GamesMageSchool(const FGames& Games, int32 Wave)
+{
+	return MageSchool(Games, Wave);
+}
+
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, int32 StartWave, bool bReferencePlayer, bool bFireMages, const FVrRuleset* Rules, bool bAirFinal)
 {
 	const FKernelData& Data = KernelData();
 	if (Data.ArenaTiers.Num() == 0 || Data.Presets.Num() == 0)
@@ -189,6 +214,7 @@ bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition, i
 	const FComposition* Used = Composition ? Composition : &Data.Presets[0];
 	Out = FGames();
 	Out.bFireMages = bFireMages;
+	Out.bAirFinal = bAirFinal;
 	if (Rules && Rules->bActive)
 	{
 		Out.VrRules = *Rules;

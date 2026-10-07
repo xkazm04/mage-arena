@@ -10,6 +10,7 @@
 #include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimMath.h"
@@ -28,6 +29,8 @@
 // T19: the seated Brennic duel (Tiro semifinal, wave index 2, Fire) with HP-gated phases, live and with the
 // proposal, at competence 1 and 1.5. The "-off" sets drop the rivals block so the same seeds show the duel
 // without phases. Nothing here writes calibration-proposal.json: the owner picks.
+// T23: the seated Lio duel (Tiro final, wave index 3, Air, signature Tempest Lance), live and proposal, at competence 1
+// and 1.5, written to runs/T23/census/. The "signature" columns are Sunfall for Brennic and Tempest Lance for Lio.
 
 namespace
 {
@@ -87,9 +90,9 @@ struct FRivalSummary
 	bool bWinTarget = false;
 };
 
-FString RivalCensusDir()
+FString RivalCensusDir(const TCHAR* Run = TEXT("T19"))
 {
-	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), TEXT("runs/T19/census"));
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../../.."), FString::Printf(TEXT("runs/%s/census"), Run));
 	FPaths::CollapseRelativeDirectories(Path);
 	IFileManager::Get().MakeDirectory(*Path, true);
 	return Path;
@@ -113,11 +116,13 @@ struct FMeteor
 	int32 ResolveTick = 0;
 };
 
-FRivalRow RunRivalBout(FArenaSession& Session, const FRivalSet& Set, double Competence, uint32 Seed, double Cap)
+// Wave 2 is Brennic's semifinal (fire, Sunfall); wave 3 is Lio's final (air, Tempest Lance).
+FRivalRow RunRivalBout(FArenaSession& Session, const FRivalSet& Set, double Competence, uint32 Seed, double Cap, int32 Wave = 2)
 {
 	FVrRuleset Rules = Set.Rules;
 	Rules.MageCompetenceOverride = Competence;
-	Session.SetBout(2, true);
+	Session.SetBout(Wave, true);
+	Session.SetAirFinal(true);
 	Session.SetPolicy(FSeatedPolicy());
 	Session.SetRulesOverride(Rules);
 	Session.SetScripted(true);
@@ -133,12 +138,15 @@ FRivalRow RunRivalBout(FArenaSession& Session, const FRivalSet& Set, double Comp
 	int32 RivalId = -1;
 	for (const FActor& Actor : Session.GetGames().State.Actors)
 	{
-		if (Actor.Team != 0 && Actor.Fire.bSchool && Actor.MageAI.IsSet())
+		if (Actor.Team != 0 && (Actor.Fire.bSchool || Actor.Air.bSchool) && Actor.MageAI.IsSet())
 		{
 			RivalId = Actor.Id;
 			break;
 		}
 	}
+	const FActor* Spawned = SimFindActor(Session.GetGames().State, RivalId);
+	const bool bAir = Spawned && Spawned->Air.bSchool;
+	// The Tempest Lance is a line that resolves when its cast releases; a "meteor" here is that cast, start to release.
 	TArray<FMeteor> Meteors;
 	const double Dt = 1.0 / 72.0;
 	int32 Guard = 0;
@@ -155,6 +163,15 @@ FRivalRow RunRivalBout(FArenaSession& Session, const FRivalSet& Set, double Comp
 			if (!Meteors.ContainsByPredicate([&](const FMeteor& Seen) { return Seen.Id == Telegraph.Id; }))
 			{
 				Meteors.Add({Telegraph.Id, Telegraph.StartTick, Telegraph.ResolveTick});
+			}
+		}
+		const FActor* Caster = SimFindActor(Session.GetGames().State, RivalId);
+		if (bAir && Caster && Caster->Pending.IsSet() && Caster->Pending->SpellId.IsSet() && Caster->Pending->SpellId.GetValue() == TEXT("air_tempest"))
+		{
+			const FPendingCast& Lance = Caster->Pending.GetValue();
+			if (!Meteors.ContainsByPredicate([&](const FMeteor& Seen) { return Seen.Id == Lance.ActivationId; }))
+			{
+				Meteors.Add({Lance.ActivationId, Lance.StartTick, Lance.ReleaseTick});
 			}
 		}
 	}
@@ -188,13 +205,19 @@ FRivalRow RunRivalBout(FArenaSession& Session, const FRivalSet& Set, double Comp
 	}
 	for (const FArenaEvent& Event : Games.State.Events)
 	{
-		if (Event.Kind == TEXT("cast") && Event.ActorId == RivalId && Event.Value == 4.0)
+		if (!bAir && Event.Kind == TEXT("cast") && Event.ActorId == RivalId && Event.Value == 4.0)
 		{
 			++Row.SunfallCasts;
 		}
 	}
+	// Air: count Tempest Lance casts by the pending casts seen (Cyclone is tier 4 too, so the tier-4 count would mix them).
+	Row.SunfallCasts += bAir ? Meteors.Num() : 0;
 	for (const FMeteor& Meteor : Meteors)
 	{
+		if (bAir && Meteor.ResolveTick > Games.State.Tick)
+		{
+			continue;
+		}
 		++Row.SunfallLoosed;
 		if (Meteor.ResolveTick > Games.State.Tick)
 		{
@@ -275,9 +298,10 @@ FRivalSummary Summarise(const FString& Set, double Competence, const TArray<FRiv
 	return Out;
 }
 
-void WriteRivalCsv(const FString& Path, const TArray<FRivalRow>& Rows)
+void WriteRivalCsv(const FString& Path, const TArray<FRivalRow>& Rows, const TCHAR* Signature = TEXT("sunfall"))
 {
-	FString Body = TEXT("set,competence,seed,outcome,time_s,hp_frac,rival_hp_frac,rival_bound,phases_broken,phase2_s,phase3_s,signature,signature_s,player_tier,rival_tier,sunfall_casts,sunfall_loosed,sunfall_blinked,sunfall_hit,sunfall_missed,walls,split_casts,plants\n");
+	FString Body = FString::Printf(TEXT("set,competence,seed,outcome,time_s,hp_frac,rival_hp_frac,rival_bound,phases_broken,phase2_s,phase3_s,signature,signature_s,player_tier,rival_tier,%s_casts,%s_loosed,%s_blinked,%s_hit,%s_missed,walls,split_casts,plants\n"),
+		Signature, Signature, Signature, Signature, Signature);
 	for (const FRivalRow& Row : Rows)
 	{
 		Body += FString::Printf(TEXT("%s,%.2f,%d,%s,%.4f,%.4f,%.4f,%d,%d,%.4f,%.4f,%d,%.4f,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n"),
@@ -388,8 +412,6 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 	}
 	const double WallSeconds = FPlatformTime::Seconds() - Started;
 	Session.Unbind();
-	Instance->RemoveFromRoot();
-	Instance->MarkAsGarbage();
 
 	TArray<FRivalSummary> Summaries;
 	for (const FRivalSet& Set : Sets)
@@ -424,8 +446,62 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 	FFileHelper::SaveStringToFile(Text, *FPaths::Combine(Dir, bOfficial ? TEXT("rivals-summary.json") : TEXT("rivals-probe-summary.json")));
 	UE_LOG(LogMageArena, Log, TEXT("RivalCensus done seeds=%d rows=%d wall=%.1fs official=%d"), Seeds, Rows.Num(), WallSeconds, bOfficial ? 1 : 0);
 
+	// T23: Lio in the Tiro final, live and proposal (no "-off" sets: the air final is not a phase experiment).
+	TArray<FRivalRow> LioRows;
+	{
+		FArenaSession LioSession;
+		LioSession.Bind(Hands, Sigils, Wards, Blinks, Staff);
+		LioSession.SetQuiet(true);
+		const double LioStarted = FPlatformTime::Seconds();
+		for (int32 SetIndex = 0; SetIndex < 2; ++SetIndex)
+		{
+			for (const double Competence : Competences)
+			{
+				for (int32 Seed = 1; Seed <= Seeds; ++Seed)
+				{
+					LioRows.Add(RunRivalBout(LioSession, Sets[SetIndex], Competence, static_cast<uint32>(Seed), 120.0, 3));
+				}
+			}
+		}
+		LioSession.Unbind();
+		const double LioWall = FPlatformTime::Seconds() - LioStarted;
+		const FString LioDir = RivalCensusDir(TEXT("T23"));
+		WriteRivalCsv(FPaths::Combine(LioDir, bOfficial ? TEXT("lio.csv") : TEXT("lio-probe.csv")), LioRows, TEXT("tempest"));
+		TSharedRef<FJsonObject> LioRoot = MakeShared<FJsonObject>();
+		LioRoot->SetNumberField(TEXT("seeds"), Seeds);
+		LioRoot->SetNumberField(TEXT("wallSeconds"), LioWall);
+		LioRoot->SetBoolField(TEXT("official"), bOfficial);
+		LioRoot->SetStringField(TEXT("scenario"), TEXT("Tiro final (wave index 3), Lio, Air, seated reference script, 120 s cap; competence set on every opponent mage; the signature columns are Tempest Lance"));
+		LioRoot->SetStringField(TEXT("targets"), TEXT("DECISIONS 2026-10-07: signature in 100% of duels reaching the last phase; median 45-80 s; win >= 0.70 at competence 1, 0.40-0.60 at 1.5"));
+		TArray<TSharedPtr<FJsonValue>> LioValues;
+		for (int32 SetIndex = 0; SetIndex < 2; ++SetIndex)
+		{
+			for (const double Competence : Competences)
+			{
+				const FRivalSummary Summary = Summarise(Sets[SetIndex].Name, Competence, LioRows);
+				LioValues.Add(MakeShared<FJsonValueObject>(SummaryJson(Summary)));
+				UE_LOG(LogMageArena, Log, TEXT("LioCensus %s c=%.1f n=%d median=%.2f win=%.2f reach2=%.2f reach3=%.2f signature=%d/%d anyTempest=%.2f loosed=%d blinked=%d hit=%d missed=%d targets sig=%d median=%d win=%d"),
+					*Summary.Set, Summary.Competence, Summary.N, Summary.MedianS, Summary.WinRate, Summary.ReachPhase2, Summary.ReachPhase3,
+					Summary.SignatureInLast, Summary.ReachedLast, Summary.AnySunfall, Summary.Loosed, Summary.Blinked, Summary.Hit, Summary.Missed,
+					Summary.bSignatureTarget ? 1 : 0, Summary.bMedianTarget ? 1 : 0, Summary.bWinTarget ? 1 : 0);
+			}
+		}
+		LioRoot->SetArrayField(TEXT("sets"), LioValues);
+		FString LioText;
+		FJsonSerializer::Serialize(LioRoot, TJsonWriterFactory<>::Create(&LioText));
+		FFileHelper::SaveStringToFile(LioText, *FPaths::Combine(LioDir, bOfficial ? TEXT("lio-summary.json") : TEXT("lio-probe-summary.json")));
+		UE_LOG(LogMageArena, Log, TEXT("LioCensus done seeds=%d rows=%d wall=%.1fs official=%d"), Seeds, LioRows.Num(), LioWall, bOfficial ? 1 : 0);
+	}
+
 	// Structure only. The targets are measured and reported, not asserted: the owner moves the knobs.
 	bool bPass = TestEqual(TEXT("row count"), Rows.Num(), Seeds * Sets.Num() * 2);
+	bPass &= TestEqual(TEXT("lio row count"), LioRows.Num(), Seeds * 2 * 2);
+	bool bLio = true;
+	for (const FRivalRow& Row : LioRows)
+	{
+		bLio &= Row.Outcome != TEXT("start-failed") && Row.bRivalBound && std::isfinite(Row.TimeS);
+	}
+	bPass &= TestTrue(TEXT("every Lio bout started with Lio bound"), bLio);
 	bool bStarted = true;
 	bool bFinite = true;
 	bool bBinding = true;
@@ -444,6 +520,8 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("every bout started"), bStarted);
 	bPass &= TestTrue(TEXT("finite rows"), bFinite);
 	bPass &= TestTrue(TEXT("Brennic is bound exactly on the phase sets"), bBinding);
+	Instance->RemoveFromRoot();
+	Instance->MarkAsGarbage();
 	return bPass;
 }
 

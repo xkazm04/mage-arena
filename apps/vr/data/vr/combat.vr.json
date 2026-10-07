@@ -126,6 +126,29 @@
       ],
       "surgeTiers": 1,
       "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. Both the rival and the player rise one tier per break, capped at tier IV (kernel TierCap 4); the surge ignores minimumSecondsBetweenUnlocks."
+    },
+    "lio": {
+      "school": "air",
+      "_school": "Lio is the Gale Tent entrant (DECISIONS 2026-10-07: 'Second school for the Tiro final: Air ... The Gale Tent entrant (Iskar or Lio) as an AI opponent with defence D (air form)'; docs/schools/AIR.md open point 1 names Lio the slice default). Air is the kernel school his duel runs on (card T23).",
+      "appliesTo": {
+        "tier": "tiro",
+        "waveN": 4,
+        "kind": "final",
+        "_why": "DECISIONS 2026-10-07 slice: 'a full Tiro day (... the final against a second school)'. Pinned arena-tiers.json Tiro wave n 4 is the final, one mage at competence 1.5. With the school mages on, the session spawns that mage as Air (FGames bAirFinal); the semifinal (n 3) stays Brennic, Fire."
+      },
+      "phases": [
+        {
+          "atHpFraction": 0.66,
+          "_why": "DECISIONS 2026-10-07: 'Named mages get 2-3 HP-gated phases (proposal 66 % and 33 % HP)'. First break at 66 % of max HP: 95 x 0.66 = 62.7 at vigor 1."
+        },
+        {
+          "atHpFraction": 0.33,
+          "opensWith": "air_tempest",
+          "_why": "DECISIONS 2026-10-07: 'the last phase opens with the rival's signature'; docs/schools/AIR.md 'Signature: Tempest Lance (tier IV, unblockable line, 1.2 s drawn telegraph): the rival's last-phase opener (CR-005 pattern)'. air_tempest is the VR proposal row in data/vr/schools/spells-air.csv (tier 4, mana 70, damage 85, UNBLOCKABLE); the opening cast is granted once, ignoring the tier gate, the cooldown and the mana cost."
+        }
+      ],
+      "surgeTiers": 1,
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. The same rule as Brennic's, capped at tier IV."
     }
   },
 

@@ -1,5 +1,6 @@
 #include "Kernel/MageAI.h"
 
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Fire.h"
@@ -157,6 +158,24 @@ TArray<FThreat> CollectThreats(const FArenaState& State, const FActor& Self)
 			continue;
 		}
 		const FFireChannel& Channel = Enemy.Fire.Channel.GetValue();
+		const FSimVec End = SimAdd(Enemy.Pos, SimScale(Enemy.Facing, Channel.RangeM));
+		FThreat Threat;
+		Threat.Id = -Enemy.Id;
+		Threat.Family = Channel.Family;
+		Threat.Origin = Enemy.Pos;
+		Threat.ImpactTick = Channel.NextTick;
+		Threat.bAimed = SimSegmentHit(Enemy.Pos, End, Self.Pos, Self.Radius).IsSet();
+		Result.Add(Threat);
+	}
+	// T23: an air Cyclone is the same channel threat as Brand Wrath. Fire actors have no air channel, so the list above
+	// is unchanged for them.
+	for (const FActor& Enemy : State.Actors)
+	{
+		if (Enemy.Team == Self.Team || Enemy.bDown || !Enemy.Air.Channel.IsSet() || !HasLineOfSight(State, Self.Pos, Enemy.Pos))
+		{
+			continue;
+		}
+		const FFireChannel& Channel = Enemy.Air.Channel.GetValue();
 		const FSimVec End = SimAdd(Enemy.Pos, SimScale(Enemy.Facing, Channel.RangeM));
 		FThreat Threat;
 		Threat.Id = -Enemy.Id;
@@ -345,11 +364,149 @@ void ChooseFireSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const 
 	Brain.Input.bCast = true;
 }
 
+// T23. Tier, cooldown, mana, Air Form's Momentum, and the range (times the Momentum 80 band). A dash and the self rows
+// have no reach to check, as for Fire.
+bool AirOfferable(const FArenaState& State, const FActor& Self, const FAirSpell& Spell, double Distance)
+{
+	// The cooldown test looks one tick ahead, as FireOfferable does: the press lands in the next StepArena.
+	if (!Self.Air.bSchool || Spell.Tier > Self.Tier || AirCooldownUntil(Self, Spell.Id) > State.Tick + 1 || Spell.Mana > Self.Mana)
+	{
+		return false;
+	}
+	if (Spell.NeedMomentum > 0.0 && Self.Air.Momentum < Spell.NeedMomentum)
+	{
+		return false;
+	}
+	const bool bReach = Spell.Kind != TEXT("dash") && Spell.Kind != TEXT("self") && Spell.Kind != TEXT("form");
+	return !bReach || !(Spell.RangeM > 0.0) || Distance <= Spell.RangeM * AirSpellRangeMult(Self);
+}
+
+bool AirUseful(const FAirSpell& Spell)
+{
+	return Spell.Damage > 0.0 || Spell.Kind == TEXT("zone");
+}
+
+// The Air AI (card T23), on the Fire model: the competence curve picks among the useful rows (level 1 a random draw,
+// level 2 a sort), with three priorities on top that do not draw the spell random:
+//   1. Tempest Lance once tier IV is open and the target is not blinking (its roll is not running).
+//   2. Air Form when a hostile cast is in flight at this mage, the form is not up, and Momentum allows.
+//   3. Slipstream while Momentum is below what Air Form needs, dashed along the current move (never at the target).
+// At level 2+ Veering Bolt and Squall sort first, then damage. Eye of the Storm, like Furnace Heart, is cast only when
+// no useful row is legal.
+void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance, const TArray<FThreat>& Seen)
+{
+	const TArray<FAirSpell>& Spells = KernelData().AirSpells;
+	auto Cast = [&](int32 Slot)
+	{
+		Brain.Input.Slot = Slot;
+		Brain.Input.bCast = true;
+	};
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		const FAirSpell& Spell = Spells[Slot];
+		if (Spell.Kind == TEXT("line") && Spell.Family == TEXT("unblockable") && Self.Tier >= 4 && State.Tick >= Target.RollUntil
+			&& AirOfferable(State, Self, Spell, Distance))
+		{
+			Cast(Slot);
+			return;
+		}
+	}
+	bool bIncoming = false;
+	for (const FThreat& Threat : Seen)
+	{
+		bIncoming |= Threat.bAimed && Threat.Family != TEXT("unblockable");
+	}
+	const FAirSpell* Form = nullptr;
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		const FAirSpell& Spell = Spells[Slot];
+		if (Spell.Kind != TEXT("form"))
+		{
+			continue;
+		}
+		Form = &Spell;
+		if (bIncoming && State.Tick >= Self.Air.FormUntil && AirOfferable(State, Self, Spell, Distance))
+		{
+			Cast(Slot);
+			return;
+		}
+	}
+	const double Need = Form ? Form->NeedMomentum : 0.0;
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		const FAirSpell& Spell = Spells[Slot];
+		if (Spell.Kind == TEXT("dash") && Self.Air.Momentum < Need && AirOfferable(State, Self, Spell, Distance))
+		{
+			const FSimVec Along = SimLength(Brain.Input.Move) > 0.0
+				? SimUnit(Brain.Input.Move)
+				: SimRotate(SimUnit(SimSub(Target.Pos, Self.Pos)), SimPi / 2.0);
+			Brain.Input.Aim = SimAdd(Self.Pos, SimScale(Along, Spell.DashM));
+			Cast(Slot);
+			return;
+		}
+	}
+	TArray<int32> Available;
+	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+	{
+		const FAirSpell& Spell = Spells[Slot];
+		// Slipstream and Air Form are taken by the priorities above, not by the draw.
+		if (Spell.Kind == TEXT("dash") || Spell.Kind == TEXT("form") || !AirOfferable(State, Self, Spell, Distance))
+		{
+			continue;
+		}
+		Available.Add(Slot);
+	}
+	if (Available.Num() == 0)
+	{
+		return;
+	}
+	TArray<int32> UsefulSlots;
+	for (const int32 Slot : Available)
+	{
+		if (AirUseful(Spells[Slot]))
+		{
+			UsefulSlots.Add(Slot);
+		}
+	}
+	const TArray<int32>& Choices = UsefulSlots.Num() > 0 ? UsefulSlots : Available;
+	if (Profile.Level < 2.0)
+	{
+		const double Roll = ArenaRandom(State, FString::Printf(TEXT("mage %d spell"), Self.Id));
+		Cast(Choices[static_cast<int32>(std::floor(Roll * static_cast<double>(Choices.Num())))]);
+		return;
+	}
+	TArray<int32> Ordered = Choices;
+	std::stable_sort(Ordered.GetData(), Ordered.GetData() + Ordered.Num(), [&](int32 Left, int32 Right)
+	{
+		const FAirSpell& L = Spells[Left];
+		const FAirSpell& R = Spells[Right];
+		const bool bPreferLeft = L.Kind == TEXT("veer") || L.Kind == TEXT("squall");
+		const bool bPreferRight = R.Kind == TEXT("veer") || R.Kind == TEXT("squall");
+		if (bPreferLeft != bPreferRight)
+		{
+			return bPreferLeft;
+		}
+		const double LeftValue = L.Damage * static_cast<double>(L.Count);
+		const double RightValue = R.Damage * static_cast<double>(R.Count);
+		if (LeftValue != RightValue)
+		{
+			return LeftValue > RightValue;
+		}
+		return Left < Right;
+	});
+	Cast(Ordered[0]);
+}
+
 void ChooseSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance, const TArray<FThreat>& Seen)
 {
 	if (Self.Fire.bSchool)
 	{
 		ChooseFireSpell(State, Self, Brain, Profile, Target, Distance);
+		return;
+	}
+	if (Self.Air.bSchool)
+	{
+		ChooseAirSpell(State, Self, Brain, Profile, Target, Distance, Seen);
 		return;
 	}
 	const FKernelData& Data = KernelData();
@@ -475,7 +632,7 @@ void React(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfi
 				Brain.DefendUntil = Brain.PlannedReleaseTick;
 			}
 		}
-		else if (Self.Stamina >= Data.RollStaminaCost)
+		else if (Self.Stamina >= Data.RollStaminaCost * AirRollStaminaMult(Self))
 		{
 			Brain.Input.bRoll = true;
 			const FSimVec Away = SimUnit(SimSub(Self.Pos, Threat.Origin));
@@ -702,6 +859,13 @@ FInputFrame MageInput(FArenaState& State, FActor& Self, const FVrRuleset* Rules)
 				if (Self.Fire.bSchool)
 				{
 					if (const FFireSpell* Bolt = FindFireSpell(TEXT("fire_bolt")))
+					{
+						BoltSpeed = Bolt->SpeedMps;
+					}
+				}
+				else if (Self.Air.bSchool)
+				{
+					if (const FAirSpell* Bolt = FindAirSpell(TEXT("air_bolt")))
 					{
 						BoltSpeed = Bolt->SpeedMps;
 					}

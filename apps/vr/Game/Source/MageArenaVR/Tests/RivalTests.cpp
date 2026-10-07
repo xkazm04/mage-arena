@@ -248,12 +248,14 @@ bool FMageArenaRivalsLoads::RunTest(const FString& Parameters)
 		AddError(Error);
 		return false;
 	}
-	bool bPass = TestEqual(TEXT("one rival"), Rules.Rivals.Num(), 1);
-	if (!bPass)
+	// T23 added Lio (air, the Tiro final) beside Brennic; MageArena.Air.TempestSignature checks his block.
+	bool bPass = TestEqual(TEXT("two rivals"), Rules.Rivals.Num(), 2);
+	const int32 BrennicIndex = Rules.Rivals.IndexOfByPredicate([](const FVrRival& Candidate) { return Candidate.Id == TEXT("brennic"); });
+	if (!bPass || !TestTrue(TEXT("brennic is listed"), BrennicIndex != INDEX_NONE))
 	{
 		return false;
 	}
-	const FVrRival& Rival = Rules.Rivals[0];
+	const FVrRival& Rival = Rules.Rivals[BrennicIndex];
 	bPass &= TestEqual(TEXT("id"), Rival.Id, FString(TEXT("brennic")));
 	bPass &= TestEqual(TEXT("school"), Rival.School, FString(TEXT("fire")));
 	// arena-tiers.json Tiro wave n 3 is the semifinal (one mage, competence 1).

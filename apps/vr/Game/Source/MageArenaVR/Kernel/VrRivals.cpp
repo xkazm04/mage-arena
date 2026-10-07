@@ -1,5 +1,6 @@
 #include "Kernel/VrRules.h"
 
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Fire.h"
 #include "Kernel/KernelData.h"
@@ -114,18 +115,29 @@ bool FVrRuleset::TryGrantedCast(FArenaState& State, FActor& Actor, const FSimVec
 	{
 		return false;
 	}
-	if (Actor.Pending.IsSet() || FireChannelBusy(Actor) || Actor.bAbsorb || State.Tick < Actor.RollUntil
+	if (Actor.Pending.IsSet() || FireChannelBusy(Actor) || AirChannelBusy(Actor) || Actor.bAbsorb || State.Tick < Actor.RollUntil
 		|| State.Tick < Actor.RecoveryUntil || State.Tick < Actor.Water.EncasedUntil)
 	{
 		return false;
 	}
-	if (!StartGrantedFireCast(State, Actor, RivalRuntime.GrantSpell, Aim, this))
+	// T23: the signature is cast in the rival's own school. FireMageDamage is the fire mage's knob only.
+	if (Actor.Air.bSchool)
 	{
-		return false;
+		if (!StartGrantedAirCast(State, Actor, RivalRuntime.GrantSpell, Aim, this))
+		{
+			return false;
+		}
 	}
-	if (Actor.MageAI.IsSet() && Pressure.FireMageDamage != 1.0 && Actor.Pending.IsSet())
+	else
 	{
-		Actor.Pending->DamageMult = Pressure.FireMageDamage;
+		if (!StartGrantedFireCast(State, Actor, RivalRuntime.GrantSpell, Aim, this))
+		{
+			return false;
+		}
+		if (Actor.MageAI.IsSet() && Pressure.FireMageDamage != 1.0 && Actor.Pending.IsSet())
+		{
+			Actor.Pending->DamageMult = Pressure.FireMageDamage;
+		}
 	}
 	RivalRuntime.bGrantPending = false;
 	RivalRuntime.bGrantUsed = true;

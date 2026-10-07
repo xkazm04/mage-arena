@@ -1,6 +1,6 @@
 # T23 - Air as an AI opponent: Momentum, ten spells, Air Form, and the Gale rival in the Tiro final
 
-Status: open
+Status: done with a design finding (verified 2026-10-07: MageArena. 203/203; AirSeated red on length, Lio median 21-24 s and the player wins every duel - DF-008)
 Max turns: 400
 
 ## Goal
@@ -83,3 +83,13 @@ the conformance evidence.)
 `runs/T23/REPORT.md` (or the final reply, if the worker cannot write it): files, every acceptance command with real
 output, the Lio census against the targets, the kernel readings marked Owner, a description of each still, and every
 decision the card did not specify.
+
+## Orchestrator verification (2026-10-07)
+A Claude subagent implemented the card in worktree `v2/T23` (cut once by a usage limit and resumed). The orchestrator
+re-ran the build (green) and `MageArena.` (203 Success, `EXIT CODE: 0`) and looked at the Veering Bolt still (the arc
+swings wide and curves into the seat; Lio a dark-green column). Fire and Water results are byte-identical; Brennic's
+census lines unchanged. Mutation check failed three Air tests as expected. Nine kernel readings are marked Owner in
+`AIR.md`. Accepted choices: air colour a light wind green (distinct from the Water turquoise), the Tempest Lance as a
+chest-height beam (a ground strip hides behind the dais lip), the Veering Bolt side by cast id (no RNG draw). Finding:
+Lio is far too weak (DF-008). Pre-existing gap surfaced: Fire's area and line rows skip the planted-staff dome while
+Air's pass it.

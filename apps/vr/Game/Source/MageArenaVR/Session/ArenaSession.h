@@ -33,6 +33,7 @@ class USettingsCaptureDriver;
 class UTeachCaptureDriver;
 class UCreaturesCaptureDriver;
 class UPresetCaptureDriver;
+class UAirCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -106,6 +107,12 @@ public:
 	 */
 	bool Start(uint32 Seed);
 	void SetBout(int32 WaveIndex, bool bInFireMages);
+	/**
+	 * T23 (DECISIONS 2026-10-07: the Tiro final is the second school, Air). With the school mages on (SetBout's
+	 * bInFireMages), the final spawns Lio's air mage and the semifinal stays Brennic's fire mage. On by default; false
+	 * gives the pre-T23 fire final (the calibration sweep keeps that duel so its numbers stay comparable).
+	 */
+	void SetAirFinal(bool bInAirFinal) { bAirFinal = bInAirFinal; }
 	void SetPolicy(const FSeatedPolicy& InPolicy);
 	void SetRulesOverride(const FVrRuleset& Rules);
 	void SetQuiet(bool bInQuiet);
@@ -345,9 +352,12 @@ private:
 	FSeatedPolicy Policy;
 	int32 BoutWave = 0;
 	bool bFireMages = false;
+	bool bAirFinal = true;
 	bool bWingSeat = false;
 	bool bWingSeated = false;
 	int32 SunfallPad = -1;
+	// The Tempest Lance the chain already noted (activation id), so the escape is logged once per lance.
+	int32 TempestNoted = -1;
 	bool bQuiet = false;
 	TOptional<FVrRuleset> RulesOverride;
 
@@ -459,4 +469,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UPresetCaptureDriver> PresetCapture;
+
+	UPROPERTY()
+	TObjectPtr<UAirCaptureDriver> AirCapture;
 };
