@@ -1089,6 +1089,172 @@ bool LoadNumberField(const TSharedPtr<FJsonValue>& Value, double& Out)
 	return Value.IsValid() && Value->TryGetNumber(Out) && FMath::IsFinite(Out);
 }
 
+bool LoadHeatGain(const FJsonObject& Gain, FKernelData& Data, const FString& Path)
+{
+	bool bBolt = false;
+	bool bFlick = false;
+	bool bTaken = false;
+	bool bNear = false;
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : Gain.Values)
+	{
+		double Number = 0.0;
+		if (!LoadNumberField(Field.Value, Number))
+		{
+			return Fail(Data, Path + TEXT(" fire gain is not a number: ") + Field.Key);
+		}
+		if (Field.Key == TEXT("perBoltHit"))
+		{
+			Data.Heat.PerBoltHit = Number;
+			bBolt = true;
+		}
+		else if (Field.Key == TEXT("perFlickTarget"))
+		{
+			Data.Heat.PerFlickTarget = Number;
+			bFlick = true;
+		}
+		else if (Field.Key == TEXT("perHitTakenUnabsorbed"))
+		{
+			Data.Heat.PerHitTakenUnabsorbed = Number;
+			bTaken = true;
+		}
+		else if (Field.Key.StartsWith(TEXT("perSecondEnemyWithin")) && Field.Key.EndsWith(TEXT("m")))
+		{
+			FString Metres = Field.Key;
+			Metres.RemoveFromStart(TEXT("perSecondEnemyWithin"));
+			Metres.RemoveFromEnd(TEXT("m"));
+			Data.Heat.PerSecondPerEnemyWithin = Number;
+			Data.Heat.EnemyWithinM = FCString::Atod(*Metres);
+			bNear = Data.Heat.EnemyWithinM > 0.0;
+		}
+		else
+		{
+			return Fail(Data, Path + TEXT(" unknown fire gain ") + Field.Key);
+		}
+	}
+	if (!bBolt || !bFlick || !bTaken || !bNear)
+	{
+		return Fail(Data, Path + TEXT(" fire gain is missing a rule"));
+	}
+	return true;
+}
+
+bool LoadHeatDecay(const FJsonObject& Decay, FKernelData& Data, const FString& Path)
+{
+	bool bDecayRate = false;
+	bool bDecayDelay = false;
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : Decay.Values)
+	{
+		double Number = 0.0;
+		if (!LoadNumberField(Field.Value, Number))
+		{
+			return Fail(Data, Path + TEXT(" fire decay is not a number: ") + Field.Key);
+		}
+		if (Field.Key == TEXT("perSecond"))
+		{
+			Data.Heat.DecayPerSecond = Number;
+			bDecayRate = true;
+		}
+		else if (Field.Key == TEXT("afterNoGainSeconds"))
+		{
+			Data.Heat.DecayAfterNoGainS = Number;
+			bDecayDelay = true;
+		}
+		else
+		{
+			return Fail(Data, Path + TEXT(" unknown fire decay ") + Field.Key);
+		}
+	}
+	if (!bDecayRate || !bDecayDelay)
+	{
+		return Fail(Data, Path + TEXT(" fire decay is incomplete"));
+	}
+	return true;
+}
+
+bool ParseHeatThreshold(const FJsonObject& Object, FHeatThreshold& Threshold, const FString& Path, FKernelData& Data)
+{
+	bool bSawAt = false;
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : Object.Values)
+	{
+		if (Field.Key == TEXT("at"))
+		{
+			bSawAt = LoadNumberField(Field.Value, Threshold.At);
+			if (!bSawAt)
+			{
+				return Fail(Data, Path + TEXT(" fire threshold at is invalid"));
+			}
+		}
+		else if (Field.Key == TEXT("name"))
+		{
+			if (!Field.Value.IsValid() || !Field.Value->TryGetString(Threshold.Name))
+			{
+				return Fail(Data, Path + TEXT(" fire threshold name is invalid"));
+			}
+		}
+		else if (Field.Key == TEXT("spellDamageMult"))
+		{
+			Threshold.bSpellDamage = LoadNumberField(Field.Value, Threshold.SpellDamageMult);
+			if (!Threshold.bSpellDamage)
+			{
+				return Fail(Data, Path + TEXT(" fire spellDamageMult is invalid"));
+			}
+		}
+		else if (Field.Key == TEXT("absorbDrainMult"))
+		{
+			Threshold.bAbsorbDrain = LoadNumberField(Field.Value, Threshold.AbsorbDrainMult);
+			if (!Threshold.bAbsorbDrain)
+			{
+				return Fail(Data, Path + TEXT(" fire absorbDrainMult is invalid"));
+			}
+		}
+		else if (Field.Key == TEXT("staminaRegenMult"))
+		{
+			Threshold.bStaminaRegen = LoadNumberField(Field.Value, Threshold.StaminaRegenMult);
+			if (!Threshold.bStaminaRegen)
+			{
+				return Fail(Data, Path + TEXT(" fire staminaRegenMult is invalid"));
+			}
+		}
+		else
+		{
+			return Fail(Data, Path + TEXT(" unknown fire threshold field ") + Field.Key);
+		}
+	}
+	if (!bSawAt)
+	{
+		return Fail(Data, Path + TEXT(" fire threshold has no at"));
+	}
+	return true;
+}
+
+bool LoadHeatThresholds(const FJsonObject& Identity, FKernelData& Data, const FString& Path)
+{
+	const TArray<TSharedPtr<FJsonValue>>* Thresholds = nullptr;
+	if (!Identity.TryGetArrayField(TEXT("thresholds"), Thresholds) || Thresholds == nullptr || Thresholds->Num() == 0)
+	{
+		return Fail(Data, Path + TEXT(" fire thresholds are missing"));
+	}
+	for (const TSharedPtr<FJsonValue>& Value : *Thresholds)
+	{
+		const TSharedPtr<FJsonObject>* Object = nullptr;
+		if (!Value.IsValid() || !Value->TryGetObject(Object) || Object == nullptr)
+		{
+			return Fail(Data, Path + TEXT(" fire threshold is not an object"));
+		}
+		FHeatThreshold Threshold;
+		if (!ParseHeatThreshold(**Object, Threshold, Path, Data))
+		{
+			return false;
+		}
+		Data.Heat.Thresholds.Add(Threshold);
+	}
+	Data.Heat.Thresholds.Sort([](const FHeatThreshold& Left, const FHeatThreshold& Right)
+	{
+		return Left.At < Right.At;
+	});
+	return true;
+}
+
 bool LoadHeat(FKernelData& Data)
 {
 	const FString Path = PinnedPath(TEXT("docs/design/baseline-fourteen-nights/design/data/schools.json"));
@@ -1146,149 +1312,7 @@ bool LoadHeat(FKernelData& Data)
 	{
 		return false;
 	}
-	bool bBolt = false;
-	bool bFlick = false;
-	bool bTaken = false;
-	bool bNear = false;
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : Gain->Values)
-	{
-		double Number = 0.0;
-		if (!LoadNumberField(Field.Value, Number))
-		{
-			return Fail(Data, Path + TEXT(" fire gain is not a number: ") + Field.Key);
-		}
-		if (Field.Key == TEXT("perBoltHit"))
-		{
-			Data.Heat.PerBoltHit = Number;
-			bBolt = true;
-		}
-		else if (Field.Key == TEXT("perFlickTarget"))
-		{
-			Data.Heat.PerFlickTarget = Number;
-			bFlick = true;
-		}
-		else if (Field.Key == TEXT("perHitTakenUnabsorbed"))
-		{
-			Data.Heat.PerHitTakenUnabsorbed = Number;
-			bTaken = true;
-		}
-		else if (Field.Key.StartsWith(TEXT("perSecondEnemyWithin")) && Field.Key.EndsWith(TEXT("m")))
-		{
-			FString Metres = Field.Key;
-			Metres.RemoveFromStart(TEXT("perSecondEnemyWithin"));
-			Metres.RemoveFromEnd(TEXT("m"));
-			Data.Heat.PerSecondPerEnemyWithin = Number;
-			Data.Heat.EnemyWithinM = FCString::Atod(*Metres);
-			bNear = Data.Heat.EnemyWithinM > 0.0;
-		}
-		else
-		{
-			return Fail(Data, Path + TEXT(" unknown fire gain ") + Field.Key);
-		}
-	}
-	if (!bBolt || !bFlick || !bTaken || !bNear)
-	{
-		return Fail(Data, Path + TEXT(" fire gain is missing a rule"));
-	}
-	bool bDecayRate = false;
-	bool bDecayDelay = false;
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : Decay->Values)
-	{
-		double Number = 0.0;
-		if (!LoadNumberField(Field.Value, Number))
-		{
-			return Fail(Data, Path + TEXT(" fire decay is not a number: ") + Field.Key);
-		}
-		if (Field.Key == TEXT("perSecond"))
-		{
-			Data.Heat.DecayPerSecond = Number;
-			bDecayRate = true;
-		}
-		else if (Field.Key == TEXT("afterNoGainSeconds"))
-		{
-			Data.Heat.DecayAfterNoGainS = Number;
-			bDecayDelay = true;
-		}
-		else
-		{
-			return Fail(Data, Path + TEXT(" unknown fire decay ") + Field.Key);
-		}
-	}
-	if (!bDecayRate || !bDecayDelay)
-	{
-		return Fail(Data, Path + TEXT(" fire decay is incomplete"));
-	}
-	const TArray<TSharedPtr<FJsonValue>>* Thresholds = nullptr;
-	if (!Identity->TryGetArrayField(TEXT("thresholds"), Thresholds) || Thresholds == nullptr || Thresholds->Num() == 0)
-	{
-		return Fail(Data, Path + TEXT(" fire thresholds are missing"));
-	}
-	for (const TSharedPtr<FJsonValue>& Value : *Thresholds)
-	{
-		const TSharedPtr<FJsonObject>* Object = nullptr;
-		if (!Value.IsValid() || !Value->TryGetObject(Object) || Object == nullptr)
-		{
-			return Fail(Data, Path + TEXT(" fire threshold is not an object"));
-		}
-		FHeatThreshold Threshold;
-		bool bSawAt = false;
-		for (const TPair<FString, TSharedPtr<FJsonValue>>& Field : (*Object)->Values)
-		{
-			if (Field.Key == TEXT("at"))
-			{
-				bSawAt = LoadNumberField(Field.Value, Threshold.At);
-				if (!bSawAt)
-				{
-					return Fail(Data, Path + TEXT(" fire threshold at is invalid"));
-				}
-			}
-			else if (Field.Key == TEXT("name"))
-			{
-				if (!Field.Value.IsValid() || !Field.Value->TryGetString(Threshold.Name))
-				{
-					return Fail(Data, Path + TEXT(" fire threshold name is invalid"));
-				}
-			}
-			else if (Field.Key == TEXT("spellDamageMult"))
-			{
-				Threshold.bSpellDamage = LoadNumberField(Field.Value, Threshold.SpellDamageMult);
-				if (!Threshold.bSpellDamage)
-				{
-					return Fail(Data, Path + TEXT(" fire spellDamageMult is invalid"));
-				}
-			}
-			else if (Field.Key == TEXT("absorbDrainMult"))
-			{
-				Threshold.bAbsorbDrain = LoadNumberField(Field.Value, Threshold.AbsorbDrainMult);
-				if (!Threshold.bAbsorbDrain)
-				{
-					return Fail(Data, Path + TEXT(" fire absorbDrainMult is invalid"));
-				}
-			}
-			else if (Field.Key == TEXT("staminaRegenMult"))
-			{
-				Threshold.bStaminaRegen = LoadNumberField(Field.Value, Threshold.StaminaRegenMult);
-				if (!Threshold.bStaminaRegen)
-				{
-					return Fail(Data, Path + TEXT(" fire staminaRegenMult is invalid"));
-				}
-			}
-			else
-			{
-				return Fail(Data, Path + TEXT(" unknown fire threshold field ") + Field.Key);
-			}
-		}
-		if (!bSawAt)
-		{
-			return Fail(Data, Path + TEXT(" fire threshold has no at"));
-		}
-		Data.Heat.Thresholds.Add(Threshold);
-	}
-	Data.Heat.Thresholds.Sort([](const FHeatThreshold& Left, const FHeatThreshold& Right)
-	{
-		return Left.At < Right.At;
-	});
-	return true;
+	return LoadHeatGain(*Gain, Data, Path) && LoadHeatDecay(*Decay, Data, Path) && LoadHeatThresholds(*Identity, Data, Path);
 }
 
 bool LoadFireSpells(FKernelData& Data)
