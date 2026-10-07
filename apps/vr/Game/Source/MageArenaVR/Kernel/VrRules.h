@@ -2,6 +2,8 @@
 
 #include "Kernel/SimTypes.h"
 
+struct FSpell;
+
 // VR combat overlay. Absent means the pinned kernel. Session creation is the only caller that passes one.
 
 struct FVrAabb
@@ -31,6 +33,10 @@ struct FVrSplitHands
 	bool bEnabled = false;
 	double OneHandPower = 0.6;
 	int32 MaxTier = 2;
+	// DECISIONS 2026-10-07 (split hands). Negative: the latch holds until the ward drops, the rule before T17.
+	double LatchClearIdleS = -1.0;
+	// DECISIONS 2026-10-07 (split hands). False: every split cast at full Flow is refused for "crest".
+	bool bBoltAtFullFlow = false;
 };
 
 struct FVrPlantedStaff
@@ -147,6 +153,8 @@ struct FVrRuleset
 	TArray<FVrWall> Walls;
 	int32 WallsRaised = 0;
 	TArray<int32> SplitCasting;
+	// Ticks the casting hand has been idle while latched, by actor id. Runtime only, like SplitCasting.
+	TMap<int32, int32> SplitIdleTicks;
 	TArray<FString> Refusals;
 
 	const FVrAttackMode* FindThrow(const FString& EnemyId) const;
@@ -167,6 +175,13 @@ struct FVrRuleset
 	void Lift(const TCHAR* Why);
 	bool IsSplitCasting(int32 ActorId) const;
 	void SetSplitCasting(int32 ActorId, bool bCasting);
+	// Ticks of casting-hand idle that clear the latch. -1 when the latch only clears on a ward drop.
+	int32 SplitLatchIdleTicks() const;
+	// Once per actor tick, after the ward update. Counts idle ticks and clears the latch at SplitLatchIdleTicks.
+	void TickSplitLatch(const FActor& Actor);
+	// Null when a split cast of Spell is legal now, else the refusal reason ("tier" or "crest").
+	// The kernel and the session both ask this, so they cannot disagree.
+	const TCHAR* SplitRefusal(const FActor& Actor, const FSpell& Spell) const;
 	// 0 for unblockable and for any other family. The dome never perfects.
 	double DomeReduction(const FString& Family) const;
 	void TickStaff(FArenaState& State, FActor& Actor, const FInputFrame& Input);

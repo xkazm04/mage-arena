@@ -1,6 +1,7 @@
 #include "Kernel/VrRules.h"
 
 #include "Kernel/ArenaKernel.h"
+#include "Kernel/Fire.h"
 #include "Kernel/KernelData.h"
 #include "MageArenaVR.h"
 
@@ -365,6 +366,7 @@ void FVrRuleset::ClearRuntime()
 	WallsRaised = 0;
 	StaffRuntime = FVrStaffRuntime();
 	SplitCasting.Reset();
+	SplitIdleTicks.Reset();
 	Refusals.Reset();
 }
 
@@ -392,6 +394,8 @@ bool FVrRuleset::IsSplitCasting(int32 ActorId) const
 
 void FVrRuleset::SetSplitCasting(int32 ActorId, bool bCasting)
 {
+	// Any set or clear restarts the idle count: a split cast starting is casting-hand activity.
+	SplitIdleTicks.Remove(ActorId);
 	if (bCasting)
 	{
 		if (!SplitCasting.Contains(ActorId))
@@ -401,6 +405,59 @@ void FVrRuleset::SetSplitCasting(int32 ActorId, bool bCasting)
 		return;
 	}
 	SplitCasting.Remove(ActorId);
+}
+
+int32 FVrRuleset::SplitLatchIdleTicks() const
+{
+	if (Split.LatchClearIdleS < 0.0)
+	{
+		return -1;
+	}
+	// Seconds / SimDt() rounded up (SimTicks: ceil(Seconds * SimStepHz - TickCeilBias), the bias stops float noise just
+	// above an integer from adding a tick), so the latch never clears before latchClearIdleS has fully passed.
+	// At 60 Hz: 0.3 s / (1/60 s) = 18 ticks exactly. Zero still needs one idle tick.
+	return std::max(1, SimTicks(Split.LatchClearIdleS));
+}
+
+void FVrRuleset::TickSplitLatch(const FActor& Actor)
+{
+	const int32 Threshold = SplitLatchIdleTicks();
+	if (Threshold < 0 || !IsSplitCasting(Actor.Id))
+	{
+		return;
+	}
+	// The latch only exists while the ward is held, so any cast in windup or release now is a split cast.
+	if (Actor.Pending.IsSet() || FireChannelBusy(Actor))
+	{
+		SplitIdleTicks.Add(Actor.Id, 0);
+		return;
+	}
+	int32& Idle = SplitIdleTicks.FindOrAdd(Actor.Id);
+	++Idle;
+	if (Idle >= Threshold)
+	{
+		SetSplitCasting(Actor.Id, false);
+		UE_LOG(LogMageArena, Log, TEXT("defence split latch clear idle actor=%d ticks=%d"), Actor.Id, Threshold);
+	}
+}
+
+const TCHAR* FVrRuleset::SplitRefusal(const FActor& Actor, const FSpell& Spell) const
+{
+	if (Spell.Tier > Split.MaxTier)
+	{
+		return TEXT("tier");
+	}
+	if (Actor.Water.Flow >= KernelData().FlowMax)
+	{
+		// The tier-0 Bolt at full Flow resolves at one-hand power and builds or spends nothing (the cast suppresses
+		// Flow), so the Crest waits for the next two-hand line cast.
+		const bool bBolt = Spell.Tier == 0 && Spell.Line == TEXT("bolt");
+		if (!(Split.bBoltAtFullFlow && bBolt))
+		{
+			return TEXT("crest");
+		}
+	}
+	return nullptr;
 }
 
 double FVrRuleset::DomeReduction(const FString& Family) const

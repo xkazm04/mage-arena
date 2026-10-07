@@ -255,14 +255,9 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 			{
 				return;
 			}
-			if (Spell->Tier > Rules->Split.MaxTier)
+			if (const TCHAR* Refusal = Rules->SplitRefusal(Actor, *Spell))
 			{
-				Rules->Refuse(Actor, TEXT("tier"));
-				return;
-			}
-			if (Actor.Water.Flow >= Data.FlowMax)
-			{
-				Rules->Refuse(Actor, TEXT("crest"));
+				Rules->Refuse(Actor, Refusal);
 				return;
 			}
 			FSpellCastMod Mod;
@@ -489,6 +484,10 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		if (Rules && !Actor.bAbsorb)
 		{
 			Rules->SetSplitCasting(Actor.Id, false);
+		}
+		if (Rules)
+		{
+			Rules->TickSplitLatch(Actor);
 		}
 		if (Rules)
 		{
