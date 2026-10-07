@@ -2,8 +2,12 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Budget/BudgetStressDriver.h"
 #include "Budget/BudgetStressPlan.h"
 #include "Greybox/ArenaLayout.h"
+#include "Greybox/GreyboxUtil.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "UObject/Package.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetStressPopulation, "MageArena.Budget.StressPopulation",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -74,6 +78,64 @@ bool FMageArenaBudgetStressPopulation::RunTest(const FString& Parameters)
 		TestEqual(*FString::Printf(TEXT("shot %d relaunches once per flight"), Index), After - Before, 1);
 	}
 	TestEqual(TEXT("every 4th shot is a spear"), Spears, 25);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetSharedMaterials, "MageArena.Budget.SharedMaterials",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBudgetSharedMaterials::RunTest(const FString& Parameters)
+{
+	// The -MageArenaBudgetSharedMaterials lever: every part of the stress plan asks the cache for its colour,
+	// and the cache hands out exactly one material per distinct colour. No renderer is needed to make the instances.
+	FArenaLayout Layout;
+	FBudgetStressPlan Plan;
+	FString Error;
+	if (!TestTrue(TEXT("layout loads"), Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error))
+		|| !TestTrue(TEXT("plan builds"), BuildBudgetStressPlan(Layout, Plan, Error)))
+	{
+		AddError(Error);
+		return false;
+	}
+	UMaterialInterface* Base = Greybox::UnlitOpaqueMaterial();
+	if (!TestNotNull(TEXT("unlit base material loads"), Base))
+	{
+		return false;
+	}
+	TArray<FLinearColor> Colours;
+	for (const FBudgetEnemy& Enemy : Plan.Enemies)
+	{
+		Colours.Add(Enemy.Colour);
+	}
+	for (const FBudgetShot& Shot : Plan.Shots)
+	{
+		Colours.Add(Shot.Colour);
+	}
+	TSet<FLinearColor> Distinct(Colours);
+
+	FBudgetMaterialCache Cache;
+	TMap<FLinearColor, UMaterialInstanceDynamic*> First;
+	for (const FLinearColor& Colour : Colours)
+	{
+		UMaterialInstanceDynamic* Instance = BudgetSharedTint(Cache, Base, GetTransientPackage(), Colour);
+		if (!TestNotNull(TEXT("the cache makes a material"), Instance))
+		{
+			return false;
+		}
+		UMaterialInstanceDynamic*& Seen = First.FindOrAdd(Colour, Instance);
+		TestTrue(*FString::Printf(TEXT("colour %s gets the same material every time"), *Colour.ToString()), Seen == Instance);
+		FLinearColor Tint;
+		TestTrue(TEXT("the material carries a colour parameter"), Instance->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Tint));
+		TestTrue(*FString::Printf(TEXT("colour %s is the tint"), *Colour.ToString()), Tint.Equals(Colour));
+	}
+	TestEqual(TEXT("one material per distinct colour"), Cache.Num(), Distinct.Num());
+	TSet<UMaterialInstanceDynamic*> Instances;
+	for (const TPair<FLinearColor, UMaterialInstanceDynamic*>& Pair : Cache)
+	{
+		Instances.Add(Pair.Value);
+	}
+	TestEqual(TEXT("distinct colours never share a material"), Instances.Num(), Distinct.Num());
+	TestTrue(TEXT("the plan has fewer colours than parts"), Distinct.Num() < Colours.Num());
 	return true;
 }
 

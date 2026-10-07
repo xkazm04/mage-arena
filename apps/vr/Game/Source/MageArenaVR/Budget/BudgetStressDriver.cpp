@@ -119,15 +119,17 @@ bool SaveJson(const TSharedRef<FJsonObject>& Root, const FString& Path)
 	return FFileHelper::SaveStringToFile(Text, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 }
 
-UStaticMeshComponent* MakePart(AActor* Owner, const TCHAR* Shape, const FLinearColor& Colour)
+UStaticMeshComponent* MakePart(AActor* Owner, const TCHAR* Shape, const FLinearColor& Colour, FBudgetMaterialCache* Shared)
 {
 	// SessionPresentation::MakePart: one component per part, each with its own tinted unlit material.
+	// With a shared cache (the diagnostic lever), parts of one colour reuse one material, so dynamic instancing can merge them.
 	UStaticMesh* Mesh = Greybox::LoadShape(Shape);
 	if (!Mesh)
 	{
 		return nullptr;
 	}
-	return Greybox::MakeMesh(Owner, Mesh, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Owner, Colour));
+	UMaterialInterface* Base = Greybox::UnlitOpaqueMaterial();
+	return Greybox::MakeMesh(Owner, Mesh, Shared ? BudgetSharedTint(*Shared, Base, Owner, Colour) : Greybox::Tint(Base, Owner, Colour));
 }
 
 AMageArenaPawn* FindPawn(UWorld* World)
@@ -142,6 +144,20 @@ AMageArenaPawn* FindPawn(UWorld* World)
 	}
 	return nullptr;
 }
+}
+
+UMaterialInstanceDynamic* BudgetSharedTint(FBudgetMaterialCache& Cache, UMaterialInterface* Base, UObject* Outer, const FLinearColor& Colour)
+{
+	if (UMaterialInstanceDynamic* const* Found = Cache.Find(Colour))
+	{
+		return *Found;
+	}
+	UMaterialInstanceDynamic* Instance = Greybox::Tint(Base, Outer, Colour);
+	if (Instance)
+	{
+		Cache.Add(Colour, Instance);
+	}
+	return Instance;
 }
 
 ABudgetStressRig::ABudgetStressRig()
@@ -167,6 +183,7 @@ void UBudgetStressDriver::Start()
 	{
 		RunName = TEXT("run");
 	}
+	bSharedMaterials = FParse::Param(FCommandLine::Get(), TEXT("MageArenaBudgetSharedMaterials"));
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Conditional);
@@ -218,12 +235,13 @@ bool UBudgetStressDriver::SpawnPopulation()
 
 	const FRunePad* Pad = Layout.FindPadById(TEXT("centre"));
 	const FVector PadCm = Pad ? Pad->PositionM * 100.0 : FVector::ZeroVector;
+	FBudgetMaterialCache* Shared = bSharedMaterials ? &SharedMaterials : nullptr;
 	for (int32 Index = 0; Index < Plan.Enemies.Num(); ++Index)
 	{
 		const FBudgetEnemy& Enemy = Plan.Enemies[Index];
-		UStaticMeshComponent* Body = MakePart(Rig, Enemy.bCube ? TEXT("Cube") : TEXT("Cylinder"), Enemy.Colour);
-		UStaticMeshComponent* HpBack = MakePart(Rig, TEXT("Cube"), HpBackColour);
-		UStaticMeshComponent* HpFill = MakePart(Rig, TEXT("Cube"), HpColour);
+		UStaticMeshComponent* Body = MakePart(Rig, Enemy.bCube ? TEXT("Cube") : TEXT("Cylinder"), Enemy.Colour, Shared);
+		UStaticMeshComponent* HpBack = MakePart(Rig, TEXT("Cube"), HpBackColour, Shared);
+		UStaticMeshComponent* HpFill = MakePart(Rig, TEXT("Cube"), HpColour, Shared);
 		const FVector GroundCm = Enemy.GroundM * 100.0;
 		const FVector Centre = GroundCm + FVector(0.0, 0.0, Enemy.BodySizeCm.Z * 0.5);
 		if (Body)
@@ -256,7 +274,7 @@ bool UBudgetStressDriver::SpawnPopulation()
 	}
 	for (const FBudgetShot& Shot : Plan.Shots)
 	{
-		UStaticMeshComponent* Part = MakePart(Rig, Shot.bSpear ? TEXT("Cylinder") : TEXT("Sphere"), Shot.Colour);
+		UStaticMeshComponent* Part = MakePart(Rig, Shot.bSpear ? TEXT("Cylinder") : TEXT("Sphere"), Shot.Colour, Shared);
 		if (Part)
 		{
 			if (Shot.bSpear)
@@ -558,6 +576,10 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 			}
 			SteadyPopulation = CountPopulation();
 			LogPopulation(TEXT("steady"), SteadyPopulation);
+			if (bSharedMaterials)
+			{
+				LogSharedMaterials();
+			}
 			if (!PopulationFull(SteadyPopulation))
 			{
 				Fail(TEXT("population short at steady state"));
@@ -623,6 +645,26 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 	}
 }
 
+void UBudgetStressDriver::LogSharedMaterials()
+{
+	// Read back from the parts themselves, not only the cache: the materials the renderer will actually see.
+	TSet<const UMaterialInterface*> Materials;
+	SharedMaterialParts = 0;
+	for (const TArray<TObjectPtr<UStaticMeshComponent>>* Parts : { &EnemyParts, &ShotParts })
+	{
+		for (const UStaticMeshComponent* Component : *Parts)
+		{
+			if (Component)
+			{
+				Materials.Add(Component->GetMaterial(0));
+				++SharedMaterialParts;
+			}
+		}
+	}
+	SharedMaterialDistinct = Materials.Num();
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_MATERIALS mids=%d colours=%d parts=%d"), SharedMaterialDistinct, SharedMaterials.Num(), SharedMaterialParts);
+}
+
 void UBudgetStressDriver::WriteResults()
 {
 	const FString Dir = RunDir();
@@ -656,6 +698,14 @@ void UBudgetStressDriver::WriteResults()
 	Scene->SetNumberField(TEXT("farArcDeg"), Plan.FarArcDeg);
 	Scene->SetNumberField(TEXT("niagaraSystems"), 0);
 	Root->SetObjectField(TEXT("scene"), Scene);
+	if (bSharedMaterials)
+	{
+		TSharedRef<FJsonObject> Shared = MakeShared<FJsonObject>();
+		Shared->SetNumberField(TEXT("mids"), SharedMaterialDistinct);
+		Shared->SetNumberField(TEXT("colours"), SharedMaterials.Num());
+		Shared->SetNumberField(TEXT("parts"), SharedMaterialParts);
+		Root->SetObjectField(TEXT("sharedMaterials"), Shared);
+	}
 
 	auto PopulationJson = [](const FPopulation& Population)
 	{

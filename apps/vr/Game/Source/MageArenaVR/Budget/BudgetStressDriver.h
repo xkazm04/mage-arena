@@ -8,7 +8,15 @@
 #include "UObject/Object.h"
 #include "BudgetStressDriver.generated.h"
 
+class UMaterialInstanceDynamic;
+class UMaterialInterface;
 class UStaticMeshComponent;
+
+/** Diagnostic only (-MageArenaBudgetSharedMaterials): one tinted material per colour, reused by every part of that colour. */
+using FBudgetMaterialCache = TMap<FLinearColor, UMaterialInstanceDynamic*>;
+
+/** Returns the cached tint of Base for Colour, making it with Greybox::Tint the first time a colour is asked for. */
+UMaterialInstanceDynamic* BudgetSharedTint(FBudgetMaterialCache& Cache, UMaterialInterface* Base, UObject* Outer, const FLinearColor& Colour);
 
 /** Owns the stress population's parts. Each part is one basic-shape component with its own tint, as SessionPresentation builds them. */
 UCLASS()
@@ -31,6 +39,7 @@ private:
  * Waits for a stable frame, spawns 20 enemy proxies and 100 projectiles, loops a two-hand clip, warms up,
  * then samples 60 s of draw calls, triangles and frame times into runs/DG4/<run>/.
  * Logs MAGEVR_BUDGET_POP twice and ends with MAGEVR_BUDGET_DONE or MAGEVR_BUDGET_FAIL.
+ * Diagnostic variant: -MageArenaBudgetSharedMaterials makes the parts of one colour share one material (D-G4 levers).
  */
 UCLASS()
 class MAGEARENAVR_API UBudgetStressDriver : public UObject, public FTickableGameObject
@@ -81,6 +90,7 @@ private:
 	void BeginCsv();
 	void EndCsv();
 	void WriteResults();
+	void LogSharedMaterials();
 	FString RunDir() const;
 
 	EStep Step = EStep::WaitStable;
@@ -98,6 +108,10 @@ private:
 	int64 Launches = 0;
 	int32 MinLiveShots = TNumericLimits<int32>::Max();
 	FString RunName;
+	bool bSharedMaterials = false;
+	FBudgetMaterialCache SharedMaterials;
+	int32 SharedMaterialParts = 0;
+	int32 SharedMaterialDistinct = 0;
 
 	FBudgetStressPlan Plan;
 
