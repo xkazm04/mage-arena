@@ -197,6 +197,8 @@ Short paths resolve as follows:
 
 ### F5. Pinned combat data is not staged, so a packaged build would start without it
 
+- **Status:** applied 2026-10-07, before `DefaultGame.ini` stages `../Clips` and `../../data/vr`, after it also stages `../../data/pinned` and `KernelData()` logs the pinned directory, file count and SHA-1 once at boot; proven: Win64 editor build and `MageArena.Kernel.PinHash` pass; not proven: a Win64 stage listing.
+
 - **Upstream statement:** from the installed engine source; no web page was fetched, so this is **unconfirmed**
   against Epic's online docs.
   - `Engine/Source/Developer/DeveloperToolSettings/Classes/Settings/ProjectPackagingSettings.h:595-599` says
