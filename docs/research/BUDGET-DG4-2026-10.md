@@ -392,3 +392,67 @@ The automation suite at `369a020` (`Automation RunTests MageArena`, `-nullrhi`),
 with the CLAUDE.md commands: 177 tests, 174 pass. The 3 failures are the known ones (`MageArenaDesign.Duel.FireSeated`,
 `Session.FullSeated` and `Session.Wave1Seated`). `MageArena.Budget.SharedMaterials`, `MageArena.Budget.StressPopulation`
 and `MageArena.Input.CaptureFlags` pass.
+
+### 7.7 Decision
+
+**Who and when.** The App Master took this decision on 2026-10-08. It is not an owner decision, so it is not in
+`docs/DECISIONS.md`. The owner reads it at the Sun 11 Oct go/no-go.
+
+**Constraint.** The desktop core gate needs the session scene inside the section 7 count budgets, among them ≤150 draw
+calls (`docs/PROJECT-PLAN.md:47`). The budget table holds the row as "Draw calls (multiview) ≤150"
+(`docs/PROJECT-PLAN.md:364`). Gate D-G4 measures it on the desktop proxy over three 60 s runs
+(`docs/PROJECT-PLAN.md:218`). Section 3 measured median 310 and max 335, which fails. Neither lever reaches the row
+alone (7.4).
+
+**Choice.** The row is met with both levers together.
+
+- **A and B together** gave a median of 58-59 and a max of 62 over three runs (7.2, 7.4). That leaves about 88 draws
+  under the limit.
+- **A alone** (occlusion queries off) gave a median of 183 and a max of 189. **B alone** (one material per colour)
+  gave 214 and 221.
+- **Lever A** ships as one line, `r.AllowOcclusionQueries=False` under `[/Script/Engine.RendererSettings]` in
+  `apps/vr/Game/Config/DefaultEngine.ini`. It applies to every platform. It does not go in `AndroidEngine.ini` alone.
+  The desktop build is the Quest proxy for every count row, and the mobile renderer reads the same gate (7.3). A
+  Quest-only line would leave the desktop gate measuring a culling setup the device never runs, and every capture would
+  need `-dpcvars`. A separate delivery run makes this change and re-runs D-G4 with shipping settings. This section does
+  not.
+- **Lever B** belongs to lane A. `SessionPresentation.cpp` is dirty in the owner's checkout, lane A's `v2/slice`
+  rewrites it, and card T26 is building a single colour function there. The requirement: parts with the same mesh and
+  colour share one material, so dynamic instancing can merge them, and no runtime recolour writes into a shared
+  material. Lane A picks one of two ways:
+  - (a) One shared material that reads its colour from custom primitive data set per part. It needs no cache, and a
+    recolour is one call. Whether such draws still merge on the mobile forward renderer is not verified, and it must
+    be checked.
+  - (b) A per-colour MID cache keyed by `FLinearColor`, like the driver's `BudgetSharedTint`. Every runtime colour write
+    becomes a swap to the cached MID of the new colour, and any per-frame fade is quantised so the cache stays bounded.
+- The item for lane A is in `apps/vr/tasks/BACKLOG.md`.
+- Until B is on master, the section 3 draw-call verdict stays **fail** as measured. Once B is on master, the App Master
+  switches the stress driver's default path to follow it (`Budget/`), so D-G4 measures the shipping presentation.
+
+**Alternatives that lost.**
+
+- **A alone or B alone.** Neither reaches 150 (7.4).
+- **A smaller stress population.** It games the measure, because the population is the plan's.
+- **HZB occlusion (`r.HZBOcclusion=1`) or occlusion feedback (`r.OcclusionFeedback.Enable=1`).** Not measured here.
+  Section 7.3 only notes that both cvars exist and default to 0; it did not check how either behaves on the mobile
+  renderer. Either would keep some culling with fewer query draws. This is the fallback if the device shows that A's
+  triangle cost bites.
+- **A Quest-only config line.** See the reason under lever A above.
+- **Asking the owner for scope relief on the row.** Unnecessary, because the pair clears it.
+
+**Costs.**
+
+- **A:** geometry that occlusion used to cull is now drawn. The BasePass median rises by about 10k (112,144 to 121,808).
+  The BasePass max is 124,752, and the all-pass max is 321,536 against 350k. An arena with more occluders would lose
+  more, so the triangle row is re-measured with A on (7.5).
+- **B:** the runtime recolour path changes (7.5).
+
+**What V1 must confirm on the device.**
+
+- Whether a multiview query costs one draw for both eyes (7.3 did not check).
+- The real draw count.
+- A's triangle cost.
+- That no engine device profile for Quest sets `r.AllowOcclusionQueries` at a higher priority than the project
+  setting.
+
+**Revert.** Delete the one config line.
