@@ -28,8 +28,8 @@ enum class ESigilStrokeEvent : uint8
  * A gesture must contain a loop. The loop may close on a later sample, not only
  * the stroke start, and the peak turn counts when the inner stroke unwinds the
  * final turn. A closed loop with no inner stroke after it waits, then rejects.
- * A later stroke shorter than a spell line rejects. Both tests are relative to
- * the loop's own size.
+ * A later stroke that reaches less far than a spell line rejects. Both tests
+ * measure reach, not path, relative to the loop's own size.
  */
 class FSigilStrokeBuilder
 {
@@ -40,14 +40,24 @@ public:
 	static constexpr double LoopTurnDegrees = 300.0;
 	static constexpr double MinSegmentCm = 1.0;
 	static constexpr double MinLoopPathCm = 25.0;
-	// Circle-only tails on this corpus stay <= 0.53 of the loop diagonal (the arc
-	// after the loop first returns near its start). A circle drawn through into
-	// the inner stroke measures >= 0.89. The ratio is size-free, so a larger
-	// circle still waits.
-	static constexpr double InnerTailRatio = 0.65;
-	// A second stroke is the inner mark. Spell lines measure >= 0.414 of the
-	// loop diagonal; a dot, zigzag, or short hook measures <= 0.273.
-	static constexpr double MinInnerStrokeRatio = 0.34;
+	// The inner mark is measured by its reach (the diagonal of its bounding box),
+	// not its path. A path adds up every back-and-forth: a zigzag's legs, and the
+	// overshoot and snap-back that an extrapolating hand tracker adds at every
+	// corner and stop (G1, docs/research/FEASIBILITY-2026-10.md). On the
+	// extrapolated 25 Hz model that took a zigzag's path from <= 0.273 to 0.408
+	// of the loop diagonal, past spell lines, and a circle-only tail past the old
+	// 0.65 path ratio. A spell line is a straight reach across the circle, so its
+	// reach is close to its path; a jagged mark's reach stays small.
+	//
+	// One stroke: the tail after the loop closes. Circle-only tails reach <= 0.40
+	// of the loop diagonal at 72 Hz and <= 0.475 on the modelled 30 and 25 Hz
+	// streams. A circle drawn through into the inner stroke reaches >= 0.595.
+	// The ratio is size-free, so a larger circle still waits.
+	static constexpr double InnerTailRatio = 0.53;
+	// Later strokes are the inner mark. Spell lines reach >= 0.385 of the loop
+	// diagonal at 72 Hz and >= 0.351 on the modelled streams; a dot, zigzag or
+	// short hook reaches <= 0.200 on every stream.
+	static constexpr double MinInnerStrokeRatio = 0.28;
 	static constexpr double InnerWaitSeconds = 0.40;
 	static constexpr double StillSpeedCmPerSec = 5.0;
 	static constexpr double StillGapSeconds = 0.150;
@@ -77,7 +87,8 @@ private:
 		bool bClosed = false;
 		/** A prefix of the stroke closed the loop (returned near the start, or turned 300 degrees). */
 		bool bLoopClosed = false;
-		double TailPath = 0.0;
+		/** Reach of the stroke after the loop closed: the diagonal of its bounding box. */
+		double TailDiagonal = 0.0;
 		double LoopDiagonal = 0.0;
 	};
 

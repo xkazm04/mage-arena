@@ -1406,13 +1406,15 @@ bool FMageArenaHeldSampleCorpusModels::RunTest(const FString& Parameters)
 		int32 Correct;
 		int32 FalseCasts;
 	};
-	// extrap30: 9 false casts, every one an impostor-zigzag (a small three-leg mark inside the circle) cast as a line. Pinch
-	// is held in this model, so the joint extrapolation alone lets them pass the reject. Fix: a recognizer change (the reject on short jagged
-	// inner strokes), a separate run; W1 and W2 do not touch sigils.
-	// held25: 258/270 and no false cast, one more correct than 72 Hz. extrap25: 237/270 (87%, under the 90% sloppy floor
-	// of D-G2) and 30 false casts, all 30 impostor-zigzag clips; sigil-line2 loses most (22 of 33 wrong). The longer
-	// period lengthens the overshoot. The same recognizer fix applies.
-	const FExpected Expected[] = {{TEXT("extrap30"), 253, 9}, {TEXT("held25"), 258, 0}, {TEXT("extrap25"), 237, 30}};
+	// extrap30 and extrap25 had 9 and 30 false casts, every one an impostor-zigzag (a small three-leg mark inside the
+	// circle), and extrap25 was 237/270 (87%, under the 90% sloppy floor of D-G2), with sigil-line2 losing 22 of 33. Both
+	// came from the stroke builder measuring the inner mark by its path: the extrapolation overshoots at every corner and
+	// stop and snaps back on the next camera sample, which adds path but not reach. The zigzag's path passed the inner
+	// stroke ratio, and on extrap25 a bare circle's tail passed the one-stroke tail ratio, so the circle fired before its
+	// line was drawn. The builder now measures reach (the bounding-box diagonal), see SigilStrokeBuilder.h. After it:
+	// extrap30 253/270 and no false cast (correct count unchanged), extrap25 251/270 and no false cast. held25 is
+	// unchanged at 258/270. What extrap25 still misses is the $Q label (line2 read as line3, line3 as line1), not the gate.
+	const FExpected Expected[] = {{TEXT("extrap30"), 253, 0}, {TEXT("held25"), 258, 0}, {TEXT("extrap25"), 251, 0}};
 	bool bPass = true;
 	for (const FStream* Stream : GModelStreams)
 	{

@@ -52,6 +52,23 @@ void JacobiRotate(double A[3][3], double V[3][3], int32 P, int32 Q)
 	}
 }
 
+/** How far Points[From..] reach, whatever path they took: the diagonal of their bounding box. 0 when empty. */
+double BoxDiagonal(const TArray<FQPoint>& Points, int32 From)
+{
+	double MinX = TNumericLimits<double>::Max();
+	double MinY = TNumericLimits<double>::Max();
+	double MaxX = TNumericLimits<double>::Lowest();
+	double MaxY = TNumericLimits<double>::Lowest();
+	for (int32 Index = FMath::Max(0, From); Index < Points.Num(); ++Index)
+	{
+		MinX = FMath::Min(MinX, Points[Index].X);
+		MaxX = FMath::Max(MaxX, Points[Index].X);
+		MinY = FMath::Min(MinY, Points[Index].Y);
+		MaxY = FMath::Max(MaxY, Points[Index].Y);
+	}
+	return MaxX >= MinX ? std::hypot(MaxX - MinX, MaxY - MinY) : 0.0;
+}
+
 FDrawPlane FitPlane(const TArray<FVector>& Points)
 {
 	FDrawPlane Plane;
@@ -384,10 +401,7 @@ FSigilStrokeBuilder::FStrokeStats FSigilStrokeBuilder::StatsOf(const TArray<FQPo
 			}
 			Stats.LoopDiagonal = std::hypot(LoopMaxX - LoopMinX, LoopMaxY - LoopMinY);
 		}
-		for (int32 Index = Used + 1; Index < Points.Num(); ++Index)
-		{
-			Stats.TailPath += std::hypot(Points[Index].X - Points[Index - 1].X, Points[Index].Y - Points[Index - 1].Y);
-		}
+		Stats.TailDiagonal = BoxDiagonal(Points, Used);
 	}
 
 	// The loop does not have to start at the first sample. Style B includes the
@@ -434,14 +448,14 @@ FSigilStrokeBuilder::FStrokeStats FSigilStrokeBuilder::StatsOf(const TArray<FQPo
 	{
 		Stats.bLoopClosed = true;
 		Stats.LoopDiagonal = SubDiag;
-		Stats.TailPath = Along.Last() - Along[SubEnd];
+		Stats.TailDiagonal = BoxDiagonal(Points, SubEnd);
 	}
 	return Stats;
 }
 
 bool FSigilStrokeBuilder::HasInnerStroke(const FStrokeStats& Stats)
 {
-	return Stats.bLoopClosed && Stats.LoopDiagonal > 1.0 && Stats.TailPath >= InnerTailRatio * Stats.LoopDiagonal;
+	return Stats.bLoopClosed && Stats.LoopDiagonal > 1.0 && Stats.TailDiagonal >= InnerTailRatio * Stats.LoopDiagonal;
 }
 
 bool FSigilStrokeBuilder::HasLoop(const TArray<TArray<FQPoint>>& Flat)
@@ -481,15 +495,12 @@ bool FSigilStrokeBuilder::IsReady(const TArray<TArray<FQPoint>>& Flat)
 		{
 			return false;
 		}
-		double LaterPath = 0.0;
+		TArray<FQPoint> Later;
 		for (int32 Stroke = 1; Stroke < Flat.Num(); ++Stroke)
 		{
-			for (int32 Index = 1; Index < Flat[Stroke].Num(); ++Index)
-			{
-				LaterPath += std::hypot(Flat[Stroke][Index].X - Flat[Stroke][Index - 1].X, Flat[Stroke][Index].Y - Flat[Stroke][Index - 1].Y);
-			}
+			Later.Append(Flat[Stroke]);
 		}
-		return LaterPath >= MinInnerStrokeRatio * First.LoopDiagonal;
+		return BoxDiagonal(Later, 0) >= MinInnerStrokeRatio * First.LoopDiagonal;
 	}
 	return HasInnerStroke(StatsOf(Flat[0]));
 }
