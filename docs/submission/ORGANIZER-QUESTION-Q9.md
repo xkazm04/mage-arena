@@ -14,6 +14,7 @@ Facts only the owner can confirm. The body below does not assert any of them.
 - [confirm] The same individual is the entrant for both the TV and the VR project.
 - [confirm] The TV git dates are real. 5 of 116 TV commits have an author date that differs from the committer date by seconds to minutes (history rewrite, 2026-10-07); the three commits cited below have equal dates.
 - [confirm] Whether the second question (tooling) stays in or is cut.
+- 2026-10-08: Devpost update 46826 (https://start-developer-competition-26.devpost.com/updates/46826-give-yourself-a-schedule-save-the-date-live-build-session-october-13), posted about 2026-10-05 (the page shows "3 days ago"; unconfirmed), says "New Experience means starting from a blank slate on or after September 24, 2026" and "define your track and division" by "Friday, October 9". The shared design, kernel and data were first committed on 1 Oct 2026, after 24 Sep, which is what question 1 asks about, and "blank slate" may bear on question 2 (tooling from before the window).
 
 ## Subject
 
@@ -63,3 +64,16 @@ the same at baeac66                                                             
 ```
 
 `baeac66` is the pinned combat data commit (it was `68a4d68` before the 2026-10-07 TV history rewrite; see `docs/REPO-LAYOUT.md`).
+
+## Evidence (fetched 2026-10-08)
+
+Devpost update 46826, Chrome desktop User-Agent (from `STACK-OPPORTUNITIES-2026-10.md` 7.3):
+
+```
+curl -sL -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' --max-time 60 -o /tmp/mav-feed1008-88ab/dp-46826.html -w '%{http_code} %{size_download} dp-46826\n' 'https://start-developer-competition-26.devpost.com/updates/46826-give-yourself-a-schedule-save-the-date-live-build-session-october-13'
+  -> 200 128592 dp-46826, exit 0
+LC_ALL=C grep -o -m1 'New Experience</em> means starting from a blank slate on or after' /tmp/mav-feed1008-88ab/dp-46826.html | head -1
+  -> New Experience</em> means starting from a blank slate on or after, exit 0
+LC_ALL=C grep -o -m1 'define your track and division</strong>[^<]*' /tmp/mav-feed1008-88ab/dp-46826.html | head -1
+  -> define your track and division</strong>—by Friday, October 9, exit 0
+```

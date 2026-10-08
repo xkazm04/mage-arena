@@ -202,7 +202,7 @@ The two projects meet at four seams only:
   - build-tools 34-36.1;
   - platforms 31, 34 and 36;
   - `adb` on PATH.
-- `NDKROOT` is **unset**, and the JDK on PATH is **Zulu 22**. Whether UE 5.8 accepts NDK r28 and JDK 22 is unverified; that is the first thing D-G0 checks.
+- `NDKROOT` is **unset**, and the JDK on PATH is **Zulu 22**. Whether UE 5.8 accepts NDK r28 is unverified. On the Gradle side JDK 22 is accepted (AGP 8.13 needs 17 or newer, and Gradle runs on 22 from 8.8), but it is not Epic's documented OpenJDK 21.0.3, and JDK 21 is the fallback if the first Gradle step fails (STACK-OPPORTUNITIES F11, 2026-10-08); that is the first thing D-G0 checks.
 - **Known open Meta bug (investigation 1053459897316880, status "Investigating"):** the v207 OculusXR, OculusInteraction, MetaXRHaptics and OculusPlatform plugins claim 5.8 support but are built against 5.7.0, and modules fail to load. The ISDK v207 download page lists both 5.8 and 5.7 as supported. Packaged 5.8 samples may need `r.Mobile.ShadingPath=0`.
 
 **Prerequisite (owner):** Start program **approved 2026-10-02**; next, create the developer-dashboard app and its "Competition" channel (Q1). Developer mode waits for the device.

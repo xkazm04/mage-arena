@@ -72,7 +72,7 @@ Versions on this machine:
 | --- | --- |
 | SDK | `C:\Users\kazda\scoop\apps\android-clt\current` (`ANDROID_HOME`, already set) |
 | NDK | `28.2.13676358`, `Pkg.ReleaseName = r28c` (`NDKROOT`) |
-| JDK | Zulu 22.0.1, Azul, `C:\Program Files\Zulu\zulu-22` (`JAVA_HOME`) |
+| JDK | Zulu 22.0.1, Azul, `C:\Program Files\Zulu\zulu-22` (`JAVA_HOME`). Epic documents OpenJDK 21.0.3 for 5.8; 22 is inside the range AGP 8.13 and Gradle 8.8 or newer accept; 21 is the fallback (F11) |
 | Platforms | android-31, android-34, android-36 |
 | Build-tools | 28.0.3, 34.0.0, 35.0.0, 36.1.0 |
 | CMake | 3.22.1 present |

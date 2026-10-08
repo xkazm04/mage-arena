@@ -1144,6 +1144,7 @@ Two findings, F11 and F12. Neither is applied.
 
 #### F11. JDK 22 is not Epic's documented JDK 21, but it is inside the range the 5.8 Gradle chain accepts
 
+- **Status:** applied 2026-10-08, docs only, before `docs/PROJECT-PLAN.md:205` said "Whether UE 5.8 accepts NDK r28 and JDK 22 is unverified" and the JDK row of `docs/XR-TOOLCHAIN.md:75` was only "Zulu 22.0.1, Azul, `C:Program FilesZuluzulu-22` (`JAVA_HOME`)", after both name JDK 22 as accepted on the Gradle side (AGP 8.13 needs 17 or newer, Gradle runs on 22 from 8.8), not Epic's documented OpenJDK 21.0.3, with JDK 21 as the fallback if the first Gradle step fails on a Java or class-file version, and nothing installed; not proven: the first package's Gradle step (the engine's Android component is not installed).
 - **Upstream statements:**
   - Epic's "Android Development Requirements for Unreal Engine" (UE 5.8 documentation, `updated_at` 2026-06-12) shows
     "Current UE Version: 5.8", "NDK Version: r27c", "Build-tools: 35.0.1" and "Java runtime: OpenJDK 21.0.3 2024-04-16".
@@ -1188,6 +1189,7 @@ Two findings, F11 and F12. Neither is applied.
 
 #### F12. A 5.8.4 hotfix is announced, so F9's freeze-or-take decision is due before about 2026-10-20
 
+- **Status:** open, the owner's call: freeze UE_5.8 at 5.8.3 until 11-18, or take 5.8.4 on purpose on one day; due before about 2026-10-20 (inferred).
 - **Upstream statements:**
   - Forum bug thread "ShallowWaterRiver simulation does not initialize in Unreal Engine 5.7.4". On 2026-09-18 a user
     (no staff flag) wrote "The fix has been submitted and will be in 5.8.4." On 2026-10-05 Epic's Bug-Reporter
