@@ -26,6 +26,50 @@ void FBlinkDetector::Arm()
 	HottestOmega = 0.0;
 	HottestYaw = 0.0;
 	HottestTime = 0.0;
+	HottestDirection = FVector2D::ZeroVector;
+	HottestSpanSpeed = 0.0;
+	HistoryCount = 0;
+	HistoryHead = 0;
+}
+
+void FBlinkDetector::PushHistory(const FVector2D& Point, double TimeSeconds)
+{
+	History[HistoryHead] = {Point, TimeSeconds};
+	HistoryHead = (HistoryHead + 1) % HistoryCapacity;
+	HistoryCount = FMath::Min(HistoryCount + 1, HistoryCapacity);
+}
+
+bool FBlinkDetector::SpanSpeed(const FVector2D& Point, double TimeSeconds, double SpanS, double& OutSpeed) const
+{
+	for (int32 Back = 1; Back <= HistoryCount; ++Back)
+	{
+		const FTipSample& Sample = History[(HistoryHead - Back + HistoryCapacity) % HistoryCapacity];
+		const double Age = TimeSeconds - Sample.TimeSeconds;
+		if (Age >= SpanS - 1.0e-6)
+		{
+			OutSpeed = FVector2D::Distance(Point, Sample.Point) / Age / 100.0;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FBlinkDetector::BackWithinRearmSpan(const FVector2D& Point, double TimeSeconds) const
+{
+	for (int32 Back = 1; Back <= HistoryCount; ++Back)
+	{
+		const FTipSample& Sample = History[(HistoryHead - Back + HistoryCapacity) % HistoryCapacity];
+		const double Age = TimeSeconds - Sample.TimeSeconds;
+		if (Age > FBlinkThresholds::RearmSpanMaxS + 1.0e-6)
+		{
+			break;
+		}
+		if (Age >= FBlinkThresholds::RearmSpanMinS - 1.0e-6 && FVector2D::Distance(Point, Sample.Point) / Age / 100.0 < FBlinkThresholds::RearmSpeedMps)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 void FBlinkDetector::SetActivePad(int32 PadIndex)
@@ -150,12 +194,16 @@ void FBlinkDetector::Ingest(const FHandFrame& Frame)
 	const double MiddleReach = (Middle - Wrist).Size();
 	const bool bPointing = MiddleReach > 1.0 && IndexReach / MiddleReach >= FBlinkThresholds::PointRatio;
 	const double Yaw = FMath::RadiansToDegrees(FMath::Atan2(Delta.Y, Delta.X));
+	const FVector2D Point(Index.X, Index.Y);
+	PushHistory(Point, Frame.TimeSeconds);
 
 	// Let go of a fired flick once the tip has been still. Without this only a clock rewind (a new clip) re-armed the
-	// detector, so a stream with no rewinds saw its first flick and no other.
+	// detector, so a stream with no rewinds saw its first flick and no other. A tip back where it was a camera period or
+	// more ago is still too: that is an overshoot snapping back (G1), not motion.
 	if (bLatched)
 	{
-		QuietFor = Horizontal < FBlinkThresholds::RearmSpeedMps ? QuietFor + Dt : 0.0;
+		const bool bQuiet = Horizontal < FBlinkThresholds::RearmSpeedMps || BackWithinRearmSpan(Point, Frame.TimeSeconds);
+		QuietFor = bQuiet ? QuietFor + Dt : 0.0;
 		if (QuietFor >= FBlinkThresholds::RearmQuietS)
 		{
 			bLatched = false;
@@ -164,20 +212,35 @@ void FBlinkDetector::Ingest(const FHandFrame& Frame)
 			HottestOmega = 0.0;
 			HottestYaw = 0.0;
 			HottestTime = 0.0;
+			HottestDirection = FVector2D::ZeroVector;
+			HottestSpanSpeed = 0.0;
 		}
 	}
 
+	double SpanNow = 0.0;
+	const bool bHasSpan = SpanSpeed(Point, Frame.TimeSeconds, FBlinkThresholds::FallSpanS, SpanNow);
+	if (!bLatched && HottestSpeed > 0.0 && bHasSpan)
+	{
+		HottestSpanSpeed = FMath::Max(HottestSpanSpeed, SpanNow);
+	}
+	// The fall is judged before this sample may become the hottest: an extrapolated stop snaps back against the flick, and
+	// that snap can be faster than the flick. Measured along the flick it is a fall, not a new peak the other way.
+	if (!bLatched && HottestSpeed >= FBlinkThresholds::MinTipSpeedMps)
+	{
+		const double Along = FVector2D::DotProduct(FVector2D(Delta.X, Delta.Y), HottestDirection) / Dt / 100.0;
+		const bool bSpanFell = !bHasSpan || HottestSpanSpeed <= 0.0 || SpanNow < HottestSpanSpeed * FBlinkThresholds::FallSpanPeakFraction;
+		if (Along < HottestSpeed * FBlinkThresholds::FallFraction && bSpanFell)
+		{
+			Fire(HottestYaw, HottestTime);
+		}
+	}
 	if (bPointing && Omega >= FBlinkThresholds::MinOmegaRadPerS && Horizontal > HottestSpeed)
 	{
 		HottestSpeed = Horizontal;
 		HottestOmega = Omega;
 		HottestYaw = Yaw;
 		HottestTime = Frame.TimeSeconds;
-	}
-	if (!bLatched && HottestSpeed >= FBlinkThresholds::MinTipSpeedMps
-		&& Horizontal < HottestSpeed * FBlinkThresholds::FallFraction)
-	{
-		Fire(HottestYaw, HottestTime);
+		HottestDirection = FVector2D(Delta.X, Delta.Y).GetSafeNormal();
 	}
 }
 

@@ -222,4 +222,117 @@ bool FMageArenaBlinkStream::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBlinkTiming72, "MageArena.Blink.Timing72",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBlinkTiming72::RunTest(const FString& Parameters)
+{
+	// The G1 fix of the fall and the re-arm (FBlinkThresholds::FallSpanS, RearmSpanMinS) must not move anything at 72 Hz.
+	// Every blink and bolt clip, with 0.5 s of still tail so the latch can let go, through a bare detector. The fire frame,
+	// the event frame, the direction and the count are pinned to what the detector gave before that fix; the re-arm may
+	// come earlier, never later. Frames are 72 Hz indices from the clip start.
+	const FMageSettingsState SavedSettings = FMageSettings::Get();
+	FMageSettings::Restore(FMageSettingsState());
+
+	struct FPinned
+	{
+		const TCHAR* Action;
+		EClipVariant Variant;
+		const TCHAR* VariantName;
+		int32 Blinks;
+		int32 Bolts;
+		EBlinkDirection Direction;
+		int32 FireFrame;
+		int32 EventFrame;
+		int32 RearmFrame;
+	};
+	const FPinned Cases[] = {
+		{TEXT("blink-left"), EClipVariant::Normal, TEXT("normal"), 1, 0, EBlinkDirection::Left, 14, 11, 35},
+		{TEXT("blink-left"), EClipVariant::Slow, TEXT("slow"), 1, 0, EBlinkDirection::Left, 22, 17, 33},
+		{TEXT("blink-left"), EClipVariant::Sloppy, TEXT("sloppy"), 1, 0, EBlinkDirection::Left, 12, 10, 38},
+		{TEXT("blink-right"), EClipVariant::Normal, TEXT("normal"), 1, 0, EBlinkDirection::Right, 14, 11, 35},
+		{TEXT("blink-right"), EClipVariant::Slow, TEXT("slow"), 1, 0, EBlinkDirection::Right, 22, 17, 33},
+		{TEXT("blink-right"), EClipVariant::Sloppy, TEXT("sloppy"), 1, 0, EBlinkDirection::Right, 12, 10, 36},
+		{TEXT("blink-back"), EClipVariant::Normal, TEXT("normal"), 1, 0, EBlinkDirection::Back, 14, 11, 35},
+		{TEXT("blink-back"), EClipVariant::Slow, TEXT("slow"), 1, 0, EBlinkDirection::Back, 22, 17, 33},
+		{TEXT("blink-back"), EClipVariant::Sloppy, TEXT("sloppy"), 1, 0, EBlinkDirection::Back, 12, 10, 36},
+		{TEXT("bolt"), EClipVariant::Normal, TEXT("normal"), 0, 1, EBlinkDirection::Left, 15, 12, 38},
+		{TEXT("bolt"), EClipVariant::Slow, TEXT("slow"), 0, 1, EBlinkDirection::Left, 24, 19, 35},
+		{TEXT("bolt"), EClipVariant::Sloppy, TEXT("sloppy"), 0, 1, EBlinkDirection::Left, 14, 11, 38},
+	};
+	const TCHAR* DirectionNames[] = {TEXT("left"), TEXT("right"), TEXT("back")};
+
+	bool bPass = true;
+	for (const FPinned& Case : Cases)
+	{
+		const FString Label = FString::Printf(TEXT("%s.%s"), Case.Action, Case.VariantName);
+		FHandClip Clip;
+		FString Error;
+		if (!FHandClip::LoadFromFile(FHandClip::MakeFilePath(Case.Action, Case.Variant), Clip, Error))
+		{
+			AddError(FString::Printf(TEXT("%s: %s"), *Label, *Error));
+			bPass = false;
+			continue;
+		}
+		const FHandClipTrack* Track = CastingTrack(Clip);
+		if (!Track)
+		{
+			AddError(Label + TEXT(" has no casting-hand track"));
+			bPass = false;
+			continue;
+		}
+		TArray<FHandFrame> Frames = Track->Frames;
+		const FHandFrame Last = Frames.Last();
+		for (int32 Index = 1; Index <= 36; ++Index)
+		{
+			FHandFrame Still = Last;
+			Still.TimeSeconds = Last.TimeSeconds + Index / 72.0;
+			Frames.Add(Still);
+		}
+
+		FBlinkDetector Detector;
+		Detector.Reset();
+		int32 FireFrame = -1;
+		int32 RearmFrame = -1;
+		for (const FHandFrame& Frame : Frames)
+		{
+			Detector.Ingest(Frame);
+			const int32 FrameIndex = FMath::RoundToInt(Frame.TimeSeconds * 72.0);
+			if (FireFrame < 0 && Detector.GetBlinkCount() + Detector.GetBoltCount() > 0)
+			{
+				FireFrame = FrameIndex;
+			}
+			else if (FireFrame >= 0 && RearmFrame < 0 && Detector.GetHottestSpeed() < FBlinkThresholds::MinTipSpeedMps)
+			{
+				RearmFrame = FrameIndex;
+			}
+		}
+		Detector.Flush();
+		const bool bBlink = Detector.GetBlinkCount() > 0;
+		const double EventTime = bBlink ? Detector.GetLastBlink().TimeSeconds : Detector.GetLastBolt().TimeSeconds;
+		const int32 EventFrame = FMath::RoundToInt(EventTime * 72.0);
+		const FString Direction = bBlink ? DirectionNames[static_cast<int32>(Detector.GetLastBlink().Direction)] : TEXT("bolt");
+		const FString Line = FString::Printf(TEXT("Blink72 %s blinks=%d bolts=%d direction=%s fireFrame=%d eventFrame=%d rearmFrame=%d"),
+			*Label, Detector.GetBlinkCount(), Detector.GetBoltCount(), *Direction, FireFrame, EventFrame, RearmFrame);
+		UE_LOG(LogMageArena, Log, TEXT("%s"), *Line);
+		AddInfo(Line);
+
+		bPass &= TestEqual(*FString::Printf(TEXT("%s blinks"), *Label), Detector.GetBlinkCount(), Case.Blinks);
+		bPass &= TestEqual(*FString::Printf(TEXT("%s bolts"), *Label), Detector.GetBoltCount(), Case.Bolts);
+		if (Case.Blinks > 0 && bBlink)
+		{
+			bPass &= TestTrue(*FString::Printf(TEXT("%s direction"), *Label), Detector.GetLastBlink().Direction == Case.Direction);
+		}
+		bPass &= TestEqual(*FString::Printf(TEXT("%s fire frame"), *Label), FireFrame, Case.FireFrame);
+		bPass &= TestEqual(*FString::Printf(TEXT("%s event frame"), *Label), EventFrame, Case.EventFrame);
+		if (RearmFrame < 0 || RearmFrame > Case.RearmFrame)
+		{
+			AddError(FString::Printf(TEXT("%s re-arms at frame %d, later than %d"), *Label, RearmFrame, Case.RearmFrame));
+			bPass = false;
+		}
+	}
+	FMageSettings::Restore(SavedSettings);
+	return bPass;
+}
+
 #endif

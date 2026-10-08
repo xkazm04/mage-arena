@@ -80,43 +80,14 @@ const TArray<FString>& KnownHeldWardMisses()
  */
 const TArray<FString>& KnownModelMisses()
 {
-	// Every entry is a blink re-arm (".rearm", HeldSample.BlinkModels); every blink result itself matches 72 Hz.
-	// - held30 slow: the re-arm comes 167 to 236 ms late, while the flick fires 14 to 42 ms late. held25 does not miss, so
-	//   this is a phase effect of the 30 Hz grid on the slow decay, not a bound that grows with the period.
-	// - extrap30 slow and some sloppy: the extrapolated stream fires the flick early (55 to 69 ms on normal, up to 125 ms on
-	//   slow), before the tip has peaked; that is consistent with a speed dip after a camera update falling under
-	//   FallFraction of the peak so far. The tip is then still fast, and the re-arm comes 56 to 181 ms late.
-	// - extrap25: the same early fire, larger: every case but two misses, normal 69 to 97 ms late, slow 167 to 194 ms.
-	// A late re-arm can only lose a second flick that follows within about 0.2 s. Fix: a detector change (the fall test
-	// and the re-arm on extrapolated and held samples), a separate run; W1 and W2 do not touch blink.
-	static const TArray<FString> Misses = []()
-	{
-		const TCHAR* Cases[] = {
-			TEXT("held30.blink-left.slow.p0"), TEXT("held30.blink-left.slow.p1"), TEXT("held30.blink-left.slow.p2"),
-			TEXT("held30.blink-right.slow.p0"), TEXT("held30.blink-right.slow.p1"), TEXT("held30.blink-right.slow.p2"),
-			TEXT("held30.blink-back.slow.p0"), TEXT("held30.blink-back.slow.p1"), TEXT("held30.blink-back.slow.p2"),
-			TEXT("extrap30.blink-left.slow.p0"), TEXT("extrap30.blink-left.slow.p1"), TEXT("extrap30.blink-left.slow.p2"),
-			TEXT("extrap30.blink-left.sloppy.p2"),
-			TEXT("extrap30.blink-right.slow.p0"), TEXT("extrap30.blink-right.slow.p1"), TEXT("extrap30.blink-right.slow.p2"),
-			TEXT("extrap30.blink-right.sloppy.p0"), TEXT("extrap30.blink-right.sloppy.p1"),
-			TEXT("extrap30.blink-back.slow.p0"), TEXT("extrap30.blink-back.slow.p1"), TEXT("extrap30.blink-back.slow.p2"),
-			TEXT("extrap30.blink-back.sloppy.p0"),
-			TEXT("extrap25.blink-left.normal.p0"), TEXT("extrap25.blink-left.normal.p1"), TEXT("extrap25.blink-left.normal.p2"),
-			TEXT("extrap25.blink-left.slow.p0"), TEXT("extrap25.blink-left.slow.p1"), TEXT("extrap25.blink-left.slow.p2"),
-			TEXT("extrap25.blink-left.sloppy.p2"),
-			TEXT("extrap25.blink-right.normal.p0"), TEXT("extrap25.blink-right.normal.p1"), TEXT("extrap25.blink-right.normal.p2"),
-			TEXT("extrap25.blink-right.slow.p0"), TEXT("extrap25.blink-right.slow.p1"), TEXT("extrap25.blink-right.slow.p2"),
-			TEXT("extrap25.blink-right.sloppy.p0"), TEXT("extrap25.blink-right.sloppy.p1"), TEXT("extrap25.blink-right.sloppy.p2"),
-			TEXT("extrap25.blink-back.normal.p0"), TEXT("extrap25.blink-back.normal.p1"), TEXT("extrap25.blink-back.normal.p2"),
-			TEXT("extrap25.blink-back.slow.p0"), TEXT("extrap25.blink-back.slow.p1"), TEXT("extrap25.blink-back.slow.p2"),
-			TEXT("extrap25.blink-back.sloppy.p0"), TEXT("extrap25.blink-back.sloppy.p1"), TEXT("extrap25.blink-back.sloppy.p2")};
-		TArray<FString> Keys;
-		for (const TCHAR* Case : Cases)
-		{
-			Keys.Add(FString::Printf(TEXT("%s.rearm"), Case));
-		}
-		return Keys;
-	}();
+	// Empty since the G1 blink fix in Gestures/BlinkDetector (FallSpanS, FallSpanPeakFraction, RearmSpanMinS/MaxS). It held
+	// 47 blink re-arms (".rearm", HeldSample.BlinkModels): held30 slow 167 to 236 ms late, extrap30 slow and some sloppy
+	// 56 to 181 ms late, extrap25 every case but two, up to 194 ms late. The extrapolated streams fired the flick up to
+	// 125 ms early: each camera update showed as a one-frame speed spike, and the frames after it, at the older velocity,
+	// read as the fall. The overshoot at the stop and its snap back, and on held30 the 72 Hz rounding of the update time
+	// (a 0.54 m/s recoil read as 0.64 m/s), then kept the re-arm speed test from going quiet. Re-arm within the bound is
+	// now 27/27 on held30, extrap30, held25 and extrap25.
+	static const TArray<FString> Misses;
 	return Misses;
 }
 
