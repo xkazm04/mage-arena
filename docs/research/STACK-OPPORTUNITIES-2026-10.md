@@ -1087,3 +1087,601 @@ $ LC_ALL=C grep -o -m1 'lastUpdated[^,]\{0,20\}' /tmp/mav-web2-61e06ee9/u19.html
 lastUpdated\":\"2026-04-17\"}
 [exit 0]
 ```
+
+## 7. Feed 2026-10-08
+
+What changed upstream since the 2026-10-07 read, for the stack in section 1. Sections 1 to 6 are unchanged, and they
+are the history. Nothing below is applied. No Unreal process ran for this feed: no build, editor, commandlet, cook or
+automation run. The engine and the Android toolchain were read from their files only, and nothing was installed.
+
+- **How the quotes were checked.** As in section 6, every page was downloaded with `curl` into a new, empty directory
+  outside the repo (`/tmp/mav-feed1008-88ab`). Each quote below was then found in the raw file with `grep` (7.3).
+  No WebFetch call was made, so nothing here rests on WebFetch alone.
+- **Unconfirmed:** two WebSearch result summaries that no download confirmed (7.3), the date of the Devpost update in
+  row 12 (the page shows only "3 days ago"), and the 5.8.4 date in F12 (an inference from the cadence).
+
+### 7.1 What was read
+
+| # | Piece | On 10-07 | Now (10-08) | Page date | URL | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | Meta XR Unreal Engine 5 Integration | 207.0 ("Updated: Sep 23, 2026") | 207.0. The page lists 201.0, 203.0, 205.0 and 207.0, and nothing above 207.0 | Updated: Sep 23, 2026; 207.0 `release_date` 2026-09-23 | https://developers.meta.com/vr/downloads/package/unreal-engine-5-integration/ | no change |
+| 2 | Meta XR Interaction SDK (Unreal) | 207.0 ("Updated: Sep 22, 2026") | 207.0, nothing above it | Updated: Sep 22, 2026; 207.0 `release_date` 2026-09-22 | https://developers.meta.com/horizon/downloads/package/meta-xr-interaction-sdk-unreal/ | no change |
+| 3 | UE 5.8 hotfix | 5.8.3 (2026-09-22); "no 5.8.4" came from a tag list only, so it was **unconfirmed** | 5.8.3 is still the newest released hotfix. 5.8.4 is **announced but not released**: an Epic staff post says a fix "will be addressed in 5.8.4" | 5.8.3 thread 2026-09-22 (1 post, no reply); staff post 2026-10-05 | https://forums.unrealengine.com/t/5-8-3-hotfix-released/2833315, https://forums.unrealengine.com/t/2731772, https://forums.unrealengine.com/tag/hotfix | F12 |
+| 4 | UE 5.8 release notes | `updated_at` 2026-06-23 | the same; the page has no "5.8.4" | `updated_at` 2026-06-23 | https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes | no change |
+| 5 | Store: release-build manifest (F1 target SDK 34) | last updated 2026-09-30 | 2026-09-30; "must set their targetSdkVersion to 34" and "32-34 for immersive, 32-36 for 2D" are still there | 2026-09-30 | https://developers.meta.com/horizon/resources/publish-mobile-manifest/ | no change |
+| 6 | Store: Android 14 post (F1) | Nov 24, 2025, updated Feb 6, 2026 | the upload-enforcement sentence is still there | Nov 24, 2025 | https://developers.meta.com/horizon/blog/meta-quest-apps-android-14-march-1/ | no change |
+| 7 | Store: compatibility mode, `supportedDevices` (F2) | last updated 2026-09-08 | 2026-09-08; the `supportedDevices` sentence is still there | 2026-09-08 | https://developers.meta.com/horizon/documentation/native/android/os-compatibility-mode/ | no change |
+| 8 | Store: APK size, VRC.Quest.Packaging.5 | 2024-07-31, under 1 GB | 2024-07-31; the same sentence | 2024-07-31 | https://developers.meta.com/horizon/resources/vrc-quest-packaging-5/ | no change |
+| 9 | Store: VRC guideline list (first read) | not read | "APK file size must be less than 1 GB. OBB files must be less than 4 GB." | last updated 2026-08-19 | https://developers.meta.com/vr/resources/publish-quest-req/ | no change |
+| 10 | Competition rules page | "November 18, 2026 at 12:00:00 PM PT", 183,553 bytes (`docs/research/FEASIBILITY-2026-10.md:115`) | the same sentence and the same size, 183,553 bytes | no page date | https://start-developer-competition-26.devpost.com/rules | no change |
+| 11 | Competition overview page | 166,848 bytes (same source) | "Deadline: Nov 18, 2026 @ 12:00pm PST", 166,848 bytes | no page date | https://start-developer-competition-26.devpost.com/ | no change |
+| 12 | Devpost update 46826 (first read) | not read | Advice, not a rule: "define your track and division" by "Friday, October 9", and "New Experience means starting from a blank slate on or after September 24, 2026" | "3 days ago" on 10-08, so about 2026-10-05 (**unconfirmed**) | https://start-developer-competition-26.devpost.com/updates/46826-give-yourself-a-schedule-save-the-date-live-build-session-october-13 | no change to the deadline; the wording goes to the owner (Q9) |
+| 13 | Meta blog, competition launch (first read) | `curl` got HTTP 400 on 10-07 (FEASIBILITY:115) | HTTP 200; "November 18, 2026" | no machine-readable date; it names September 24, 2026 as the start | https://developers.meta.com/blog/meta-connect-2026-vr-start-developer-competition/ | no change |
+| 14 | Epic: Android requirements for UE 5.8 (first read) | not read; the repo records the engine's `Android_SDK.json` (`docs/XR-TOOLCHAIN.md:80`) | NDK r27c, build-tools 35.0.1, "Java runtime: OpenJDK 21.0.3 2024-04-16", minimum compile SDK 34, recommended target SDK 35 | `updated_at` 2026-06-12 | https://dev.epicgames.com/documentation/en-us/unreal-engine/android-development-requirements-for-unreal-engine | F11 |
+| 15 | AGP 8.13 release notes (first read) | not read | Gradle minimum 8.13; JDK minimum 17 | Last updated 2026-10-01 UTC | https://developer.android.com/build/releases/past-releases/agp-8-13-0-release-notes | F11 |
+| 16 | Gradle Java compatibility (first read) | not read | Java 22 runs Gradle "8.8 and after" | Gradle User Manual 9.8.1; no page date | https://docs.gradle.org/current/userguide/compatibility.html | F11 |
+| 17 | Engine `Android_SDK.json` (local, read-only) | NDK r27c to r29, build-tools 36.0.0, android-36 | the same | file on disk | `Engine/Config/Android/Android_SDK.json` | no change |
+| 18 | This machine's toolchain (local, read-only) | NDK r28c; JDK Zulu 22.0.1; build-tools 28.0.3, 34.0.0, 35.0.0 and 36.1.0; platforms 31, 34 and 36 (`docs/XR-TOOLCHAIN.md:71-78`) | the same | `NDKROOT`, `JAVA_HOME`, `ANDROID_HOME` | local | F11 (JDK only) |
+| 19 | UE-160597 (BUDGET-DG4 9, lever A risk) | HTTP 403 on 10-08 (MOBILE-INSTANCING 1.6) | HTTP 403 again | none readable | https://issues.unrealengine.com/issue/UE-160597 | **unconfirmed**, no change |
+
+Notes on the rows:
+
+- **Rows 1 and 2.** There is no release above 207.0, so there are no release-note items to list for hand tracking,
+  the system gesture, OpenXR, Vulkan or multiview, Niagara, or UE 5.8.
+- **Row 3.** This feed looks for 5.8.4's fixed issues that touch Android or Vulkan mobile, Niagara on mobile or GPU
+  simulation, occlusion queries (UE-160597), the clang or NDK toolchain, or commandlets. 5.8.4 has no release notes
+  yet. The two fixes announced for it touch none of these (F12).
+- **Row 14.** Epic recommends target SDK 35, but Meta caps immersive apps at 34 (row 5). F1's 34 stands.
+- **Row 14, build-tools.** Epic documents build-tools 35.0.1, and the engine's JSON asks for 36.0.0. Neither is
+  installed here. This needs no change: UBT uses the highest installed build-tools that has `aapt`, unless
+  `BuildToolsOverride` is set (`AndroidToolChain.cs:1471`, `:1483`, `:1485`), so it would use 36.1.0.
+- **Row 14, NDK.** Epic's page names r27c only. The engine's own JSON accepts r27c to r29, and Turnkey accepted r28c
+  (`docs/XR-TOOLCHAIN.md:66`). No change.
+
+### 7.2 Findings
+
+Two findings, F11 and F12. Neither is applied.
+
+#### F11. JDK 22 is not Epic's documented JDK 21, but it is inside the range the 5.8 Gradle chain accepts
+
+- **Upstream statements:**
+  - Epic's "Android Development Requirements for Unreal Engine" (UE 5.8 documentation, `updated_at` 2026-06-12) shows
+    "Current UE Version: 5.8", "NDK Version: r27c", "Build-tools: 35.0.1" and "Java runtime: OpenJDK 21.0.3 2024-04-16".
+    https://dev.epicgames.com/documentation/en-us/unreal-engine/android-development-requirements-for-unreal-engine
+  - The AGP 8.13 release notes (Last updated 2026-10-01 UTC) open with "The maximum API level that Android Gradle Plugin
+    8.13 supports is API level 36.1". The compatibility table that follows lists Gradle with minimum and default 8.13,
+    and JDK with minimum and default 17.
+    https://developer.android.com/build/releases/past-releases/agp-8-13-0-release-notes
+  - Gradle's compatibility matrix (Gradle User Manual 9.8.1, no page date), Java 22 row: toolchains "8.7", running
+    Gradle "8.8 and after".
+    https://docs.gradle.org/current/userguide/compatibility.html
+- **Engine source (read-only):**
+  - `Engine/Source/Programs/UnrealBuildTool/Platform/Android/UEDeployAndroid.cs:29` pins
+    `com.android.tools.build:gradle:8.13.0`.
+  - `UEDeployAndroid.cs:6510-6511` writes `sourceCompatibility` and `targetCompatibility` as `JavaVersion.VERSION_17`.
+  - The engine's Gradle wrapper cannot be read, because `Engine/Build/Android` does not exist (the engine's Android
+    component is not installed, as F1 says). The AGP table makes Gradle 8.13 the minimum, and that is above Gradle's
+    8.8 floor for Java 22.
+- **Local:** `JAVA_HOME` is Zulu 22.0.1 (`java -version` prints `openjdk version "22.0.1" 2024-04-16`).
+- **Repo:**
+  - `docs/PROJECT-PLAN.md:205` says "Whether UE 5.8 accepts NDK r28 and JDK 22 is unverified".
+  - `docs/XR-TOOLCHAIN.md:75` records the JDK as Zulu 22.0.1.
+  - `apps/vr/tools/install-xr.ps1:26` accepts any JDK of 17 or newer, and `:104` lists `zulu-22` as the first
+    candidate.
+- **Recommended change:**
+  - Keep JDK 22 for the first package. On the Gradle side, the upstream pages answer the open question at
+    `PROJECT-PLAN.md:205`: AGP 8.13 needs 17 or newer, and Gradle 8.13 or newer runs on 22.
+  - Record at `PROJECT-PLAN.md:205` and `XR-TOOLCHAIN.md:75` that 22 is outside Epic's documented 21.0.3. Name JDK 21
+    as the fallback if the first Gradle step fails on a Java or class-file version.
+  - Nothing is installed now.
+- **Unconfirmed:**
+  - The Gradle version the engine's Android component ships.
+  - Whether any other plugin in the generated Gradle build has its own JDK cap.
+
+  Both are proven only by the first package run.
+- **Cost:** S (two doc lines). Optionally the P2 preflight warns, but does not fail, when the JDK is not 21.
+- **When:** before 10-31, before the first APK. F1 and the plan's P11 want a dry-run upload in October.
+- **Verifiable headless:** yes, once the Android component is installed: the packaging log's Gradle step. Not in
+  this worktree.
+- **Registry:** EXTENDS `ship-pipeline-gating`: check the toolchain against the engine's documented versions before
+  the first package.
+
+#### F12. A 5.8.4 hotfix is announced, so F9's freeze-or-take decision is due before about 2026-10-20
+
+- **Upstream statements:**
+  - Forum bug thread "ShallowWaterRiver simulation does not initialize in Unreal Engine 5.7.4". On 2026-09-18 a user
+    (no staff flag) wrote "The fix has been submitted and will be in 5.8.4." On 2026-10-05 Epic's Bug-Reporter
+    (staff) wrote "UE-397316 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4."
+    https://forums.unrealengine.com/t/2731772
+  - Forum bug thread "UE5.8 Unable to build Game on macOS 27" (2026-09-25): "it should be in the next 5.8 hotfix".
+    https://forums.unrealengine.com/t/2746676
+  - The forum's hotfix tag lists 5.8.1 (2026-07-28), 5.8.2 (2026-08-25) and 5.8.3 (2026-09-22), each 28 days apart.
+    It has no 5.8.4 topic, and a forum search for "5.8.4 hotfix released" returns 0 posts.
+    https://forums.unrealengine.com/tag/hotfix
+- **What 5.8.4 is known to carry:**
+  - A Niagara scene-capture-2D depth-sampling shader fix (the ShallowWaterRiver thread).
+  - A macOS and Xcode 27 build step fix.
+
+  Neither touches the list in the note on row 3 of 7.1. The six `NS_Budget_` proxies in
+  `docs/research/NIAGARA-PROXY-2026-10.md` 1.4 name no scene-capture data interface. Its full notes must be read
+  when it is posted.
+- **Local:** `Build.version` is 5.8.3, Changelist 58210709, CompatibleChangelist 55116800.
+- **Repo:**
+  - `CLAUDE.md:44` says "The engine has been UE 5.8.3 (CL 58210709) since 2026-10-03."
+  - F9 left the launcher freeze as the owner's call.
+- **Recommended change:** the owner chooses before 5.8.4 lands.
+  - (a) Freeze `UE_5.8` at 5.8.3 until 11-18, as F9 asks.
+  - (b) Take 5.8.4 on purpose, on one day: re-check its CompatibleChangelist against the plugins' BuildId 55116800,
+    the editor build, the suite and the boot marker, then record it at `CLAUDE.md:44` and in `XR-TOOLCHAIN.md`'s
+    re-check section.
+
+  Recommendation: (a). Its known fixes touch nothing here, and the Niagara build (NIAGARA-PROXY 5) and the 10-31 gate
+  fall in the same weeks. This is in result.json's questions, not decided here.
+- **Unconfirmed:**
+  - The date. 2026-10-20 is 2026-09-22 plus the 28-day cadence, not an announcement.
+  - Whether the launcher updates the engine on its own (F9).
+- **Cost:** S.
+- **When:** before 10-31; the decision before about 10-20.
+- **Verifiable headless:** the version check, yes (`Build.version`).
+- **Registry:** EXTENDS `engine-pitfall-corpus`, the same incident as F9: the engine moving under a pinned plugin.
+
+### 7.3 Commands run for this section, with exit codes
+
+**Tool calls that are not shell commands, so they have no exit code:**
+
+- WebSearch, 2 queries:
+  - "Meta VR Start Developer Competition 2026 Gaming track submission deadline"
+  - "Meta Horizon Store new app requirements October 2026 targetSdkVersion Quest"
+- WebFetch: none.
+- Two claims in the search summaries were **not** confirmed by a download, and nothing above rests on them:
+  - that a later Meta "Update" post widened the API 34 rule to new uploads of existing apps. It does not change F1,
+    which already targets 34.
+  - that the VRC list was "updated Aug 19, 2026". That date was later grepped from the raw page (row 9).
+
+**Exploration without an exit-code log.** Reading the downloaded pages to find the quotes was also done with ad hoc
+`grep`, `sed` and `node` text extraction. All of those exited 0, except one `ls` of the absent `AGENTS.md`
+(exit 2). A `find` and an `ls` showed that `Engine/Build/Android` does not exist; log 11 repeats that `ls`. Every quote
+and figure above is re-found in the logged commands below.
+
+**Shell, run from the worktree root.** A small runner printed each command, ran it, and printed `[exit N]`. The logs
+are verbatim, except that trailing whitespace was trimmed. `grep -c` exits 1 when it counts 0 matches; logs 3 and 4
+use that as evidence that a page lacks "5.8.4". In log 13 the Epic JDK and NDK `grep`s matched nothing: the raw page
+has `&nbsp;` where the text shows a space, and `| head -1` hides grep's exit code. Log 14 re-finds both with `.` in
+that place.
+
+```
+# log 1
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u10.html -w '%{http_code} %{size_download} u10\n' 'https://developers.meta.com/vr/downloads/package/unreal-engine-5-integration/'
+200 636386 u10
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u17.html -w '%{http_code} %{size_download} u17\n' 'https://developers.meta.com/horizon/downloads/package/meta-xr-interaction-sdk-unreal/'
+200 523583 u17
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u4.html -w '%{http_code} %{size_download} u4\n' 'https://forums.unrealengine.com/t/5-8-3-hotfix-released/2833315'
+200 26901 u4
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u2.html -w '%{http_code} %{size_download} u2\n' 'https://developers.meta.com/horizon/resources/publish-mobile-manifest/'
+200 673188 u2
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u18.html -w '%{http_code} %{size_download} u18\n' 'https://developers.meta.com/horizon/resources/vrc-quest-packaging-5/'
+200 664577 u18
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u8.html -w '%{http_code} %{size_download} u8\n' 'https://developers.meta.com/horizon/documentation/native/android/os-compatibility-mode/'
+200 655046 u8
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u1.html -w '%{http_code} %{size_download} u1\n' 'https://developers.meta.com/horizon/blog/meta-quest-apps-android-14-march-1/'
+200 617721 u1
+[exit 0]
+
+# log 2
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-search-584.json -w '%{http_code} %{size_download} f-search-584\n' 'https://forums.unrealengine.com/search.json?q=5.8.4%20hotfix%20released'
+200 354 f-search-584
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-tag-hotfix.json -w '%{http_code} %{size_download} f-tag-hotfix\n' 'https://forums.unrealengine.com/tag/hotfix.json'
+200 30250 f-tag-hotfix
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-announce.json -w '%{http_code} %{size_download} f-announce\n' 'https://forums.unrealengine.com/c/general/announcements/9.json'
+200 76496 f-announce
+[exit 0]
+
+# log 3
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1008-88ab/u5.html -w '%{http_code} %{size_download} u5\n' 'https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes'
+200 5382178 u5
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-search-58-3.json -w '%{http_code} %{size_download} f-search-58-3\n' 'https://forums.unrealengine.com/search.json?q=%225.8.3%20Hotfix%22'
+200 5073 f-search-58-3
+[exit 0]
+
+$ LC_ALL=C grep -c '5\.8\.4' /tmp/mav-feed1008-88ab/u5.html
+0
+[exit 1]
+
+$ LC_ALL=C grep -o -m1 '"updated_at":"[^"]*"' /tmp/mav-feed1008-88ab/u5.html | head -1
+"updated_at":"2026-06-23T14:15:16.394Z"
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 '5.8.3 Hotfix Released' /tmp/mav-feed1008-88ab/f-tag-hotfix.json | head -1
+5.8.3 Hotfix Released
+[exit 0]
+
+$ LC_ALL=C grep -o '"title":"5\.8\.[0-9] Hotfix Released"' /tmp/mav-feed1008-88ab/f-tag-hotfix.json
+"title":"5.8.3 Hotfix Released"
+"title":"5.8.2 Hotfix Released"
+"title":"5.8.1 Hotfix Released"
+[exit 0]
+
+# log 4
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-search-584b.json -w '%{http_code} %{size_download} f-search-584b\n' 'https://forums.unrealengine.com/search.json?q=%225.8.4%22%20after%3A2026-09-22'
+200 3090 f-search-584b
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/u4.json -w '%{http_code} %{size_download} u4.json\n' 'https://forums.unrealengine.com/t/2833315.json'
+200 34975 u4.json
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",(j.posts||[]).length);for(const p of (j.posts||[]).slice(0,8))console.log(p.created_at.slice(0,10),p.topic_id,(p.blurb||"").slice(0,120))' /tmp/mav-feed1008-88ab/f-search-584b.json
+posts 2
+2026-10-05 2731772 UE-397316 is 'Closed' as 'Fixed'. The issue will be addressed in 5.8.4.
+2026-09-23 2746676 Newly released 5.8.3 does not seem to have the fix. Is it expected as part of 5.8.4?
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log(j.title,"created",j.created_at,"last_posted_at",j.last_posted_at,"posts_count",j.posts_count)' /tmp/mav-feed1008-88ab/u4.json
+5.8.3 Hotfix Released created 2026-09-22T13:29:55.931Z last_posted_at 2026-09-22T13:29:56.166Z posts_count 1
+[exit 0]
+
+$ LC_ALL=C grep -c '5\.8\.4' /tmp/mav-feed1008-88ab/u4.json
+0
+[exit 1]
+
+# log 5
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-2731772.json -w '%{http_code} %{size_download} f-2731772\n' 'https://forums.unrealengine.com/t/2731772.json'
+200 43074 f-2731772
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/f-2746676.json -w '%{http_code} %{size_download} f-2746676\n' 'https://forums.unrealengine.com/t/2746676.json'
+200 58107 f-2746676
+[exit 0]
+
+# log 6
+$ for f in u1 u2 u8 u18; do printf '%s ' $f; LC_ALL=C grep -o -m1 'lastUpdated[^,]\{0,20\}' /tmp/mav-feed1008-88ab/$f.html | head -1; done
+u1 u2 lastUpdated\":\"2026-09-30\"}
+u8 lastUpdated\":\"2026-09-08\"}
+u18 lastUpdated\":\"2024-07-31\"}
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'must set their targetSdkVersion to 34' /tmp/mav-feed1008-88ab/u2.html | head -1
+must set their targetSdkVersion to 34
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 '32-34 for immersive, 32-36 for 2D' /tmp/mav-feed1008-88ab/u2.html | head -1
+32-34 for immersive, 32-36 for 2D
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'API level 34 will be enforced during binary upload[^\]*' /tmp/mav-feed1008-88ab/u1.html | head -1 | cut -c1-200
+API level 34 will be enforced during binary upload, meaning you will not be able to upload binaries with a lower targetSdkVersion level for apps created after March 1, 2026.
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'APK files must be less than 1 GB in size[^\]*' /tmp/mav-feed1008-88ab/u18.html | head -1 | cut -c1-200
+APK files must be less than 1 GB in size, but can be accompanied by multiple expansion files up to 4 GB each.
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'manifest entry lists the VR devices that your app supports[^\]*' /tmp/mav-feed1008-88ab/u8.html | head -1 | cut -c1-200
+manifest entry lists the VR devices that your app supports. The runtime uses this list to decide whether to turn on compatibility mode. It also uses the list to choose the compatibility model.
+[exit 0]
+
+# log 7
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/c1.html -w '%{http_code} %{size_download} c1\n' 'https://developers.meta.com/blog/meta-connect-2026-vr-start-developer-competition/'
+200 463074 c1
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/vrc.html -w '%{http_code} %{size_download} vrc\n' 'https://developers.meta.com/vr/resources/publish-quest-req/'
+200 976996 vrc
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/i160597.html -w '%{http_code} %{size_download} i160597\n' 'https://issues.unrealengine.com/issue/UE-160597'
+403 25244 i160597
+[exit 0]
+
+# log 8
+$ curl -sL -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' --max-time 60 -o /tmp/mav-feed1008-88ab/dp-overview.html -w '%{http_code} %{size_download} dp-overview\n' 'https://start-developer-competition-26.devpost.com/'
+200 166848 dp-overview
+[exit 0]
+
+$ curl -sL -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' --max-time 60 -o /tmp/mav-feed1008-88ab/dp-rules.html -w '%{http_code} %{size_download} dp-rules\n' 'https://start-developer-competition-26.devpost.com/rules'
+200 183553 dp-rules
+[exit 0]
+
+$ curl -sL -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' --max-time 60 -o /tmp/mav-feed1008-88ab/dp-updates.html -w '%{http_code} %{size_download} dp-updates\n' 'https://start-developer-competition-26.devpost.com/updates'
+200 129713 dp-updates
+[exit 0]
+
+# log 9
+$ curl -sL -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' --max-time 60 -o /tmp/mav-feed1008-88ab/dp-46826.html -w '%{http_code} %{size_download} dp-46826\n' 'https://start-developer-competition-26.devpost.com/updates/46826-give-yourself-a-schedule-save-the-date-live-build-session-october-13'
+200 128592 dp-46826
+[exit 0]
+
+# log 10
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1008-88ab/a1.html -w '%{http_code} %{size_download} a1\n' 'https://dev.epicgames.com/documentation/en-us/unreal-engine/android-development-requirements-for-unreal-engine'
+200 105099 a1
+[exit 0]
+
+$ cat '/c/Program Files/Epic Games/UE_5.8/Engine/Config/Android/Android_SDK.json'
+{
+	"MainVersion": "r27c",
+	"MinVersion": "r27c",
+	"MaxVersion": "r29",
+
+	"AutoSDKDirectory": "-28",
+
+	"platforms": "android-36",
+	"build-tools": "36.0.0",
+	"cmake": "3.22.1",
+	"ndk": "27.2.12479018"
+}
+[exit 0]
+
+$ grep -n -E 'MajorVersion|MinorVersion|PatchVersion|"Changelist"|CompatibleChangelist' '/c/Program Files/Epic Games/UE_5.8/Engine/Build/Build.version'
+2:	"MajorVersion": 5,
+3:	"MinorVersion": 8,
+4:	"PatchVersion": 3,
+5:	"Changelist": 58210709,
+6:	"CompatibleChangelist": 55116800,
+[exit 0]
+
+$ echo "NDKROOT=$NDKROOT"; echo "JAVA_HOME=$JAVA_HOME"; echo "ANDROID_HOME=$ANDROID_HOME"
+NDKROOT=C:\Users\kazda\scoop\apps\android-clt\current\ndk\28.2.13676358
+JAVA_HOME=C:\Program Files\Zulu\zulu-22
+ANDROID_HOME=C:\Users\kazda\scoop\apps\android-clt\current
+[exit 0]
+
+$ grep -E 'Pkg.Revision|Pkg.ReleaseName' "$NDKROOT/source.properties"
+Pkg.Revision = 28.2.13676358
+Pkg.ReleaseName = r28c
+[exit 0]
+
+$ "$JAVA_HOME/bin/java" -version 2>&1
+openjdk version "22.0.1" 2024-04-16
+OpenJDK Runtime Environment Zulu22.30+13-CA (build 22.0.1+8)
+OpenJDK 64-Bit Server VM Zulu22.30+13-CA (build 22.0.1+8, mixed mode, sharing)
+[exit 0]
+
+$ ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
+C:\Users\kazda\scoop\apps\android-clt\current/build-tools:
+28.0.3
+34.0.0
+35.0.0
+36.1.0
+
+C:\Users\kazda\scoop\apps\android-clt\current/platforms:
+android-31
+android-34
+android-36
+[exit 0]
+
+# log 11
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/g1.html -w '%{http_code} %{size_download} g1\n' 'https://docs.gradle.org/current/userguide/compatibility.html'
+200 178863 g1
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/g2.html -w '%{http_code} %{size_download} g2\n' 'https://developer.android.com/build/releases/gradle-plugin'
+200 281572 g2
+[exit 0]
+
+$ grep -n 'ANDROID_TOOLS_BUILD_GRADLE_VERSION = ' '/c/Program Files/Epic Games/UE_5.8/Engine/Source/Programs/UnrealBuildTool/Platform/Android/UEDeployAndroid.cs'
+29:		private const string ANDROID_TOOLS_BUILD_GRADLE_VERSION = "com.android.tools.build:gradle:8.13.0";
+[exit 0]
+
+$ sed -n 6510,6511p '/c/Program Files/Epic Games/UE_5.8/Engine/Source/Programs/UnrealBuildTool/Platform/Android/UEDeployAndroid.cs'
+				BuildGradleContent.AppendLine("\t\tsourceCompatibility JavaVersion.VERSION_17");
+				BuildGradleContent.AppendLine("\t\ttargetCompatibility JavaVersion.VERSION_17");
+[exit 0]
+
+$ ls '/c/Program Files/Epic Games/UE_5.8/Engine/Build/Android'
+[exit 2]
+
+# log 12
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1008-88ab/g3.html -w '%{http_code} %{size_download} g3\n' 'https://developer.android.com/build/releases/past-releases/agp-8-13-0-release-notes'
+200 275697 g3
+[exit 0]
+
+# log 13
+$ LC_ALL=C grep -o -m1 'Java runtime: OpenJDK 21.0.3 2024-04-16' /tmp/mav-feed1008-88ab/a1.html | head -1
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Build-tools: 35.0.1' /tmp/mav-feed1008-88ab/a1.html | head -1
+Build-tools: 35.0.1
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'NDK Version:  r27c' /tmp/mav-feed1008-88ab/a1.html | head -1
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Current UE Version: 5.8' /tmp/mav-feed1008-88ab/a1.html | head -1
+Current UE Version: 5.8
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 '"updated_at":"[^"]*"' /tmp/mav-feed1008-88ab/a1.html | head -1
+"updated_at":"2026-06-12T21:00:06.381Z"
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'The maximum API level that Android Gradle Plugin 8.13 supports is API level 36.1' /tmp/mav-feed1008-88ab/g3.html | head -1
+The maximum API level that Android Gradle Plugin 8.13 supports is API level 36.1
+[exit 0]
+
+$ LC_ALL=C grep -A2 -m1 '<td align="right">Gradle</td>' /tmp/mav-feed1008-88ab/g3.html | sed 's/^ *//'
+<td align="right">Gradle</td>
+<td align="center">8.13</td>
+<td align="center">8.13</td>
+[exit 0]
+
+$ LC_ALL=C grep -A2 -m1 '<td align="right">JDK</td>' /tmp/mav-feed1008-88ab/g3.html | sed 's/^ *//'
+<td align="right">JDK</td>
+<td align="center">17</td>
+<td align="center">17</td>
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Last updated 2026-10-01 UTC' /tmp/mav-feed1008-88ab/g3.html | head -1
+Last updated 2026-10-01 UTC
+[exit 0]
+
+$ LC_ALL=C grep -A2 -m1 '<p class="tableblock">22</p></td>' /tmp/mav-feed1008-88ab/g1.html | sed 's/^ *//'
+<td class="tableblock halign-left valign-top"><p class="tableblock">22</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8.7</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8.8 and after</p></td>
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Version 9.8.1' /tmp/mav-feed1008-88ab/g1.html | head -1
+Version 9.8.1
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'The fix has been submitted and will be in 5.8.4.' /tmp/mav-feed1008-88ab/f-2731772.json | head -1
+The fix has been submitted and will be in 5.8.4.
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'The issue will be addressed in 5.8.4.' /tmp/mav-feed1008-88ab/f-2731772.json | head -1
+The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const p of j.post_stream.posts)if(/5\.8\.4/.test(p.cooked))console.log(p.created_at,p.username,p.staff?"staff":"")' /tmp/mav-feed1008-88ab/f-2731772.json
+2026-09-17T16:37:08.056Z DevonPenney
+2026-09-18T15:02:14.921Z DevonPenney
+2026-10-05T17:00:21.591Z Bug-Reporter staff
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'it should be in the next 5.8 hotfix' /tmp/mav-feed1008-88ab/f-2746676.json | head -1
+it should be in the next 5.8 hotfix
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const t of j.topic_list.topics)if(/^5\.8\.\d Hotfix/.test(t.title))console.log(t.created_at,t.id,t.title)' /tmp/mav-feed1008-88ab/f-tag-hotfix.json
+2026-09-22T13:29:55.931Z 2833315 5.8.3 Hotfix Released
+2026-08-25T13:09:12.557Z 2746335 5.8.2 Hotfix Released
+2026-07-28T13:19:53.899Z 2738864 5.8.1 Hotfix Released
+[exit 0]
+
+$ node -e 'for(const [a,b] of [["2026-07-28","2026-08-25"],["2026-08-25","2026-09-22"]])console.log(a,"->",b,(new Date(b)-new Date(a))/864e5,"days");console.log("2026-09-22 + 28 days =",new Date(Date.parse("2026-09-22")+28*864e5).toISOString().slice(0,10))'
+2026-07-28 -> 2026-08-25 28 days
+2026-08-25 -> 2026-09-22 28 days
+2026-09-22 + 28 days = 2026-10-20
+[exit 0]
+
+# log 14
+$ LC_ALL=C grep -o -m1 'Java runtime:.\{1,12\}OpenJDK 21.0.3 2024-04-16' /tmp/mav-feed1008-88ab/a1.html | head -1 | od -c | sed -n 1,3p
+0000000   J   a   v   a       r   u   n   t   i   m   e   :   &   n   b
+0000020   s   p   ;   O   p   e   n   J   D   K       2   1   .   0   .
+0000040   3       2   0   2   4   -   0   4   -   1   6  \n
+[exit 0]
+
+$ LC_ALL=C grep -c 'Java runtime:.\{1,12\}OpenJDK 21.0.3 2024-04-16' /tmp/mav-feed1008-88ab/a1.html
+2
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'NDK Version:.\{1,14\}r27c' /tmp/mav-feed1008-88ab/a1.html | head -1
+NDK Version:&nbsp;&nbsp;r27c
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Minimum target SDK for compilation:.\{1,12\}SDK 34' /tmp/mav-feed1008-88ab/a1.html | head -1
+Minimum target SDK for compilation: SDK 34
+[exit 0]
+
+# log 15
+$ LC_ALL=C grep -o 'Updated: [A-Z][a-z]* [0-9]*, 2026' /tmp/mav-feed1008-88ab/u10.html /tmp/mav-feed1008-88ab/u17.html
+/tmp/mav-feed1008-88ab/u10.html:Updated: Sep 23, 2026
+/tmp/mav-feed1008-88ab/u17.html:Updated: Sep 22, 2026
+[exit 0]
+
+$ LC_ALL=C grep -o '"version":"2[0-9][0-9]\.[0-9]"' /tmp/mav-feed1008-88ab/u10.html | sort -u
+"version":"201.0"
+"version":"203.0"
+"version":"205.0"
+"version":"207.0"
+[exit 0]
+
+$ LC_ALL=C grep -o '"version":"2[0-9][0-9]\.[0-9]"' /tmp/mav-feed1008-88ab/u17.html | sort -u
+"version":"201.0"
+"version":"203.0"
+"version":"205.0"
+"version":"207.0"
+[exit 0]
+
+$ LC_ALL=C grep -o '"release_date":[0-9]*,"version":"207.0"' /tmp/mav-feed1008-88ab/u10.html /tmp/mav-feed1008-88ab/u17.html | sort -u
+/tmp/mav-feed1008-88ab/u10.html:"release_date":1790206631,"version":"207.0"
+/tmp/mav-feed1008-88ab/u17.html:"release_date":1790106159,"version":"207.0"
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",j.posts.length,"term",j.grouped_search_result.term)' /tmp/mav-feed1008-88ab/f-search-584.json
+posts 0 term 5.8.4 hotfix released
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'November 18, 2026 at 12:00:00 PM PT' /tmp/mav-feed1008-88ab/dp-rules.html | head -1
+November 18, 2026 at 12:00:00 PM PT
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'Deadline: Nov 18, 2026 @ 12:00pm PST' /tmp/mav-feed1008-88ab/dp-overview.html | head -1
+Deadline: Nov 18, 2026 @ 12:00pm PST
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'New Experience</em> means starting from a blank slate on or after' /tmp/mav-feed1008-88ab/dp-46826.html | head -1
+New Experience</em> means starting from a blank slate on or after
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'define your track and division</strong>[^<]*' /tmp/mav-feed1008-88ab/dp-46826.html | head -1
+define your track and division</strong>—by Friday, October 9
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'November 18, 2026' /tmp/mav-feed1008-88ab/c1.html | head -1
+November 18, 2026
+[exit 0]
+
+$ wc -c /tmp/mav-feed1008-88ab/dp-rules.html /tmp/mav-feed1008-88ab/dp-overview.html
+183553 /tmp/mav-feed1008-88ab/dp-rules.html
+166848 /tmp/mav-feed1008-88ab/dp-overview.html
+350401 total
+[exit 0]
+
+$ node apps/vr/tools/check-pin.mjs
+pin OK: 9 files @ baeac66
+[exit 0]
+
+# log 16
+$ grep -n 'public string GetBuildToolsVersion\|"BuildToolsOverride"\|BestVersionString == "latest"' '/c/Program Files/Epic Games/UE_5.8/Engine/Source/Programs/UnrealBuildTool/Platform/Android/AndroidToolChain.cs'
+1471:		public string GetBuildToolsVersion()
+1483:			Ini.GetString("/Script/AndroidRuntimeSettings.AndroidRuntimeSettings", "BuildToolsOverride", out BestVersionString);
+1485:			if (BestVersionString == null || String.IsNullOrEmpty(BestVersionString) || BestVersionString == "latest")
+[exit 0]
+
+$ git show master:docs/PROJECT-PLAN.md | sed -n 205p | cut -c1-140
+- `NDKROOT` is **unset**, and the JDK on PATH is **Zulu 22**. Whether UE 5.8 accepts NDK r28 and JDK 22 is unverified; that is the first thi
+[exit 0]
+
+$ git show master:docs/XR-TOOLCHAIN.md | sed -n 75p
+| JDK | Zulu 22.0.1, Azul, `C:\Program Files\Zulu\zulu-22` (`JAVA_HOME`) |
+[exit 0]
+
+$ git show master:apps/vr/tools/install-xr.ps1 | sed -n '26p;104p'
+    return (Get-JdkMajor $JavaHome) -ge 17
+    $candidates = @('C:\Program Files\Zulu\zulu-22')
+[exit 0]
+
+$ git show master:CLAUDE.md | sed -n 44p
+The engine has been UE 5.8.3 (CL 58210709) since 2026-10-03. A fresh worktree without the MetaXR plugins (marked
+[exit 0]
+
+# log 17
+$ LC_ALL=C grep -o -m1 'UE-397316 is .\{1,4\}Closed.\{1,4\} as .\{1,4\}Fixed.\{1,4\}\. The issue will be addressed in 5.8.4.' /tmp/mav-feed1008-88ab/f-2731772.json | head -1
+UE-397316 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ git show master:docs/XR-TOOLCHAIN.md | sed -n '66p;71p;78p' | cut -c1-120
+Android: (Status=Valid, MinAllowed_Sdk=r27c, MaxAllowed_Sdk=r29, Current_Sdk=r28c, Allowed_AutoSdk=r27c, Current_AutoSdk
+| Piece | Value |
+| CMake | 3.22.1 present |
+[exit 0]
+```
