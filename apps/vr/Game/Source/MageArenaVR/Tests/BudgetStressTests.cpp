@@ -2,6 +2,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Budget/BudgetFx.h"
 #include "Budget/BudgetStressDriver.h"
 #include "Budget/BudgetStressPlan.h"
 #include "Greybox/ArenaLayout.h"
@@ -136,6 +137,95 @@ bool FMageArenaBudgetSharedMaterials::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("distinct colours never share a material"), Instances.Num(), Distinct.Num());
 	TestTrue(TEXT("the plan has fewer colours than parts"), Distinct.Num() < Colours.Num());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetFxPlan, "MageArena.Budget.FxPlan",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBudgetFxPlan::RunTest(const FString& Parameters)
+{
+	const TArray<FBudgetFxRow>& Rows = BudgetStress::FxRows();
+	TestEqual(TEXT("six proxy systems"), Rows.Num(), BudgetStress::FxRowCount);
+	int32 Gpu = 0;
+	int32 SummedPeak = 0;
+	for (const FBudgetFxRow& Row : Rows)
+	{
+		Gpu += Row.bGpu ? 1 : 0;
+		SummedPeak += Row.PeakLive;
+		if (!Row.bGpu)
+		{
+			TestTrue(*FString::Printf(TEXT("%s: a CPU row stays at or under %d"), *Row.Name, BudgetStress::MaxCpuPeakLive),
+				Row.PeakLive <= BudgetStress::MaxCpuPeakLive);
+		}
+		TestTrue(*FString::Printf(TEXT("%s: asset path %s is under /Game/Budget/"), *Row.Name, *Row.AssetPath),
+			Row.AssetPath.StartsWith(TEXT("/Game/Budget/")));
+		TestTrue(*FString::Printf(TEXT("%s: template %s is an engine emitter template"), *Row.Name, *Row.TemplatePath),
+			Row.TemplatePath.StartsWith(TEXT("/Niagara/DefaultAssets/Templates/Emitters/")));
+	}
+	TestEqual(TEXT("exactly one GPU row"), Gpu, BudgetStress::MaxGpuEmitters);
+	TestTrue(TEXT("the summed peak is not trivially under the row"), SummedPeak >= 1000);
+	TestTrue(TEXT("the summed peak is within the row"), SummedPeak <= BudgetStress::MaxLiveParticles);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetParticleCount, "MageArena.Budget.ParticleCount",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBudgetParticleCount::RunTest(const FString& Parameters)
+{
+	const FBudgetParticleCount Empty = CountEmitters(TConstArrayView<FBudgetEmitterSample>());
+	TestEqual(TEXT("an empty list counts 0"), Empty.Total(), 0);
+	TestEqual(TEXT("an empty list has no GPU emitter"), Empty.ActiveGpuEmitters, 0);
+
+	auto Sample = [](bool bEnabled, EBudgetSimTarget Target, EBudgetExecutionState State, int32 Count)
+	{
+		FBudgetEmitterSample Out;
+		Out.bEnabled = bEnabled;
+		Out.SimTarget = Target;
+		Out.ExecutionState = State;
+		Out.ParticleCount = Count;
+		return Out;
+	};
+	TArray<FBudgetEmitterSample> Samples;
+	Samples.Add(Sample(true, EBudgetSimTarget::Cpu, EBudgetExecutionState::Active, 100));
+	Samples.Add(Sample(true, EBudgetSimTarget::Cpu, EBudgetExecutionState::Inactive, 20));
+	Samples.Add(Sample(false, EBudgetSimTarget::Cpu, EBudgetExecutionState::Active, 999));
+	Samples.Add(Sample(false, EBudgetSimTarget::Gpu, EBudgetExecutionState::Active, 999));
+	Samples.Add(Sample(true, EBudgetSimTarget::Gpu, EBudgetExecutionState::Active, 400));
+	Samples.Add(Sample(true, EBudgetSimTarget::Gpu, EBudgetExecutionState::Inactive, 500));
+	Samples.Add(Sample(true, EBudgetSimTarget::Gpu, EBudgetExecutionState::Complete, 700));
+	const FBudgetParticleCount Count = CountEmitters(Samples);
+	TestEqual(TEXT("disabled CPU emitters are skipped; an inactive CPU emitter keeps its live particles"), Count.Cpu, 120);
+	TestEqual(TEXT("a GPU emitter counts once, and only while Active"), Count.Gpu, 400);
+	TestEqual(TEXT("one active GPU emitter"), Count.ActiveGpuEmitters, 1);
+	TestEqual(TEXT("the total is CPU plus GPU"), Count.Total(), 520);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetZeroIsNotAPass, "MageArena.Budget.ZeroIsNotAPass",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBudgetZeroIsNotAPass::RunTest(const FString& Parameters)
+{
+	const int32 Rows = BudgetStress::FxRowCount;
+	FString Reason;
+	TestTrue(TEXT("fewer live systems than rows is not exercised"),
+		EvaluateParticles(Rows - 1, 1500, 0, 1, Reason) == EBudgetParticleVerdict::NotExercised);
+	TestTrue(TEXT("0 live particles is not exercised"),
+		EvaluateParticles(Rows, 0, 0, 0, Reason) == EBudgetParticleVerdict::NotExercised);
+	TestTrue(TEXT("a frame with a total of 0 is not exercised"),
+		EvaluateParticles(Rows, 1500, 1, 1, Reason) == EBudgetParticleVerdict::NotExercised);
+	TestTrue(TEXT("a zero frame is not exercised even when the maximum is over the row"),
+		EvaluateParticles(Rows, 5000, 3, 4, Reason) == EBudgetParticleVerdict::NotExercised);
+	TestTrue(TEXT("the reason says why"), Reason.StartsWith(TEXT("not exercised")));
+	TestTrue(TEXT("over 2,000 live particles fails"),
+		EvaluateParticles(Rows, BudgetStress::MaxLiveParticles + 1, 0, 1, Reason) == EBudgetParticleVerdict::Fail);
+	TestTrue(TEXT("over 1 GPU emitter fails"),
+		EvaluateParticles(Rows, 1500, 0, BudgetStress::MaxGpuEmitters + 1, Reason) == EBudgetParticleVerdict::Fail);
+	TestTrue(TEXT("exactly at the limits passes"),
+		EvaluateParticles(Rows, BudgetStress::MaxLiveParticles, 0, BudgetStress::MaxGpuEmitters, Reason) == EBudgetParticleVerdict::Pass);
+	TestEqual(TEXT("a pass reads exercised"), Reason, FString(TEXT("exercised")));
 	return true;
 }
 
