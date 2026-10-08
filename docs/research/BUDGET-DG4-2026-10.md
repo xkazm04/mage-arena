@@ -456,3 +456,130 @@ alone (7.4).
   setting.
 
 **Revert.** Delete the one config line.
+
+## 8. Lever A shipped
+
+**Label: desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz.** Lever A of 7.7 is now in the
+project config, so the runs below use shipping settings: no `-dpcvars`, no other switch. Sections 0-7.7 are unchanged.
+
+### 8.1 Provenance
+
+- **Config commit:** `90d394d` (`feat(config): occlusion queries off on every platform (D-G4 lever A)`). It adds
+  `r.AllowOcclusionQueries=False` to `[/Script/Engine.RendererSettings]` in `apps/vr/Game/Config/DefaultEngine.ini` and
+  rewrites the first comment line of `Config/Android/AndroidEngine.ini`, which was stale. No cvar changed in that file.
+  No C++ changed. The scene, driver and `capture-budget.ps1` are the 7.1 ones. All four launches ran at `90d394d` on a
+  binary built from it.
+- **Date:** 2026-10-08, launches about 07:53-08:04 local time. Machine, engine (UE 5.8.3), RHI and resolution as in
+  section 0.
+- **Commands and exit codes:**
+
+  | Step | Command | Exit |
+  |---|---|---|
+  | Build | `powershell -NoProfile -File apps/vr/tools/build.ps1` (118 s) | 0 |
+  | Shipping settings | `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix ship` | 0 |
+  | Occlusion-on control | `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 1 -Prefix occlon -ExtraArgs "-dpcvars=r.AllowOcclusionQueries=1"` | 0 |
+  | Corpus | `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs` | 0 |
+  | Suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArena; Quit" -nullrhi` | 255 (as in BASELINE) |
+
+  Every launch logged `MAGEVR_BUDGET_DONE` and two `MAGEVR_BUDGET_POP` lines at full count
+  (`enemies=20 projectiles=100 hands=2`, 102 hand instances, 8,553 launches at the end). Warm-up took 10.0 s. Wall times
+  were 133, 89, 86 and 95 s. Each launch started only when `Wait-UnrealLane` saw no Unreal process.
+- **Committed summaries:** `docs/research/budget-dg4/{ship1,ship2,ship3,occlon1}.summary.json`.
+- **Suite:** 178 tests, 175 pass. The 3 failures are the known ones (`MageArenaDesign.Duel.FireSeated`,
+  `Session.FullSeated`, `Session.Wave1Seated`). `MageArena.Budget.StressPopulation`, `MageArena.Budget.SharedMaterials`
+  and `MageArena.Input.CaptureFlags` pass.
+
+### 8.2 Which key, which priority, and does anything outrank it
+
+- **The key.** The "Occlusion Culling" project setting is `URendererSettings::bOcclusionCulling` with
+  `ConsoleVariable="r.AllowOcclusionQueries"` (`Engine/Source/Runtime/Engine/Classes/Engine/RendererSettings.h:379-382`).
+  The editor writes a setting like this under the cvar's name, not the property's: `LoadConfig` and the save path set
+  `Key = CVarName` (`CoreUObject/Private/UObject/Obj.cpp:3029-3033`, `:3769-3773`, `:4107-4111`, all `WITH_EDITOR`). So
+  the ini key is `r.AllowOcclusionQueries`, as for the `r.ForwardShading` line already in this section.
+- **The priority.** At start-up, `Launch/Private/LaunchEngineLoop.cpp:2817` calls
+  `ApplyCVarSettingsFromIni("/Script/Engine.RendererSettings", GEngineIni, ECVF_SetByProjectSetting)`, so every key in
+  the section is set as a cvar at `ECVF_SetByProjectSetting` (the same table is at `Core/Private/HAL/ConsoleManager.cpp:593`).
+  This path is not editor-only, so it applies in a game or packaged build on Win64 and on Android. Both read
+  `DefaultEngine.ini`, and `AndroidEngine.ini` is layered on top without setting this cvar. Device profile,
+  scalability, console and command line all rank above project setting.
+- **Proof in the logs.** `LogConfig: Set CVar [[r.AllowOcclusionQueries:0]]` appears once in each of ship1-3 (and in
+  occlon1) at the project-setting stage, with no other switch on the command line.
+- **Override check.** `r.AllowOcclusionQueries` appears in exactly one engine config line,
+  `Engine/Config/BaseDeviceProfiles.ini:1569`, in the `LinuxArm64` device profile (`+CVars=r.AllowOcclusionQueries=False`,
+  device-profile priority). It sets the same value, and that profile is not Windows, Android, Android_Vulkan,
+  Meta_Quest_3 or OculusQuest*. Nothing in the engine's `BaseEngine.ini`, `BaseScalability.ini`, `Windows/` and `Android/`
+  configs, the other device profiles, the engine's `Platforms/` and Meta plugin folders or this project's `Config/`
+  sets it. **None outranks the project setting.** The device itself is still for V1.
+- **Control.** In occlon1 the log has the project line first (`Set CVar [[r.AllowOcclusionQueries:0]]`, line 545) and
+  then `LogDeviceProfileManager: Setting CommandLine Device Profile CVar: [[r.AllowOcclusionQueries:1]]` and
+  `Set CVar [[r.AllowOcclusionQueries:1]]` (lines 828-829), as 7.1 describes. The command line outranks the project
+  setting, so `-dpcvars=...=1` is a valid way to measure with occlusion back on. occlon1 reproduces the old numbers,
+  so the config line is the only difference between it and ship1-3.
+
+### 8.3 Results
+
+min / median / p95 / max over every frame of the 60 s window. GPU-culled triangles come from the six `DumpStats` frames
+per run. Frame and GPU times are from the CSV (`FrameTime`, `GPUTime`), peak working set from the driver.
+
+| Run | n | Draw calls | RHI primitives | GPU-culled BasePass tris | GPU-culled all-pass tris | Frame ms | GPU ms | Peak WS |
+|---|---|---|---|---|---|---|---|---|
+| ship1 | 37,700 | 164 / 183 / 185 / 186 | 193,673 / 201,579 / 206,955 / 213,451 | 119,824 / 122,352 / 124,752 / 124,752 | 308,800 / 314,336 / 321,536 / 321,536 | 0.79 / 1.44 / 2.04 / 1,723 | 0.57 / 0.67 / 1.06 / 2.75 | 3,275 MB |
+| ship2 | 40,657 | 165 / 183 / 186 / 188 | 201,769 / 207,595 / 213,163 / 219,211 | 90,512 / 122,352 / 124,752 / 124,752 | 251,424 / 314,336 / 321,536 / 321,536 | 0.79 / 1.43 / 1.98 / 1,073 | 0.57 / 0.68 / 1.08 / 1.86 | 2,443 MB |
+| ship3 | 39,739 | 164 / 183 / 185 / 186 | 193,675 / 201,579 / 206,955 / 213,451 | 89,552 / 120,848 / 124,752 / 124,752 | 248,544 / 310,848 / 321,536 / 321,536 | 0.79 / 1.47 / 2.00 / 997 | 0.56 / 0.68 / 1.06 / 1.87 | 2,553 MB |
+| occlon1 (`-dpcvars=...=1`) | 35,326 | 225 / 310 / 320 / 332 | 71,441 / 173,031 / 191,655 / 213,675 | 68,480 / 96,808 / 114,928 / 114,928 | 178,672 / 242,192 / 292,544 / 292,544 | 0.76 / 1.58 / 2.22 / 910 | 0.60 / 0.73 / 1.10 / 1.65 | 2,288 MB |
+
+The frame-time maximum is the single frame on which the CSV capture starts, as before. Particles and GPU emitters stay
+0, not exercised. ship1's peak working set (3,275 MB) is higher than ship2-3 (2.4-2.6 GB); 7.2 saw the same spread with
+other workers on the machine, and the cause was not isolated.
+
+**`DrawCall/*` CSV medians** (shares, as in section 2). `DrawCall/BeginOcclusionTests` is **0 in every frame** (min,
+median and max 0, n = 37,700 / 40,657 / 39,739) in ship1-3, with no switch. "Other" is the total minus the four
+categories; it includes Translucency (median 16) and RenderVelocities (2).
+
+| Run | Total | BeginOcclusionTests | Basepass | Prepass | SlateUI | Other |
+|---|---|---|---|---|---|---|
+| D-G4 run1-3 | 310 | 155 | 118 | 11 | 2 | 24 |
+| occl1 (7.2, `-dpcvars=...=0`) | 183 | 0 | 145 | 11 | 2 | 25 |
+| ship1 / ship2 / ship3 | 183 / 183 / 183 | **0** | 145 | 11 | 2 | 25 |
+| occlon1 | 310 | 155 | 118 | 10 | 2 | 25 |
+
+### 8.4 Change
+
+- **Against occl1 (7.2).** The shipped config reproduces the command-line variant: draw calls 183 against 183, max
+  186-188 against 189, Basepass 145 against 145, BasePass triangle max 124,752 against 123,792, all-pass max 321,536
+  against 318,656, RHI median 202-208k against 208k. The config line does what `-dpcvars=...=0` did.
+- **Against D-G4 run1-3 (median 310, max 335).** Draw calls fall by 127 at the median and by 147 at the max. The 155
+  query draws are gone, and Basepass rises from 118 to 145. The BasePass triangle median rises from 91.6-104.8k to
+  120.8-122.4k, the all-pass max from 293,696 to 321,536, and the RHI median from about 171k to 202-208k.
+- **Against occlon1.** occlon1 (310 / 155 / 118) matches ctrl1 and D-G4, so nothing else differs between the shipping
+  runs and the old ones.
+
+### 8.5 Updated verdicts (desktop proxy)
+
+| Row | Target | Measured with lever A shipped | Verdict |
+|---|---|---|---|
+| Draw calls | ≤150 | median 183, max 188 (ship1-3); min 164 | **fail**, in every sampled frame of all three runs |
+| Visible triangles | ≤350k | GPU-culled BasePass max 124,752; all passes max 321,536 (18 sampled frames); RHI lower bound max 219,211 | **pass** on desktop, with the limits in section 4 |
+| Live particles | ≤2,000 | 0 | **not exercised** |
+| GPU emitters | ≤1 | 0 | **not exercised** |
+
+- **Draw calls: what remains, by category.** 33 draws at the median (38 at the max) over the limit. The median 183 is
+  Basepass 145, Other 25 (Translucency 16, RenderVelocities 2 and uncategorised), Prepass 11 and SlateUI 2. Basepass
+  is the only category that can close the gap: lever B takes it from 118 to 21 (7.2, both1-3), which puts the total at
+  58-62. The row stays **fail** until lever B is on master and the stress driver follows the shipping presentation
+  (7.7).
+- **Triangles, re-judged with A on.** BasePass max 124,752 is 36% of 350k. The all-pass figure sums the depth prepass,
+  base pass, velocity and translucency passes, so it counts most triangles twice or more; its max is 321,536, which is
+  92% of 350k, 28k under the limit. It is a sampled maximum (6 frames per run), not a per-frame series (section 4). On
+  the plan's reading (each opaque triangle once, BasePass) the row passes with room. On the all-pass reading it passes
+  by 8%. An arena with more occluders than this open greybox would add to it (7.5). V1 measures the device number.
+
+### 8.6 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`.
+2. Shipping settings: `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix ship`. No
+   `-ExtraArgs`. Expect `DrawCall/BeginOcclusionTests` 0 in every frame and a draw-call median of 183.
+3. With occlusion back on: `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 1 -Prefix occlon -ExtraArgs "-dpcvars=r.AllowOcclusionQueries=1"`.
+   Expect a median of about 310 and `Setting CommandLine Device Profile CVar: [[r.AllowOcclusionQueries:1]]` in the log.
+   The switch works in non-shipping builds only.
+4. Revert: delete the `r.AllowOcclusionQueries=False` line and its comment from `DefaultEngine.ini`.
