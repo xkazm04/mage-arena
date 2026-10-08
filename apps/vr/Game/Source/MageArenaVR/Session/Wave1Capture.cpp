@@ -181,11 +181,10 @@ AMageArenaPawn* UWave1CaptureDriver::FindPawn() const
 	{
 		return nullptr;
 	}
-	for (TActorIterator<AMageArenaPawn> It(World); It; ++It)
-	{
-		return *It;
-	}
-	return nullptr;
+	// The first pawn, or none. A for loop that returns on its first pass is an error under clang
+	// (-Wunreachable-code-loop-increment, part of UBT's -Wunreachable-code-aggressive).
+	TActorIterator<AMageArenaPawn> It(World);
+	return It ? *It : nullptr;
 }
 
 FString UWave1CaptureDriver::RepoPath(const TCHAR* Relative) const
