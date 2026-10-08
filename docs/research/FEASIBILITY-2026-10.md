@@ -204,7 +204,7 @@ competition rules are therefore **not re-checked** (log 1).
   - Photon-to-detection latency.
   - Phases beyond 2/90 s. They cover 22 ms of the 33 ms (30 Hz) and 40 ms (25 Hz) camera periods.
 - **D-G3 verdict:** the perfect window holds to 60 ms on both the held worst case and the extrapolated model: the hit at the authored tick and the interior hits are perfect in every case. Strict "authored tick ±1 frame" timing does not hold: the onset lands 14 to 42 ms late, from the camera grid, not from latency. W1 is not needed and would not move the onset. W2 (stamping the onset earlier by the camera lag, which needs G2's rate) is what would restore ±1 frame. Separately, the extrapolated model raises two findings for later runs: zigzag false casts (a recognizer fix) and a late blink re-arm (a detector fix).
-- **Status:** zigzag false casts fixed 2026-10-07 in 9f824a3, in the stroke builder (`Gestures/SigilStrokeBuilder`); $Q and its 26000 reject are unchanged. The blink's early fire and late re-arm are **still open**.
+- **Status:** zigzag false casts fixed 2026-10-07 in 9f824a3, in the stroke builder (`Gestures/SigilStrokeBuilder`); $Q and its 26000 reject are unchanged. The blink's early fire and late re-arm were **still open** then; they are fixed in the next Status entry (2026-10-08).
   - **Diagnosis:**
     - extrap30: 9 zigzags cast as line1 ×6, line2 ×2 and line3 ×1, at $Q 3389 to 6765.
     - extrap25: 30 zigzags cast as line1 ×20, line3 ×7 and line2 ×3. 28 are two-stroke, at $Q 3891 to 6342. Two lost the pen-up and cast as one stroke, at 15238 and 15516.
@@ -241,6 +241,73 @@ competition rules are therefore **not re-checked** (log 1).
     - The boot log reads 9 files, SHA1 `11F9B16CBBC77C2469704829C518E4106236C2FF`.
     - `check-pin.mjs` passes.
   - **Not proven:** real Quest input. The finding and the fix rest on the G1 extrapolation **model**.
+- **Status:** the blink's early fire and late re-arm fixed 2026-10-08 in `Gestures/BlinkDetector` only. The arming gates (`PointRatio`, `MinOmegaRadPerS`, `MinTipSpeedMps`, the yaw gates), every existing `FBlinkThresholds` value and the public API are unchanged.
+  - **Diagnosis.** The per-frame tip speed, hottest speed, fire and re-arm frames were logged, first from a Node replica of the detector and both stream models (it reproduced the ratchet's 18/14/27/2 exactly), then checked against `HeldSample.BlinkModels`. Three cases:
+    - extrap30 `blink-left.slow` p0: each camera update shows as a one-frame spike (the snap to the new sample), and the frames after it run on at the older, slower velocity. The spike reads 1.462 m/s at 0.1667 s; the frame before it read 0.077. The next two frames read 0.565, under 0.55 × 1.462 = 0.804, so the flick fired at 0.1806 s. That is 125 ms before 72 Hz (0.3056 s). The real tip went on to 2.473 m/s at 0.2083 s. After the stop, the overshoot snapped back against the flick at 1.554, 0.947, 0.630, 0.727 and 0.630 m/s (0.347 to 0.472 s). Each is over `RearmSpeedMps` (0.60), so the quiet clock kept resetting, and the re-arm came at 0.6250 s, 167 ms late.
+    - extrap25 `blink-left.normal` p0: the same, larger. A 4.730 m/s spike, then 1.223 (< 2.60), so it fired at 0.1389 s, 56 ms early. Snap-backs of 4.272, 1.955, 1.093 and 0.949 m/s up to 0.403 s put the re-arm at 0.5556 s, 69 ms late (bound 53.9).
+    - held30 `blink-left.slow` p0: no early fire (0.3472 s, 42 ms late, from the grid). The recoil after the flick peaks at 0.541 m/s at 72 Hz, just under 0.60. Held samples change every 2 or 3 frames for a 1/30 s update, so `FHeldPointRate` divides one camera step by 27.8 or 41.7 ms. The recoil then reads 0.640 and 0.635 m/s (0.472 and 0.500 s) and resets the quiet clock. The re-arm waits for the tip to stop: 0.6944 s, 236 ms late.
+    - So the early fire is the camera grid read as the fall. The late re-arm is motion that is not there: the overshoot (extrapolated) or the update-time rounding (held). Neither depends on the exact size of the overshoot.
+  - **Fix:** three changes in `FBlinkDetector::Ingest`. Each new constant's comment names the classes it sits between.
+    - The fall is the speed **along the hottest sample's direction**, and it is judged before the sample may become the hottest. With the grid veto alone, extrap25 `sloppy` at a phase outside the three tested (11/12 of a period) turned the stop's 9.08 m/s snap-back (yaw 117°) into a new hottest sample and fired the wrong way. Measured along the flick, a snap-back is a fall.
+    - A fall counts only when the speed over `FallSpanS` (40 ms: one 25 Hz period, three frames at 72 Hz) is under `FallSpanPeakFraction` (0.875) of its peak since arming. Over a whole camera period the speed is still at its peak while the tip speeds up. Measured on the 12 blink and bolt clips, on all five streams at three phases:
+      - every fall that fired reads at most 0.854 (0.843 at 72 Hz);
+      - every vetoed grid dip reads at least 0.900, and 206 of the 223 read exactly 1.000;
+      - spans of 25 to 40 ms give the same results. A 45 ms span (four frames) lags the 72 Hz fall and moves four 72 Hz fires.
+    - A latched sample also counts as quiet when the tip is back within `RearmSpeedMps` of where it was `RearmSpanMinS` to `RearmSpanMaxS` (40 to 120 ms) ago. An overshoot and its snap-back cancel over that span, and so does the held rounding. A recoil that keeps going at 0.60 m/s never cancels, so the latch still holds through it. Measured around these values:
+      - a lower end of 28 to 50 ms, or an upper end of 100 to 150 ms, gives the same results;
+      - an upper end of 80 ms leaves held30 at 24/27;
+      - 200 ms loses cases on three streams.
+    - Rejected along the way, all measured in the replica:
+      - A minimum time from peak to fall. 72 Hz `sloppy` falls 27.8 ms after its peak, as long as an extrap25 dip lasts.
+      - A peak held over two frames. It moves the 72 Hz `bolt.normal` fire.
+      - A net-displacement re-arm over the whole quiet window. It cancelled the rest of the flick against the recoil, and on extrap30 `sloppy` p0 it re-armed into a false second blink.
+  - **72 Hz, before and after:** from `MageArena.Blink.Timing72`, a new test that pins these values. Frames are 72 Hz indices from the clip start, with a 0.5 s still tail. The before column is the same test on the base detector (the mutation run):
+
+    | Clip | Before: count, direction, fire / event / re-arm frame | After |
+    |---|---|---|
+    | blink-left normal | 1 left, 14 / 11 / 35 | identical |
+    | blink-left slow | 1 left, 22 / 17 / 33 | identical |
+    | blink-left sloppy | 1 left, 12 / 10 / 38 | identical |
+    | blink-right normal | 1 right, 14 / 11 / 35 | identical |
+    | blink-right slow | 1 right, 22 / 17 / 33 | identical |
+    | blink-right sloppy | 1 right, 12 / 10 / 36 | identical |
+    | blink-back normal | 1 back, 14 / 11 / 35 | identical |
+    | blink-back slow | 1 back, 22 / 17 / 33 | identical |
+    | blink-back sloppy | 1 back, 12 / 10 / 36 | identical |
+    | bolt normal | 1 bolt, 15 / 12 / 38 | identical |
+    | bolt slow | 1 bolt, 24 / 19 / 35 | identical |
+    | bolt sloppy | 1 bolt, 14 / 11 / 38 | identical |
+
+    The re-arm did not move either, so the 72 Hz reference of `BlinkModels` is the same before and after. `Blink.Clips` (sigil, mudra and ward clips: no blink, no bolt) and `Blink.Stream` pass unchanged.
+  - **Modelled streams, before and after:** from `HeldSample.BlinkModels`, 27 cases per stream. The bound is in brackets. Fire is the fire frame against 72 Hz; negative is early.
+
+    | Stream | Re-arm within bound, before | after | Re-arm delay ms, before | after | Fire vs 72 Hz ms, before | after |
+    |---|---|---|---|---|---|---|
+    | held30 (47.2 ms) | 18/27 | 27/27 | -27.8 to +236.1 | -27.8 to +41.7 | +13.8 to +41.7 | +13.8 to +55.5 |
+    | extrap30 (47.2 ms) | 14/27 | 27/27 | +13.9 to +180.6 | -13.9 to +41.7 | -125.0 to -27.8 | -27.8 to +13.9 |
+    | held25 (53.9 ms) | 27/27 | 27/27 | -41.7 to +41.7 | -41.7 to +41.7 | 0.0 to +55.5 | 0.0 to +69.4 |
+    | extrap25 (53.9 ms) | 2/27 | 27/27 | +27.8 to +194.4 | -27.8 to +41.7 | -125.0 to -13.9 | -27.8 to +27.7 |
+
+    - Early fire by variant, before → after:
+
+      | Stream | normal | slow | sloppy |
+      |---|---|---|---|
+      | extrap30 | -69 to -56 → -28 to 0 ms | -125 to -111 → -28 to -14 ms | -56 to -28 → 0 to +14 ms |
+      | extrap25 | -69 to -42 → 0 to +14 ms | -125 to -97 → -28 to -14 ms | -56 to -14 → +14 to +28 ms |
+
+      Cases that fire early: extrap30 27/27 → 15/27, extrap25 27/27 → 9/27. None is now more than 27.8 ms (two frames) early. The blink's time stamp is the hottest sample's time, so it moves less than the fire frame.
+    - The cost: on the held streams some fires now come one frame (13.9 ms) later, where the span veto waits out a stepped sample. held30 sloppy goes from +41.6 to +55.5 ms. held25 normal goes from +41.7 to +55.6 ms, and held25 sloppy from +55.5 to +69.4 ms.
+    - Count and direction match 72 Hz in 27/27 cases on every stream, with no false blink and no bolt. `KnownModelMisses` lost all 47 `.rearm` entries and is now empty. `KnownHeldMisses` stays empty.
+    - Off the tested grid, in the replica only (not in the suite), at 12 camera phases each, with the extrapolation horizon at one period and at half a period:
+      - Every extrapolated stream from 20 to 60 Hz re-arms within its bound in 108/108 cases. Before, the range was 8 to 108.
+      - Held streams: 25 Hz 93 → 105, 30 Hz 81 → 99, 36 Hz 93 → 96, 45 Hz 72 → 108, 60 Hz 81 → 108. At 20 Hz it is worse: 90 → 87.
+      - Count and direction match in 108/108 on every stream from 25 to 60 Hz, before and after. Held 20 Hz is 105/108 before and after.
+  - **Proven:**
+    - `build.ps1` exits 0: 120 s with the fix, then 17 s for the mutation build and 16 s for the restore.
+    - The full `MageArena` suite, after regenerating the corpus with the CLAUDE.md commands: 178 tests, 175 pass. The failures are the 3 known ones (`MageArenaDesign.Duel.FireSeated`, `Session.FullSeated`, `Session.Wave1Seated`). Every `HeldSample.*` test passes, as do every `Blink.*` test (`Clips`, `Stream`, `Timing72`) and `Census.Sweep`. The full suite was not run on the base commit in this run; the base figures come from the mutation run.
+    - Mutation proof: the base `BlinkDetector.h` and `.cpp`, run under the new ratchet, fail `HeldSample.BlinkModels` with 47 "re-arms late or not at all and is not in KnownModelMisses" errors, one per removed entry. `Timing72` still passes, as it should, because 72 Hz did not move. With the fix restored, the `Blink` and `HeldSample` tests are 14/14 green.
+    - `check-pin.mjs` prints `pin OK: 9 files @ baeac66`, `conformance/generate.mjs` exits 0, and `git status --porcelain apps/vr/data` prints nothing.
+  - **Not proven:** real Quest input. The fix rests on the G1 extrapolation **model** and on the held worst case. It was designed not to depend on the model's exact overshoot: in the replica it holds with the horizon cut to half a period, and at 20 to 60 Hz. But Meta's extrapolation method, its horizon and its filtering are unknown, and a filtered runtime may show no spikes at all. A second flick within 0.2 s is covered only through the re-arm bound. No two-flick stream runs on the modelled streams.
 
 ### G2. The v207 path never exposes when the cameras sampled, and the recorder rule assumes held poses
 
