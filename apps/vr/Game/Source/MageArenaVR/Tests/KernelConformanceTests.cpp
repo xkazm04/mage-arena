@@ -390,29 +390,32 @@ bool CompareCooldowns(FCheck& Check, const FJsonObject& Object, const FWaterStat
 	{
 		return Check.Fail(Path + TEXT(".cooldowns"), FString::Printf(TEXT("count expected %d got %d"), (*Json)->Values.Num(), Water.Cooldowns.Num()));
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*Json)->Values)
+	// Values is keyed by UE::FSharedString. A const TPair<FString, ...>& loop variable bound a converted temporary
+	// (clang's -Wrange-loop-construct, an error on Android). The explicit FString below holds the same key text.
+	for (const auto& Pair : (*Json)->Values)
 	{
+		const FString Key(Pair.Key);
 		double Number = 0.0;
 		if (!Pair.Value.IsValid() || !Pair.Value->TryGetNumber(Number))
 		{
-			return Check.Fail(Path + TEXT(".cooldowns.") + Pair.Key, TEXT("not a number"));
+			return Check.Fail(Path + TEXT(".cooldowns.") + Key, TEXT("not a number"));
 		}
 		const int32 Expected = static_cast<int32>(std::llround(Number));
 		bool bFound = false;
 		for (const FCooldownEntry& Entry : Water.Cooldowns)
 		{
-			if (Entry.Line == Pair.Key)
+			if (Entry.Line == Key)
 			{
 				bFound = true;
 				if (Entry.Until != Expected)
 				{
-					return Check.Fail(Path + TEXT(".cooldowns.") + Pair.Key, FString::Printf(TEXT("expected %d got %d"), Expected, Entry.Until));
+					return Check.Fail(Path + TEXT(".cooldowns.") + Key, FString::Printf(TEXT("expected %d got %d"), Expected, Entry.Until));
 				}
 			}
 		}
 		if (!bFound)
 		{
-			return Check.Fail(Path + TEXT(".cooldowns.") + Pair.Key, TEXT("missing on the actor"));
+			return Check.Fail(Path + TEXT(".cooldowns.") + Key, TEXT("missing on the actor"));
 		}
 	}
 	return !Check.bFailed;
@@ -1254,8 +1257,10 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 				Test.AddError(TEXT("frame inputs missing"));
 				return false;
 			}
-			for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*Inputs)->Values)
+			// Values is keyed by UE::FSharedString: const auto& binds the element itself (see the cooldown loop above).
+			for (const auto& Pair : (*Inputs)->Values)
 			{
+				const FString Key(Pair.Key);
 				const TSharedPtr<FJsonObject>* InputJson = nullptr;
 				if (!Pair.Value.IsValid() || !Pair.Value->TryGetObject(InputJson) || !InputJson || !InputJson->IsValid())
 				{
@@ -1267,7 +1272,7 @@ bool Replay(FAutomationTestBase& Test, const FString& Name)
 				{
 					return false;
 				}
-				Held.FindOrAdd(FCString::Atoi(*Pair.Key)) = Input;
+				Held.FindOrAdd(FCString::Atoi(*Key)) = Input;
 			}
 		}
 		Check.Tick = Tick;

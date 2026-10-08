@@ -154,12 +154,15 @@ bool FArenaSession::LoadStrings()
 		return false;
 	}
 	Strings.Reset();
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
+	// Values is keyed by UE::FSharedString. A const TPair<FString, ...>& loop variable bound a converted temporary
+	// (clang's -Wrange-loop-construct, an error on Android). The explicit FString below holds the same key text.
+	for (const auto& Pair : Root->Values)
 	{
+		const FString Key(Pair.Key);
 		FString Text;
 		if (Pair.Value.IsValid() && Pair.Value->TryGetString(Text))
 		{
-			Strings.Add(Pair.Key, Text);
+			Strings.Add(Key, Text);
 		}
 	}
 	return Strings.Contains(TEXT("cold.start"));
