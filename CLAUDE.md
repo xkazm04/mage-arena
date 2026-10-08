@@ -51,6 +51,9 @@ clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Ne
 `--templates` for this: both rewrite tracked clips. As of 24bcdfc, three suite failures are known on a clean tree:
 `MageArenaDesign.Duel.FireSeated`, `Session.FullSeated` and `Session.Wave1Seated`.
 
+Before any packaged build (a Win64 stage or an APK), `node apps/vr/tools/check-staged-clips.mjs` must print OK, and
+package-android.ps1 runs it.
+
 Binary assets (`.uasset`, `.umap`) go through Git LFS (`.gitattributes`). `Binaries/`, `Intermediate/`, `Saved/`
 and `DerivedDataCache/` are never committed.
 

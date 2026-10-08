@@ -273,6 +273,29 @@ export function testClipsRoot() {
   return path.resolve(here, '..', '..', 'Game', 'TestClips');
 }
 
+// Before the generators moved to Game/TestClips they wrote these folders under Game/Clips, which the package stages whole.
+// Remove an old copy only when it holds nothing but .jsonl files; anything else is left whole with a warning.
+export function removeLegacyClips(name) {
+  if (!['corpus', 'impostors', 'noise', 'mouse'].includes(name)) {
+    throw new Error(`not a legacy clip folder: ${name}`);
+  }
+  const dir = path.join(clipsRoot(), name);
+  if (!fs.existsSync(dir)) {
+    return;
+  }
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  if (!entries.every((e) => e.isFile() && e.name.endsWith('.jsonl'))) {
+    process.stdout.write(`warning: Game/Clips/${name} holds more than .jsonl files; left in place, delete it by hand\n`);
+    return;
+  }
+  let bytes = 0;
+  for (const e of entries) {
+    bytes += fs.statSync(path.join(dir, e.name)).size;
+  }
+  fs.rmSync(dir, { recursive: true });
+  process.stdout.write(`removed legacy Game/Clips/${name}: ${entries.length} files, ${bytes} bytes\n`);
+}
+
 function wipeJsonl(dir) {
   fs.mkdirSync(dir, { recursive: true });
   for (const name of fs.readdirSync(dir)) {
@@ -713,6 +736,9 @@ function writeImpostors(used) {
 
 export function writeCorpus(n, baseSeed) {
   const root = clipsRoot();
+  for (const name of ['corpus', 'impostors', 'noise']) {
+    removeLegacyClips(name);
+  }
   const dir = path.join(testClipsRoot(), 'corpus');
   wipeJsonl(dir);
   const used = canonicalSeedSet();

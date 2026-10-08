@@ -2,11 +2,12 @@
 // 30 paths per class. Seeds sit in the mouse band and never overlap templates or the corpus.
 import fs from 'node:fs';
 import path from 'node:path';
-import { SIGIL_CLASSES, MOUSE_BASE, buildVariedClip, testClipsRoot } from './corpus.mjs';
+import { SIGIL_CLASSES, MOUSE_BASE, buildVariedClip, removeLegacyClips, testClipsRoot } from './corpus.mjs';
 
 const PER_CLASS = 30;
 
 function main() {
+  removeLegacyClips('mouse');
   const dir = path.join(testClipsRoot(), 'mouse');
   fs.mkdirSync(dir, { recursive: true });
   for (const name of fs.readdirSync(dir)) {

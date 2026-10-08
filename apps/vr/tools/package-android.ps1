@@ -41,6 +41,12 @@ if (-not (Test-Path -LiteralPath (Join-Path $VrRoot 'Game\Plugins\MetaXR\OculusX
     throw 'Meta XR is not installed. Run apps/vr/tools/install-xr.ps1 first.'
 }
 
+# DefaultGame.ini stages ../Clips whole: stale untracked clips would ship in the APK.
+& node (Join-Path $PSScriptRoot 'check-staged-clips.mjs')
+if ($LASTEXITCODE -ne 0) {
+    throw 'check-staged-clips.mjs failed: untracked or missing files under apps/vr/Game/Clips would be staged. Fix them, then re-run.'
+}
+
 $toolchain = Set-MageAndroidToolchain
 Write-Host ('SDK=' + $toolchain.Sdk)
 Write-Host ('NDK=' + $toolchain.Ndk)
