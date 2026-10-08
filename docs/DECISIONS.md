@@ -2,6 +2,31 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-08 - D-G4 particle systems: a commandlet here now, pof P9 later
+
+> Owner, 2026-10-08, asked "The 10-31 budget's particle rows need 6 Niagara systems. The reading (6015e16) says to make
+> them with a small commandlet in this repo, from the engine's own default emitter templates. CLAUDE.md says a capability
+> pof lacks is built in pof first (pof P9 is that capability), and R8 bans stock packs. Which way?": "Commandlet here
+> now, pof P9 later"
+
+- **What binds:** the 6 `NS_Budget_` systems of `docs/research/NIAGARA-PROXY-2026-10.md` 1.4 are made in this repo by
+  `Tools/CreateBudgetFxCommandlet` (route (b), 1.2) from the engine's default Niagara emitter templates and default
+  materials. They are committed under `apps/vr/Game/Content/Budget/` through LFS and cooked into the V1 APK through
+  `+DirectoriesToAlwaysCook=(Path=/Game/Budget)` (R6). The build starts once `MageArenaVR.Build.cs` is clean.
+- **The R8 reading** (`docs/PROJECT-PLAN.md:551`, "no Fab or stock packs"): engine default templates that this
+  project's own tool duplicated and parametrized after 24 Sep are not a stock pack. The limit: the ruling does not cover
+  shipping engine content unchanged (route (a), 1.1), engine sample content, or any Fab or marketplace pack.
+- **The pof-first rule** (`CLAUDE.md`, Tooling; `docs/PROJECT-PLAN.md:396`, P9): this is an exception for the stress
+  scene's measuring instrument, which is not the art pipeline. pof P9 may absorb the commandlet later. This ruling does
+  not change `CLAUDE.md`.
+- **The constraint that forced it:** the particle rows of the 10-31 desktop core gate (D-G4) need real systems that can
+  be tuned. Route (a) gives untunable bursts (1.1). Route (c) cannot exist in a cooked build (1.3). pof has no P9 yet.
+- Lost: "pof P9 first" (it would have held the particle build, and the 10-31 gate would have reported the particle rows
+  "not exercised"). Lost: "Desktop proxy only, not in the APK" (the commandlet without the `DirectoriesToAlwaysCook`
+  line, so the device particle row (R6) would have waited for assets from pof P9).
+- Not part of this ruling: the build still waits for the operator's uncommitted `// touch` line in
+  `MageArenaVR.Build.cs` (NIAGARA-PROXY 5.1).
+
 ## 2026-10-07 - v2 vision accepted; the 18 Nov build is its Tiro-day slice
 
 > Owner, 2026-10-07, after the vision interview (waves 0-5, answers verbatim in `docs/design/V2-VISION.md`): "Take

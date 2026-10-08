@@ -134,11 +134,15 @@ honestly from them.
 - **R8.** The assets are made by this project's own tool, in this repo, after 24 Sep. What they copy from the engine is
   the default emitter graph and the default additive material, which every new Niagara system in any project starts
   from. No Fab or stock pack is involved. The owner may still want this recorded; it is in `questions`.
+  **Owner ruling, 2026-10-08:** route (b) is accepted and this reading stands, with its limit; see `docs/DECISIONS.md`,
+  2026-10-08.
 - **pof.** Plan item P9 ("Niagara parametrize and budget", `docs/PROJECT-PLAN.md:396`) is this capability in pof:
   "duplicate a template system, set user parameters such as colour, size, rate and lifetime, report emitter count, sim
   target and max particles". CLAUDE.md says such a capability is built in pof first. The commandlet is the stress
   scene's instrument, not the art pipeline. The owner or App Master decides whether it waits for P9 or is P9's first,
   game-side half (in `questions`).
+  **Owner ruling, 2026-10-08:** the commandlet is built here now and pof P9 may absorb it later; see
+  `docs/DECISIONS.md`, 2026-10-08.
 
 **Route (b) verdict:** it works in a cooked build, it can be tuned to an honest size, and it respects R8. It costs one
 commandlet, one LFS folder and one `DirectoriesToAlwaysCook` line.
@@ -564,4 +568,4 @@ All run under `-nullrhi` in the `MageArena` suite, so none of them reads a live 
   finishes headless. Both are plain editor-module calls with no Slate in the paths read, but no commandlet has run here.
 - Any device behaviour: the GPU emitter in both eyes, the readback lag on Adreno, the CPU cost of 870 CPU particles on
   the Quest game thread.
-- The R8 reading of engine template content (1.2) is mine, not the owner's.
+- The R8 reading of engine template content (1.2) is mine, not the owner's. The owner has now ruled (`docs/DECISIONS.md`, 2026-10-08).
