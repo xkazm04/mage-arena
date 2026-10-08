@@ -583,3 +583,84 @@ categories; it includes Translucency (median 16) and RenderVelocities (2).
    Expect a median of about 310 and `Setting CommandLine Device Profile CVar: [[r.AllowOcclusionQueries:1]]` in the log.
    The switch works in non-shipping builds only.
 4. Revert: delete the `r.AllowOcclusionQueries=False` line and its comment from `DefaultEngine.ini`.
+
+## 9. Decision 7.7 amended
+
+**Label: source reading, not a device measurement.** Two merged runs changed 7.7: `docs/research/MOBILE-INSTANCING-2026-10.md`
+(3c099c9, below "MI") and section 8 (d98ae66, 743021a). Sections 0-8.6 are unchanged, and 7.7 stays as written, as the
+history. Where 7.7 and this section differ, this section wins.
+
+**Who and when.** The App Master took this decision on 2026-10-08. It is not an owner decision, so it is not in
+`docs/DECISIONS.md`. The owner reads it, with 7.7, at the Sun 11 Oct go/no-go.
+
+**Constraint.** The row is still ≤150 draw calls (`docs/PROJECT-PLAN.md:47`, 7.7). With lever A shipped, the desktop
+proxy has median 183 and max 188 (8.5). Lever B is still the lever that closes the gap (8.5). 7.7 gave a fallback that
+does not run and asked questions that now have answers.
+
+**Choice.**
+
+1. **The lever A fallback changes.**
+   - `r.HZBOcclusion=1` is struck. It does not work on the 5.8.3 mobile forward renderer (MI 2.1).
+   - Occlusion feedback (`r.OcclusionFeedback.Enable=1`) is the only fallback. It **replaces** lever A instead of
+     joining it, because it needs `r.AllowOcclusionQueries=1` (MI 2.2).
+   - The engine's `Meta_Quest_3` profile sets it to 0 (`Config/BaseDeviceProfiles.ini:1448`, MI 2.2), so using it
+     needs a project device-profile override.
+   - It is tried only if V1 shows that A's triangle cost bites. The figures to weigh: all-pass max 321,536, which is 92%
+     of 350k, and BasePass max 124,752 (8.5).
+2. **Lever B.**
+   - Both ways merge on Quest as configured, at most 32 parts per merged draw (MI 1.2 to 1.4, 1.7).
+   - The device Basepass with B is expected near the desktop 21, plus about 2 (MI 5; desktop 21 from 7.2).
+   - Merging therefore no longer decides lane A's choice between (a) and (b) in 7.7. The recolour path does (MI 5).
+     Use (a) when colours change often (fades, hit flashes). Use (b) when they change rarely.
+   - The greybox materials stay unlit. Lit materials split the buckets again (MI 1.2, 5).
+   - (a) carries UE-160597 as an unread device risk (MI 1.6).
+3. **Config lines that must never be set,** because each undoes the merge (MI 1.7):
+   - `r.Mobile.SupportGPUScene=0`
+   - `r.MeshDrawCommands.DynamicInstancing=0`
+   - `r.Mobile.MeshSortingMethod=1`
+
+   Moving to Meta's engine fork, or enabling one of the four features named in MI 1.6, reopens the question.
+4. **Answered questions, off the V1 list.**
+   - 7.3's open question is answered from source: under multiview, one occlusion-query draw covers both eyes (MI 3).
+   - 7.7's "no device profile outranks the project setting" is answered by 8.2: `r.AllowOcclusionQueries` appears in
+     one engine config line, `Engine/Config/BaseDeviceProfiles.ini:1569`, in the `LinuxArm64` profile, which sets the
+     same value. **None outranks the project setting.** The device itself is still for V1.
+5. **A02's draw-call figure was measured with occlusion queries on.**
+   - `docs/research/BASELINE-2026-10-07.md` section 3, Draw calls row: desktop proxy median 30 (`d09d1cb`). It stays as
+     the before, and baselines are not re-captured.
+   - Section 8 is the after-A desktop figure for the count rows (8.3, 8.5).
+6. **The particle rows.**
+   - The plan's stress scene has 6 Niagara systems (`docs/PROJECT-PLAN.md:218`). The driver has none (8.5: "not
+     exercised"; section 5: no Niagara dependency), and a zero is never a pass.
+   - The App Master adds the 6 systems to the stress driver (`Budget/`) once the module can take a Niagara dependency in
+     `MageArenaVR.Build.cs`.
+   - That must land in time for the 31 Oct gate, and in time for V1 to package the scene on day one (R6,
+     `docs/PROJECT-PLAN.md:549`).
+   - Until then both particle rows stay **not exercised**.
+
+**Alternatives that lost.**
+
+- **`r.HZBOcclusion=1` as the fallback.** It does not run on this renderer (MI 2.1).
+- **Occlusion feedback on top of A.** It cannot run with queries off (MI 2.2).
+- **Choosing (a) or (b) by whether it merges.** Both merge (MI 1.7).
+
+**Costs.**
+
+- **Occlusion feedback, if tried:** a project device-profile override, a cost not seen in source (pixel-shader UAV
+  writes per box pixel, results that lag by the buffered frames), and the engine's own Quest 3 profile turns it off
+  (MI 2.2).
+- **(a):** one new material that reads custom primitive data, and the UE-160597 device risk (MI 5, 1.6).
+- **(b):** each colour change rebuilds the part's proxy, and fades must be quantised (MI 1.4, 5).
+
+**What V1 must confirm on the device.**
+
+- The real draw count with B, and whether the 32-part split matches (MI 6).
+- `GPUScene: Enabled` in the device log (MI 5, 6).
+- Under (a), whether a `SetCustomPrimitiveData*` recolour shows on Android Vulkan (MI 6).
+- A's triangle cost (7.7, 8.5).
+- If occlusion feedback is tried: its draws, GPU time and culling, against A's triangle cost (MI 6).
+
+**Caveat from MI.** These upstream quotes came through a search agent and were not re-fetched: the forum hotfix tag, the
+Meta download pages and the UE-160597 snippet (MI 1.6, 4). The UE-160597 page returned HTTP 403.
+
+**Revert.** This section is a record, so reverting means deleting it.
