@@ -1,0 +1,98 @@
+{
+  "_note": "T16 style skin, written by apps/vr/tools/styles/sample-styles.py from the style-study images; do not hand-edit, change the sampler. Linear RGB 0..1, unlit flat colours. Selected with -MageArenaStyle=13; without the flag the game draws the greybox. Today only `projectiles` is read (ApplyStylePalette, Session/ElementColour); `arena` mirrors the arena-layout.json `colours` keys (plus `wall`, the arena perimeter wall); `arena`, `sky`, `figures`, `cuff` and `edge` wait for the skin loader.",
+  "id": "13",
+  "name": "Screen-Print Poster",
+  "unlit": true,
+  "kept": "Flat two-to-four ink poster colours on cream paper, a dark ink outline, ochre sand under navy shadow; the halftone and misregistration are texture work for later, the greybox keeps flat inks.",
+  "threatShapes": {
+    "_note": "Fixed by the threat language; a skin may recolour within a family, never change these shapes or meanings.",
+    "magic": "ring (absorb, element colour)",
+    "physical": "angular (dodge, steel)",
+    "unblockable": "black core with a red rim (leave)"
+  },
+  "edge": {
+    "treatment": "ink-outline",
+    "widthPx": 2.0,
+    "note": "Thick dark ink line around every figure and threat (07 threat language, 08 enemy lineup); no halftone in the greybox."
+  },
+  "telegraphs": {
+    "_note": "No colours here on purpose: every telegraph, projectile, cast and the fire wall are drawn through ElementLook (Session/ElementColour), so they take the `projectiles` palette. One palette stays the authority.",
+    "source": "projectiles"
+  },
+  "arena": {
+    "bannerCloth": [0.2831, 0.0561, 0.0222],
+    "bannerPole": [0.007, 0.0033, 0.004],
+    "brazier": [0.0086, 0.0091, 0.0194],
+    "castFlash": [0.12, 0.82, 0.2],
+    "dais": [0.0742, 0.0319, 0.0437],
+    "flame": [0.8963, 0.2582, 0.011],
+    "hand": [0.3864, 0.1221, 0.0513],
+    "marker": [0.011, 0.0097, 0.007],
+    "padRing": [0.7231, 0.4621, 0.0723],
+    "rejectFlash": [0.5, 0.5, 0.5],
+    "sand": [0.4735, 0.2195, 0.0497],
+    "seat": [0.016, 0.0152, 0.0262],
+    "stone": [0.3467, 0.1683, 0.0545],
+    "wall": [0.2384, 0.0369, 0.0242],
+    "wardArc": [0.0409, 0.7157, 0.7454]
+  },
+  "cuff": {
+    "band": [0.1878, 0.0976, 0.0262],
+    "glyph": [0.0075, 0.4508, 0.3712]
+  },
+  "figures": {
+    "fireMage": [0.0999, 0.0033, 0.0033],
+    "hound": [0.0075, 0.0052, 0.004],
+    "mireMaw": [0.063, 0.0513, 0.0137],
+    "outline": [0.007, 0.0037, 0.0056],
+    "slinger": [0.0685, 0.0545, 0.016],
+    "soldier": [0.3864, 0.0369, 0.0137]
+  },
+  "projectiles": {
+    "air": [0.2, 0.85, 0.22],
+    "earth": [0.5395, 0.2346, 0.0252],
+    "fire": [0.8796, 0.2086, 0.0168],
+    "magic": [0.0356, 0.5333, 0.5029],
+    "steel": [0.0762, 0.1022, 0.1046],
+    "unblockableBody": [0.0, 0.0, 0.0],
+    "unblockableRim": [0.7379, 0.0116, 0.008]
+  },
+  "sky": {
+    "horizon": [0.5271, 0.4342, 0.1274],
+    "zenith": [0.0823, 0.2195, 0.2664]
+  },
+  "_source": {
+    "arena.bannerCloth": "13-screen-print/01-vr-duel.jpg box x55-90 y140-220, filter smin 0.4: median of 2777 px = sRGB #914329",
+    "arena.bannerPole": "13-screen-print/01-vr-duel.jpg box x40-60 y100-260, filter vmax 0.35: median of 1101 px = sRGB #140b0d",
+    "arena.brazier": "13-screen-print/05-arena-wide.jpg box x980-1240 y630-690, filter none: median of 15600 px = sRGB #171826",
+    "arena.castFlash": "greybox kept: the recognizer's cast flash is feedback, not in the study",
+    "arena.dais": "13-screen-print/01-vr-duel.jpg box x40-160 y600-680, filter none: median of 9600 px = sRGB #4d323b",
+    "arena.flame": "13-screen-print/01-vr-duel.jpg box x630-720 y195-250, filter smin 0.6, vmin 0.8: median of 2199 px = sRGB #f38b1b",
+    "arena.hand": "13-screen-print/01-vr-duel.jpg box x420-480 y520-580, filter none: median of 3600 px = sRGB #a76240",
+    "arena.marker": "13-screen-print/08-enemy-lineup.jpg box x40-240 y600-690, filter vmax 0.25: median of 12805 px = sRGB #1b1914",
+    "arena.padRing": "13-screen-print/01-vr-duel.jpg box x570-760 y330-390, filter smin 0.6, vmin 0.7: median of 1007 px = sRGB #ddb54c",
+    "arena.rejectFlash": "greybox kept: the recognizer's reject flash is feedback, not in the study",
+    "arena.sand": "13-screen-print/05-arena-wide.jpg box x420-760 y470-530, filter smin 0.3: median of 20023 px = sRGB #b7813f",
+    "arena.seat": "13-screen-print/05-arena-wide.jpg box x260-560 y230-260, filter none: median of 9000 px = sRGB #22212d",
+    "arena.stone": "13-screen-print/05-arena-wide.jpg box x30-200 y380-410, filter none: median of 5100 px = sRGB #9f7242",
+    "arena.wall": "13-screen-print/05-arena-wide.jpg box x30-200 y430-520, filter smin 0.4: median of 15189 px = sRGB #86362b",
+    "arena.wardArc": "13-screen-print/01-vr-duel.jpg box x700-840 y440-520, filter smin 0.5, vmin 0.7: median of 5669 px = sRGB #39dce0",
+    "cuff.band": "13-screen-print/06-cuff-hud.jpg box x420-520 y760-820, filter smin 0.3: median of 4756 px = sRGB #78582d",
+    "cuff.glyph": "13-screen-print/06-cuff-hud.jpg box x270-450 y630-760, filter hue 180+-20deg, smin 0.5, vmin 0.5: median of 3019 px = sRGB #15b3a4",
+    "figures.fireMage": "13-screen-print/01-vr-duel.jpg box x770-850 y230-330, filter smin 0.5: median of 5624 px = sRGB #590b0b",
+    "figures.hound": "13-screen-print/08-enemy-lineup.jpg box x620-840 y340-520, filter vmax 0.25: median of 15704 px = sRGB #15100d",
+    "figures.mireMaw": "13-screen-print/08-enemy-lineup.jpg box x960-1180 y340-500, filter smin 0.25, vmax 0.55: median of 26943 px = sRGB #47401f",
+    "figures.outline": "13-screen-print/07-threat-language.jpg box x40-200 y560-640, filter vmax 0.3: median of 7668 px = sRGB #140c11",
+    "figures.slinger": "13-screen-print/08-enemy-lineup.jpg box x410-520 y300-420, filter smin 0.15, vmax 0.6: median of 10659 px = sRGB #4a4222",
+    "figures.soldier": "13-screen-print/08-enemy-lineup.jpg box x230-330 y280-450, filter hue 8+-20deg, smin 0.5: median of 9680 px = sRGB #a7361f",
+    "projectiles.air": "greybox kept: the study draws air as a pale grey crescent, which would read as steel (dodge); air keeps its greybox green so it stays an absorb colour",
+    "projectiles.earth": "13-screen-print/07-threat-language.jpg box x540-620 y260-420, filter smin 0.35: median of 12233 px = sRGB #c2852c",
+    "projectiles.fire": "13-screen-print/07-threat-language.jpg box x330-480 y180-480, filter hue 32+-8deg, smin 0.75, vmin 0.85: median of 2263 px = sRGB #f17e23",
+    "projectiles.magic": "13-screen-print/07-threat-language.jpg box x120-210 y350-430, filter smin 0.7, vmin 0.75: median of 25 px = sRGB #35c1bc",
+    "projectiles.steel": "13-screen-print/07-threat-language.jpg box x975-1025 y180-240, filter smax 0.25, vmax 0.6: median of 2037 px = sRGB #4e5a5b",
+    "projectiles.unblockableBody": "13-screen-print/07-threat-language.jpg box x1080-1160 y360-440, filter vmax 0.3: median of 6400 px = sRGB #000000",
+    "projectiles.unblockableRim": "13-screen-print/07-threat-language.jpg box x990-1250 y270-530, filter hue 358+-6deg, smin 0.8, vmin 0.6: median of 9714 px = sRGB #df1c16",
+    "sky.horizon": "13-screen-print/01-vr-duel.jpg box x560-760 y90-120, filter none: median of 6000 px = sRGB #c0b064",
+    "sky.zenith": "13-screen-print/01-vr-duel.jpg box x20-160 y15-60, filter none: median of 6300 px = sRGB #51818d"
+  }
+}

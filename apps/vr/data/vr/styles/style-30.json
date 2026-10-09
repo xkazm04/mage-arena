@@ -1,0 +1,98 @@
+{
+  "_note": "T16 style skin, written by apps/vr/tools/styles/sample-styles.py from the style-study images; do not hand-edit, change the sampler. Linear RGB 0..1, unlit flat colours. Selected with -MageArenaStyle=30; without the flag the game draws the greybox. Today only `projectiles` is read (ApplyStylePalette, Session/ElementColour); `arena` mirrors the arena-layout.json `colours` keys (plus `wall`, the arena perimeter wall); `arena`, `sky`, `figures`, `cuff` and `edge` wait for the skin loader.",
+  "id": "30",
+  "name": "Chalk & Slate",
+  "unlit": true,
+  "kept": "Slate-grey board with chalk-white lines, warm sand chalk floor, chalk-pastel figures; threats keep the study's saturated chalk (turquoise water, red-orange fire, lime-green air from the cuff study's rune ring).",
+  "threatShapes": {
+    "_note": "Fixed by the threat language; a skin may recolour within a family, never change these shapes or meanings.",
+    "magic": "ring (absorb, element colour)",
+    "physical": "angular (dodge, steel)",
+    "unblockable": "black core with a red rim (leave)"
+  },
+  "edge": {
+    "treatment": "chalk-line",
+    "widthPx": 1.5,
+    "note": "A pale chalk line around shapes on the dark slate (01 duel, 05 arena); smudge and hatch textures are later art work."
+  },
+  "telegraphs": {
+    "_note": "No colours here on purpose: every telegraph, projectile, cast and the fire wall are drawn through ElementLook (Session/ElementColour), so they take the `projectiles` palette. One palette stays the authority.",
+    "source": "projectiles"
+  },
+  "arena": {
+    "bannerCloth": [0.0176, 0.0307, 0.107],
+    "bannerPole": [0.0356, 0.0423, 0.0513],
+    "brazier": [0.0931, 0.0931, 0.0865],
+    "castFlash": [0.12, 0.82, 0.2],
+    "dais": [0.0369, 0.0409, 0.0467],
+    "flame": [0.9047, 0.2086, 0.0467],
+    "hand": [0.4287, 0.2122, 0.1248],
+    "marker": [0.0395, 0.0497, 0.0648],
+    "padRing": [0.4969, 0.1651, 0.4851],
+    "rejectFlash": [0.5, 0.5, 0.5],
+    "sand": [0.6584, 0.4508, 0.3372],
+    "seat": [0.1274, 0.1413, 0.1529],
+    "stone": [0.6724, 0.6867, 0.7011],
+    "wall": [0.2462, 0.2623, 0.2789],
+    "wardArc": [0.0595, 0.5841, 0.6172]
+  },
+  "cuff": {
+    "band": [0.0578, 0.0513, 0.0423],
+    "glyph": [0.0343, 0.4564, 0.4564]
+  },
+  "figures": {
+    "fireMage": [0.1022, 0.0185, 0.0152],
+    "hound": [0.2462, 0.0529, 0.0176],
+    "mireMaw": [0.0497, 0.0423, 0.0152],
+    "outline": [0.5711, 0.5776, 0.5776],
+    "slinger": [0.1119, 0.0612, 0.0467],
+    "soldier": [0.3613, 0.3419, 0.2961]
+  },
+  "projectiles": {
+    "air": [0.2789, 0.4678, 0.0762],
+    "earth": [0.6376, 0.2705, 0.0561],
+    "fire": [0.8308, 0.2502, 0.0356],
+    "magic": [0.0612, 0.3813, 0.3515],
+    "steel": [0.0595, 0.0723, 0.0887],
+    "unblockableBody": [0.0018, 0.0015, 0.0015],
+    "unblockableRim": [0.5457, 0.0194, 0.0185]
+  },
+  "sky": {
+    "horizon": [0.1095, 0.1195, 0.1301],
+    "zenith": [0.0319, 0.0382, 0.0467]
+  },
+  "_source": {
+    "arena.bannerCloth": "30-chalk-slate/05-arena-wide.jpg box x120-170 y20-120, filter smin 0.3: median of 4636 px = sRGB #24315c",
+    "arena.bannerPole": "30-chalk-slate/01-vr-duel.jpg box x770-780 y70-140, filter none: median of 700 px = sRGB #353a40",
+    "arena.brazier": "30-chalk-slate/01-vr-duel.jpg box x1100-1260 y660-715, filter none: median of 8800 px = sRGB #565653",
+    "arena.castFlash": "greybox kept: the recognizer's cast flash is feedback, not in the study",
+    "arena.dais": "30-chalk-slate/06-cuff-hud.jpg box x800-1000 y900-1000, filter vmax 0.35: median of 19870 px = sRGB #36393d",
+    "arena.flame": "30-chalk-slate/01-vr-duel.jpg box x630-720 y200-280, filter smin 0.6, vmin 0.85: median of 3870 px = sRGB #f47e3d",
+    "arena.hand": "30-chalk-slate/06-cuff-hud.jpg box x560-640 y300-380, filter hue 20+-25deg, smin 0.2: median of 2687 px = sRGB #af7f63",
+    "arena.marker": "30-chalk-slate/07-threat-language.jpg box x40-240 y40-120, filter none: median of 16000 px = sRGB #383f48",
+    "arena.padRing": "30-chalk-slate/01-vr-duel.jpg box x800-1150 y395-490, filter hue 285+-30deg, smin 0.4: median of 49 px = sRGB #bb71b9",
+    "arena.rejectFlash": "greybox kept: the recognizer's reject flash is feedback, not in the study",
+    "arena.sand": "30-chalk-slate/05-arena-wide.jpg box x420-900 y400-480, filter none: median of 38400 px = sRGB #d4b39d",
+    "arena.seat": "30-chalk-slate/05-arena-wide.jpg box x500-640 y160-230, filter none: median of 9800 px = sRGB #64696d",
+    "arena.stone": "30-chalk-slate/05-arena-wide.jpg box x60-140 y360-400, filter none: median of 3200 px = sRGB #d6d8da",
+    "arena.wall": "30-chalk-slate/05-arena-wide.jpg box x420-640 y280-300, filter none: median of 4400 px = sRGB #888c90",
+    "arena.wardArc": "30-chalk-slate/01-vr-duel.jpg box x620-820 y470-600, filter smin 0.5, vmin 0.6: median of 5027 px = sRGB #45c9ce",
+    "cuff.band": "30-chalk-slate/06-cuff-hud.jpg box x430-500 y760-820, filter none: median of 4200 px = sRGB #44403a",
+    "cuff.glyph": "30-chalk-slate/06-cuff-hud.jpg box x300-380 y640-700, filter hue 180+-20deg, smin 0.4, vmin 0.5: median of 1427 px = sRGB #34b4b4",
+    "figures.fireMage": "30-chalk-slate/01-vr-duel.jpg box x820-950 y320-420, filter smin 0.4: median of 9475 px = sRGB #5a2521",
+    "figures.hound": "30-chalk-slate/08-enemy-lineup.jpg box x680-840 y380-470, filter smin 0.4: median of 13887 px = sRGB #884124",
+    "figures.mireMaw": "30-chalk-slate/08-enemy-lineup.jpg box x950-1210 y480-590, filter smin 0.2: median of 21752 px = sRGB #3f3a21",
+    "figures.outline": "30-chalk-slate/08-enemy-lineup.jpg box x200-330 y250-450, filter smax 0.15, vmin 0.75: median of 9483 px = sRGB #c7c8c8",
+    "figures.slinger": "30-chalk-slate/08-enemy-lineup.jpg box x400-520 y340-420, filter smin 0.2: median of 7033 px = sRGB #5e463d",
+    "figures.soldier": "30-chalk-slate/08-enemy-lineup.jpg box x150-230 y200-280, filter smax 0.25: median of 4707 px = sRGB #a29e94",
+    "projectiles.air": "30-chalk-slate/06-cuff-hud.jpg box x640-880 y50-230, filter hue 85+-25deg, smin 0.55, vmin 0.55: median of 489 px = sRGB #90b64e",
+    "projectiles.earth": "30-chalk-slate/07-threat-language.jpg box x480-620 y260-450, filter smin 0.5, vmin 0.8: median of 771 px = sRGB #d18e43",
+    "projectiles.fire": "30-chalk-slate/07-threat-language.jpg box x230-490 y150-520, filter hue 34+-8deg, smin 0.75, vmin 0.85: median of 455 px = sRGB #eb8935",
+    "projectiles.magic": "30-chalk-slate/07-threat-language.jpg box x60-200 y280-400, filter smin 0.3, vmin 0.5: median of 13922 px = sRGB #46a6a0",
+    "projectiles.steel": "30-chalk-slate/07-threat-language.jpg box x850-1060 y170-540, filter smax 0.2, vmax 0.85, vmin 0.3: median of 24024 px = sRGB #454c54",
+    "projectiles.unblockableBody": "30-chalk-slate/07-threat-language.jpg box x1100-1180 y310-400, filter vmax 0.2: median of 7199 px = sRGB #060505",
+    "projectiles.unblockableRim": "30-chalk-slate/07-threat-language.jpg box x1030-1260 y220-500, filter hue 358+-6deg, smin 0.8, vmin 0.6: median of 483 px = sRGB #c32625",
+    "sky.horizon": "30-chalk-slate/05-arena-wide.jpg box x520-650 y230-260, filter none: median of 3900 px = sRGB #5d6165",
+    "sky.zenith": "30-chalk-slate/01-vr-duel.jpg box x560-740 y10-60, filter none: median of 9000 px = sRGB #32373d"
+  }
+}
