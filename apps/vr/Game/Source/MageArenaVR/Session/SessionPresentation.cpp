@@ -1,6 +1,8 @@
 #include "Session/SessionPresentation.h"
 
 #include "Session/ArenaSession.h"
+#include "Session/ArenaAudio.h"
+#include "Session/ElementColour.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
@@ -17,7 +19,9 @@
 #include "Hands/MageSettings.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
+#include "Kernel/Catalog.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimMath.h"
 #include "Kernel/SimTypes.h"
@@ -33,18 +37,36 @@ namespace
 {
 const FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
 const FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
-const FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
-const FLinearColor SteelColour(0.68f, 0.68f, 0.68f);
-const FLinearColor FireColour(0.760525f, 0.05448f, 0.013702f);
-const FLinearColor UnblockableBody(0.006995f, 0.006995f, 0.008023f);
-const FLinearColor UnblockableRim(0.745404f, 0.014444f, 0.009134f);
+// T26: the threat and cast colours (Water, Fire, Air, Earth, steel, the unblockable black and red) are no longer
+// constants here. ElementColour.h owns them (FElementPalette, a style file may override it) and ThreatLookFor picks one
+// from the owner's school and the family.
 const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
+// Opponent mage bodies (T20): dark tones of the school colours, so the body never reads as an absorb cue.
+const FLinearColor MageFireBody(0.30f, 0.06f, 0.03f);
+const FLinearColor MageWaterBody(0.03f, 0.22f, 0.24f);
+// T23. The body is a dark tone of the air wind green, never an absorb cue.
+const FLinearColor MageAirBody(0.05f, 0.20f, 0.06f);
+// T26: the cinder hound body was the orange its embers now draw in (0.8, 0.3, 0.05). A body must not read as an absorb
+// cue (the T20 rule for mage bodies), so the hound is a dark ember tone and its ember stands out at the mouth.
+const FLinearColor HoundBody(0.28f, 0.07f, 0.02f);
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
 const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
 const FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
 const FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
+// T22: a Crack is light leaking through the collar (warm white, never black with a red rim); the Wardstones are dark
+// stone that glows violet with Tithe. Neither is an element colour, steel or the unblockable pair.
+const FLinearColor CrackSeamColour(1.0f, 0.95f, 0.82f);
+const FLinearColor WardstoneDim(0.10f, 0.095f, 0.12f);
+const FLinearColor WardstoneGlow(0.50f, 0.26f, 0.95f);
+const FLinearColor WardstonePulse(0.78f, 0.58f, 1.0f);
+// Seconds of sim time a Crack seam and a Tithe pulse last.
+constexpr double CrackSeamS = 0.35;
+constexpr double TithePulseS = 0.5;
+// Wardstones: bearing from the pad's forward, and how far out to the floor edge they stand.
+constexpr double WardstoneBearingDeg = 24.0;
+constexpr double WardstoneEdgeFraction = 0.93;
 
 FVector PadForward(const FArenaSession& Session)
 {
@@ -63,21 +85,44 @@ FVector PadForward(const FArenaSession& Session)
 	return Forward.GetSafeNormal();
 }
 
-FLinearColor FamilyColour(const FString& Family, bool bPlayerOwned)
+// DF-004 option A. A magic shot or telegraph owned by an enemy whose overlay attack is a spit (a cinder hound ember).
+bool IsHoundEmber(const FGames& Games, const FVrRuleset* Rules, int32 OwnerId, const FString& Family)
 {
-	if (bPlayerOwned || Family == TEXT("magic"))
+	if (!Rules || !Rules->bActive || Family != TEXT("magic"))
 	{
-		return WaterColour;
+		return false;
 	}
-	if (Family == TEXT("unblockable"))
+	const FActor* Owner = SimFindActor(Games.State, OwnerId);
+	return Owner && Owner->Enemy.IsSet() && Rules->FindSpit(Owner->Enemy->Id) != nullptr;
+}
+
+// Beads ring a magic threat only while a fresh raise would still perfect it: combat.json absorb.perfect.windowS.
+bool InsidePerfectWindow(double SecondsToHit)
+{
+	return SecondsToHit >= 0.0 && SecondsToHit <= KernelData().Absorb.WindowS + 1.0e-9;
+}
+
+// The ward and the dome both take hits at the body. An ember is judged when it touches the player's body.
+double SecondsToContact(const FProjectile& Projectile, const FActor& Player)
+{
+	const double Speed = SimLength(Projectile.Velocity);
+	if (Speed < 0.1)
 	{
-		return UnblockableBody;
+		return -1.0;
 	}
-	if (Family == TEXT("fire"))
+	const FSimVec Direction = SimUnit(Projectile.Velocity);
+	const double Along = SimDot(SimSub(Player.Pos, Projectile.Pos), Direction);
+	if (Along < 0.0)
 	{
-		return FireColour;
+		return -1.0;
 	}
-	return SteelColour;
+	return FMath::Max(0.0, Along - Player.Radius - Projectile.Radius) / Speed;
+}
+
+// T26: the colour of a projectile, telegraph or cast. One rule (ElementLook): the owner's school and the family.
+FThreatLook LookOf(const FGames& Games, int32 OwnerId, const FString& Family)
+{
+	return ElementLook(ActiveElementPalette(), Games.State, Games.PlayerId, OwnerId, Family);
 }
 }
 
@@ -86,6 +131,8 @@ ASessionPresentation::ASessionPresentation()
 	PrimaryActorTick.bCanEverTick = false;
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
+	Audio = CreateDefaultSubobject<UArenaAudioComponent>(TEXT("Audio"));
+	Audio->SetupAttachment(Root);
 }
 
 UStaticMeshComponent* ASessionPresentation::MakePart(const TCHAR* Shape, const FLinearColor& Colour)
@@ -122,8 +169,11 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FStri
 	FLinearColor Colour = ConscriptColour;
 	FString Shape = TEXT("Cylinder");
 	if (EnemyId == TEXT("slinger")) { Colour = SlingerColour; }
-	else if (EnemyId == TEXT("cinder_hound")) { Colour = FLinearColor(0.8f, 0.3f, 0.05f); Shape = TEXT("Cube"); }
+	else if (EnemyId == TEXT("cinder_hound")) { Colour = HoundBody; Shape = TEXT("Cube"); }
 	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
+	else if (EnemyId == TEXT("mage-fire")) { Colour = MageFireBody; }
+	else if (EnemyId == TEXT("mage-water")) { Colour = MageWaterBody; }
+	else if (EnemyId == TEXT("mage-air")) { Colour = MageAirBody; }
 	Created.Mesh = MakePart(*Shape, Colour);
 	Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f, 0.02f, 0.02f));
 	Created.HpFill = MakePart(TEXT("Cube"), HpColour);
@@ -153,7 +203,8 @@ ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id, bool bSpear
 	Created.Id = Id;
 	Created.bLive = true;
 	Created.bSpear = bSpear;
-	Created.Mesh = MakePart(bSpear ? TEXT("Cylinder") : TEXT("Sphere"), bSpear ? SteelColour : WaterColour);
+	// The colour is set every frame from ElementLook; steel is only the colour of a mesh before its first frame.
+	Created.Mesh = MakePart(bSpear ? TEXT("Cylinder") : TEXT("Sphere"), ActiveElementPalette().Steel);
 	return Created;
 }
 
@@ -176,11 +227,16 @@ ASessionPresentation::FRing& ASessionPresentation::RingFor(int32 Id)
 	}
 	FRing& Created = Rings.AddDefaulted_GetRef();
 	Created.Id = Id;
-	Created.Mesh = MakePart(TEXT("Cylinder"), SteelColour);
-	Created.Rim = MakePart(TEXT("Cylinder"), UnblockableRim);
+	Created.Mesh = MakePart(TEXT("Cylinder"), ActiveElementPalette().Steel);
+	Created.Rim = MakePart(TEXT("Cylinder"), ActiveElementPalette().UnblockableRim);
 	for (int32 i = 0; i < 20; ++i)
 	{
 		Created.Beads.Add(MakePart(TEXT("Cube"), FLinearColor::White));
+	}
+	Created.Glow = MakePart(TEXT("Sphere"), ActiveElementPalette().Steel);
+	if (Created.Glow)
+	{
+		Created.Glow->SetVisibility(false);
 	}
 	return Created;
 }
@@ -256,6 +312,10 @@ void ASessionPresentation::HideUnused(const TSet<int32>& LiveIds, double Now, bo
 			for (auto Bead : Ring.Beads)
 			{
 				if (Bead) Bead->SetVisibility(false);
+			}
+			if (Ring.Glow)
+			{
+				Ring.Glow->SetVisibility(false);
 			}
 		}
 	}
@@ -753,6 +813,8 @@ void ASessionPresentation::EnsureDome()
 	UStaticMesh* SphereMesh = Greybox::LoadShape(TEXT("Sphere"));
 	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
 	// The eye is inside the shell, so this alpha tints the whole view. 0.10 keeps a readable veil.
+	// The planted staff is a Water defence (SCHOOL-DEFENCES E) and the player is the slice's only Water caster.
+	const FLinearColor WaterColour = ActiveElementPalette().Water;
 	const FLinearColor Water(WaterColour.R, WaterColour.G, WaterColour.B, 0.10f);
 	const FLinearColor Rib(WaterColour.R, WaterColour.G, WaterColour.B, 0.80f);
 	auto Make = [this](UStaticMesh* Shape, const FLinearColor& Colour) -> UStaticMeshComponent*
@@ -855,6 +917,8 @@ void ASessionPresentation::SyncWalls(const FArenaSession& Session)
 	if (Rules && Rules->FireWall.bEnabled)
 	{
 		UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+		// The fire wall is the Fire school's defence (SCHOOL-DEFENCES C): the Fire colour.
+		const FLinearColor FireColour = ActiveElementPalette().Fire;
 		const FLinearColor Curtain(FireColour.R, FireColour.G, FireColour.B, 0.88f);
 		for (const FVrWall& Wall : Rules->Walls)
 		{
@@ -958,6 +1022,7 @@ void ASessionPresentation::EnsureComfortVisuals()
 	const TCHAR* LabelNames[] = {TEXT("StoneHand"), TEXT("StoneFov"), TEXT("StoneGentle")};
 	for (int32 Index = 0; Index < 3; ++Index)
 	{
+		StoneBase.Add(Colours[Index]);
 		UStaticMeshComponent* Stone = MakePart(TEXT("Cube"), Colours[Index]);
 		if (Stone)
 		{
@@ -978,7 +1043,12 @@ void ASessionPresentation::EnsureComfortVisuals()
 void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 {
 	const bool bCold = Session.GetStage() == TEXT("cold") && !Session.IsScripted();
-	if (bCold)
+	// T20: the same stones carry the Tide Orb IV pick in the intermission after Bout 1.
+	const bool bPick = Session.IsPickOffered();
+	// T21: the centre stone skips the prologue and ends the day (the aftermath, or after a lost final).
+	const bool bStory = Session.AreStoryStonesShown();
+	const bool bStones = bCold || bPick || bStory;
+	if (bStones)
 	{
 		EnsureComfortVisuals();
 	}
@@ -999,13 +1069,20 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 			StoneRoot->AttachToComponent(Seat, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			StoneRoot->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);
 		}
-		StoneRoot->SetVisibility(bCold && Seat != nullptr, true);
+		StoneRoot->SetVisibility(bStones && Seat != nullptr, true);
 	}
-	const TCHAR* Keys[] = {
-		FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right"),
-		FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide"),
-		FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off"),
+	FString Keys[] = {
+		bPick ? Session.PickStoneKey(0) : FString(FMageSettings::IsLeftHanded() ? TEXT("settings.hand.left") : TEXT("settings.hand.right")),
+		bPick ? Session.PickStoneKey(1) : FString(FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide")),
+		bPick ? Session.PickStoneKey(2) : FString(FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off")),
 	};
+	if (bStory && !bPick)
+	{
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			Keys[Index] = Session.StoryStoneKey(Index);
+		}
+	}
 	for (int32 Index = 0; Index < StoneLabels.Num(); ++Index)
 	{
 		UWidgetComponent* Label = StoneLabels[Index];
@@ -1013,12 +1090,32 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		{
 			continue;
 		}
-		Label->SetVisibility(bCold && Seat != nullptr);
+		Label->SetVisibility(bStones && Seat != nullptr);
 		if (TSharedPtr<STextBlock> Text = StaticCastSharedPtr<STextBlock>(Label->GetSlateWidget()))
 		{
-			Text->SetText(FText::FromString(Session.TeachString(Keys[Index])));
+			Text->SetText(FText::FromString(Keys[Index].IsEmpty() ? FString() : Session.TeachString(*Keys[Index])));
 		}
 		Label->RequestRenderUpdate();
+	}
+	// The stone under a held palm glows toward white as the offerHoldS hold fills (campaign design section 3: "The stone
+	// glows during the hold"). Presentation only; white is not a threat colour.
+	const int32 Held = bPick ? Session.GetPickHoldStone() : (bStory ? Session.GetStoryHoldStone() : -1);
+	const double Fill = Held >= 0 ? (bPick ? Session.GetPickHoldFraction() : Session.GetStoryHoldFraction()) : 0.0;
+	for (int32 Index = 0; Index < ComfortStones.Num() && Index < StoneBase.Num(); ++Index)
+	{
+		UStaticMeshComponent* Stone = ComfortStones[Index];
+		if (!Stone)
+		{
+			continue;
+		}
+		const bool bGlow = Index == Held;
+		const float Alpha = bGlow ? static_cast<float>(0.35 + 0.65 * Fill) : 0.f;
+		const FLinearColor Colour = FMath::Lerp(StoneBase[Index], FLinearColor(1.f, 0.97f, 0.88f), Alpha) * (bGlow ? 1.f + 1.5f * static_cast<float>(Fill) : 1.f);
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Colour);
+		}
+		Greybox::SetSized(Stone, bGlow ? FVector(12.0 + 4.0 * Fill) : FVector(12.0));
 	}
 
 	const bool bArc = FMageSettings::IsNarrow();
@@ -1059,12 +1156,137 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 	}
 }
 
+void ASessionPresentation::EnsurePhaseVisuals(const FArenaSession& Session)
+{
+	if (bPhaseVisuals || !GetRootComponent())
+	{
+		return;
+	}
+	UCameraComponent* Camera = FindCamera();
+	if (!Camera)
+	{
+		return;
+	}
+	bPhaseVisuals = true;
+	RivalFlare = MakePart(TEXT("Sphere"), ActiveElementPalette().Fire);
+	if (RivalFlare)
+	{
+		RivalFlare->SetVisibility(false);
+	}
+	// Both wrists: the cuff sits at (58, -26, -14) on the camera, and its mirror is the other wrist.
+	for (const double Side : {-26.0, 26.0})
+	{
+		UStaticMeshComponent* Pulse = MakePart(TEXT("Cylinder"), ClockColour);
+		if (Pulse)
+		{
+			Pulse->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
+			Pulse->SetRelativeLocation(FVector(58.0, Side, -14.0));
+			Pulse->SetRelativeRotation(FRotator(90.0, 0.0, 0.0));
+			Pulse->SetVisibility(false);
+			CuffPulses.Add(Pulse);
+		}
+	}
+	// The crowd placeholder: one band along the top stand tier, dim until a phase swells it.
+	if (Session.HasLayout())
+	{
+		const FArenaLayout& Layout = Session.GetLayout();
+		const int32 Segments = 32;
+		const double Offset = Layout.WallThicknessM + Layout.StandGapM + (static_cast<double>(Layout.StandTiers) - 0.5) * Layout.StandDepthM;
+		const double A = Layout.FloorRadiusXM + Offset;
+		const double B = Layout.FloorRadiusYM + Offset;
+		const double TopM = Layout.WallHeightM + Layout.StandFirstTopAboveWallM + (Layout.StandTiers - 1) * Layout.StandStepRiseM + 0.6;
+		for (int32 Index = 0; Index < Segments; ++Index)
+		{
+			const double T0 = 2.0 * PI * Index / Segments;
+			const double T1 = 2.0 * PI * (Index + 1) / Segments;
+			const FVector P0(A * FMath::Cos(T0), B * FMath::Sin(T0), TopM);
+			const FVector P1(A * FMath::Cos(T1), B * FMath::Sin(T1), TopM);
+			UStaticMeshComponent* Piece = MakePart(TEXT("Cube"), FLinearColor(0.20f, 0.18f, 0.15f));
+			if (!Piece)
+			{
+				continue;
+			}
+			const FVector Chord = P1 - P0;
+			Piece->SetWorldLocation((P0 + P1) * 50.0);
+			Piece->SetWorldRotation(FRotationMatrix::MakeFromXZ(Chord.GetSafeNormal(), FVector::UpVector).Rotator());
+			Greybox::SetSized(Piece, FVector(Chord.Size() * 104.0, 30.0, 40.0));
+			Piece->SetVisibility(false);
+			CrowdBand.Add(Piece);
+		}
+	}
+}
+
+void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double Now)
+{
+	const FVrRuleset* Rules = Session.GetVrRules();
+	const bool bRivalBout = Rules && Rules->BoundRival() != nullptr && Session.GetGames().Phase != TEXT("teach");
+	if (!bRivalBout && !bPhaseVisuals)
+	{
+		return;
+	}
+	EnsurePhaseVisuals(Session);
+	const double Since = PhaseAt >= 0.0 ? Now - PhaseAt : 1.0e9;
+	// Flare: 0.9 s, growing from a body width to a little over two metres.
+	const FActor* Rival = SimFindActor(Session.GetGames().State, PhaseRivalId);
+	const bool bFlare = bRivalBout && Rival && !Rival->bDown && Since < 0.9;
+	if (RivalFlare)
+	{
+		RivalFlare->SetVisibility(bFlare);
+		if (bFlare)
+		{
+			const double Alpha = FMath::Clamp(Since / 0.9, 0.0, 1.0);
+			FVector At = Session.KernelToUnrealCm(Rival->Pos);
+			At.Z += 110.0;
+			RivalFlare->SetWorldLocation(At);
+			Greybox::SetSized(RivalFlare, FVector(FMath::Lerp(60.0, 230.0, Alpha)));
+			// T23: the flare is the rival's element colour, so the air rival flares in the air colour.
+			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(RivalFlare->GetMaterial(0)))
+			{
+				Mid->SetVectorParameterValue(TEXT("Color"), ActiveElementPalette().ElementColour(ActorElement(Session.GetGames().State, Rival->Id).Get(EElement::Fire)));
+			}
+		}
+	}
+	// Surge: a clock-gold ring on each wrist, 0.8 s, opening outward.
+	const bool bPulse = bRivalBout && Since < 0.8;
+	for (UStaticMeshComponent* Pulse : CuffPulses)
+	{
+		if (!Pulse)
+		{
+			continue;
+		}
+		Pulse->SetVisibility(bPulse);
+		if (bPulse)
+		{
+			const double Diameter = FMath::Lerp(4.0, 16.0, FMath::Clamp(Since / 0.8, 0.0, 1.0));
+			Greybox::SetSized(Pulse, FVector(Diameter, Diameter, 0.4));
+		}
+	}
+	// Swell: the band runs from dim to bright on the break and decays over 1.6 s.
+	const double Swell = Since < 1.6 ? 1.0 - Since / 1.6 : 0.0;
+	const FLinearColor Dim(0.20f, 0.18f, 0.15f);
+	const FLinearColor Bright(0.98f, 0.92f, 0.78f);
+	const FLinearColor Band = FMath::Lerp(Dim, Bright, static_cast<float>(Swell));
+	for (UStaticMeshComponent* Piece : CrowdBand)
+	{
+		if (!Piece)
+		{
+			continue;
+		}
+		Piece->SetVisibility(bRivalBout);
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Piece->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Band);
+		}
+	}
+}
+
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
 	if (!Session.IsRunning())
 	{
 		return;
 	}
+	LoadStylePaletteFromCommandLine();
 	const FGames& Games = Session.GetGames();
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
@@ -1084,11 +1306,15 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			continue;
 		}
-		if (!Actor.Enemy.IsSet() && !Actor.bDummy)
+		// T20: an opponent mage (the Water proxies, the Fire mages, Brennic) had no greybox body, so a reflected bolt
+		// flew back at nothing. It stands as a column in a dark tone of its school colour (not a threat colour).
+		const bool bMage = !Actor.Enemy.IsSet() && !Actor.bDummy && Actor.Team != 0;
+		if (!Actor.Enemy.IsSet() && !Actor.bDummy && !bMage)
 		{
 			continue;
 		}
-		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id : TEXT("");
+		const FString EnemyId = Actor.Enemy.IsSet() ? Actor.Enemy->Id
+			: (bMage ? (Actor.Fire.bSchool ? TEXT("mage-fire") : (Actor.Air.bSchool ? TEXT("mage-air") : TEXT("mage-water"))) : TEXT(""));
 		FBody& Body = BodyFor(Actor.Id, EnemyId);
 		LiveBodies.Add(Actor.Id);
 		float Height = 176.f;
@@ -1097,8 +1323,11 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		FLinearColor BodyColour = ConscriptColour;
 		if (Actor.bDummy) { BodyColour = TrainingDummyColour; }
 		else if (EnemyId == TEXT("slinger")) { Height = 150.f; Width = 42.f; Length = 42.f; BodyColour = SlingerColour; }
-		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = FLinearColor(0.8f, 0.3f, 0.05f); }
+		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = HoundBody; }
 		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
+		else if (EnemyId == TEXT("mage-fire")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageFireBody; }
+		else if (EnemyId == TEXT("mage-water")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageWaterBody; }
+		else if (EnemyId == TEXT("mage-air")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageAirBody; }
 
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
 		Centre.Z += Height * 0.5f;
@@ -1142,6 +1371,44 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 
 	const FVrRuleset* Rules = Session.GetVrRules();
 	const FVrAttackMode* SpearMode = Rules ? Rules->FindThrow(TEXT("conscript")) : nullptr;
+	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
+	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
+	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
+	{
+		if (!Mesh || !Shape)
+		{
+			return;
+		}
+		if (Mesh->GetStaticMesh() != Shape)
+		{
+			Mesh->SetStaticMesh(Shape);
+			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
+		}
+	};
+	// Ground beads for the perfect cue, centred on At at RadiusCm. Hidden unless bShow.
+	auto PlaceBeads = [](FRing& Ring, bool bShow, const FVector& At, double RadiusCm)
+	{
+		const int32 RingCount = Ring.Beads.Num();
+		for (int32 Index = 0; Index < RingCount; ++Index)
+		{
+			UStaticMeshComponent* Bead = Ring.Beads[Index];
+			if (!Bead)
+			{
+				continue;
+			}
+			Bead->SetVisibility(bShow);
+			if (!bShow)
+			{
+				continue;
+			}
+			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
+			const FVector Radial(FMath::Cos(Angle), FMath::Sin(Angle), 0.0);
+			const FVector Tangent = FVector(-Radial.Y, Radial.X, 0.0);
+			Bead->SetWorldLocation(At + Radial * RadiusCm + FVector(0.0, 0.0, 2.0));
+			Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+			Greybox::SetSized(Bead, FVector(8.0, 10.0, 12.0));
+		}
+	};
 	for (const FProjectile& Projectile : Games.State.Projectiles)
 	{
 		const bool bPlayerOwned = Projectile.OwnerId == Games.PlayerId;
@@ -1186,7 +1453,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Mesh, FVector(160.0, 160.0, 5.0));
 				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
 				{
-					Mid->SetVectorParameterValue(TEXT("Color"), SteelColour);
+					Mid->SetVectorParameterValue(TEXT("Color"), LookOf(Games, Projectile.OwnerId, Projectile.Family).Body);
 				}
 			}
 			if (Ring.Rim)
@@ -1197,11 +1464,77 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		else
 		{
 			At.Z += 120.0;
+			// DF-004 option A. A hound ember is magic: an unlit ball in the magic colour at its collider size, a shrinking
+			// magic ring where it will land, and a ring of perfect beads around the ball only while a fresh ward would
+			// still perfect it.
+			const bool bEmber = !bPlayerOwned && Projectile.bHasAim && IsHoundEmber(Games, Rules, Projectile.OwnerId, Projectile.Family);
 			if (Shot.Mesh)
 			{
 				const float Diameter = FMath::Max(18.f, static_cast<float>(Projectile.Radius * 200.0));
 				Greybox::SetSized(Shot.Mesh, FVector(Diameter));
 				Shot.Mesh->SetWorldRotation(FRotator::ZeroRotator);
+			}
+			if (bEmber)
+			{
+				FRing& Ring = RingFor(Projectile.Id);
+				LiveRings.Add(Projectile.Id);
+				const FLinearColor Magic = LookOf(Games, Projectile.OwnerId, Projectile.Family).Body;
+				UseMesh(Ring.Mesh, CylinderMesh, Magic);
+				const double Span = FMath::Max(SimDistance(Projectile.OriginPos, Projectile.AimedAt), 1.0e-4);
+				const double Progress = FMath::Clamp(SimDistance(Projectile.OriginPos, Projectile.Pos) / Span, 0.0, 1.0);
+				// Continue the windup ring: the windup used the first WindupS / (WindupS + flight) of the shrink.
+				const FActor* Spitter = SimFindActor(Games.State, Projectile.OwnerId);
+				const FVrAttackMode* Spit = Spitter && Spitter->Enemy.IsSet() ? Rules->FindSpit(Spitter->Enemy->Id) : nullptr;
+				const double WindupS = Spit ? Spit->WindupS : 0.0;
+				const double FlightS = Span / FMath::Max(SimLength(Projectile.Velocity), 0.1);
+				const double Start = WindupS / FMath::Max(WindupS + FlightS, 1.0e-6);
+				const double RadiusCm = FMath::Lerp(150.0, 28.0, Start + (1.0 - Start) * Progress);
+				FVector Ground = Session.KernelToUnrealCm(Projectile.AimedAt);
+				Ground.Z += 4.0;
+				if (Ring.Mesh)
+				{
+					Ring.Mesh->SetVisibility(true);
+					Ring.Mesh->SetWorldLocation(Ground);
+					Ring.Mesh->SetWorldRotation(FRotator::ZeroRotator);
+					Greybox::SetSized(Ring.Mesh, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
+					if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
+					{
+						Mid->SetVectorParameterValue(TEXT("Color"), Magic);
+					}
+				}
+				if (Ring.Rim)
+				{
+					Ring.Rim->SetVisibility(false);
+				}
+				if (Ring.Glow)
+				{
+					Ring.Glow->SetVisibility(false);
+				}
+				// The seated eye cannot see a ring under its own seat, so the cue rings the ember itself, in the plane facing
+				// the player, as the teach's white ring rings its glob.
+				const bool bCue = Player && InsidePerfectWindow(SecondsToContact(Projectile, *Player));
+				const FVector Flight = FVector(Projectile.Velocity.X, Projectile.Velocity.Y, 0.0).GetSafeNormal();
+				const FVector Side = FVector::CrossProduct(FVector::UpVector, Flight).GetSafeNormal();
+				const int32 BeadCount = Ring.Beads.Num();
+				for (int32 Index = 0; Index < BeadCount; ++Index)
+				{
+					UStaticMeshComponent* Bead = Ring.Beads[Index];
+					if (!Bead)
+					{
+						continue;
+					}
+					Bead->SetVisibility(bCue && !Side.IsNearlyZero());
+					if (!bCue || Side.IsNearlyZero())
+					{
+						continue;
+					}
+					const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(BeadCount);
+					const FVector Radial = (Side * FMath::Cos(Angle) + FVector::UpVector * FMath::Sin(Angle)).GetSafeNormal();
+					const FVector Tangent = FVector::CrossProduct(Radial, Flight).GetSafeNormal();
+					Bead->SetWorldLocation(At + Radial * 30.0);
+					Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
+					Greybox::SetSized(Bead, FVector(5.0, 6.0, 9.0));
+				}
 			}
 		}
 		Shot.LastCm = At;
@@ -1217,7 +1550,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Shot.Mesh->SetWorldLocation(At);
 			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Shot.Mesh->GetMaterial(0)))
 			{
-				const FLinearColor Colour = FamilyColour(Projectile.Family, bPlayerOwned);
+				const FLinearColor Colour = LookOf(Games, Projectile.OwnerId, Projectile.Family).Body;
 				Mid->SetVectorParameterValue(TEXT("Color"), Colour);
 			}
 		}
@@ -1236,20 +1569,6 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 
-	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
-	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
-	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
-	{
-		if (!Mesh || !Shape)
-		{
-			return;
-		}
-		if (Mesh->GetStaticMesh() != Shape)
-		{
-			Mesh->SetStaticMesh(Shape);
-			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
-		}
-	};
 	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
 	{
 		if (Telegraph.OwnerId == Games.PlayerId)
@@ -1271,10 +1590,11 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			const FRotator Rot = Dir.Rotation();
 			const FVector Mid = From + Dir * (Length * 0.5);
 			const double Width = FMath::Max(FMath::Clamp(Telegraph.WidthM, 0.5, 3.0), 1.8) * 100.0;
-			const bool bUnblockable = Telegraph.Family == TEXT("unblockable");
-			const FLinearColor BodyColour = bUnblockable ? UnblockableBody : FamilyColour(Telegraph.Family, false);
+			const FThreatLook Look = LookOf(Games, Telegraph.OwnerId, Telegraph.Family);
+			const bool bUnblockable = Look.bRim;
+			const FLinearColor BodyColour = Look.Body;
 			UseMesh(Ring.Mesh, CubeMesh, BodyColour);
-			UseMesh(Ring.Rim, CubeMesh, UnblockableRim);
+			UseMesh(Ring.Rim, CubeMesh, Look.Rim);
 			if (Ring.Mesh)
 			{
 				Ring.Mesh->SetVisibility(true);
@@ -1294,22 +1614,33 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
 				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
 				{
-					RimMat->SetVectorParameterValue(TEXT("Color"), UnblockableRim);
+					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
 				}
 			}
 			continue;
 		}
-		UseMesh(Ring.Mesh, CylinderMesh, SteelColour);
-		UseMesh(Ring.Rim, CylinderMesh, UnblockableRim);
+		const FThreatLook Look = LookOf(Games, Telegraph.OwnerId, Telegraph.Family);
+		UseMesh(Ring.Mesh, CylinderMesh, Look.Body);
+		UseMesh(Ring.Rim, CylinderMesh, ActiveElementPalette().UnblockableRim);
 		const double Span = FMath::Max(1.0, static_cast<double>(Telegraph.ResolveTick - Telegraph.StartTick));
 		const double Left = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick));
 		const double Alpha = 1.0 - Left / Span;
-		const double RadiusCm = FMath::Lerp(150.0, 28.0, Alpha);
+		const bool bEmberWindup = Telegraph.Kind == TEXT("projectile") && IsHoundEmber(Games, Rules, Telegraph.OwnerId, Telegraph.Family);
+		double Shrink = Alpha;
+		if (bEmberWindup && Telegraph.SpeedMps > 0.1)
+		{
+			// One ring for the whole ember: it shrinks through the windup and keeps shrinking in flight, so it does not
+			// jump back to full size when the ember leaves the mouth.
+			const double WindupS = Span * SimDt();
+			const double FlightS = SimDistance(Telegraph.Origin, Telegraph.Target) / Telegraph.SpeedMps;
+			Shrink = Alpha * WindupS / FMath::Max(WindupS + FlightS, 1.0e-6);
+		}
+		const double RadiusCm = FMath::Lerp(150.0, 28.0, Shrink);
 		const FSimVec Ground = Telegraph.Kind == TEXT("projectile") ? Telegraph.Target : Telegraph.Origin;
 		FVector At = Session.KernelToUnrealCm(Ground);
 		At.Z += 4.0;
-		const bool bUnblockable = Telegraph.Family == TEXT("unblockable");
-		const FLinearColor Colour = bUnblockable ? UnblockableBody : FamilyColour(Telegraph.Family, false);
+		const bool bUnblockable = Look.bRim;
+		const FLinearColor Colour = Look.Body;
 		if (Ring.Mesh)
 		{
 			Ring.Mesh->SetVisibility(true);
@@ -1329,27 +1660,44 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, 1.0));
 				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
 				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
+				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
+				{
+					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
+				}
 			}
 		}
 
-		// Perfect-window cue for magic ground telegraphs (e.g. death bursts)
-		const bool bShowPerfectRing = (Telegraph.Family == TEXT("magic") && Telegraph.Kind == TEXT("area"));
-		const int32 RingCount = Ring.Beads.Num();
-		for (int32 Index = 0; Index < RingCount; ++Index)
-		{
-			UStaticMeshComponent* Bead = Ring.Beads[Index];
-			if (!Bead) continue;
-			Bead->SetVisibility(bShowPerfectRing);
-			if (!bShowPerfectRing) continue;
+		// Perfect-window cue for magic ground telegraphs (e.g. death bursts). Shown only inside combat.json
+		// absorb.perfect.windowS before the hit resolves, like the teach's white ring, not for the whole telegraph.
+		const double UntilResolveS = FMath::Max(0.0, static_cast<double>(Telegraph.ResolveTick - Games.State.Tick)) * SimDt();
+		const bool bShowPerfectRing = Telegraph.Family == TEXT("magic") && Telegraph.Kind == TEXT("area") && InsidePerfectWindow(UntilResolveS);
+		PlaceBeads(Ring, bShowPerfectRing, At, RadiusCm);
 
-			// Draw them on the ground at RadiusCm
-			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(RingCount);
-			const FVector Radial(FMath::Cos(Angle), FMath::Sin(Angle), 0.0);
-			const FVector Offset = Radial * RadiusCm;
-			const FVector Tangent = FVector(-Radial.Y, Radial.X, 0.0);
-			Bead->SetWorldLocation(At + Offset + FVector(0.0, 0.0, 2.0));
-			Bead->SetWorldRotation(FRotationMatrix::MakeFromXZ(Radial, Tangent).Rotator());
-			Greybox::SetSized(Bead, FVector(8.0, 10.0, 12.0));
+		// DF-004 option A. The spit telegraph: an ember gathers at the hound's mouth through the windup. A death ember
+		// gathers where the hound fell. The ring on the ground is the magic ring drawn above.
+		if (Ring.Glow)
+		{
+			Ring.Glow->SetVisibility(bEmberWindup);
+			if (bEmberWindup)
+			{
+				// It rises from the mouth (30 cm, on a 40 cm body) to the 120 cm a shot flies at, so it clears the dais lip
+				// and hands over to the ember where the ember appears.
+				const double LiftCm = FMath::Lerp(30.0, 120.0, Alpha);
+				FVector Mouth = Session.KernelToUnrealCm(Telegraph.Origin);
+				const FActor* Hound = SimFindActor(Games.State, Telegraph.OwnerId);
+				if (Hound && !Hound->bDown)
+				{
+					const FSimVec Toward = SimUnit(SimSub(Telegraph.Target, Hound->Pos), Hound->Facing);
+					Mouth = Session.KernelToUnrealCm(SimAdd(Hound->Pos, SimScale(Toward, 0.6)));
+				}
+				Mouth.Z += LiftCm;
+				Ring.Glow->SetWorldLocation(Mouth);
+				Greybox::SetSized(Ring.Glow, FVector(FMath::Lerp(8.0, 24.0, Alpha)));
+				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Glow->GetMaterial(0)))
+				{
+					Mid->SetVectorParameterValue(TEXT("Color"), Look.Body);
+				}
+			}
 		}
 	}
 
@@ -1395,12 +1743,526 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 		SyncCuff(Session, *Player, bPaused);
 	}
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		if (Event.Kind != TEXT("phase"))
+		{
+			continue;
+		}
+		PhaseAt = Now;
+		PhaseRivalId = Event.ActorId;
+		const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
+		const FString Line = FString::Printf(TEXT("Phase %.0f/%d"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 3);
+		UE_LOG(LogMageArena, Log, TEXT("presentation %s rival=%s actor=%d"), *Line, Rival ? *Rival->Id : TEXT("-"), Event.ActorId);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor(236, 232, 220), Line);
+		}
+	}
+	SyncPhaseVisuals(Session, Now);
+	SyncCollarVisuals(Session);
+	SyncOrbPaths(Session);
+	SyncAirVisuals(Session, Now);
 	SyncTeachVisuals(Session, Player);
 	SyncComfortVisuals(Session);
+	SyncTablet(Session);
 	EventCursor = Games.State.Events.Num();
 
 	TSet<int32> LiveAll = LiveBodies;
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+	if (Audio)
+	{
+		Audio->Sync(Session, bPaused, CamLoc, Camera ? Camera->GetComponentRotation() : FRotator::ZeroRotator);
+	}
+}
+
+void ASessionPresentation::EnsureCollarVisuals(const FArenaSession& Session)
+{
+	if (bCollarVisuals || !GetRootComponent() || !Session.HasLayout())
+	{
+		return;
+	}
+	UCameraComponent* Camera = FindCamera();
+	if (!Camera)
+	{
+		return;
+	}
+	bCollarVisuals = true;
+	// The seam runs along the top edge of each wrist cuff: the cuff sits at (58, -26, -14) on the camera, its mirror on
+	// the other wrist, so the seam is 2 cm nearer the eye and 3.5 cm up, in front of the cuff plane.
+	for (const double Side : {-26.0, 26.0})
+	{
+		UStaticMeshComponent* Seam = MakePart(TEXT("Cube"), CrackSeamColour);
+		if (Seam)
+		{
+			Seam->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
+			Seam->SetRelativeLocation(FVector(56.0, Side, -10.5));
+			Seam->SetVisibility(false);
+			CrackSeams.Add(Seam);
+		}
+	}
+	// Two Wardstones on the floor edge, WardstoneBearingDeg either side of the centre pad's forward (inside the front
+	// 70 degree arc), found on the floor ellipse along each bearing.
+	const FArenaLayout& Layout = Session.GetLayout();
+	const FRunePad* Centre = Layout.FindPad(1);
+	if (!Centre)
+	{
+		return;
+	}
+	const FVector Forward = Layout.FlatForwardM(*Centre).GetSafeNormal2D();
+	const FVector2D From(Centre->PositionM.X, Centre->PositionM.Y);
+	for (const double Sign : {-1.0, 1.0})
+	{
+		const FVector Dir3 = Forward.RotateAngleAxis(Sign * WardstoneBearingDeg, FVector::UpVector);
+		const FVector2D Dir(Dir3.X, Dir3.Y);
+		double Lo = 0.0;
+		double Hi = 2.0 * FMath::Max(Layout.FloorRadiusXM, Layout.FloorRadiusYM) + FVector2D(From).Size();
+		for (int32 Step = 0; Step < 40; ++Step)
+		{
+			const double Mid = 0.5 * (Lo + Hi);
+			const FVector2D P = From + Dir * Mid;
+			const double E = FMath::Square(P.X / Layout.FloorRadiusXM) + FMath::Square(P.Y / Layout.FloorRadiusYM);
+			(E <= 1.0 ? Lo : Hi) = Mid;
+		}
+		const FVector2D At = From + Dir * (Lo * WardstoneEdgeFraction);
+		const double FloorZ = Layout.SurfaceHeightM(At.X, At.Y);
+		UStaticMeshComponent* Stone = MakePart(TEXT("Cube"), WardstoneDim);
+		if (Stone)
+		{
+			Stone->SetWorldLocation(FVector(At.X, At.Y, FloorZ + 2.1) * 100.0);
+			Stone->SetWorldRotation(FRotator(0.0, Dir3.Rotation().Yaw, 0.0));
+			Greybox::SetSized(Stone, FVector(110.0, 110.0, 420.0));
+			Wardstones.Add(Stone);
+		}
+		UStaticMeshComponent* Cap = MakePart(TEXT("Sphere"), WardstoneDim);
+		if (Cap)
+		{
+			Cap->SetWorldLocation(FVector(At.X, At.Y, FloorZ + 4.55) * 100.0);
+			Greybox::SetSized(Cap, FVector(90.0));
+			WardstoneCaps.Add(Cap);
+		}
+		UE_LOG(LogMageArena, Log, TEXT("presentation wardstone at=(%.2f, %.2f) m bearing=%.0f deg"), At.X, At.Y, Sign * WardstoneBearingDeg);
+	}
+}
+
+void ASessionPresentation::SyncCollarVisuals(const FArenaSession& Session)
+{
+	EnsureCollarVisuals(Session);
+	if (!bCollarVisuals)
+	{
+		return;
+	}
+	const FCollarLedger& Collar = Session.GetCollar();
+	const double Sim = Session.GetSimSeconds();
+	const bool bFight = Session.GetGames().Phase == TEXT("active") || Session.GetGames().Phase == TEXT("intermission")
+		|| Session.GetGames().Phase == TEXT("lost") || Session.GetGames().Phase == TEXT("complete");
+	const double SinceCrack = Collar.GetLastCrackSim() >= 0.0 ? Sim - Collar.GetLastCrackSim() : 1.0e9;
+	const bool bSeam = bFight && SinceCrack >= 0.0 && SinceCrack < CrackSeamS;
+	for (UStaticMeshComponent* Seam : CrackSeams)
+	{
+		if (!Seam)
+		{
+			continue;
+		}
+		Seam->SetVisibility(bSeam);
+		if (bSeam)
+		{
+			// The seam opens fast and thins out: 3 cm of light at the crack, a hairline at the end.
+			const double Alpha = FMath::Clamp(SinceCrack / CrackSeamS, 0.0, 1.0);
+			Greybox::SetSized(Seam, FVector(0.4, FMath::Lerp(18.0, 22.0, Alpha), FMath::Lerp(3.0, 0.4, Alpha)));
+		}
+	}
+	const double Full = FMath::Max(1.0, Collar.GetWeights().WardstoneFullTithe);
+	const float Glow = static_cast<float>(FMath::Clamp(static_cast<double>(Session.GetDayTithe()) / Full, 0.0, 1.0));
+	const double SinceTithe = Collar.GetLastTitheSim() >= 0.0 ? Sim - Collar.GetLastTitheSim() : 1.0e9;
+	const float Pulse = bFight && SinceTithe >= 0.0 && SinceTithe < TithePulseS ? static_cast<float>(1.0 - SinceTithe / TithePulseS) : 0.f;
+	const FLinearColor Body = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, Glow), WardstonePulse, 0.6f * Pulse);
+	const FLinearColor Crown = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, FMath::Min(1.f, 0.25f + Glow)), WardstonePulse, Pulse);
+	for (UStaticMeshComponent* Stone : Wardstones)
+	{
+		if (UMaterialInstanceDynamic* Mid = Stone ? Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)) : nullptr)
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Body);
+		}
+	}
+	for (UStaticMeshComponent* Cap : WardstoneCaps)
+	{
+		if (!Cap)
+		{
+			continue;
+		}
+		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Cap->GetMaterial(0)))
+		{
+			Mid->SetVectorParameterValue(TEXT("Color"), Crown);
+		}
+		Greybox::SetSized(Cap, FVector(90.0 + 50.0 * Pulse));
+	}
+}
+
+void ASessionPresentation::SyncTablet(const FArenaSession& Session)
+{
+	const FString Text = Session.GetTabletText();
+	const bool bShow = !Text.IsEmpty();
+	if (!bShow && !TabletSlab)
+	{
+		return;
+	}
+	if (!TabletSlab && GetRootComponent())
+	{
+		// Greybox stone: the comfort stones' grey, not a threat colour.
+		TabletSlab = MakePart(TEXT("Cube"), FLinearColor(0.30f, 0.31f, 0.33f));
+		TabletText = NewObject<UWidgetComponent>(this, TEXT("AftermathTablet"));
+		if (TabletText)
+		{
+			TabletText->SetupAttachment(GetRootComponent());
+			TabletText->SetWidgetSpace(EWidgetSpace::World);
+			TabletText->SetDrawSize(FVector2D(1320.f, 800.f));
+			TabletText->SetPivot(FVector2D(0.5f, 0.5f));
+			TabletText->SetTwoSided(true);
+			TabletText->SetBlendMode(EWidgetBlendMode::Transparent);
+			TabletText->SetBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 0.f));
+			TabletText->SetTintColorAndOpacity(FLinearColor::White);
+			TabletText->SetTickMode(ETickMode::Enabled);
+			TabletText->SetTickWhenOffscreen(true);
+			TabletText->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			TabletText->SetCastShadow(false);
+			TabletText->RegisterComponent();
+			AddInstanceComponent(TabletText);
+			TabletText->SetSlateWidget(
+				SNew(STextBlock)
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 50))
+				.ColorAndOpacity(FLinearColor(0.08f, 0.07f, 0.06f, 1.f))
+				.Justification(ETextJustify::Left));
+		}
+	}
+	const FVector Forward = PadForward(Session);
+	const FVector Pad = Session.KernelToUnrealCm(Session.PadKernel(Session.GetActivePad()));
+	// On the dais, 150 cm ahead of the pad and below the rail prompt (220 cm ahead, 162 cm up), so both read at once.
+	const FVector At = Pad + Forward * 150.0 + FVector(0.0, 0.0, 70.0);
+	if (TabletSlab)
+	{
+		TabletSlab->SetVisibility(bShow);
+		TabletSlab->SetWorldLocation(At);
+		TabletSlab->SetWorldRotation(Forward.Rotation());
+		Greybox::SetSized(TabletSlab, FVector(10.0, 160.0, 98.0));
+	}
+	if (TabletText)
+	{
+		TabletText->SetVisibility(bShow);
+		TabletText->SetWorldLocation(At - Forward * 6.0);
+		TabletText->SetWorldRotation((-Forward).Rotation());
+		TabletText->SetWorldScale3D(FVector(0.115f));
+		if (bShow)
+		{
+			if (TSharedPtr<STextBlock> Label = StaticCastSharedPtr<STextBlock>(TabletText->GetSlateWidget()))
+			{
+				Label->SetText(FText::FromString(Text));
+			}
+			TabletText->RequestRenderUpdate();
+		}
+	}
+}
+
+void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
+{
+	const FGames& Games = Session.GetGames();
+	struct FWant
+	{
+		int32 Key = 0;
+		FSimVec From;
+		FSimVec To;
+		double WidthM = 0.0;
+		bool bOwned = false;
+		int32 OwnerId = 0;
+	};
+	TArray<FWant> Wants;
+	// The telegraph: a pending projectile cast of an UNBLOCKABLE orb draws its whole lane from the caster.
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (Actor.bDown || !Actor.Pending.IsSet() || Actor.Pending->Kind != TEXT("spell") || !Actor.Pending->SpellId.IsSet())
+		{
+			continue;
+		}
+		const FSpell* Spell = FindSpellById(Actor.Pending->SpellId.GetValue());
+		if (!Spell || Spell->Kind != TEXT("projectile") || Spell->Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		const FSimVec Dir = SimUnit(SimSub(Actor.Pending->Aim, Actor.Pos), Actor.Facing);
+		FWant Want;
+		Want.Key = Actor.Pending->ActivationId;
+		Want.From = Actor.Pos;
+		Want.To = SimAdd(Actor.Pos, SimScale(Dir, Spell->RangeM));
+		Want.WidthM = (Spell->RadiusM > 0.0 ? Spell->RadiusM : KernelData().ProjectileRadiusM) * 2.0;
+		Want.bOwned = Actor.Id == Games.PlayerId;
+		Want.OwnerId = Actor.Id;
+		Wants.Add(Want);
+	}
+	// The flight: the lane the orb travels.
+	for (const FProjectile& Projectile : Games.State.Projectiles)
+	{
+		if (Projectile.Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		FWant Want;
+		Want.Key = Projectile.ActivationId;
+		// The whole lane, from where the orb was loosed to the end of its range: seen from the seat, a lane that starts
+		// at the orb hides behind a 3 m orb.
+		Want.From = Projectile.OriginPos;
+		Want.To = SimAdd(Projectile.Pos, SimScale(SimUnit(Projectile.Velocity), Projectile.RemainingM));
+		Want.WidthM = Projectile.Radius * 2.0;
+		Want.bOwned = Projectile.OwnerId == Games.PlayerId;
+		Want.OwnerId = Projectile.OwnerId;
+		Wants.Add(Want);
+	}
+	TSet<int32> Live;
+	for (const FWant& Want : Wants)
+	{
+		Live.Add(Want.Key);
+		FOrbPath& Path = OrbPaths.FindOrAdd(Want.Key);
+		if (!Path.Body)
+		{
+			Path.Body = MakePart(TEXT("Cube"), ActiveElementPalette().UnblockableBody);
+		}
+		if (!Path.Rim)
+		{
+			Path.Rim = MakePart(TEXT("Cube"), ActiveElementPalette().UnblockableRim);
+		}
+		FVector From = Session.KernelToUnrealCm(Want.From);
+		FVector To = Session.KernelToUnrealCm(Want.To);
+		From.Z += 10.0;
+		To.Z = From.Z;
+		const FVector Delta = To - From;
+		const double Length = FMath::Max(Delta.Size(), 20.0);
+		const FVector Dir = Delta.GetSafeNormal();
+		const FVector Mid = From + Dir * (Length * 0.5);
+		const double Width = FMath::Max(Want.WidthM, 0.3) * 100.0;
+		// Aimed at the player, the lane is the leave threat: black core, red rim. The player's own orb draws its lane in
+		// the Water colour with no rim, so it never reads as a threat to the seat.
+		const FThreatLook Look = LookOf(Games, Want.OwnerId, TEXT("unblockable"));
+		const FLinearColor BodyColour = Look.Body;
+		if (Path.Body)
+		{
+			Path.Body->SetVisibility(true);
+			Path.Body->SetWorldLocation(Mid);
+			Path.Body->SetWorldRotation(Dir.Rotation());
+			Greybox::SetSized(Path.Body, FVector(Length, Width, 6.0));
+			if (UMaterialInstanceDynamic* Material = Cast<UMaterialInstanceDynamic>(Path.Body->GetMaterial(0)))
+			{
+				Material->SetVectorParameterValue(TEXT("Color"), BodyColour);
+			}
+		}
+		if (Path.Rim)
+		{
+			Path.Rim->SetVisibility(Look.bRim);
+			if (UMaterialInstanceDynamic* RimMaterial = Cast<UMaterialInstanceDynamic>(Path.Rim->GetMaterial(0)))
+			{
+				RimMaterial->SetVectorParameterValue(TEXT("Color"), Look.Rim);
+			}
+			Path.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 2.0));
+			Path.Rim->SetWorldRotation(Dir.Rotation());
+			Greybox::SetSized(Path.Rim, FVector(Length + 24.0, Width + 36.0, 4.0));
+		}
+	}
+	for (TPair<int32, FOrbPath>& Pair : OrbPaths)
+	{
+		if (Live.Contains(Pair.Key))
+		{
+			continue;
+		}
+		if (Pair.Value.Body)
+		{
+			Pair.Value.Body->SetVisibility(false);
+		}
+		if (Pair.Value.Rim)
+		{
+			Pair.Value.Rim->SetVisibility(false);
+		}
+	}
+	// Keep the map small: forget hidden paths beyond a handful.
+	if (OrbPaths.Num() > 16)
+	{
+		for (auto It = OrbPaths.CreateIterator(); It; ++It)
+		{
+			if (!Live.Contains(It.Key()))
+			{
+				if (It.Value().Body)
+				{
+					It.Value().Body->DestroyComponent();
+				}
+				if (It.Value().Rim)
+				{
+					It.Value().Rim->DestroyComponent();
+				}
+				It.RemoveCurrent();
+			}
+		}
+	}
+}
+
+void ASessionPresentation::SyncAirVisuals(const FArenaSession& Session, double Now)
+{
+	const FGames& Games = Session.GetGames();
+	const FActor* Caster = nullptr;
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (!Actor.bDown && Actor.Air.bSchool && Actor.Id != Games.PlayerId)
+		{
+			Caster = &Actor;
+			break;
+		}
+	}
+	if (!Caster && AirArcBeads.Num() == 0)
+	{
+		return;
+	}
+	if (AirArcBeads.Num() == 0)
+	{
+		// T26: the air mage's telegraphs in its school colour (ElementLook), the lance in the unblockable look.
+		const FElementPalette& Palette = ActiveElementPalette();
+		const int32 CasterId = Caster ? Caster->Id : -1;
+		const FLinearColor AirColour = ElementLook(Palette, Games.State, Games.PlayerId, CasterId, TEXT("magic")).Body;
+		const FThreatLook Lance = ElementLook(Palette, Games.State, Games.PlayerId, CasterId, TEXT("unblockable"));
+		for (int32 Index = 0; Index < 28; ++Index)
+		{
+			AirArcBeads.Add(MakePart(TEXT("Sphere"), AirColour));
+		}
+		AirRing = MakePart(TEXT("Cylinder"), AirColour);
+		AirLineBody = MakePart(TEXT("Cube"), Lance.Body);
+		AirLineRim = MakePart(TEXT("Cube"), Lance.Rim);
+		for (int32 Index = 0; Index < 12; ++Index)
+		{
+			AirFormBeads.Add(MakePart(TEXT("Cube"), AirColour));
+		}
+	}
+	bool bArc = false;
+	bool bRing = false;
+	bool bLine = false;
+	bool bForm = false;
+	const FAirSpell* Spell = nullptr;
+	if (Caster && Caster->Pending.IsSet() && Caster->Pending->Kind == TEXT("air") && Caster->Pending->SpellId.IsSet())
+	{
+		Spell = FindAirSpell(Caster->Pending->SpellId.GetValue());
+	}
+	if (Spell)
+	{
+		const FPendingCast& Pending = Caster->Pending.GetValue();
+		const double Span = FMath::Max(1.0, static_cast<double>(Pending.ReleaseTick - Pending.StartTick));
+		const double Alpha = FMath::Clamp(1.0 - static_cast<double>(Pending.ReleaseTick - Games.State.Tick) / Span, 0.0, 1.0);
+		const double Range = Spell->RangeM * AirSpellRangeMult(*Caster);
+		const FSimVec Direction = SimUnit(SimSub(Pending.Aim, Caster->Pos), Caster->Facing);
+		auto ShowRing = [&](const FSimVec& Where)
+		{
+			bRing = true;
+			FVector At = Session.KernelToUnrealCm(Where);
+			At.Z += 4.0;
+			const double RadiusCm = FMath::Lerp(150.0, 28.0, Alpha);
+			if (AirRing)
+			{
+				AirRing->SetWorldLocation(At);
+				AirRing->SetWorldRotation(FRotator::ZeroRotator);
+				Greybox::SetSized(AirRing, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
+			}
+		};
+		if (Spell->Kind == TEXT("veer"))
+		{
+			// The same arc the kernel will fly (Air.cpp AirVeerArc), drawn at chest height for the whole windup.
+			const double Chord = FMath::Min(SimDistance(Caster->Pos, Pending.Aim), Range);
+			const FSimVec To = SimAdd(Caster->Pos, SimScale(Direction, Chord));
+			const FAirArc Arc = AirVeerArc(Caster->Pos, To, Spell->EntryDeg, AirVeerSide(Pending.ActivationId));
+			bArc = true;
+			for (int32 Index = 0; Index < AirArcBeads.Num(); ++Index)
+			{
+				UStaticMeshComponent* Bead = AirArcBeads[Index];
+				if (!Bead)
+				{
+					continue;
+				}
+				const double S = Arc.LengthM * static_cast<double>(Index + 1) / static_cast<double>(AirArcBeads.Num());
+				FVector At = Session.KernelToUnrealCm(AirArcPoint(Arc, S));
+				At.Z += 120.0;
+				Bead->SetWorldLocation(At);
+				Greybox::SetSized(Bead, FVector(16.0));
+			}
+			ShowRing(To);
+		}
+		else if (Spell->Kind == TEXT("zone"))
+		{
+			ShowRing(Pending.Aim);
+		}
+		else if (Spell->Kind == TEXT("line") && Spell->Family == TEXT("unblockable"))
+		{
+			bLine = true;
+			// Seen from the seat, a strip on the sand is hidden by the dais lip, so the lance is drawn where a bolt flies:
+			// a black beam at chest height, each end at its own surface height, inside a wider red rim.
+			FVector From = Session.KernelToUnrealCm(Caster->Pos);
+			FVector To = Session.KernelToUnrealCm(SimAdd(Caster->Pos, SimScale(Direction, Range)));
+			From.Z += 120.0;
+			To.Z += 120.0;
+			const FVector Delta = To - From;
+			const double Length = FMath::Max(Delta.Size(), 20.0);
+			const FVector Dir = Delta.GetSafeNormal();
+			const FVector Mid = From + Dir * (Length * 0.5);
+			if (AirLineBody)
+			{
+				AirLineBody->SetWorldLocation(Mid);
+				AirLineBody->SetWorldRotation(Dir.Rotation());
+				Greybox::SetSized(AirLineBody, FVector(Length, 30.0, 30.0));
+			}
+			if (AirLineRim)
+			{
+				AirLineRim->SetWorldLocation(Mid);
+				AirLineRim->SetWorldRotation(Dir.Rotation());
+				Greybox::SetSized(AirLineRim, FVector(Length - 2.0, 54.0, 18.0));
+			}
+		}
+	}
+	if (Caster && Games.State.Tick < Caster->Air.FormUntil)
+	{
+		bForm = true;
+		const FVector Centre = Session.KernelToUnrealCm(Caster->Pos);
+		for (int32 Index = 0; Index < AirFormBeads.Num(); ++Index)
+		{
+			UStaticMeshComponent* Bead = AirFormBeads[Index];
+			if (!Bead)
+			{
+				continue;
+			}
+			const double Angle = 2.0 * PI * static_cast<double>(Index) / static_cast<double>(AirFormBeads.Num()) + Now * 2.4;
+			const double Height = 40.0 + 110.0 * static_cast<double>(Index % 3) / 2.0;
+			Bead->SetWorldLocation(Centre + FVector(FMath::Cos(Angle) * 70.0, FMath::Sin(Angle) * 70.0, Height));
+			Bead->SetWorldRotation(FRotator(0.0, FMath::RadiansToDegrees(Angle), 0.0));
+			Greybox::SetSized(Bead, FVector(30.0, 8.0, 8.0));
+		}
+	}
+	for (UStaticMeshComponent* Bead : AirArcBeads)
+	{
+		if (Bead)
+		{
+			Bead->SetVisibility(bArc);
+		}
+	}
+	if (AirRing)
+	{
+		AirRing->SetVisibility(bRing);
+	}
+	if (AirLineBody)
+	{
+		AirLineBody->SetVisibility(bLine);
+	}
+	if (AirLineRim)
+	{
+		AirLineRim->SetVisibility(bLine);
+	}
+	for (UStaticMeshComponent* Bead : AirFormBeads)
+	{
+		if (Bead)
+		{
+			Bead->SetVisibility(bForm);
+		}
+	}
 }

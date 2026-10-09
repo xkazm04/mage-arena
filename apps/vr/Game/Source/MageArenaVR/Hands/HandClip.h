@@ -25,6 +25,7 @@ struct FHandClip
 	TArray<EControllerHand> Hands;
 	TArray<FHandClipTrack> Tracks;
 
+	/** Clips/<action>.<variant>.jsonl (Clips/mirror/ when mirrored). A stone-* reach is Clips/stones/<action>.normal.jsonl. */
 	static FString MakeFilePath(FName Action, EClipVariant Variant, bool bMirror = false);
 	static const TCHAR* VariantToString(EClipVariant Variant);
 	static const TCHAR* KeypointName(int32 Index);

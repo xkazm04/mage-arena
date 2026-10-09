@@ -181,7 +181,8 @@ bool FMageArenaTeachOrder::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("blink settle from teach.json"), Near(Session.GetTuning().BlinkSettleS, 0.5));
 
 	double Elapsed = 0.0;
-	while ((Session.GetStage() == TEXT("cold") || Session.GetStage() == TEXT("teach")) && Elapsed < 120.0)
+	// T21: a first launch runs cold, the prologue (the script palms the centre stone), then the teach.
+	while ((Session.GetStage() == TEXT("cold") || Session.GetStage() == TEXT("prologue") || Session.GetStage() == TEXT("teach")) && Elapsed < 120.0)
 	{
 		if (!bImpact && Session.GetTeachStep() == TEXT("ward"))
 		{
@@ -228,9 +229,13 @@ bool FMageArenaTeachOrder::RunTest(const FString& Parameters)
 
 	const double Seconds = Session.GetTeachSeconds();
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_TEACH_MEASURED %.3f stage=%s"), Seconds, *Session.GetStage());
-	bPass &= TestEqual(TEXT("wave 1 after the teach"), Session.GetStage(), FString(TEXT("active")));
+	// T21: the collar ritual follows the teach, before Bout 1. The finished teach saves bout=0, so the next launch skips it.
+	bPass &= TestEqual(TEXT("the ritual after the teach"), Session.GetStage(), FString(TEXT("ritual")));
 	bPass &= TestEqual(TEXT("bout index"), Session.GetBoutIndex(), 0);
-	bPass &= TestEqual(TEXT("games wave"), Session.GetGames().Wave, 0);
+	FString TaughtSave;
+	FFileHelper::LoadFileToString(TaughtSave, *FPaths::Combine(Dir, TEXT("bout.txt")));
+	bPass &= TestEqual(TEXT("the finished teach saves bout=0"), TaughtSave, FString(TEXT("bout=0\n")));
+	bPass &= TestEqual(TEXT("the script skipped the prologue on the stone"), CountPrefix(Session.GetChain(), TEXT("day prologue skipped")), 1);
 	bPass &= TestTrue(*FString::Printf(TEXT("teach seconds %.3f in 60-80"), Seconds), Seconds >= 60.0 && Seconds <= 80.0);
 	bPass &= TestTrue(*FString::Printf(TEXT("no damage stuck (%.2f)"), WorstDamage), WorstDamage <= 0.0);
 	bPass &= TestFalse(TEXT("teach never defeats"), bLost);
@@ -299,7 +304,8 @@ bool FMageArenaTeachMiss::RunTest(const FString& Parameters)
 		return false;
 	}
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
-	const bool bEntered = AdvanceUntil(Session, [&Session]() { return Session.GetStage() == TEXT("teach"); }, 4.0);
+	// T21: the unscripted prologue runs its full day.json prologueMaxS (10 s) before the teach.
+	const bool bEntered = AdvanceUntil(Session, [&Session]() { return Session.GetStage() == TEXT("teach"); }, 16.0);
 	bool bPass = TestTrue(TEXT("ward raise enters the teach"), bEntered);
 	const FActor* Entered = PlayerOf(Session);
 	const double Hp = Entered ? Entered->Hp : -1.0;
@@ -401,7 +407,8 @@ bool FMageArenaTeachWaiver::RunTest(const FString& Parameters)
 	FString PlayedOn;
 	double SeenClock = 0.0;
 	double Elapsed = 0.0;
-	while (Elapsed < 30.0 && CountPrefix(Session.GetChain(), TEXT("teach perfect waived")) == 0)
+	// T21: 10 s of the unscripted prologue come first.
+	while (Elapsed < 45.0 && CountPrefix(Session.GetChain(), TEXT("teach perfect waived")) == 0)
 	{
 		const double Clock = Session.GetTeachClock();
 		if (Clock + 0.05 < SeenClock)
@@ -460,10 +467,11 @@ bool FMageArenaTeachSkip::RunTest(const FString& Parameters)
 	bool bPass = Session.BeginArc(3);
 	bPass &= TestEqual(TEXT("opens cold"), Session.GetStage(), FString(TEXT("cold")));
 	Session.SkipTeach();
-	bPass &= TestEqual(TEXT("skip starts the bout"), Session.GetStage(), FString(TEXT("active")));
-	bPass &= TestEqual(TEXT("skip starts wave 1"), Session.GetGames().Wave, 0);
+	// T21: the skip lands on the collar ritual, which opens every launch, and the ritual leads into Bout 1.
+	bPass &= TestEqual(TEXT("skip goes to the ritual"), Session.GetStage(), FString(TEXT("ritual")));
+	bPass &= TestEqual(TEXT("skip keeps Bout 1 next"), Session.GetBoutIndex(), 0);
 	bPass &= TestEqual(TEXT("skip does not complete the teach"), CountExact(Session.GetChain(), TEXT("teach complete")), 0);
-	bPass &= TestTrue(TEXT("skip notes the bout"), CountPrefix(Session.GetChain(), TEXT("Session start")) == 1);
+	bPass &= TestEqual(TEXT("skip notes the ritual"), CountExact(Session.GetChain(), TEXT("day skip to the ritual")), 1);
 	IFileManager::Get().DeleteDirectory(*Dir, false, true);
 	Rig.Close(Session);
 	return bPass;

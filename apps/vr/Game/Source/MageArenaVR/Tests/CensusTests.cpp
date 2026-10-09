@@ -337,6 +337,9 @@ bool Better(const FScore& Left, const FScore& Right)
 FRow RunBout(FArenaSession& Session, const FVrRuleset& Rules, const FPolicyRun& Policy, const FCandidate& Candidate, const TCHAR* Scenario, int32 Wave, bool bFire, uint32 Seed, double Cap)
 {
 	Session.SetBout(Wave, bFire);
+	// T23 made the session's school final Air. The sweep keeps its pre-T23 fire final (duel-c15) so its rows stay
+	// comparable with calibration-proposal.json; the air final has its own census (MageArenaDesign.Census.Rivals, Lio).
+	Session.SetAirFinal(false);
 	Session.SetPolicy(Policy.Policy);
 	Session.SetRulesOverride(Rules);
 	Session.SetScripted(true);
@@ -688,6 +691,9 @@ bool FMageArenaCensusSweep::RunTest(const FString& Parameters)
 		AddError(RulesError);
 		return false;
 	}
+	// The sweep stays the T12 knob census on the phase-less duel; its winner is what calibration-proposal.json holds.
+	// T19's phased Brennic duel is measured by MageArenaDesign.Census.Rivals, which writes no proposal.
+	Base.Rivals.Reset();
 	UGameInstance* Instance = NewObject<UGameInstance>(GetTransientPackage());
 	Instance->AddToRoot();
 	UHandInputSubsystem* Hands = NewObject<UHandInputSubsystem>(Instance);

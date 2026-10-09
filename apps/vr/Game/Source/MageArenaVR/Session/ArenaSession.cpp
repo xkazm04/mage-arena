@@ -1,6 +1,11 @@
 #include "Session/ArenaSession.h"
 
 #include "Session/CreaturesCapture.h"
+#include "Session/CollarCapture.h"
+#include "Session/DayCapture.h"
+#include "Session/PresetCapture.h"
+#include "Session/AirCapture.h"
+#include "Session/ColourAudioCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/TeachCapture.h"
@@ -22,27 +27,17 @@
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
 #include "Hands/MageSettings.h"
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
 #include "Kernel/KernelData.h"
+#include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Misc/Parse.h"
 
 namespace
 {
-const FComposition* FindRotation()
-{
-	for (const FComposition& Preset : KernelData().Presets)
-	{
-		if (Preset.Name == TEXT("Rotation"))
-		{
-			return &Preset;
-		}
-	}
-	return nullptr;
-}
-
 double NearestLiving(const FGames& Games, const FActor& Player, int32* OutWithin, double WithinM)
 {
 	double Best = 1.0e9;
@@ -117,7 +112,7 @@ void StartSessionCommand(const TArray<FString>& Args)
 
 FAutoConsoleCommand GSessionStart(
 	TEXT("MageArena.Session.Start"),
-	TEXT("Start pinned Tiro wave 1 (Rotation) against the human player. Optional seed."),
+	TEXT("Start pinned Tiro wave 1 (the presets.json player preset) against the human player. Optional seed."),
 	FConsoleCommandWithArgsDelegate::CreateStatic(&StartSessionCommand));
 
 void SkipTeachCommand(const TArray<FString>& Args)
@@ -170,6 +165,7 @@ void FArenaSession::Bind(
 	{
 		Sigils->BindToHands(Hands);
 		SigilHandle = Sigils->OnSigilCast.AddRaw(this, &FArenaSession::HandleSigil);
+		SigilRejectHandle = Sigils->OnSigilRejected.AddRaw(this, &FArenaSession::HandleSigilRejected);
 	}
 	if (Wards)
 	{
@@ -194,6 +190,7 @@ void FArenaSession::Unbind()
 	if (Sigils)
 	{
 		Sigils->OnSigilCast.Remove(SigilHandle);
+		Sigils->OnSigilRejected.Remove(SigilRejectHandle);
 	}
 	if (Wards)
 	{
@@ -215,6 +212,7 @@ void FArenaSession::Unbind()
 		Hands->OnHandFrame().Remove(HandFrameHandle);
 	}
 	SigilHandle.Reset();
+	SigilRejectHandle.Reset();
 	WardRaisedHandle.Reset();
 	WardLoweredHandle.Reset();
 	BlinkHandle.Reset();
@@ -236,12 +234,11 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: kernel data is not ready (%s)"), *KernelData().Error);
 		return false;
 	}
-	const FComposition* Preset = FindRotation();
-	if (!Preset)
+	if (!LoadPlayerPresetFile(TEXT("Session start failed")) || !LoadCollarFile(TEXT("Session start failed")))
 	{
-		UE_LOG(LogMageArena, Error, TEXT("Session start failed: Rotation preset is missing"));
 		return false;
 	}
+	const FComposition Composition = PlayerComposition();
 	FString Error;
 	bHasLayout = Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error);
 	if (!bHasLayout)
@@ -270,7 +267,41 @@ bool FArenaSession::Start(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Session bout %d is outside Tiro waves [0, %d); refusing to spawn"), BoutWave, Waves);
 		return false;
 	}
-	if (!TryCreateGames(Games, Seed, Preset, BoutWave, false, bFireMages, &Rules))
+	// T21: the day picks the opponent school per Tiro wave: the semifinal is the school of the rival bound to it (Brennic,
+	// Fire; Fire when no rival names it, DECISIONS 2026-10-07), the final is combat.vr.json tiroFinal.school. SetBout pins
+	// one school for every wave instead (the design tests and captures).
+	DayFire.Reset();
+	if (const FArenaTier* DayTier = KernelData().ArenaTiers.Num() > 0 ? &KernelData().ArenaTiers[0] : nullptr)
+	{
+		for (int32 Index = 0; Index < DayTier->Waves.Num(); ++Index)
+		{
+			const FArenaWave& Wave = DayTier->Waves[Index];
+			bool bFire = false;
+			if (Wave.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+			{
+				if (Index == DayTier->Waves.Num() - 1)
+				{
+					// T23 merge: an Air final rides on the school-mage switch; Games.bAirFinal turns that final to Air.
+					bFire = Rules.TiroFinal.School == TEXT("fire") || Rules.TiroFinal.School == TEXT("air");
+				}
+				else
+				{
+					bFire = true;
+					for (const FVrRival& Rival : Rules.Rivals)
+					{
+						if (Rival.TierId == DayTier->Id && Rival.WaveN == Wave.N)
+						{
+							bFire = Rival.School == TEXT("fire");
+						}
+					}
+				}
+			}
+			DayFire.Add(bFire);
+		}
+	}
+	const bool bBoutFire = bSchoolPinned ? bFireMages : (DayFire.IsValidIndex(BoutWave) && DayFire[BoutWave]);
+	const bool bBoutAir = bSchoolPinned ? bAirFinal : Rules.TiroFinal.School == TEXT("air");
+	if (!TryCreateGames(Games, Seed, &Composition, BoutWave, false, bBoutFire, &Rules, bBoutAir))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Session start failed: TryCreateGames"));
 		return false;
@@ -295,6 +326,8 @@ bool FArenaSession::Start(uint32 Seed)
 	CameraPad = 1;
 	bWardStarted = false;
 	bWardReleased = false;
+	bEmberWard = false;
+	EmberWardUntil = 0.0;
 	bTideStarted = false;
 	SideToggle = 0;
 	bSawSigilHit = false;
@@ -324,6 +357,10 @@ bool FArenaSession::Start(uint32 Seed)
 	bStoneHeld[1] = false;
 	bStoneHeld[2] = false;
 	bOfferContinue = false;
+	PickClock = 0.0;
+	PickHold = 0.0;
+	PickHoldStone = -1;
+	bPickClosed = false;
 	bFlowCue = false;
 	bClockCue = false;
 	WristUntil = -1.0;
@@ -338,9 +375,15 @@ bool FArenaSession::Start(uint32 Seed)
 	bClipWasPlaying = false;
 	SplitCasts = 0;
 	StaffPlants = 0;
-	bWingSeat = bFireMages;
+	bWingSeat = bBoutFire;
 	bWingSeated = false;
 	SunfallPad = -1;
+	bRecorded = false;
+	BoutStartTick = Games.State.Tick;
+	StartOverPhase.Reset();
+	BoutPerfectsStart = 0;
+	StaffPlantsAtBout = 0;
+	TempestNoted = -1;
 	if (Hands)
 	{
 		Hands->StopAll();
@@ -366,7 +409,12 @@ bool FArenaSession::Start(uint32 Seed)
 	{
 		SeatOnActivePad(*Player);
 	}
-	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=Rotation"), Seed, BoutWave + 1));
+	{
+		const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+		Collar.BeginBout(Player ? Player->Water.Crests : 0);
+	}
+	Note(FString::Printf(TEXT("Session start seed=%u wave=%d preset=%s mirror=%s tideOrbIV=%s"), Seed, BoutWave + 1,
+		*PlayerPreset.Id, *Composition.Branches.Mirror, *Composition.Branches.TideOrb));
 	return true;
 }
 
@@ -374,6 +422,7 @@ void FArenaSession::SetBout(int32 WaveIndex, bool bInFireMages)
 {
 	BoutWave = WaveIndex;
 	bFireMages = bInFireMages;
+	bSchoolPinned = true;
 }
 
 void FArenaSession::SetPolicy(const FSeatedPolicy& InPolicy)
@@ -497,40 +546,8 @@ void FArenaSession::PollComfortToggles()
 	{
 		return;
 	}
-	// Clip centimetres, seated origin. Clear of the scripted ward palm at (36, -12, 36).
-	const FVector Stones[] = {
-		FVector(55.0, -28.0, 18.0),
-		FVector(55.0, 0.0, 18.0),
-		FVector(55.0, 28.0, 18.0),
-	};
-	const double Radius = 6.0;
 	bool bInside[3] = {false, false, false};
-	auto Consider = [&](const FHandFrame& Frame)
-	{
-		const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
-		const int32 Tip = static_cast<int32>(EHandKeypoint::IndexTip);
-		for (int32 Index = 0; Index < 3; ++Index)
-		{
-			if (Frame.Joints.IsValidIndex(Palm) && FVector::Dist(Frame.Joints[Palm].Location, Stones[Index]) <= Radius)
-			{
-				bInside[Index] = true;
-			}
-			if (Frame.Joints.IsValidIndex(Tip) && FVector::Dist(Frame.Joints[Tip].Location, Stones[Index]) <= Radius)
-			{
-				bInside[Index] = true;
-			}
-		}
-	};
-	FHandFrame Left;
-	FHandFrame Right;
-	if (Hands->GetLatest(EControllerHand::Left, Left))
-	{
-		Consider(Left);
-	}
-	if (Hands->GetLatest(EControllerHand::Right, Right))
-	{
-		Consider(Right);
-	}
+	StonesTouched(bInside);
 	for (int32 Index = 0; Index < 3; ++Index)
 	{
 		if (bInside[Index] && !bStoneHeld[Index])
@@ -554,6 +571,50 @@ void FArenaSession::PollComfortToggles()
 		{
 			bStoneHeld[Index] = false;
 		}
+	}
+}
+
+void FArenaSession::StonesTouched(bool OutInside[3]) const
+{
+	OutInside[0] = false;
+	OutInside[1] = false;
+	OutInside[2] = false;
+	if (!Hands)
+	{
+		return;
+	}
+	// Clip centimetres, seated origin. Clear of the scripted ward palm at (36, -12, 36).
+	const FVector Stones[] = {
+		FVector(55.0, -28.0, 18.0),
+		FVector(55.0, 0.0, 18.0),
+		FVector(55.0, 28.0, 18.0),
+	};
+	const double Radius = 6.0;
+	auto Consider = [&](const FHandFrame& Frame)
+	{
+		const int32 Palm = static_cast<int32>(EHandKeypoint::Palm);
+		const int32 Tip = static_cast<int32>(EHandKeypoint::IndexTip);
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			if (Frame.Joints.IsValidIndex(Palm) && FVector::Dist(Frame.Joints[Palm].Location, Stones[Index]) <= Radius)
+			{
+				OutInside[Index] = true;
+			}
+			if (Frame.Joints.IsValidIndex(Tip) && FVector::Dist(Frame.Joints[Tip].Location, Stones[Index]) <= Radius)
+			{
+				OutInside[Index] = true;
+			}
+		}
+	};
+	FHandFrame Left;
+	FHandFrame Right;
+	if (Hands->GetLatest(EControllerHand::Left, Left))
+	{
+		Consider(Left);
+	}
+	if (Hands->GetLatest(EControllerHand::Right, Right))
+	{
+		Consider(Right);
 	}
 }
 
@@ -628,12 +689,9 @@ bool FArenaSession::WouldSplitRefuse(int32 Slot) const
 	{
 		return false;
 	}
-	if (Player->Water.Flow >= KernelData().FlowMax)
-	{
-		return true;
-	}
+	// The kernel's own test (FVrRuleset::SplitRefusal). An empty slot is not refused there either: it does not cast.
 	const FSpell* Spell = SpellFor(*Player, Slot);
-	return Spell && Spell->Tier > Rules->Split.MaxTier;
+	return Spell && Rules->SplitRefusal(*Player, *Spell) != nullptr;
 }
 
 void FArenaSession::BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard)
@@ -679,21 +737,47 @@ void FArenaSession::HandleSigil(FName Line, float Score, double LatencyMs)
 	}
 	else
 	{
+		PushCue(TEXT("sigil-reject"));
 		return;
 	}
 	if (WouldSplitRefuse(Slot))
 	{
 		Note(FString::Printf(TEXT("script split refused slot %d"), Slot));
+		PushCue(TEXT("sigil-reject"));
 		return;
 	}
+	PushCue(TEXT("sigil-complete"));
 	const bool bKeepWard = bAbsorb && !IsStaffPlanted();
 	BeginCast(Slot, *FString::Printf(TEXT("gesture sigil %s score=%.2f latency=%.0fms -> slot %d"),
 		*Line.ToString(), Score, LatencyMs, Slot), bKeepWard);
 }
 
+void FArenaSession::HandleSigilRejected(double Distance)
+{
+	(void)Distance;
+	PushCue(TEXT("sigil-reject"));
+}
+
+void FArenaSession::PushCue(const TCHAR* Kind)
+{
+	FSessionCue Cue;
+	Cue.Kind = Kind;
+	Cue.SimS = GetSimSeconds();
+	SessionCues.Add(Cue);
+}
+
+bool FArenaSession::IsSigilDrawing() const
+{
+	// A pinch that is not a sigil (a staff plant's grip, played as a clip) also puts the hand builder's pen down; only a
+	// sigil clip, live hands or the mouse count as drawing.
+	return Sigils && Sigils->IsDrawing() && !(ClipPlaying() && !ClipAction().StartsWith(TEXT("sigil")));
+}
+
 void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 {
-	const bool bBoth = ClipAction() == TEXT("both-palms");
+	// T21: only while the both-palms clip plays. Its name outlives the clip, and after the ritual a later single palm
+	// (continue an intermission, fight a lost bout again) must still count.
+	const bool bBoth = ClipPlaying() && ClipAction() == TEXT("both-palms");
 	if (bResumeGate || bBoth)
 	{
 		return;
@@ -706,6 +790,12 @@ void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
 		bOfferContinue = true;
+		return;
+	}
+	// T21: no single-palm choice in the prologue, the ritual (both palms), a bout intro or the aftermath (stones).
+	if (Games.Phase == TEXT("prologue") || Games.Phase == TEXT("ritual") || Games.Phase == TEXT("intro")
+		|| Games.Phase == TEXT("aftermath") || Games.Phase == TEXT("closed"))
+	{
 		return;
 	}
 	if (bSuppressWard)
@@ -778,17 +868,32 @@ void FArenaSession::HandleStaffLift()
 	Note(TEXT("gesture staff-lift"));
 }
 
-void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const
+void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const
 {
 	MeleeEta = 1.0e6;
 	ProjectileEta = 1.0e6;
 	MagicEta = 1.0e6;
+	EmberEta = 1.0e6;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	if (!Player)
 	{
 		return;
 	}
 	const double Step = SimDt();
+	// DF-004 option A. A hound ember (a spit or a death ember) is magic, so the script wards it for a perfect instead of
+	// blinking it as steel. It has its own ETA, so the ward rules for other magic stay as they were. Its time is to
+	// contact (body plus projectile radius), the moment the perfect is judged.
+	const FVrRuleset* Rules = Games.VrRules.IsSet() ? &Games.VrRules.GetValue() : nullptr;
+	auto IsEmber = [this, Rules](int32 OwnerId, const FString& Family) -> bool
+	{
+		if (!Rules || !Rules->bActive || Family != TEXT("magic"))
+		{
+			return false;
+		}
+		const FActor* Owner = SimFindActor(Games.State, OwnerId);
+		return Owner && Owner->Enemy.IsSet() && Rules->FindSpit(Owner->Enemy->Id) != nullptr;
+	};
+	const double ContactM = Player->Radius + KernelData().ProjectileRadiusM;
 	for (const FTelegraph& Telegraph : Games.State.Telegraphs)
 	{
 		if (Telegraph.OwnerId == Games.PlayerId)
@@ -804,6 +909,12 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		{
 			if (SimDistance(Telegraph.Target, Player->Pos) > 1.35)
 			{
+				continue;
+			}
+			if (IsEmber(Telegraph.OwnerId, Telegraph.Family) && Telegraph.SpeedMps > 0.1)
+			{
+				const double Flight = FMath::Max(0.0, SimDistance(Telegraph.Origin, Player->Pos) - ContactM) / Telegraph.SpeedMps;
+				EmberEta = FMath::Min(EmberEta, UntilResolve + Flight);
 				continue;
 			}
 			const double Flight = Telegraph.SpeedMps > 0.1 ? SimDistance(Telegraph.Origin, Telegraph.Target) / Telegraph.SpeedMps : 0.0;
@@ -837,6 +948,16 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		{
 			continue;
 		}
+		// T23 Veering Bolt: the drawn arc ends at the aim point, so its ETA is the arc still to fly when it ends at the
+		// seat. The straight projection below would only see it in its last metres.
+		if (Projectile.bCurved && Projectile.ArcLeftM > 0.0 && Projectile.bHasAim)
+		{
+			if (SimDistance(Projectile.AimedAt, Player->Pos) <= Player->Radius + Projectile.Radius + 0.4)
+			{
+				ProjectileEta = FMath::Min(ProjectileEta, Projectile.ArcLeftM / Speed);
+			}
+			continue;
+		}
 		const FSimVec ToPlayer = SimSub(Player->Pos, Projectile.Pos);
 		const FSimVec Direction = SimUnit(Projectile.Velocity);
 		const double Along = SimDot(ToPlayer, Direction);
@@ -847,6 +968,11 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		const FSimVec Closest = SimAdd(Projectile.Pos, SimScale(Direction, Along));
 		if (SimDistance(Closest, Player->Pos) > Player->Radius + Projectile.Radius + 0.4)
 		{
+			continue;
+		}
+		if (IsEmber(Projectile.OwnerId, Projectile.Family))
+		{
+			EmberEta = FMath::Min(EmberEta, FMath::Max(0.0, Along - Player->Radius - Projectile.Radius) / Speed);
 			continue;
 		}
 		ProjectileEta = FMath::Min(ProjectileEta, Along / Speed);
@@ -900,8 +1026,7 @@ double FArenaSession::SoonestThreat(double MeleeEta, double ProjectileEta, bool 
 		{
 			if (const FVrAttackMode* Mode = Rules->FindThrow(Spec->Id))
 			{
-				Attack.ProjectileMps = Mode->ProjectileMps;
-				Attack.RangeM = Mode->RangeM;
+				VrApplyAttackMode(*Mode, Attack);
 			}
 		}
 		const bool bRanged = Attack.ProjectileMps.IsSet();
@@ -1136,9 +1261,55 @@ bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
 		}
 		return false;
 	}
+	// T23: an unblockable air line (Tempest Lance) is answered the Sunfall way, along a line instead of a circle: while
+	// the line is drawn (the pending cast; its aim is fixed at the press), blink to the pad farthest from it.
+	for (const FActor& Actor : Games.State.Actors)
+	{
+		if (Actor.bDown || Actor.Team == Player->Team || !Actor.Air.bSchool || !Actor.Pending.IsSet() || !Actor.Pending->SpellId.IsSet())
+		{
+			continue;
+		}
+		const FAirSpell* Spell = FindAirSpell(Actor.Pending->SpellId.GetValue());
+		if (!Spell || Spell->Kind != TEXT("line") || Spell->Family != TEXT("unblockable"))
+		{
+			continue;
+		}
+		const FSimVec From = Actor.Pos;
+		const FSimVec To = SimAdd(From, SimScale(SimUnit(SimSub(Actor.Pending->Aim, From), Actor.Facing), Spell->RangeM * AirSpellRangeMult(Actor)));
+		auto LineGap = [&](const FSimVec& Point)
+		{
+			const FSimVec Seg = SimSub(To, From);
+			const double Len2 = SimDot(Seg, Seg);
+			const double T = Len2 > 0.0 ? FMath::Clamp(SimDot(SimSub(Point, From), Seg) / Len2, 0.0, 1.0) : 0.0;
+			return SimDistance(Point, SimAdd(From, SimScale(Seg, T)));
+		};
+		int32 BestPad = ActivePad;
+		double BestGap = -1.0;
+		for (int32 Pad = 0; Pad < 3; ++Pad)
+		{
+			const double Gap = LineGap(PadKernel(Pad));
+			if (Gap > BestGap)
+			{
+				BestGap = Gap;
+				BestPad = Pad;
+			}
+		}
+		SunfallPad = BestPad;
+		const bool bOnLine = LineGap(Player->Pos) <= Player->Radius + 0.15;
+		if (bOnLine && BestPad != ActivePad)
+		{
+			if (PlayBlinkToward(BestPad) && TempestNoted != Actor.Pending->ActivationId)
+			{
+				TempestNoted = Actor.Pending->ActivationId;
+				Note(FString::Printf(TEXT("script tempest pad=%d from=%d"), BestPad, ActivePad));
+			}
+			return true;
+		}
+		return false;
+	}
 	const bool bMeleeWindow = MeleeEta <= 0.30 && MeleeEta >= 0.22;
 	const bool bStoneWindow = ProjectileEta <= 0.30 && ProjectileEta >= 0.22;
-	if (!bWingSeated && ActivePad == 1 && !bMeleeWindow && !bStoneWindow && GetSimSeconds() >= 0.4)
+	if (!bWingSeated && ActivePad == 1 && !bMeleeWindow && !bStoneWindow && BoutSeconds() >= 0.4)
 	{
 		if (PlayBlinkToward(0))
 		{
@@ -1148,6 +1319,21 @@ bool FArenaSession::TrySunfallEscape(double MeleeEta, double ProjectileEta)
 		}
 	}
 	return false;
+}
+
+namespace
+{
+// DF-004 option A, reference seat only (not combat numbers). Measured on the seated rig (T18): see the report.
+// EmberRaiseLeadS: the script starts the ward this long before an ember's contact, so the kernel raise lands inside
+// combat.json absorb.perfect.windowS 0.15. Measured T18: SetWardHeld to HandleWardRaised is 0.167 s (10 ticks) on this
+// rig, and the kernel takes the raise on the next step, so 0.25 lands the fresh tick about 0.05-0.08 s before contact.
+constexpr double EmberRaiseLeadS = 0.25;
+// The measured gesture latency above. The kernel ward is up only for the lead minus this, plus EmberAfterContactS.
+constexpr double EmberGestureLatencyS = 0.167;
+// EmberHoldFireS: before that, the casting hand stops starting bolts, so no flick is in flight when the ward goes up.
+constexpr double EmberHoldFireS = 0.35;
+// EmberAfterContactS: the ember ward stays up this long past the predicted contact, then drops for the next one.
+constexpr double EmberAfterContactS = 0.10;
 }
 
 void FArenaSession::DecideScript()
@@ -1164,8 +1350,10 @@ void FArenaSession::DecideScript()
 	double MeleeEta = 1.0e6;
 	double ProjectileEta = 1.0e6;
 	double MagicEta = 1.0e6;
-	ScanThreats(MeleeEta, ProjectileEta, MagicEta);
+	double EmberEta = 1.0e6;
+	ScanThreats(MeleeEta, ProjectileEta, MagicEta, EmberEta);
 	const double Now = GetSimSeconds();
+	const double BoutNow = BoutSeconds();
 	const bool bPlaying = ClipPlaying();
 	const FString Action = ClipAction();
 
@@ -1277,8 +1465,9 @@ void FArenaSession::DecideScript()
 	const bool bStaffFree = !bPlaying && !Player->Pending.IsSet();
 	if (Policy.bPlant && bStaffFree && Rules && Rules->Staff.bEnabled && Player->Mana >= UpFront + 12.0 && MeleeGap > 0.8)
 	{
-		const bool bOpening = StaffPlants == 0 && Now >= 1.5 && Now < Policy.OpeningPlantEndS && (bTideStarted || Now >= 2.5);
-		const bool bHurt = Player->Hp < Policy.PlantHurtHp && Now >= 3.0;
+		// T21: the openings count from the bout's start, so a bout chained after an intermission opens like a fresh one.
+		const bool bOpening = StaffPlants == StaffPlantsAtBout && BoutNow >= 1.5 && BoutNow < Policy.OpeningPlantEndS && (bTideStarted || BoutNow >= 2.5);
+		const bool bHurt = Player->Hp < Policy.PlantHurtHp && BoutNow >= 3.0;
 		const int32 SplitCap = Rules->Split.bEnabled ? Rules->Split.MaxTier : 2;
 		const bool bHighTier = bAbsorb && Player->Tier > SplitCap;
 		if (bOpening || bHurt || bHighTier)
@@ -1292,6 +1481,68 @@ void FArenaSession::DecideScript()
 			bWardReleased = true;
 			PlayAction(TEXT("staff-plant"));
 			Note(TEXT("script staff plant"));
+			return;
+		}
+	}
+
+	// DF-004 option A. The reference seat wards each hound ember for a perfect: a fresh raise that lands inside
+	// combat.json absorb.perfect.windowS (0.15 s) before contact. While an ember is close the casting hand holds fire:
+	// a bolt flick with the ward up is a split cast, which cannot perfect, and one with the ward down suppresses it.
+	// A planted seat does not: measured T18, warding every ember under the dome holds fire so often that the seat lost
+	// Bout 2 (live 20.45 s, proposal 29.22 s, 19 and 27 perfects). The dome's own reduction answers the embers there.
+	if (bEmberWard)
+	{
+		if (Now < EmberWardUntil)
+		{
+			return;
+		}
+		if (Hands->IsWardHeld())
+		{
+			Hands->SetWardHeld(false, EClipVariant::Normal);
+		}
+		bEmberWard = false;
+		bWardReleased = true;
+		bWardStarted = false;
+	}
+	// Mana to raise the ember ward and hold it past contact (combat.json absorb.raiseCostMana and drainPerSecond).
+	const double EmberWardMana = KernelData().Absorb.RaiseCostMana
+		+ KernelData().Absorb.DrainPerSecond(Player->Ranks.Nerve) * (EmberRaiseLeadS - EmberGestureLatencyS + EmberAfterContactS);
+	if (!bPlanted && EmberEta <= EmberRaiseLeadS + EmberHoldFireS)
+	{
+		const double RaiseMana = EmberWardMana;
+		if (EmberEta <= EmberRaiseLeadS)
+		{
+			if (!bAbsorb && !Hands->IsWardHeld() && Player->Mana >= RaiseMana)
+			{
+				RaiseWard();
+				bEmberWard = true;
+				EmberWardUntil = Now + EmberEta + EmberAfterContactS;
+				Note(FString::Printf(TEXT("script ember ward eta=%.3f t=%.3f"), EmberEta, Now));
+				return;
+			}
+		}
+		else if (bAbsorb || Hands->IsWardHeld())
+		{
+			// A stale ward cannot perfect. Drop it now so the raise for this ember is fresh (absorb.minReleaseBeforeReRaiseS).
+			if (Hands->IsWardHeld())
+			{
+				Hands->SetWardHeld(false, EClipVariant::Normal);
+			}
+			bWardReleased = true;
+			bWardStarted = false;
+		}
+		if (Player->Mana >= RaiseMana)
+		{
+			return;
+		}
+	}
+	// While any ember is telegraphed or in the air, keep the mana for its ward: no cast that would spend below it.
+	if (!bPlanted && EmberEta < 1.0e5)
+	{
+		const FSpell* Bolt = SpellFor(*Player, 0);
+		const double BoltMana = Bolt ? Bolt->Mana : 0.0;
+		if (Player->Mana - BoltMana < EmberWardMana)
+		{
 			return;
 		}
 	}
@@ -1320,7 +1571,7 @@ void FArenaSession::DecideScript()
 	const bool bFirstStone = !WasWardOnStone() && ProjectileEta <= 1.15 && ProjectileEta >= 0.20;
 	const bool bStoneFallback = ProjectileEta <= 1.05 && ProjectileEta >= 0.20 && MeleeGap > 0.9 && Player->Stamina < 50.0;
 	const bool bPerfectMagic = MagicEta <= 0.14 && MagicEta >= 0.02 && MeleeGap > 0.9;
-	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || bPerfectMagic || Now < 0.4))
+	if (!bAbsorb && !bBlinkClip && !bPlaying && Player->Mana >= Policy.WardRaiseMana && (bSpearFallback || bFirstStone || bStoneFallback || bPerfectMagic || BoutNow < 0.4))
 	{
 		RaiseWard();
 	}
@@ -1337,7 +1588,7 @@ void FArenaSession::DecideScript()
 	}
 
 	// Opening tide with the ward already up. The right hand draws; the left keeps the palm.
-	if (!bTideStarted && MeleeGap > 1.2 && Now < 4.0 && Player->Mana >= Policy.SplitSigilMana)
+	if (!bTideStarted && MeleeGap > 1.2 && BoutNow < 4.0 && Player->Mana >= Policy.SplitSigilMana)
 	{
 		ReleaseForCast();
 		PlayAction(TEXT("sigil-line1"));
@@ -1459,6 +1710,18 @@ void FArenaSession::DrainEvents(const FActor* Player)
 				Note(TEXT("cue bell perfect-absorb"));
 			}
 		}
+		else if (Event.Kind == TEXT("phase"))
+		{
+			const FVrRuleset* PhaseRules = GetVrRules();
+			const FVrRival* Rival = PhaseRules ? PhaseRules->BoundRival() : nullptr;
+			Note(FString::Printf(TEXT("kernel phase %.0f/%d rival=%s actor=%d t=%.3f"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 0,
+				Rival ? *Rival->Id : TEXT("-"), Event.ActorId, GetSimSeconds()));
+		}
+		else if (Event.Kind == TEXT("cast") && Event.ActorId != Games.PlayerId && GetVrRules() && GetVrRules()->IsRival(Event.ActorId)
+			&& GetVrRules()->RivalRuntime.GrantTick == Event.Tick)
+		{
+			Note(FString::Printf(TEXT("kernel signature %s actor=%d t=%.3f"), *GetVrRules()->RivalRuntime.GrantSpell, Event.ActorId, GetSimSeconds()));
+		}
 		else if (Event.Kind == TEXT("unlock") && Event.ActorId == Games.PlayerId)
 		{
 			Note(FString::Printf(TEXT("kernel unlock tier=%.0f"), Event.Value));
@@ -1500,12 +1763,28 @@ void FArenaSession::CheckEnd()
 	{
 		bLoggedEnd = true;
 		Note(FString::Printf(TEXT("Session victory t=%.2f waves=%d tick=%d"), GetSimSeconds(), Games.WavesCleared, Games.State.Tick));
+		Note(FString::Printf(TEXT("collar bout=%d won cracks=%d tithe=%d %s"), Games.Wave + 1,
+			Collar.GetBoutCracks(), Collar.GetBoutTithe(), *Collar.Breakdown()));
+		if (bDay)
+		{
+			RecordBout(true);
+			if (Games.Phase == TEXT("complete"))
+			{
+				EnterAftermath(true);
+			}
+		}
 	}
 	else if (Games.Phase == TEXT("lost"))
 	{
 		bLoggedEnd = true;
 		const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 		Note(FString::Printf(TEXT("Session defeat t=%.2f tick=%d hp=%.1f"), GetSimSeconds(), Games.State.Tick, Player ? Player->Hp : 0.0));
+		Note(FString::Printf(TEXT("collar bout=%d lost cracks=%d tithe=%d %s"), Games.Wave + 1, Collar.GetBoutCracks(), Collar.GetBoutTithe(),
+			*Collar.Breakdown()));
+		if (bDay)
+		{
+			RecordBout(false);
+		}
 	}
 }
 
@@ -1662,8 +1941,45 @@ void FArenaSession::StepKernel()
 			}
 		}
 	}
+	ObserveCollar(*After, Input.Slot);
 	DrainEvents(After);
 	CheckEnd();
+}
+
+void FArenaSession::ObserveCollar(const FActor& Player, int32 Slot)
+{
+	const double Sim = GetSimSeconds();
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		const FSpell* Spell = nullptr;
+		if (Event.Kind == TEXT("cast") && Event.ActorId == Games.PlayerId)
+		{
+			// Every tier III-IV Water spell has a cast or telegraph time, so the cast is still pending at the end of the
+			// step that started it. The slot is the fallback for an instant cast.
+			if (Player.Pending.IsSet() && Player.Pending->SpellId.IsSet() && Player.Pending->StartTick == Event.Tick)
+			{
+				Spell = FindSpellById(Player.Pending->SpellId.GetValue());
+			}
+			else
+			{
+				Spell = SpellFor(Player, Slot);
+			}
+		}
+		const int32 CracksBefore = Collar.GetBoutCracks();
+		const int32 TitheBefore = Collar.GetBoutTithe();
+		Collar.Observe(Event, Games.PlayerId, Spell, Sim);
+		if (Collar.GetBoutCracks() != CracksBefore || Collar.GetBoutTithe() != TitheBefore)
+		{
+			Note(FString::Printf(TEXT("collar %s cracks=%d tithe=%d t=%.3f"), *Event.Kind, Collar.GetBoutCracks(), Collar.GetBoutTithe(), Sim));
+		}
+	}
+	const int32 TitheBefore = Collar.GetBoutTithe();
+	Collar.ObserveCrests(Player.Water.Crests, Sim);
+	if (Collar.GetBoutTithe() != TitheBefore)
+	{
+		Note(FString::Printf(TEXT("collar crest cracks=%d tithe=%d t=%.3f"), Collar.GetBoutCracks(), Collar.GetBoutTithe(), Sim));
+	}
 }
 
 void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
@@ -1693,7 +2009,7 @@ void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 		bClipWasPlaying = ClipPlaying();
 		return;
 	}
-	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
+	if (IsArcPhase(Games.Phase))
 	{
 		AdvanceArc(DeltaSeconds);
 		bClipWasPlaying = ClipPlaying();
@@ -1762,6 +2078,11 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
 	const bool bCreaturesCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreaturesCapture"));
 	const bool bSettingsCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSettingsCapture"));
+	const bool bPresetCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaPresetCapture"));
+	const bool bDayCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaDayCapture"));
+	const bool bAirCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaAirCapture"));
+	const bool bCollarCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCollarCapture"));
+	const bool bColourAudioCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaColourAudioCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -1795,6 +2116,36 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		SettingsCapture = NewObject<USettingsCaptureDriver>(this);
 		SettingsCapture->Start();
+		return;
+	}
+	if (bPresetCapture)
+	{
+		PresetCapture = NewObject<UPresetCaptureDriver>(this);
+		PresetCapture->Start();
+		return;
+	}
+	if (bDayCapture)
+	{
+		DayCapture = NewObject<UDayCaptureDriver>(this);
+		DayCapture->Start();
+		return;
+	}
+	if (bAirCapture)
+	{
+		AirCapture = NewObject<UAirCaptureDriver>(this);
+		AirCapture->Start();
+		return;
+	}
+	if (bCollarCapture)
+	{
+		CollarCapture = NewObject<UCollarCaptureDriver>(this);
+		CollarCapture->Start();
+		return;
+	}
+	if (bColourAudioCapture)
+	{
+		ColourAudioCapture = NewObject<UColourAudioCaptureDriver>(this);
+		ColourAudioCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)
@@ -1846,6 +2197,7 @@ void UArenaSessionSubsystem::PollPlatform()
 bool UArenaSessionSubsystem::Start(uint32 Seed, bool bScripted)
 {
 	Session.SetScripted(bScripted);
+	Session.LeaveDay();
 	const bool bOk = Session.Start(Seed);
 	bRunning = bOk;
 	UE_LOG(LogMageArena, Log, TEXT("MageArena.Session.Start seed=%u scripted=%d ok=%d"), Seed, bScripted ? 1 : 0, bOk ? 1 : 0);

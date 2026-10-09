@@ -138,6 +138,8 @@ struct FHit
 	double HeatOnHit = 0.0;
 	bool bSuppressPerfect = false;
 	bool bPierceShields = false;
+	// Air spells (T23). Paid to the owner when the hit connects. Zero for every other hit.
+	double MomentumOnHit = 0.0;
 };
 
 struct FFireCooldown
@@ -193,6 +195,41 @@ struct FFireState
 	bool bSunfallLoosed = false;
 	TArray<FFireCooldown> Cooldowns;
 	TArray<FFireTrail> Trails;
+	TOptional<FFireChannel> Channel;
+};
+
+// T23. Squall: the rest of a staggered volley. Each orb is released from the caster toward the fixed aim point.
+struct FAirVolley
+{
+	FString SpellId;
+	FSimVec Aim;
+	int32 Left = 0;
+	int32 NextTick = 0;
+	int32 IntervalTicks = 1;
+	double Damage = 0.0;
+	double RangeMult = 1.0;
+	int32 PierceLeft = 0;
+};
+
+// Momentum exists only while bSchool is set. Water and Fire actors keep the zeros, and the state hash skips the block.
+struct FAirState
+{
+	bool bSchool = false;
+	double Momentum = 0.0;
+	double MaxMomentum = 0.0;
+	int32 LockUntil = 0;
+	double LockValue = 0.0;
+	double AbsorbDrainSpellMult = 1.0;
+	int32 AbsorbDrainSpellUntil = 0;
+	int32 FormUntil = 0;
+	double FormPhysical = 0.0;
+	double FormMagic = 0.0;
+	int32 Forms = 0;
+	int32 Evades = 0;
+	int32 Deflects = 0;
+	int32 TempestCastTick = NeverTick;
+	TArray<FFireCooldown> Cooldowns;
+	TOptional<FAirVolley> Volley;
 	TOptional<FFireChannel> Channel;
 };
 
@@ -283,6 +320,7 @@ struct FActor
 	bool bAbsorbExhausted = false;
 	FWaterState Water;
 	FFireState Fire;
+	FAirState Air;
 	TOptional<FEnemyBrain> Enemy;
 	TOptional<FMageBrain> MageAI;
 	TOptional<double> SpeedMps;
@@ -326,6 +364,18 @@ struct FProjectile
 	double HeatOnHit = 0.0;
 	bool bSuppressPerfect = false;
 	bool bPierceShields = false;
+	// T23 air flight. bAir false keeps every other projectile as it was (and out of the hash block).
+	// A curved bolt follows a circle about ArcCentre at ArcRadiusM; ArcAngle is the current polar angle and ArcSign the
+	// turn direction (+1 counter-clockwise). ArcLeftM is the arc still to fly before it continues straight.
+	bool bAir = false;
+	double MomentumOnHit = 0.0;
+	int32 PierceLeft = 0;
+	bool bCurved = false;
+	FSimVec ArcCentre;
+	double ArcRadiusM = 0.0;
+	double ArcAngle = 0.0;
+	double ArcSign = 1.0;
+	double ArcLeftM = 0.0;
 	// Presentation only. The sim does not read these. Spawn leaves bHasAim clear unless a telegraph passed a target.
 	FSimVec OriginPos;
 	FSimVec AimedAt;

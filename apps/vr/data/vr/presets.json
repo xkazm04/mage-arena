@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "_about": "VR-owned player presets. The pinned runtime.json water.presets are not modified and stay the opponents' presets (games.opponentPresets). The session builds the player from the preset named in 'player'. A missing or malformed file fails the session start, like combat.vr.json.",
+  "player": "cassia",
+  "_player": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted' (docs/design/V2-VISION.md: 'The signatures need a VR-owned player preset (Mirror A, Tide Orb IV picked on the stones) in the overlay, because the pinned presets cannot be edited').",
+
+  "presets": {
+    "cassia": {
+      "basedOn": "Rotation",
+      "lines": ["tide_orb", "lash", "mirror"],
+      "branches": {
+        "lash": "B",
+        "mirror": "A",
+        "tide_orb": "B"
+      },
+      "_basedOn": "The pinned games.referencePreset, Rotation: lines tide_orb, lash, mirror and branches lash B, mirror B, tide_orb B. Only the two branches below differ from it.",
+      "_lines": "Rotation's lines, unchanged.",
+      "_lash": "Rotation's lash B (Riptide), unchanged.",
+      "_mirror": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', signature moments (V2-VISION.md wave 3): 'Mirror II = Reflection (a VR player preset)'. Rotation has B (Ripple). A is the pinned spells-water.csv row 'Reflection: passive while slotted: a perfect absorb reflects the projectile; only projectiles of tier <= own unlocked tier'.",
+      "_tide_orb": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', signature moments: 'the Leviathan / Rain of Orbs pick at the first intermission'. B (Rain of Orbs) is Rotation's branch, so a player who never picks plays today's orb. The stones below can set A (Leviathan Orb) from Bout 2 on.",
+
+      "stonePick": {
+        "branch": "tide_orb",
+        "afterBout": 1,
+        "left": "A",
+        "right": "B",
+        "default": "B",
+        "timeoutS": 20,
+        "_branch": "Tide Orb IV is the only tier with a branch on that line (spells-water.csv rows 6 and 7).",
+        "_afterBout": "Why: DECISIONS 2026-10-07 'v2 vision accepted': 'the Leviathan / Rain of Orbs pick at the first intermission'. The intermission after Bout 1 (Tiro wave index 0). The pick applies from Bout 2 on.",
+        "_left": "The left stone engraves Leviathan Orb (A). Labels are strings.json pick.tideOrb.A and pick.tideOrb.B; the centre stone is pick.continue and keeps the current branch.",
+        "_right": "The right stone engraves Rain of Orbs (B).",
+        "_default": "Rotation's branch. Kept when nothing is picked.",
+        "_timeoutS": "Why: docs/design/V2-ROADMAP.md row 14, intermission choices on the stones are 'never blocking (20 s)', and the T20 card: 'if nothing is picked in 20 s the default stays and the run continues'. The hold to pick is teach.json offerHoldS (docs/campaign/04-vr-campaign-design.md section 3)."
+      }
+    }
+  }
+}

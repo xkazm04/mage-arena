@@ -46,18 +46,6 @@ double FrameCap()
 {
 	return KernelData().MaxFrameDeltaS > 0.0 ? KernelData().MaxFrameDeltaS : 0.25;
 }
-
-const FComposition* FindRotationPreset()
-{
-	for (const FComposition& Preset : KernelData().Presets)
-	{
-		if (Preset.Name == TEXT("Rotation"))
-		{
-			return &Preset;
-		}
-	}
-	return nullptr;
-}
 }
 
 bool FArenaSession::LoadTeachData()
@@ -196,21 +184,30 @@ bool FArenaSession::IsTiroWave(int32 Wave) const
 	return Data.bReady && Data.ArenaTiers.Num() > 0 && Wave >= 0 && Wave < Data.ArenaTiers[0].Waves.Num();
 }
 
-int32 FArenaSession::ReadSavedBout() const
+int32 FArenaSession::ReadSavedBout(FString* OutPick) const
 {
+	if (OutPick)
+	{
+		OutPick->Reset();
+	}
 	FString Text;
 	if (!FFileHelper::LoadFileToString(Text, *SaveFilePath()))
 	{
 		return -1;
 	}
+	Text.ReplaceInline(TEXT("\r"), TEXT(""));
 	Text.TrimStartAndEndInline();
+	// Line 1 is bout=N. T20 adds an optional tideOrbIV=A|B line (the stone pick). A file without it still loads.
+	TArray<FString> Lines;
+	Text.ParseIntoArray(Lines, TEXT("\n"), true);
+	const FString First = Lines.Num() > 0 ? Lines[0] : FString();
 	const FString Prefix = TEXT("bout=");
-	if (!Text.StartsWith(Prefix))
+	if (!First.StartsWith(Prefix))
 	{
 		UE_LOG(LogMageArena, Warning, TEXT("Saved bout is corrupt (%s); starting from the teach"), *SaveFilePath());
 		return -1;
 	}
-	const FString Number = Text.Mid(Prefix.Len());
+	const FString Number = First.Mid(Prefix.Len());
 	int32 Index = 0;
 	if (Number.IsEmpty())
 	{
@@ -236,6 +233,23 @@ int32 FArenaSession::ReadSavedBout() const
 		UE_LOG(LogMageArena, Warning, TEXT("Saved bout is junk (%s); starting from the teach"), *Text);
 		return -1;
 	}
+	FString Pick;
+	for (int32 LineIndex = 1; LineIndex < Lines.Num(); ++LineIndex)
+	{
+		const FString Line = Lines[LineIndex].TrimStartAndEnd();
+		if (Line == TEXT("tideOrbIV=A") || Line == TEXT("tideOrbIV=B"))
+		{
+			if (!Pick.IsEmpty())
+			{
+				UE_LOG(LogMageArena, Warning, TEXT("Saved bout has two tideOrbIV lines (%s); starting from the teach"), *Text);
+				return -1;
+			}
+			Pick = Line.Right(1);
+			continue;
+		}
+		UE_LOG(LogMageArena, Warning, TEXT("Saved bout has a junk line (%s); starting from the teach"), *Line);
+		return -1;
+	}
 	if (!IsTiroWave(Bout))
 	{
 		const int32 Waves = (KernelData().bReady && KernelData().ArenaTiers.Num() > 0)
@@ -244,6 +258,10 @@ int32 FArenaSession::ReadSavedBout() const
 		UE_LOG(LogMageArena, Warning, TEXT("Saved bout %d is outside Tiro waves [0, %d); starting from the teach"), Bout, Waves);
 		return -1;
 	}
+	if (OutPick)
+	{
+		*OutPick = Pick;
+	}
 	return Bout;
 }
 
@@ -251,7 +269,12 @@ void FArenaSession::WriteSavedBout(int32 Bout) const
 {
 	const FString Path = SaveFilePath();
 	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
-	if (!FFileHelper::SaveStringToFile(FString::Printf(TEXT("bout=%d\n"), Bout), *Path))
+	FString Text = FString::Printf(TEXT("bout=%d\n"), Bout);
+	if (!StonePick.IsEmpty())
+	{
+		Text += FString::Printf(TEXT("tideOrbIV=%s\n"), *StonePick);
+	}
+	if (!FFileHelper::SaveStringToFile(Text, *Path))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("Could not save the bout to %s; the next launch will start from the teach"), *Path);
 	}
@@ -269,12 +292,11 @@ bool FArenaSession::MakeQuietArena(uint32 Seed)
 		UE_LOG(LogMageArena, Error, TEXT("Arc failed: kernel data is not ready (%s)"), *KernelData().Error);
 		return false;
 	}
-	const FComposition* Preset = FindRotationPreset();
-	if (!Preset)
+	if (!LoadPlayerPresetFile(TEXT("Arc failed")))
 	{
-		UE_LOG(LogMageArena, Error, TEXT("Arc failed: Rotation preset is missing"));
 		return false;
 	}
+	const FComposition Composition = PlayerComposition();
 	FString Error;
 	bHasLayout = Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error);
 	if (!bHasLayout)
@@ -299,7 +321,7 @@ bool FArenaSession::MakeQuietArena(uint32 Seed)
 	Games.PlayerId = AddMage(Games.State, 0, KernelData().PlayerSpawn, TEXT("Cassia")).Id;
 	if (FActor* Player = SimFindActor(Games.State, Games.PlayerId))
 	{
-		Player->Water = NewWaterState(Preset);
+		Player->Water = NewWaterState(&Composition);
 		ActivePad = 1;
 		SeatOnActivePad(*Player);
 	}
@@ -319,10 +341,20 @@ bool FArenaSession::MakeQuietArena(uint32 Seed)
 bool FArenaSession::BeginArc(uint32 Seed)
 {
 	BoutSeed = Seed;
-	if (!LoadTeachData() || !LoadStrings())
+	if (!LoadTeachData() || !LoadStrings() || !LoadDayData() || !LoadCollarFile(TEXT("Arc failed")))
 	{
 		return false;
 	}
+	bDay = true;
+	bFinalWon = false;
+	PhaseClock = 0.0;
+	StoryHold = 0.0;
+	StoryHoldStone = -1;
+	bStoryCue = false;
+	Flags.Load(FlagsFilePath());
+	// T22: the lifetime collar. A missing file is a new collar; a corrupt one starts at 0, like a corrupt save.
+	Collar.LoadLifetime(CollarFilePath());
+	Collar.BeginBout();
 	bKeepChain = false;
 	Chain.Reset();
 	bResumeGate = false;
@@ -363,9 +395,12 @@ bool FArenaSession::BeginArc(uint32 Seed)
 	{
 		return false;
 	}
-	const int32 Saved = ReadSavedBout();
+	FString SavedPick;
+	const int32 Saved = ReadSavedBout(&SavedPick);
+	StonePick.Reset();
 	if (Saved >= 0)
 	{
+		StonePick = SavedPick;
 		BoutWave = Saved;
 		Games.Phase = TEXT("offer");
 		Note(FString::Printf(TEXT("teach offer bout=%d"), BoutWave));
@@ -381,9 +416,10 @@ bool FArenaSession::BeginArc(uint32 Seed)
 
 void FArenaSession::SkipTeach()
 {
-	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
+	if (Games.Phase == TEXT("cold") || Games.Phase == TEXT("prologue") || Games.Phase == TEXT("offer") || Games.Phase == TEXT("teach"))
 	{
-		Start(BoutSeed);
+		Note(TEXT("day skip to the ritual"));
+		EnterRitual();
 	}
 }
 
@@ -399,9 +435,13 @@ void FArenaSession::NotifyHeadsetRemoved()
 
 void FArenaSession::NotifyQuit()
 {
-	if (Games.Phase == TEXT("active"))
+	if (Games.Phase == TEXT("active") || Games.Phase == TEXT("intro"))
 	{
 		WriteSavedBout(Games.Wave);
+	}
+	else if (Games.Phase == TEXT("ritual"))
+	{
+		WriteSavedBout(BoutWave);
 	}
 }
 
@@ -572,13 +612,48 @@ FString FArenaSession::GetPromptText() const
 	{
 		return TeachString(TEXT("offer.continue"));
 	}
+	if (Games.Phase == TEXT("prologue"))
+	{
+		return TeachString(TEXT("story.prologue.tableau"));
+	}
+	if (Games.Phase == TEXT("ritual"))
+	{
+		return TeachString(PhaseClock + 1.0e-9 >= DayTuning.RitualLineS ? TEXT("story.ritual.offer") : TEXT("story.ritual.septima"));
+	}
+	if (Games.Phase == TEXT("intro"))
+	{
+		const bool bFinal = KernelData().bReady && KernelData().ArenaTiers.Num() > 0 && Games.Wave == KernelData().ArenaTiers[0].Waves.Num() - 1;
+		if (bFinal)
+		{
+			const FVrRuleset* Rules = GetVrRules();
+			const FString Rival = Rules && !Rules->TiroFinal.Rival.IsEmpty() ? Rules->TiroFinal.Rival : FString(TEXT("corvo"));
+			return TeachString(*FString::Printf(TEXT("story.bout4.intro.%s"), *Rival));
+		}
+		return TeachString(*FString::Printf(TEXT("story.bout%d.intro"), Games.Wave + 1));
+	}
+	if (Games.Phase == TEXT("aftermath"))
+	{
+		if (PhaseClock + 1.0e-9 < DayTuning.AftermathTabletS)
+		{
+			return TeachString(TEXT("story.aftermath.tablet"));
+		}
+		return TeachString(bFinalWon ? TEXT("story.aftermath.close") : TEXT("story.aftermath.close.lost"));
+	}
+	if (Games.Phase == TEXT("closed"))
+	{
+		return TeachString(TEXT("story.closed"));
+	}
 	if (Games.Phase == TEXT("intermission"))
 	{
-		return TeachString(TEXT("intermission"));
+		return TeachString(IsPickOffered() ? TEXT("intermission.pick") : TEXT("intermission"));
 	}
 	if (Games.Phase == TEXT("lost"))
 	{
-		return TeachString(TEXT("offer.continue")); // Or just keep it empty?
+		if (AreStoryStonesShown())
+		{
+			return TeachString(TEXT("lost.final"));
+		}
+		return TeachString(TEXT("offer.continue"));
 	}
 	if (Games.Phase != TEXT("teach"))
 	{
@@ -889,11 +964,14 @@ void FArenaSession::EnterTeach()
 	Accumulator = 0.0;
 	PerfectTryCount = 0;
 	TeachStep = ETeachStep::None;
-	if (const FComposition* Preset = FindRotationPreset())
+	// A new run from the teach forgets the stone pick: the preset default is back until the next intermission.
+	StonePick.Reset();
+	if (LoadPlayerPresetFile(TEXT("Teach kept the arc composition")))
 	{
+		const FComposition Composition = PlayerComposition();
 		if (FActor* Player = SimFindActor(Games.State, Games.PlayerId))
 		{
-			Player->Water = NewWaterState(Preset);
+			Player->Water = NewWaterState(&Composition);
 			Player->Mana = Player->MaxMana;
 			SeatOnActivePad(*Player);
 		}
@@ -908,14 +986,17 @@ void FArenaSession::FinishTeach()
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_TEACH_SECONDS %.3f"), TeachElapsed);
 	TeachStep = ETeachStep::Done;
 	bKeepChain = true;
-	Start(BoutSeed);
+	// The teach is done for good: the next launch offers Bout 1 instead of the prologue and the teach.
+	BoutWave = 0;
+	WriteSavedBout(0);
+	EnterRitual();
 }
 
 void FArenaSession::ContinueOffer()
 {
-	ClearSavedBout();
+	// T21: the save stays. It remembers the bout to play, and that the teach is done, until the day moves on.
 	bOfferContinue = false;
-	Start(BoutSeed);
+	EnterRitual();
 }
 
 void FArenaSession::MaybeSpawnGlob()
@@ -1246,7 +1327,7 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		int32 Steps = 0;
 		while (Accumulator + 1.0e-9 >= Step && Steps < 8 && bRunning)
 		{
-			if (Games.Phase != TEXT("cold") && Games.Phase != TEXT("offer") && Games.Phase != TEXT("teach") && Games.Phase != TEXT("intermission") && Games.Phase != TEXT("lost"))
+			if (!IsArcPhase(Games.Phase))
 			{
 				break;
 			}
@@ -1256,6 +1337,10 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		}
 	};
 
+	if (AdvanceDay(DeltaSeconds))
+	{
+		return;
+	}
 	if (Games.Phase == TEXT("cold"))
 	{
 		ArcClock += DeltaSeconds;
@@ -1269,7 +1354,9 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		}
 		if (bColdRaised)
 		{
-			EnterTeach();
+			// Cold only opens a first launch (no bout.txt), so the prologue follows it.
+			bColdRaised = false;
+			EnterPrologue();
 			return;
 		}
 		Accumulator = FMath::Min(Accumulator + DeltaSeconds, FrameCap());
@@ -1293,7 +1380,19 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 
 	if (Games.Phase == TEXT("offer") || Games.Phase == TEXT("intermission") || Games.Phase == TEXT("lost"))
 	{
-		if (BothPalmsRaised())
+		// T21: "both palms to start over" needs palms raised in this phase. Palms still up from the ritual's offer (a
+		// desktop clip's last frame stays the hand's latest) must not restart the teach in the next intermission.
+		if (StartOverPhase != Games.Phase)
+		{
+			StartOverPhase = Games.Phase;
+			bStartOverArmed = false;
+		}
+		const bool bBothPalms = BothPalmsRaised();
+		if (!bBothPalms)
+		{
+			bStartOverArmed = true;
+		}
+		if (bBothPalms && bStartOverArmed)
 		{
 			OfferHold += DeltaSeconds;
 			bOfferContinue = false;
@@ -1301,6 +1400,11 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 			{
 				BoutWave = 0;
 				ClearSavedBout();
+				// Starting over forgets the day's arena flags too, and with them the day's Cracks and Tithe tally. The lifetime
+				// Cracks in collar.ledger.json stay: the collar remembers every crack, whatever day the player starts over.
+				Flags.Reset();
+				IFileManager::Get().Delete(*FlagsFilePath(), false, true, true);
+				Note(TEXT("day start over"));
 				EnterTeach();
 				return;
 			}
@@ -1308,24 +1412,33 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		else
 		{
 			OfferHold = 0.0;
+			if (!bOfferContinue && Games.Phase == TEXT("intermission") && AdvancePick(DeltaSeconds))
+			{
+				return;
+			}
 			if (bOfferContinue)
 			{
 				bOfferContinue = false;
 				if (Games.Phase == TEXT("intermission"))
 				{
-					if (TryAdvanceGames(Games))
+					if (IsPickOffered())
 					{
-						BoutWave = Games.Wave;
-						WriteSavedBout(BoutWave);
+						bPickClosed = true;
+						Note(FString::Printf(TEXT("pick none (palm raised) tideOrbIV=%s"), *PlayerComposition().Branches.TideOrb));
 					}
-					else
-					{
-						Games.Phase = TEXT("complete");
-					}
+					ContinueIntermission();
 				}
 				else if (Games.Phase == TEXT("lost"))
 				{
-					Start(BoutSeed);
+					if (bDay)
+					{
+						// Defeat offers the same bout again, with its intro.
+						StartDayBout(Games.Wave);
+					}
+					else
+					{
+						Start(BoutSeed);
+					}
 				}
 				else
 				{
@@ -1371,5 +1484,153 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		Accumulator -= Step;
 		StepTeachTick();
 		++Steps;
+	}
+}
+
+bool FArenaSession::LoadPlayerPresetFile(const TCHAR* Context)
+{
+	FPlayerPreset Loaded;
+	FString Error;
+	if (!LoadPlayerPreset(Loaded, Error, PresetPath))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("%s: %s"), Context, *Error);
+		return false;
+	}
+	PlayerPreset = MoveTemp(Loaded);
+	return true;
+}
+
+FComposition FArenaSession::PlayerComposition() const
+{
+	return PlayerPreset.WithPick(StonePick);
+}
+
+bool FArenaSession::IsPickOffered() const
+{
+	return Games.Phase == TEXT("intermission") && PlayerPreset.Pick.bEnabled && !bPickClosed
+		&& Games.Wave == PlayerPreset.Pick.AfterBout - 1;
+}
+
+double FArenaSession::GetPickHoldFraction() const
+{
+	if (PickHoldStone < 0 || Tuning.OfferHoldS <= 0.0)
+	{
+		return 0.0;
+	}
+	return FMath::Clamp(PickHold / Tuning.OfferHoldS, 0.0, 1.0);
+}
+
+FString FArenaSession::PickStoneKey(int32 Index) const
+{
+	if (Index == 0)
+	{
+		return FString::Printf(TEXT("pick.tideOrb.%s"), *PlayerPreset.Pick.Left);
+	}
+	if (Index == 2)
+	{
+		return FString::Printf(TEXT("pick.tideOrb.%s"), *PlayerPreset.Pick.Right);
+	}
+	return TEXT("pick.continue");
+}
+
+bool FArenaSession::AdvancePick(double DeltaSeconds)
+{
+	if (!IsPickOffered())
+	{
+		PickHold = 0.0;
+		PickHoldStone = -1;
+		return false;
+	}
+	PickClock += DeltaSeconds;
+	// Same detection as the comfort stones: a palm or index tip within the stone radius. One palm held over one stone
+	// for teach.json offerHoldS picks it; leaving the stone cancels the hold. Desktop reaches the stones through played
+	// clips (Clips/stones), never a key shortcut into this function.
+	bool bInside[3] = {false, false, false};
+	StonesTouched(bInside);
+	int32 Touched = -1;
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		if (bInside[Index])
+		{
+			Touched = Index;
+			break;
+		}
+	}
+	if (Touched != PickHoldStone)
+	{
+		PickHold = 0.0;
+		PickHoldStone = Touched;
+		if (Touched >= 0)
+		{
+			Note(FString::Printf(TEXT("pick hold stone=%d"), Touched));
+		}
+	}
+	if (Touched >= 0)
+	{
+		PickHold += DeltaSeconds;
+		if (PickHold + 1.0e-9 >= Tuning.OfferHoldS)
+		{
+			ChoosePick(Touched, TEXT("stone"));
+			return true;
+		}
+	}
+	if (PickClock + 1.0e-9 >= PlayerPreset.Pick.TimeoutS)
+	{
+		bPickClosed = true;
+		PickHold = 0.0;
+		PickHoldStone = -1;
+		Note(FString::Printf(TEXT("pick timeout t=%.2f tideOrbIV=%s"), PickClock, *PlayerComposition().Branches.TideOrb));
+		ContinueIntermission();
+		return true;
+	}
+	return false;
+}
+
+void FArenaSession::ChoosePick(int32 Stone, const TCHAR* Reason)
+{
+	const FStonePick& Pick = PlayerPreset.Pick;
+	if (Stone == 0)
+	{
+		StonePick = Pick.Left;
+	}
+	else if (Stone == 2)
+	{
+		StonePick = Pick.Right;
+	}
+	// The centre stone continues and keeps whatever the composition has.
+	const FComposition Composition = PlayerComposition();
+	if (FActor* Player = SimFindActor(Games.State, Games.PlayerId))
+	{
+		// The player is idle in the intermission. The branch is read when a tier IV orb is cast, so it applies from the
+		// next bout on.
+		Player->Water.Composition.Branches.TideOrb = Composition.Branches.TideOrb;
+	}
+	bPickClosed = true;
+	PickHold = 0.0;
+	PickHoldStone = -1;
+	Note(FString::Printf(TEXT("pick %s stone=%d t=%.2f tideOrbIV=%s"), Reason, Stone, PickClock, *Composition.Branches.TideOrb));
+	ContinueIntermission();
+}
+
+void FArenaSession::ContinueIntermission()
+{
+	// The day picks the opponent school per bout (Brennic's Fire semifinal, the tiroFinal school). SetBout pins it.
+	if (!bSchoolPinned && DayFire.IsValidIndex(Games.Wave + 1))
+	{
+		Games.bFireMages = DayFire[Games.Wave + 1];
+	}
+	if (TryAdvanceGames(Games))
+	{
+		BoutWave = Games.Wave;
+		WriteSavedBout(BoutWave);
+		ResetBoutScript();
+		if (bDay)
+		{
+			EnterIntro();
+		}
+	}
+	else
+	{
+		Games.Phase = TEXT("complete");
 	}
 }

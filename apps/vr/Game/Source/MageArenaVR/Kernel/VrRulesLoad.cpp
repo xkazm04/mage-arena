@@ -4,6 +4,7 @@
 #include "Kernel/KernelData.h"
 #include "MageArenaVR.h"
 
+#include "Kernel/SimConstants.h"
 #include "Kernel/SimMath.h"
 
 #include "Dom/JsonObject.h"
@@ -16,6 +17,7 @@
 #include "Serialization/JsonSerializer.h"
 
 #include <cmath>
+#include <initializer_list>
 
 namespace
 {
@@ -70,6 +72,38 @@ bool NeedBool(const FJsonObject& Object, const TCHAR* Field, bool& Out, FString&
 	{
 		return Fail(Error, FString::Printf(TEXT("vr rules: missing bool %s"), Field));
 	}
+	return true;
+}
+
+// Absent leaves Slot as it is. Present must be a JSON number (not a numeric string) inside [Min, Max].
+bool ReadOptionalStrictNumber(const FJsonObject& Object, const TCHAR* Field, double& Slot, FString& Error, double Min, double Max)
+{
+	const TSharedPtr<FJsonValue> Value = Object.TryGetField(Field);
+	if (!Value.IsValid())
+	{
+		return true;
+	}
+	if (Value->Type != EJson::Number || !(Value->AsNumber() >= Min && Value->AsNumber() <= Max))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: %s must be a number in [%g, %g]"), Field, Min, Max));
+	}
+	Slot = Value->AsNumber();
+	return true;
+}
+
+// Absent leaves Slot as it is. Present must be a JSON true or false.
+bool ReadOptionalStrictBool(const FJsonObject& Object, const TCHAR* Field, bool& Slot, FString& Error)
+{
+	const TSharedPtr<FJsonValue> Value = Object.TryGetField(Field);
+	if (!Value.IsValid())
+	{
+		return true;
+	}
+	if (Value->Type != EJson::Boolean)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: %s must be true or false"), Field));
+	}
+	Slot = Value->AsBool();
 	return true;
 }
 
@@ -318,6 +352,307 @@ bool ReadThrow(const FJsonObject& Attack, const FEnemySpec& Conscript, const FAt
 	return true;
 }
 
+bool OnlyKnownKeys(const FJsonObject& Object, std::initializer_list<const TCHAR*> Known, const TCHAR* Where, FString& Error)
+{
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Object.Values)
+	{
+		if (Pair.Key.StartsWith(TEXT("_")))
+		{
+			continue;
+		}
+		bool bKnown = false;
+		for (const TCHAR* Name : Known)
+		{
+			bKnown |= Pair.Key == Name;
+		}
+		if (!bKnown)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s has an unknown key %s"), Where, *Pair.Key));
+		}
+	}
+	return true;
+}
+
+bool WholeNumber(double Value, double Min, double Max, int32& Out)
+{
+	const double Whole = std::round(Value);
+	if (std::abs(Value - Whole) > 1.0e-9 || Whole < Min || Whole > Max)
+	{
+		return false;
+	}
+	Out = static_cast<int32>(Whole);
+	return true;
+}
+
+// DECISIONS 2026-10-07 (DF-003 answered). Absent block: no rival, today's duel.
+bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Error)
+{
+	Out.Reset();
+	if (!Overlay.HasField(TEXT("rivals")))
+	{
+		return true;
+	}
+	const FJsonObject* Block = nullptr;
+	if (!NeedObject(Overlay, TEXT("rivals"), Block, Error))
+	{
+		return Fail(Error, TEXT("vr rules: rivals must be an object"));
+	}
+	const FKernelData& Data = KernelData();
+	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Block->Values)
+	{
+		if (Pair.Key.StartsWith(TEXT("_")))
+		{
+			continue;
+		}
+		const TSharedPtr<FJsonObject> Entry = Pair.Value.IsValid() && Pair.Value->Type == EJson::Object ? Pair.Value->AsObject() : nullptr;
+		if (!Entry.IsValid())
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: rival %s is not an object"), *Pair.Key));
+		}
+		const FString Where = FString::Printf(TEXT("rival %s"), *Pair.Key);
+		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers")}, *Where, Error))
+		{
+			return false;
+		}
+		FVrRival Rival;
+		Rival.Id = Pair.Key;
+		const FJsonObject* Applies = nullptr;
+		double Surge = 0.0;
+		if (!NeedString(*Entry, TEXT("school"), Rival.School, Error) || !NeedObject(*Entry, TEXT("appliesTo"), Applies, Error)
+			|| !NeedNumber(*Entry, TEXT("surgeTiers"), Surge, Error))
+		{
+			return false;
+		}
+		if (Rival.School != TEXT("fire") && Rival.School != TEXT("water") && Rival.School != TEXT("air"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s school must be fire, water or air (the kernel schools)"), *Where));
+		}
+		if (!WholeNumber(Surge, 0.0, static_cast<double>(TierCap - 1), Rival.SurgeTiers))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s surgeTiers must be an integer from 0 to %d"), *Where, TierCap - 1));
+		}
+		double WaveN = 0.0;
+		if (!OnlyKnownKeys(*Applies, {TEXT("tier"), TEXT("waveN"), TEXT("kind")}, *Where, Error)
+			|| !NeedString(*Applies, TEXT("tier"), Rival.TierId, Error) || !NeedNumber(*Applies, TEXT("waveN"), WaveN, Error)
+			|| !NeedString(*Applies, TEXT("kind"), Rival.WaveKind, Error))
+		{
+			return false;
+		}
+		const FArenaTier* Tier = Data.ArenaTiers.FindByPredicate([&](const FArenaTier& Candidate) { return Candidate.Id == Rival.TierId; });
+		if (!Tier)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.tier %s is not a pinned arena tier"), *Where, *Rival.TierId));
+		}
+		if (!WholeNumber(WaveN, 1.0, static_cast<double>(Tier->Waves.Num()), Rival.WaveN))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.waveN must be a wave of %s"), *Where, *Rival.TierId));
+		}
+		const FArenaWave& Wave = Tier->Waves[Rival.WaveN - 1];
+		if (Wave.N != Rival.WaveN || Wave.Kind != Rival.WaveKind)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo.kind %s is not wave %d's kind"), *Where, *Rival.WaveKind, Rival.WaveN));
+		}
+		if (!Wave.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s appliesTo names a wave with no mage"), *Where));
+		}
+		const TArray<TSharedPtr<FJsonValue>>* Phases = nullptr;
+		if (!Entry->TryGetArrayField(TEXT("phases"), Phases) || !Phases || Phases->Num() < 1 || Phases->Num() > 2)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s phases must list one or two breaks (two or three phases)"), *Where));
+		}
+		double Previous = 1.0;
+		int32 Signatures = 0;
+		for (const TSharedPtr<FJsonValue>& Value : *Phases)
+		{
+			const TSharedPtr<FJsonObject> PhaseJson = Value.IsValid() && Value->Type == EJson::Object ? Value->AsObject() : nullptr;
+			if (!PhaseJson.IsValid())
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s phase is not an object"), *Where));
+			}
+			FVrRivalPhase Phase;
+			if (!OnlyKnownKeys(*PhaseJson, {TEXT("atHpFraction"), TEXT("opensWith")}, *Where, Error)
+				|| !NeedNumber(*PhaseJson, TEXT("atHpFraction"), Phase.AtHpFraction, Error))
+			{
+				return false;
+			}
+			if (!(Phase.AtHpFraction > 0.0 && Phase.AtHpFraction < Previous))
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s atHpFraction must be in (0, 1) and fall phase by phase"), *Where));
+			}
+			Previous = Phase.AtHpFraction;
+			if (PhaseJson->HasField(TEXT("opensWith")))
+			{
+				if (!NeedString(*PhaseJson, TEXT("opensWith"), Phase.OpensWith, Error))
+				{
+					return false;
+				}
+				// The signature belongs to the rival's school: a pinned fire row for fire, a VR air row (T23) for air.
+				const bool bFireSignature = Rival.School == TEXT("fire") && FindFireSpell(Phase.OpensWith);
+				const bool bAirSignature = Rival.School == TEXT("air") && FindAirSpell(Phase.OpensWith);
+				if (!bFireSignature && !bAirSignature)
+				{
+					return Fail(Error, FString::Printf(TEXT("vr rules: %s opensWith %s is not a spell of its school (%s)"), *Where, *Phase.OpensWith, *Rival.School));
+				}
+				++Signatures;
+			}
+			Rival.Phases.Add(Phase);
+		}
+		if (Signatures > 1)
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s may open only one phase with a signature"), *Where));
+		}
+		for (const FVrRival& Other : Out)
+		{
+			if (Other.TierId == Rival.TierId && Other.WaveN == Rival.WaveN && Other.School == Rival.School)
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: %s and %s apply to the same mage"), *Other.Id, *Rival.Id));
+			}
+		}
+		Out.Add(Rival);
+	}
+	return true;
+}
+
+// T21. Required. The Tiro final's opponent: { school, rival }. Rival null is a mage of that school with no phases, so no
+// rival may apply to the final in that school. A named rival must exist in rivals (already validated, so its school is
+// a kernel school) and apply to the final in the same school. Until T23 brings an Air rival, school "air" fails here.
+bool ReadTiroFinal(const FJsonObject& Overlay, const TArray<FVrRival>& Rivals, FVrTiroFinal& Out, FString& Error)
+{
+	Out = FVrTiroFinal();
+	const FJsonObject* Block = nullptr;
+	if (!NeedObject(Overlay, TEXT("tiroFinal"), Block, Error))
+	{
+		return false;
+	}
+	if (!OnlyKnownKeys(*Block, {TEXT("school"), TEXT("rival")}, TEXT("tiroFinal"), Error))
+	{
+		return false;
+	}
+	if (!NeedString(*Block, TEXT("school"), Out.School, Error))
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.school must be a string"));
+	}
+	const TSharedPtr<FJsonValue> RivalValue = Block->TryGetField(TEXT("rival"));
+	if (!RivalValue.IsValid())
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.rival is missing (null for a mage with no phases)"));
+	}
+	if (RivalValue->Type == EJson::String)
+	{
+		Out.Rival = RivalValue->AsString();
+		if (Out.Rival.IsEmpty())
+		{
+			return Fail(Error, TEXT("vr rules: tiroFinal.rival is empty (use null for a mage with no phases)"));
+		}
+	}
+	else if (RivalValue->Type != EJson::Null)
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal.rival must be a rival id or null"));
+	}
+	const FKernelData& Data = KernelData();
+	if (Data.ArenaTiers.Num() == 0 || Data.ArenaTiers[0].Waves.Num() == 0)
+	{
+		return Fail(Error, TEXT("vr rules: tiroFinal needs the pinned Tiro waves"));
+	}
+	const FArenaTier& Tiro = Data.ArenaTiers[0];
+	const FArenaWave& Final = Tiro.Waves.Last();
+	if (Final.Kind != TEXT("final") || !Final.Spawns.ContainsByPredicate([](const FWaveSpawn& Spawn) { return !Spawn.bEnemy; }))
+	{
+		return Fail(Error, TEXT("vr rules: the last pinned Tiro wave is not a final with a mage"));
+	}
+	if (Out.Rival.IsEmpty())
+	{
+		if (Out.School != TEXT("fire") && Out.School != TEXT("water"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.school %s is not a kernel school (fire or water)"), *Out.School));
+		}
+		for (const FVrRival& Rival : Rivals)
+		{
+			if (Rival.TierId == Tiro.Id && Rival.WaveN == Final.N && Rival.School == Out.School)
+			{
+				return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.rival is null but rival %s applies to the final"), *Rival.Id));
+			}
+		}
+		return true;
+	}
+	const FVrRival* Named = Rivals.FindByPredicate([&Out](const FVrRival& Rival) { return Rival.Id == Out.Rival; });
+	if (!Named)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: tiroFinal.rival %s is not in rivals"), *Out.Rival));
+	}
+	if (Named->TierId != Tiro.Id || Named->WaveN != Final.N || Named->WaveKind != Final.Kind || Named->School != Out.School)
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: rival %s does not apply to the Tiro final in school %s"), *Out.Rival, *Out.School));
+	}
+	return true;
+}
+
+// DF-004 option A. The hound's spit is an overlay row standing in for the pinned bite. Every number is tied to a pinned
+// one: family, tier and damage are the pinned onDeath ember_burst, the windup is above the positional telegraph floor,
+// the speed is slower than the pinned steel (sling_stone), and the range is the conscript throw's (checked by the caller).
+bool ReadSpit(const FJsonObject& Attack, const FEnemySpec& Hound, const FAttackSpec& Bite, const FAttackSpec& Stone, FVrAttackMode& Mode, FString& Error)
+{
+	FString ModeName;
+	FString AttackId;
+	if (!NeedString(Attack, TEXT("mode"), ModeName, Error) || !NeedString(Attack, TEXT("attackId"), AttackId, Error))
+	{
+		return false;
+	}
+	if (ModeName != TEXT("spit") || AttackId != Bite.Id)
+	{
+		return Fail(Error, TEXT("vr rules: cinder_hound mode must be spit in place of bite"));
+	}
+	if (Attack.HasField(TEXT("recoveryS")) || Attack.HasField(TEXT("cooldownS")))
+	{
+		return Fail(Error, TEXT("vr rules: cinder_hound recovery and cooldown stay on the pinned bite row"));
+	}
+	if (!Hound.OnDeath.IsSet())
+	{
+		return Fail(Error, TEXT("vr rules: pinned cinder_hound has no onDeath ember_burst"));
+	}
+	const FDeathSpec& Death = Hound.OnDeath.GetValue();
+	double Tier = 0.0;
+	if (!NeedString(Attack, TEXT("family"), Mode.Family, Error)
+		|| !NeedNumber(Attack, TEXT("tier"), Tier, Error)
+		|| !NeedNumber(Attack, TEXT("damage"), Mode.Damage, Error)
+		|| !NeedNumber(Attack, TEXT("windupS"), Mode.WindupS, Error)
+		|| !NeedNumber(Attack, TEXT("projectileMps"), Mode.ProjectileMps, Error)
+		|| !NeedNumber(Attack, TEXT("rangeM"), Mode.RangeM, Error)
+		|| !NeedBool(Attack, TEXT("deathEmber"), Mode.bDeathEmber, Error))
+	{
+		return false;
+	}
+	const TCHAR* Whys[] = {TEXT("_family"), TEXT("_tier"), TEXT("_damage"), TEXT("_windupS"), TEXT("_projectileMps"), TEXT("_rangeM"), TEXT("_deathEmber")};
+	for (const TCHAR* Why : Whys)
+	{
+		FString Text;
+		if (!Attack.TryGetStringField(Why, Text) || Text.TrimStartAndEnd().IsEmpty())
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: cinder_hound spit needs %s"), Why));
+		}
+	}
+	if (Mode.Family != Death.Family || !Near(Tier, static_cast<double>(Death.Tier)) || !Near(Mode.Damage, Death.Damage))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: spit family/tier/damage must be the pinned %s (%s / %d / %.4f)"),
+			*Death.Id, *Death.Family, Death.Tier, Death.Damage));
+	}
+	Mode.Tier = Death.Tier;
+	if (!(Mode.WindupS > KernelData().MinimumTelegraphPositionalS))
+	{
+		return Fail(Error, FString::Printf(TEXT("vr rules: spit windup must be above the positional telegraph floor %.2f s"),
+			KernelData().MinimumTelegraphPositionalS));
+	}
+	if (!Stone.ProjectileMps.IsSet() || !(Mode.ProjectileMps > 0.0) || !(Mode.ProjectileMps < Stone.ProjectileMps.GetValue()))
+	{
+		return Fail(Error, TEXT("vr rules: spit speed must be above zero and slower than the pinned sling stone"));
+	}
+	Mode.bThrow = true;
+	Mode.bSpit = true;
+	Mode.EnemyId = Hound.Id;
+	return true;
+}
+
 bool ProposalRequested()
 {
 	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")))
@@ -432,6 +767,15 @@ bool ApplyProposal(FVrRuleset& Out, FString& Error)
 }
 }
 
+bool ApplyVrCalibrationProposal(FVrRuleset& Out, FString& Error)
+{
+	if (!Out.bActive)
+	{
+		return Fail(Error, TEXT("vr rules: the proposal needs a loaded overlay"));
+	}
+	return ApplyProposal(Out, Error);
+}
+
 void SetVrDataDirForTest(const FString& Dir)
 {
 	GVrDataDirOverride = Dir;
@@ -516,7 +860,9 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	}
 	bool bConscript = false;
 	bool bSlinger = false;
+	bool bHound = false;
 	FVrAttackMode Throw;
+	FVrAttackMode Spit;
 	for (const TSharedPtr<FJsonValue>& Value : *Attacks)
 	{
 		const TSharedPtr<FJsonObject> Attack = Value.IsValid() ? Value->AsObject() : nullptr;
@@ -556,6 +902,28 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 			}
 			bSlinger = true;
 		}
+		else if (EnemyId == TEXT("cinder_hound") && ModeName == TEXT("spit"))
+		{
+			if (bHound)
+			{
+				return Fail(Error, TEXT("vr rules: cinder_hound listed twice"));
+			}
+			const FEnemySpec* Hound = FindEnemy(TEXT("cinder_hound"));
+			const FAttackSpec* Bite = Hound ? FindAttack(*Hound, TEXT("bite")) : nullptr;
+			if (!Hound || !Bite)
+			{
+				return Fail(Error, TEXT("vr rules: pinned cinder_hound bite is missing"));
+			}
+			if (!ReadSpit(*Attack, *Hound, *Bite, *Stone, Spit, Error))
+			{
+				return false;
+			}
+			bHound = true;
+		}
+		else if (ModeName == TEXT("spit"))
+		{
+			return Fail(Error, FString::Printf(TEXT("vr rules: %s spit is not a mode this overlay knows; only cinder_hound spits"), *EnemyId));
+		}
 		else if (ModeName == TEXT("throw"))
 		{
 			return Fail(Error, FString::Printf(TEXT("vr rules: %s throw is not a wave-1 mode this overlay knows"), *EnemyId));
@@ -568,6 +936,10 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	if (!bConscript || !bSlinger)
 	{
 		return Fail(Error, TEXT("vr rules: attacks must name conscript and slinger"));
+	}
+	if (bHound && !Near(Spit.RangeM, Throw.RangeM))
+	{
+		return Fail(Error, TEXT("vr rules: spit rangeM must be the conscript throw reach"));
 	}
 	const FSimVec Spawn = KernelData().PlayerSpawn;
 	const FSimVec Centre{
@@ -608,9 +980,20 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	{
 		return Fail(Error, TEXT("vr rules: plantedStaff duration, mana, or reduction is out of range"));
 	}
+	// DECISIONS 2026-10-07 split hands. Absent keeps the rule before T17 (latch until the ward drops, no split Bolt at
+	// full Flow), so older overlay files still load. A wrong type or range fails the load.
+	double LatchClearIdleS = -1.0;
+	bool bBoltAtFullFlow = false;
+	if (!ReadOptionalStrictNumber(*Split, TEXT("latchClearIdleS"), LatchClearIdleS, Error, 0.0, 5.0)
+		|| !ReadOptionalStrictBool(*Split, TEXT("boltAtFullFlow"), bBoltAtFullFlow, Error))
+	{
+		return false;
+	}
 	Out.Split.bEnabled = true;
 	Out.Split.OneHandPower = OneHandPower;
 	Out.Split.MaxTier = static_cast<int32>(TierRounded);
+	Out.Split.LatchClearIdleS = LatchClearIdleS;
+	Out.Split.bBoltAtFullFlow = bBoltAtFullFlow;
 	Out.Staff.bEnabled = true;
 	Out.Staff.DurationS = DurationS;
 	Out.Staff.ManaUpFront = ManaUpFront;
@@ -687,6 +1070,15 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.bNarrow = false;
 	Out.bGentle = false;
 
+	if (!ReadRivals(*Overlay, Out.Rivals, Error))
+	{
+		return false;
+	}
+	if (!ReadTiroFinal(*Overlay, Out.Rivals, Out.TiroFinal, Error))
+	{
+		return false;
+	}
+
 	Out.bActive = true;
 	Out.StandoffM = Standoff;
 	Out.Dais.MinX = Centre.X - HalfX;
@@ -694,6 +1086,10 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.Dais.MinY = Centre.Y - HalfY;
 	Out.Dais.MaxY = Centre.Y + HalfY;
 	Out.Throws.Add(Throw);
+	if (bHound)
+	{
+		Out.Throws.Add(Spit);
+	}
 	if (bHonorProposalSwitch && ProposalRequested())
 	{
 		if (!ApplyProposal(Out, Error))

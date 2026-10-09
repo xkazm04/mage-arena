@@ -5,6 +5,10 @@
 #include "Greybox/ArenaLayout.h"
 #include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
+#include "Session/ArenaFlags.h"
+#include "Session/CollarLedger.h"
+#include "Session/PlayerPreset.h"
+#include "Session/SessionCue.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
 
@@ -31,6 +35,11 @@ class UWardDetectorSubsystem;
 class USettingsCaptureDriver;
 class UTeachCaptureDriver;
 class UCreaturesCaptureDriver;
+class UPresetCaptureDriver;
+class UDayCaptureDriver;
+class UAirCaptureDriver;
+class UCollarCaptureDriver;
+class UColourAudioCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -78,6 +87,18 @@ struct FTeachTuning
 };
 
 /**
+ * T21 day timings from data/vr/day.json. Strict: a missing or bad file fails BeginArc.
+ */
+struct FDayTuning
+{
+	double PrologueMaxS = 10.0;
+	double RitualLineS = 3.0;
+	double RitualTimeoutS = 20.0;
+	double IntroS = 3.0;
+	double AftermathTabletS = 4.0;
+};
+
+/**
  * Owns one Tiro bout. Gestures become kernel inputs. Kernel actors stay in kernel
  * metres; presentation reads them. The player is pinned to the active pad on every
  * tick. There is no move input. Blink is the only position change: one roll edge
@@ -98,9 +119,19 @@ public:
 		UStaffDetectorSubsystem* InStaff = nullptr);
 	void Unbind();
 
-	/** Wave index 0, Rotation composition, human player, unless SetBout says otherwise. Clears pause. */
+	/**
+	 * Wave index 0, the VR player preset (presets.json, cassia) with the saved stone pick, human player, unless SetBout
+	 * says otherwise. Clears pause. A missing or bad presets.json fails the start.
+	 */
 	bool Start(uint32 Seed);
+	/** Pins the opponent school for every wave (true: Fire mages). Without it the day picks the school per bout. */
 	void SetBout(int32 WaveIndex, bool bInFireMages);
+	/**
+	 * T23 (DECISIONS 2026-10-07: the Tiro final is the second school, Air). With the school mages on (SetBout's
+	 * bInFireMages), the final spawns Lio's air mage and the semifinal stays Brennic's fire mage. On by default; false
+	 * gives the pre-T23 fire final (the calibration sweep keeps that duel so its numbers stay comparable).
+	 */
+	void SetAirFinal(bool bInAirFinal) { bAirFinal = bInAirFinal; }
 	void SetPolicy(const FSeatedPolicy& InPolicy);
 	void SetRulesOverride(const FVrRuleset& Rules);
 	void SetQuiet(bool bInQuiet);
@@ -111,15 +142,74 @@ public:
 	void SetFrameHold(bool bHold) { bFrameHold = bHold; }
 
 	/**
-	 * Cold start, then the teach, then Wave 1. Start() stays the bout launcher so the
-	 * design tests that call it directly keep their timing.
+	 * The Tiro day (T21). Start() stays the bout launcher so the design tests that call it directly keep their timing;
+	 * only BeginArc runs the day. Phases (GetStage):
+	 *   first launch (no bout.txt): cold -> prologue -> teach -> ritual
+	 *   resume (bout.txt names the next bout): offer -> ritual (palm) or offer -> teach -> ritual (both palms)
+	 *   then for each bout: intro -> active -> intermission (after bouts 1-3; the T20 pick after Bout 1 only)
+	 *   defeat: lost -> intro of the same bout (palm); in the final also lost -> aftermath (centre stone)
+	 *   after the final, won or lost: aftermath -> closed (centre stone)
+	 * prologue: story.prologue.tableau for up to day.json prologueMaxS, skipped by a palm held over the centre stone.
+	 * ritual: Septima's line for ritualLineS, then the offer line; both palms held for teach.json offerHoldS lock the
+	 * collar, and ritualTimeoutS (from the start of the ritual) continues anyway.
+	 * intro: the bout's intro line for introS while the opponents stand; the kernel steps only from active on.
 	 */
 	bool BeginArc(uint32 Seed);
+	/** Testing only: from cold, prologue, offer or the teach straight to the ritual. */
 	void SkipTeach();
+	/** Leaves the day: Start() is a single bout again (the MageArena.Session.Start console command). */
+	void LeaveDay() { bDay = false; }
+	bool IsDay() const { return bDay; }
+	const FDayTuning& GetDayTuning() const { return DayTuning; }
+	/** Seconds in the current day phase (prologue, ritual, intro, aftermath, closed). */
+	double GetPhaseClock() const { return PhaseClock; }
+	const FArenaFlags& GetFlags() const { return Flags; }
+	FString FlagsFilePath() const;
+	/** "fire" or "water": the kernel school of the opponent mage for this Tiro wave index in the day. */
+	FString DaySchool(int32 WaveIndex) const;
+	/**
+	 * The tablet text in the aftermath: one row per bout from the flags (result, time, tries, Cracks, Tithe), the day's
+	 * totals and the lifetime Cracks. Empty outside the aftermath. The only place the collar shows numbers.
+	 */
+	FString GetTabletText() const;
+	/** T22: the collar ledger (weights, this bout's tally, lifetime totals). */
+	const FCollarLedger& GetCollar() const { return Collar; }
+	/**
+	 * The day's Cracks or Tithe: the recorded bouts' flags plus the bout in progress. Outside a day (a single Start), the
+	 * bout's own tally.
+	 */
+	int32 GetDayCracks() const;
+	int32 GetDayTithe() const;
+	/** collar.ledger.json next to bout.txt: the lifetime totals. */
+	FString CollarFilePath() const;
+	/** The stones carry one choice (the centre stone): prologue skip, end the day, or end it after a lost final. */
+	bool AreStoryStonesShown() const;
+	FString StoryStoneKey(int32 Index) const;
+	int32 GetStoryHoldStone() const { return StoryHoldStone; }
+	double GetStoryHoldFraction() const;
+	/** The aftermath reports a won final. */
+	bool WasFinalWon() const { return bFinalWon; }
 	void NotifyFocusLost();
 	void NotifyHeadsetRemoved();
 	void NotifyQuit();
 	void SetSaveDirectory(const FString& Directory);
+	/** Tests only: read the player preset from this file instead of apps/vr/data/vr/presets.json. */
+	void SetPresetPath(const FString& Path) { PresetPath = Path; }
+
+	/** The loaded player preset. Valid after a successful Start or BeginArc. */
+	const FPlayerPreset& GetPlayerPreset() const { return PlayerPreset; }
+	/** "A" or "B" once a stone pick was made or loaded from the save; empty means the preset default. */
+	const FString& GetStonePick() const { return StonePick; }
+	/** The stone pick is on offer: the intermission after the preset's afterBout, not picked, not timed out. */
+	bool IsPickOffered() const;
+	/** Seconds the pick has been on offer in this intermission. */
+	double GetPickClock() const { return PickClock; }
+	/** 0 left, 1 centre, 2 right while a palm is being held over that stone in a pick; -1 otherwise. */
+	int32 GetPickHoldStone() const { return PickHoldStone; }
+	/** 0..1 of offerHoldS for the stone being held. */
+	double GetPickHoldFraction() const;
+	/** The string key engraved on stone Index (0 left, 1 centre, 2 right) during a pick. */
+	FString PickStoneKey(int32 Index) const;
 
 	FString GetStage() const;
 	FString GetTeachStep() const;
@@ -158,6 +248,10 @@ public:
 	double GetSimSeconds() const;
 	int32 GetBlinkAccepts() const { return BlinkAccepts; }
 	bool WasSigilHit() const { return bSawSigilHit; }
+	/** T26: the recognizer's verdicts (sigil-complete, sigil-reject) in order, for the audio director's cursor. */
+	const TArray<FSessionCue>& GetSessionCues() const { return SessionCues; }
+	/** T26: a sigil pen is down on the hand or the mouse (the recognizer's stroke builders). */
+	bool IsSigilDrawing() const;
 	bool WasWardOnStone() const { return bSawWardOnStone; }
 	bool IsStaffPlanted() const;
 	FString TeachString(const TCHAR* Key) const;
@@ -173,6 +267,8 @@ public:
 
 private:
 	void HandleSigil(FName Line, float Score, double LatencyMs);
+	void HandleSigilRejected(double Distance);
+	void PushCue(const TCHAR* Kind);
 	void HandleWardRaised(double OnsetTime, FVector Facing);
 	void HandleWardLowered();
 	void HandleBlink(const FBlinkEvent& Event);
@@ -182,6 +278,10 @@ private:
 	void StepKernel();
 	void DecideScript();
 	void DrainEvents(const FActor* PlayerBefore);
+	/** T22: feeds this step's events (from EventCursor, before DrainEvents moves it) and the Crest counter to the ledger. */
+	void ObserveCollar(const FActor& Player, int32 Slot);
+	bool LoadCollarFile(const TCHAR* Context);
+	int32 DayCollar(const TCHAR* Field, int32 BoutValue) const;
 	void Note(const FString& Line);
 	void BeginCast(int32 Slot, const TCHAR* Gesture, bool bKeepWard);
 	bool WouldSplitRefuse(int32 Slot) const;
@@ -189,7 +289,8 @@ private:
 	FString ClipAction() const;
 	bool ClipPlaying() const;
 	FSimVec ComputeAim(int32 Slot) const;
-	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta) const;
+	/** EmberEta is a hound ember's time to contact (DF-004 option A). Embers are not in ProjectileEta or MagicEta. */
+	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const;
 	/** Stamina, recovery and a blink clip already playing. No side effects. */
 	bool CanBlink(const FActor& Player) const;
 	bool TryScriptBlink();
@@ -218,11 +319,36 @@ private:
 	};
 
 	bool LoadTeachData();
+	bool LoadDayData();
+	static bool IsArcPhase(const FString& Phase);
+	void EnterPrologue();
+	void EnterRitual();
+	void StartDayBout(int32 Wave);
+	void EnterIntro();
+	void EnterAftermath(bool bWon);
+	void EndDay();
+	/** Prologue, ritual, intro, aftermath, closed and the lost final's stone. True when it handled the phase. */
+	bool AdvanceDay(double DeltaSeconds);
+	/** Palm held over the centre stone for offerHoldS. */
+	bool HoldCentreStone(double DeltaSeconds);
+	void RecordBout(bool bWon);
+	void SaveFlags() const;
+	void ResetBoutScript();
+	/** Seconds since the current bout started (the reference script's opening timings are per bout). */
+	double BoutSeconds() const;
 	bool LoadStrings();
 	bool MakeQuietArena(uint32 Seed);
 	void AdvanceArc(double DeltaSeconds);
 	void ApplyComfort(FVrRuleset& Rules) const;
 	void PollComfortToggles();
+	/** Which of the three stones has a palm or index tip on it this frame (clip centimetres, seated origin). */
+	void StonesTouched(bool OutInside[3]) const;
+	bool LoadPlayerPresetFile(const TCHAR* Context);
+	FComposition PlayerComposition() const;
+	/** Returns true when the intermission was left (pick made, continue, or timeout). */
+	bool AdvancePick(double DeltaSeconds);
+	void ChoosePick(int32 Stone, const TCHAR* Reason);
+	void ContinueIntermission();
 	void DecideCold();
 	void DecideTeach();
 	void EnterTeach();
@@ -242,7 +368,8 @@ private:
 	bool BothPalmsRaised() const;
 	bool IsBothPalmsClip() const;
 	FString SaveFilePath() const;
-	int32 ReadSavedBout() const;
+	/** OutPick gets "A" or "B" from a tideOrbIV line, or stays empty. */
+	int32 ReadSavedBout(FString* OutPick = nullptr) const;
 	void WriteSavedBout(int32 Bout) const;
 	void ClearSavedBout() const;
 	void ContinueOffer();
@@ -260,6 +387,7 @@ private:
 	UBlinkDetectorSubsystem* Blinks = nullptr;
 	UStaffDetectorSubsystem* Staff = nullptr;
 	FDelegateHandle SigilHandle;
+	FDelegateHandle SigilRejectHandle;
 	FDelegateHandle WardRaisedHandle;
 	FDelegateHandle WardLoweredHandle;
 	FDelegateHandle BlinkHandle;
@@ -302,6 +430,9 @@ private:
 	bool bWardStarted = false;
 	bool bWardReleased = false;
 	double WardReleaseSim = 0.0;
+	// DF-004 option A: a ward raised for one hound ember, held until that ember has landed, then dropped.
+	bool bEmberWard = false;
+	double EmberWardUntil = 0.0;
 	bool bTideStarted = false;
 	int32 SideToggle = 0;
 	bool bSawSigilHit = false;
@@ -314,15 +445,37 @@ private:
 	FSeatedPolicy Policy;
 	int32 BoutWave = 0;
 	bool bFireMages = false;
+	bool bAirFinal = true;
 	bool bWingSeat = false;
 	bool bWingSeated = false;
 	int32 SunfallPad = -1;
+	// The Tempest Lance the chain already noted (activation id), so the escape is logged once per lance.
+	int32 TempestNoted = -1;
 	bool bQuiet = false;
 	TOptional<FVrRuleset> RulesOverride;
 
 	TArray<FString> Chain;
+	TArray<FSessionCue> SessionCues;
 
 	FTeachTuning Tuning;
+	FDayTuning DayTuning;
+	bool bDay = false;
+	bool bSchoolPinned = false;
+	// Per Tiro wave index: the day's opponent is a Fire mage. From the loaded ruleset at Start.
+	TArray<bool> DayFire;
+	double PhaseClock = 0.0;
+	double StoryHold = 0.0;
+	int32 StoryHoldStone = -1;
+	bool bStoryCue = false;
+	bool bFinalWon = false;
+	bool bRecorded = false;
+	int32 BoutStartTick = 0;
+	int32 BoutPerfectsStart = 0;
+	int32 StaffPlantsAtBout = 0;
+	FArenaFlags Flags;
+	FCollarLedger Collar;
+	FString StartOverPhase;
+	bool bStartOverArmed = false;
 	TMap<FString, FString> Strings;
 	ETeachStep TeachStep = ETeachStep::None;
 	double TeachClock = 0.0;
@@ -359,6 +512,13 @@ private:
 	bool bClockCue = false;
 	uint32 BoutSeed = 1;
 	FString SaveDir;
+	FString PresetPath;
+	FPlayerPreset PlayerPreset;
+	FString StonePick;
+	double PickClock = 0.0;
+	double PickHold = 0.0;
+	int32 PickHoldStone = -1;
+	bool bPickClosed = false;
 	double SnapHp = 0.0;
 	double SnapDamage = 0.0;
 	double SnapDummyHp = 0.0;
@@ -418,4 +578,17 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<USettingsCaptureDriver> SettingsCapture;
+
+	UPROPERTY()
+	TObjectPtr<UPresetCaptureDriver> PresetCapture;
+
+	UPROPERTY()
+	TObjectPtr<UDayCaptureDriver> DayCapture;
+	TObjectPtr<UAirCaptureDriver> AirCapture;
+
+	UPROPERTY()
+	TObjectPtr<UCollarCaptureDriver> CollarCapture;
+
+	UPROPERTY()
+	TObjectPtr<UColourAudioCaptureDriver> ColourAudioCapture;
 };

@@ -36,6 +36,9 @@ struct FGames
 	TArray<FSpawnRecord> SpawnLog;
 	// False keeps the pinned water-proxy duelists. Fire scenarios opt in.
 	bool bFireMages = false;
+	// T23 (DECISIONS 2026-10-07: the Tiro final is the second school, Air). With bFireMages set, the final (wave kind
+	// "final") spawns an air mage instead of a fire one; the semifinal stays Fire. False keeps the pre-T23 fire final.
+	bool bAirFinal = false;
 	// Set only when a session passes the VR overlay. Conformance leaves this empty.
 	TOptional<FVrRuleset> VrRules;
 };
@@ -60,7 +63,9 @@ struct FFightReport
 };
 
 // False when the wave index is outside Tiro. Does not checkf: the caller is a test.
-bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false, bool bFireMages = false, const FVrRuleset* Rules = nullptr);
+bool TryCreateGames(FGames& Out, uint32 Seed, const FComposition* Composition = nullptr, int32 StartWave = 0, bool bReferencePlayer = false, bool bFireMages = false, const FVrRuleset* Rules = nullptr, bool bAirFinal = false);
+// "water", "fire" or "air": the school of the mage that wave index Wave spawns in these games.
+FString GamesMageSchool(const FGames& Games, int32 Wave);
 void StepGames(FGames& Games, const FInputFrame* PlayerInput = nullptr);
 // False unless the phase is intermission.
 bool TryAdvanceGames(FGames& Games);
