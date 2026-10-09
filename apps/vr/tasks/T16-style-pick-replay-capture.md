@@ -1,6 +1,6 @@
 # T16 - Style-pick capture: one duel replay re-skinned in styles 13, 25 and 30 (P18)
 
-Status: open
+Status: open - deliverable 2 done (f933f5c, style skins + sampler; not yet loaded in the engine); 1 and 3-6 need the build machine
 Max turns: 320
 
 ## Goal

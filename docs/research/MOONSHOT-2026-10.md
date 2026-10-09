@@ -26,6 +26,7 @@ tree on 2026-10-09 and are re-verified by the builder before any code is written
 | - | Compile the Quest flavour on every gate: clang parity, Shipping proof, no dev code | build-config | XL | 9 | 5 | architecture | 1 | - | declined |
 | - | Gate every threat palette on CVD-aware legibility, in data and in frame | arena-greybox | XL | 8 | 3 | policy-tighten | 1 | - | declined |
 
+Cards: M6 = T33, M7 = T34, M3 = T35, M4 = T36 (Determinism package, run order T16 -> T33 -> T34 and T35 -> T36; build machine only).
 M3 and M4 are related but separate builds (the input clock, then the session on the sim tick with an input journal).
 M1 folds two cards that describe one build. Gates `architecture` and `direction` were approved for the backlog by this
 triage; `contract` (M8) still needs the TV repo's agreement before its CR format changes.
