@@ -9,6 +9,8 @@ struct FVrRuleset;
 const FFireSpell* FireSpellFor(const FActor& Actor, int32 Slot);
 int32 FireCooldownUntil(const FActor& Actor, const FString& SpellId);
 bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules = nullptr);
+// VR rivals: a cast that skips the tier gate, the cooldown and the mana cost. The normal cast path otherwise.
+bool StartGrantedFireCast(FArenaState& State, FActor& Actor, const FString& SpellId, const FSimVec& Aim, const FVrRuleset* Rules);
 void ReleaseFire(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nullptr);
 void UpdateFireResource(FArenaState& State, FActor& Actor);
 void UpdateFireOngoing(FArenaState& State, FActor& Actor);

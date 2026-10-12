@@ -187,6 +187,85 @@ struct FHeatThreshold
 	double StaminaRegenMult = 1.0;
 };
 
+// How an air row's momentum_gain cell is paid. Parsed from the cell, not a second copy of the numbers.
+enum class EAirMomentumMode : uint8
+{
+	None,
+	Hit,
+	Target,
+	Tick,
+	Instant,
+	Spend,
+	Lock
+};
+
+// apps/vr/data/vr/schools/spells-air.csv row (VR proposal, docs/schools/AIR.md). Same columns as spells-fire.csv,
+// with momentum_gain in place of heat_gain. Shape, damage text, momentum_gain and notes are parsed into the fields below.
+struct FAirSpell
+{
+	FString Id;
+	FString Name;
+	int32 Tier = 0;
+	FString Shape;
+	double CastS = 0.0;
+	double CooldownS = 0.0;
+	double Mana = 0.0;
+	double Damage = 0.0;
+	FString DamageText;
+	FString Blockable;
+	FString Family;
+	double TelegraphS = 0.0;
+	double RangeM = 0.0;
+	FString MomentumGain;
+	FString Notes;
+
+	// projectile, twin, dash, veer, zone, form, squall, self, line, beam.
+	FString Kind;
+	double SpeedMps = 0.0;
+	int32 Count = 1;
+	// Full fan width, as the water catalog stores Twin Tides: "+-12 deg" is a spread of 24.
+	double SpreadDeg = 0.0;
+	double DashM = 0.0;
+	double RadiusM = 0.0;
+	double DurationS = 0.0;
+	double TickS = 0.0;
+	double IntervalS = 0.0;
+	double EntryDeg = 0.0;
+	EAirMomentumMode MomentumMode = EAirMomentumMode::None;
+	double MomentumAmount = 0.0;
+	double MomentumLockValue = 0.0;
+	double MomentumLockS = 0.0;
+	double AbsorbDrainMult = 1.0;
+	double EvadePhysical = 0.0;
+	double EvadeMagic = 0.0;
+	double NeedMomentum = 0.0;
+	bool bRootDuringCast = false;
+	bool bBolt = false;
+};
+
+// schools.json air.combatIdentity. One effect per threshold; a higher band replaces each effect it names.
+struct FMomentumThreshold
+{
+	double At = 0.0;
+	bool bPierce = false;
+	int32 SpellsPierce = 0;
+	bool bRollStamina = false;
+	double RollStaminaMult = 1.0;
+	bool bRange = false;
+	double SpellRangeMult = 1.0;
+};
+
+struct FMomentumRules
+{
+	double Min = 0.0;
+	double Max = 0.0;
+	double GainPerSecondMoving = 0.0;
+	double MovingAboveMps = 0.0;
+	double DecayPerSecondStill = 0.0;
+	double AbsorbDrainMult = 1.0;
+	TArray<FMomentumThreshold> Thresholds;
+};
+
 struct FHeatRules
 {
 	double Min = 0.0;
@@ -352,9 +431,19 @@ struct FKernelData
 	// Same FSpell records the threat scan looks up by id. Not part of the water spell list.
 	TArray<FSpell> FireCatalog;
 	FHeatRules Heat;
+	// T23. The air rows are VR-owned (not pinned), so their file does not enter PinHash. Momentum is pinned schools.json.
+	TArray<FAirSpell> AirSpells;
+	TArray<FSpell> AirCatalog;
+	FMomentumRules Momentum;
 };
 
 const FFireSpell* FindFireSpell(const FString& Id);
+const FAirSpell* FindAirSpell(const FString& Id);
+
+// The strict air-row parse the loader uses, exposed so a test can feed it a bad cell. False with Error on the first
+// cell that does not parse; nothing is appended to the outputs then.
+bool ParseAirSpellsCsv(const FString& Text, TArray<FAirSpell>& OutSpells, TArray<FSpell>& OutCatalog, FString& Error);
+FString KernelDataAirSpellsPath();
 
 const FKernelData& KernelData();
 

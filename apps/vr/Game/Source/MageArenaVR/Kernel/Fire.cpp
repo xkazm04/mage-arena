@@ -169,18 +169,15 @@ int32 FireCooldownUntil(const FActor& Actor, const FString& SpellId)
 	return 0;
 }
 
-bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules)
+namespace
 {
-	if (Actor.Pending.IsSet() || FireChannelBusy(Actor))
+// The cast start every fire spell shares. bPay false is the granted signature: no mana leaves the pool.
+void BeginFireCast(FArenaState& State, FActor& Actor, const FFireSpell* Spell, const FSimVec& Aim, const FVrRuleset* Rules, bool bPay)
+{
+	if (bPay)
 	{
-		return false;
+		Actor.Mana -= Spell->Mana;
 	}
-	const FFireSpell* Spell = FireSpellFor(Actor, Input.Slot);
-	if (!Spell || State.Tick < FireCooldownUntil(Actor, Spell->Id) || Actor.Mana < Spell->Mana)
-	{
-		return false;
-	}
-	Actor.Mana -= Spell->Mana;
 	SetFireCooldown(Actor, Spell->Id, State.Tick + SimTicks(Spell->CooldownS));
 	// Sunfall's cast and its shadow are two phases, so the windup is only cast_s. Every other row uses the longer of the two columns.
 	const double Windup = VrOpponentTelegraph(Rules, Actor.Team, Spell->bSequentialTelegraph ? Spell->CastS : std::max(Spell->CastS, Spell->TelegraphS));
@@ -189,7 +186,7 @@ bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, co
 	Pending.StartTick = State.Tick;
 	Pending.ReleaseTick = State.Tick + SimTicks(Windup);
 	const bool bPlaced = Spell->Kind == TEXT("zone") || Spell->Kind == TEXT("meteor");
-	Pending.Aim = bPlaced ? PlacedPoint(Actor, Input.Aim, Spell->RangeM) : Input.Aim;
+	Pending.Aim = bPlaced ? PlacedPoint(Actor, Aim, Spell->RangeM) : Aim;
 	if (bPlaced && Rules && Rules->bNarrow && Actor.Team != 0)
 	{
 		Pending.Aim = Rules->CompressToArc(Pending.Aim);
@@ -203,6 +200,37 @@ bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, co
 		Actor.Fire.SunfallCastTick = State.Tick;
 	}
 	Emit(State, TEXT("cast"), Actor, Spell->Tier);
+}
+}
+
+bool TryFireCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, const FVrRuleset* Rules)
+{
+	if (Actor.Pending.IsSet() || FireChannelBusy(Actor))
+	{
+		return false;
+	}
+	const FFireSpell* Spell = FireSpellFor(Actor, Input.Slot);
+	if (!Spell || State.Tick < FireCooldownUntil(Actor, Spell->Id) || Actor.Mana < Spell->Mana)
+	{
+		return false;
+	}
+	BeginFireCast(State, Actor, Spell, Input.Aim, Rules, true);
+	return true;
+}
+
+bool StartGrantedFireCast(FArenaState& State, FActor& Actor, const FString& SpellId, const FSimVec& Aim, const FVrRuleset* Rules)
+{
+	if (!Actor.Fire.bSchool || Actor.Pending.IsSet() || FireChannelBusy(Actor))
+	{
+		return false;
+	}
+	const FFireSpell* Spell = FindFireSpell(SpellId);
+	if (!Spell)
+	{
+		return false;
+	}
+	// The tier gate, the cooldown and the mana check are skipped once. Cast time, telegraph and resolution are the row's.
+	BeginFireCast(State, Actor, Spell, Aim, Rules, false);
 	return true;
 }
 

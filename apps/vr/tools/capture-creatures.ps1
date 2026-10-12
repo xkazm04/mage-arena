@@ -1,6 +1,6 @@
 # Records the creatures bout.
-# Success is MAGEVR_CAPTURE_DONE plus the four pngs in runs/T15/shots/.
-param([string]$Run = "T15")
+# Success is MAGEVR_CAPTURE_DONE plus the eight pngs in runs/<Run>/shots/ (T15 took 01-04; T18 added the ember stills 05-08).
+param([string]$Run = "T18")
 
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
@@ -49,7 +49,11 @@ $ShotNames = @(
 	"01-hounds-approaching.png",
 	"02-death-burst-perfect.png",
 	"03-maw-tongue.png",
-	"04-intermission.png"
+	"04-intermission.png",
+	"05-hound-spit-at-lip.png",
+	"06-ember-perfect-cue.png",
+	"07-ember-perfected.png",
+	"08-death-ember.png"
 )
 $Missing = @()
 foreach ($Name in $ShotNames) {

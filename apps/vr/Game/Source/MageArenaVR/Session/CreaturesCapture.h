@@ -27,8 +27,16 @@ private:
 		WaitStable,
 		WaitHoundsApproaching,
 		WaitHoundsApproachingShot,
+		WaitSpitAtLip,
+		WaitSpitAtLipShot,
+		WaitEmberCue,
+		WaitEmberCueShot,
+		WaitEmberPerfect,
+		WaitEmberPerfectShot,
 		WaitDeathBurst,
 		WaitDeathBurstShot,
+		WaitDeathEmber,
+		WaitDeathEmberShot,
 		WaitTonguePull,
 		WaitTonguePullShot,
 		WaitIntermission,
@@ -55,6 +63,7 @@ private:
 	double RunStartWall = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;
-	FString RunId = TEXT("T15");
+	FString RunId = TEXT("T18");
 	int32 ShotCount = 0;
+	int32 EventCursor = 0;
 };

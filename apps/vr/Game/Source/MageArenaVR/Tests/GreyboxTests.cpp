@@ -13,9 +13,10 @@ bool IsTurquoise(const FLinearColor& Colour)
 	return Colour.R < 0.35f && Colour.G > 0.45f && Colour.B > 0.45f;
 }
 
-bool IsVermilion(const FLinearColor& Colour)
+// T26: Fire is ember orange (0.90, 0.26, 0.02), kept away from the unblockable rim red (G 0.014).
+bool IsEmberOrange(const FLinearColor& Colour)
 {
-	return Colour.R > 0.7f && Colour.G > 0.05f && Colour.G < 0.45f && Colour.B < 0.25f;
+	return Colour.R > 0.7f && Colour.G > 0.15f && Colour.G < 0.45f && Colour.B < 0.25f;
 }
 
 bool IsSteel(const FLinearColor& Colour)
@@ -155,7 +156,7 @@ bool FMageArenaGreyboxThreatColours::RunTest(const FString& Parameters)
 	}
 
 	const TCHAR* Kinds[] = { TEXT("water"), TEXT("fire"), TEXT("steel"), TEXT("unblockable") };
-	const TCHAR* Classes[] = { TEXT("turquoise"), TEXT("vermilion"), TEXT("steel"), TEXT("black-core-red-rim") };
+	const TCHAR* Classes[] = { TEXT("turquoise"), TEXT("ember-orange"), TEXT("steel"), TEXT("black-core-red-rim") };
 	for (int32 Index = 0; Index < 4; ++Index)
 	{
 		TestEqual(*FString::Printf(TEXT("threat %d kind"), Index), Layout.Threats[Index].Kind, FString(Kinds[Index]));
@@ -172,8 +173,8 @@ bool FMageArenaGreyboxThreatColours::RunTest(const FString& Parameters)
 	TestFalse(TEXT("water is not a spear"), Water.bElongated);
 	TestFalse(TEXT("water has no rim"), Water.bRimmed);
 
-	TestTrue(TEXT("fire body is vermilion"), IsVermilion(Fire.Body));
-	TestTrue(TEXT("fire telegraph is vermilion"), IsVermilion(Fire.Telegraph));
+	TestTrue(TEXT("fire body is ember orange"), IsEmberOrange(Fire.Body));
+	TestTrue(TEXT("fire telegraph is ember orange"), IsEmberOrange(Fire.Telegraph));
 	TestFalse(TEXT("fire is not a spear"), Fire.bElongated);
 
 	TestTrue(TEXT("steel body is white/grey"), IsSteel(Steel.Body));

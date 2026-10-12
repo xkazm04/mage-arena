@@ -1,5 +1,6 @@
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/ArenaThreats.h"
+#include "Kernel/Air.h"
 
 #include "MageArenaVR.h"
 #include "Kernel/Catalog.h"
@@ -53,6 +54,10 @@ void UpdateWard(FArenaState& State, FActor& Actor, const FInputFrame& Input, con
 		{
 			Cost *= FireAbsorbDrainMult(State, Actor);
 		}
+		if (Actor.Air.bSchool)
+		{
+			Cost *= AirAbsorbDrainMult(State, Actor);
+		}
 		if (Rules && Rules->bActive && Rules->IsSplitCasting(Actor.Id) && Rules->Defence.WardDrainSplit != 1.0)
 		{
 			Cost *= Rules->Defence.WardDrainSplit;
@@ -75,7 +80,7 @@ void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 	Actor.PreviousPos = Actor.Pos;
 	const bool bRooted = State.Tick < Actor.Water.RootUntil
 		|| (Actor.Pending.IsSet() && Actor.Pending->SpellId.IsSet() && Actor.Pending->SpellId.GetValue() == TEXT("mend:4:base"))
-		|| FireCastRoots(Actor);
+		|| FireCastRoots(Actor) || AirCastRoots(Actor);
 	const bool bBlinkEdge = Input.bRoll && !Actor.LastInput.bRoll;
 	const bool bAnchored = Rules && Rules->IsPlanted(Actor.Id) && bBlinkEdge;
 	if (bAnchored)
@@ -83,13 +88,14 @@ void MoveActor(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 		Rules->Lift(TEXT("blink"));
 	}
 	else if (!bRooted && bBlinkEdge && State.Tick >= Actor.RollUntil && State.Tick >= Actor.RecoveryUntil
-		&& Actor.Stamina >= Data.RollStaminaCost)
+		&& Actor.Stamina >= Data.RollStaminaCost * AirRollStaminaMult(Actor))
 	{
 		Actor.RollDirection = SimUnit(Input.Move, Actor.Facing);
 		Actor.RollUntil = State.Tick + SimTicks(Data.RollDurationS);
 		Actor.ImmuneUntil = State.Tick + SimTicks(Data.RollIFramesS);
 		Actor.RecoveryUntil = Actor.RollUntil + SimTicks(Data.RollRecoveryS);
-		Actor.Stamina -= Data.RollStaminaCost;
+		// Air at Momentum 40 or more pays rollStaminaMult (schools.json air thresholds). 1 for every other actor.
+		Actor.Stamina -= Data.RollStaminaCost * AirRollStaminaMult(Actor);
 		Actor.StaminaUsedTick = State.Tick;
 		Actor.Metrics.Rolls++;
 		Actor.bAbsorb = false;
@@ -138,12 +144,17 @@ void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 	}
 	if (Actor.Pending->Kind == TEXT("spell"))
 	{
-		ReleaseSpell(State, Actor);
+		ReleaseSpell(State, Actor, Rules);
 		return;
 	}
 	if (Actor.Pending->Kind == TEXT("fire"))
 	{
 		ReleaseFire(State, Actor, Rules);
+		return;
+	}
+	if (Actor.Pending->Kind == TEXT("air"))
+	{
+		ReleaseAir(State, Actor, Rules);
 		return;
 	}
 	const FKernelData& Data = KernelData();
@@ -199,7 +210,7 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 	const bool bPlanted = Rules && Rules->IsPlanted(Actor.Id);
 	const bool bSplit = Rules && Rules->Split.bEnabled && Actor.bAbsorb && !bPlanted;
 	const bool bHandsLocked = Actor.bAbsorb && !bSplit && !bPlanted;
-	if (!Input.bCast || Actor.Pending.IsSet() || FireChannelBusy(Actor) || bHandsLocked || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
+	if (!Input.bCast || Actor.Pending.IsSet() || FireChannelBusy(Actor) || AirChannelBusy(Actor) || bHandsLocked || State.Tick < Actor.RollUntil || State.Tick < Actor.RecoveryUntil)
 	{
 		return;
 	}
@@ -246,6 +257,15 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 		}
 		return;
 	}
+	else if (Actor.Air.bSchool)
+	{
+		// T23. Pressure.FireMageDamage is the fire mage's knob and is not applied to the air mage.
+		if (TryAirCast(State, Actor, Input, Rules))
+		{
+			ReleaseCast(State, Actor, Rules);
+		}
+		return;
+	}
 	else
 	{
 		if (bSplit)
@@ -255,14 +275,9 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 			{
 				return;
 			}
-			if (Spell->Tier > Rules->Split.MaxTier)
+			if (const TCHAR* Refusal = Rules->SplitRefusal(Actor, *Spell))
 			{
-				Rules->Refuse(Actor, TEXT("tier"));
-				return;
-			}
-			if (Actor.Water.Flow >= Data.FlowMax)
-			{
-				Rules->Refuse(Actor, TEXT("crest"));
+				Rules->Refuse(Actor, Refusal);
 				return;
 			}
 			FSpellCastMod Mod;
@@ -420,6 +435,7 @@ void Interrupt(FArenaState& State, FActor& Actor)
 	const bool bHadCast = Actor.Pending.IsSet() || bOwned;
 	Actor.Pending.Reset();
 	CancelFireChannel(Actor);
+	CancelAirChannel(Actor);
 	State.Telegraphs.RemoveAll([&Actor](const FTelegraph& Telegraph) { return Telegraph.OwnerId == Actor.Id && !Telegraph.bCommitted; });
 	if (bHadCast)
 	{
@@ -479,7 +495,9 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		if (State.Tick < Actor.Water.EncasedUntil)
 		{
 			Actor.PreviousPos = Actor.Pos;
+			UpdateAirResource(State, Actor);
 			UpdateFireOngoing(State, Actor);
+			UpdateAirOngoing(State, Actor, Rules);
 			continue;
 		}
 		const FInputFrame* Found = Inputs.Find(Actor.Id);
@@ -492,14 +510,25 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		}
 		if (Rules)
 		{
+			Rules->TickSplitLatch(Actor);
+		}
+		if (Rules)
+		{
 			Rules->TickStaff(State, Actor, Input);
 			Rules->TickWalls(State, Actor, Input);
 		}
 		MoveActor(State, Actor, Input, Rules);
+		UpdateAirResource(State, Actor);
 		ReleaseCast(State, Actor, Rules);
+		if (Rules)
+		{
+			// A rival's granted signature waits for the cast it was in. It goes before the brain's own pick.
+			Rules->TryGrantedCast(State, Actor, Input.Aim);
+		}
 		StartCast(State, Actor, Input, Rules);
 		Actor.LastInput = Input;
 		UpdateFireOngoing(State, Actor);
+		UpdateAirOngoing(State, Actor, Rules);
 	}
 	if (Rules)
 	{
@@ -508,6 +537,11 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 	UpdateTelegraphs(State, Rules);
 	UpdateProjectiles(State, Rules);
 	State.Zones.RemoveAll([&State](const FZone& Zone) { return !(Zone.Until > State.Tick); });
+	if (Rules)
+	{
+		// Every hit of this tick has landed. A break surges first; the normal clock then continues from the new tier.
+		Rules->TickRivalPhases(State);
+	}
 	for (FActor& Actor : State.Actors)
 	{
 		if (!Actor.bDown)
@@ -554,6 +588,7 @@ void ResetWave(FArenaState& State, FActor& Actor)
 	State.Zones.Reset();
 	ResetWater(Actor);
 	ResetFire(Actor);
+	ResetAir(Actor);
 }
 
 double FFixedStepper::Advance(double ElapsedS, const TFunctionRef<void()>& Update)

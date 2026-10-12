@@ -8,6 +8,8 @@ struct FSimHitResult
 {
 	double Damage = 0.0;
 	bool bPerfect = false;
+	// T23 Air Form: the hit was evaded and nothing of it resolved (no ward, no damage, no events but "evade").
+	bool bEvaded = false;
 };
 
 struct FFixedStepper

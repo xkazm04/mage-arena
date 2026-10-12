@@ -5,6 +5,7 @@
 #include "SessionPresentation.generated.h"
 
 class FArenaSession;
+class UArenaAudioComponent;
 class UCameraComponent;
 class UMaterialInstanceDynamic;
 class USceneComponent;
@@ -25,6 +26,8 @@ public:
 
 	void Sync(const FArenaSession& Session, bool bPaused);
 	int32 GetEnemiesOnScreen() const { return EnemiesOnScreen; }
+	/** T26: the bout's audio (spatialised cues from the event stream). */
+	UArenaAudioComponent* GetAudio() const { return Audio; }
 
 private:
 	struct FBody
@@ -54,6 +57,8 @@ private:
 		TObjectPtr<UStaticMeshComponent> Mesh;
 		TObjectPtr<UStaticMeshComponent> Rim;
 		TArray<TObjectPtr<UStaticMeshComponent>> Beads;
+		// A hound ember gathering at the mouth during the spit windup (or where a hound died, for the death ember).
+		TObjectPtr<UStaticMeshComponent> Glow;
 	};
 
 	struct FFlash
@@ -80,10 +85,18 @@ private:
 	void EnsureComfortVisuals();
 	void SyncComfortVisuals(const FArenaSession& Session);
 	UWidgetComponent* MakeStoneLabel(const TCHAR* Name);
+	void EnsurePhaseVisuals(const FArenaSession& Session);
+	void SyncTablet(const FArenaSession& Session);
+	void SyncPhaseVisuals(const FArenaSession& Session, double Now);
+	void EnsureCollarVisuals(const FArenaSession& Session);
+	void SyncCollarVisuals(const FArenaSession& Session);
 	UCameraComponent* FindCamera() const;
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Root;
+
+	UPROPERTY()
+	TObjectPtr<UArenaAudioComponent> Audio;
 
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> Cylinder;
@@ -191,4 +204,70 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> ArcEdges;
 
 	bool bComfortVisuals = false;
+	TArray<FLinearColor> StoneBase;
+
+	// T20: the drawn path of a Leviathan Orb (spells-water.csv tide_orb IV A, UNBLOCKABLE: "the orb's path is drawn;
+	// leave it or break the caster"), for the 1.00 s telegraph and the flight. Keyed by activation id.
+	struct FOrbPath
+	{
+		TObjectPtr<UStaticMeshComponent> Body;
+		TObjectPtr<UStaticMeshComponent> Rim;
+	};
+	TMap<int32, FOrbPath> OrbPaths;
+	void SyncOrbPaths(const FArenaSession& Session);
+
+	// T19 phase break beat: the rival flares in its element colour, a ring pulses on both wrists (the surge), and the
+	// crowd band brightens (the swell placeholder; audio is T26). No new threat colours.
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> RivalFlare;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CuffPulses;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CrowdBand;
+
+	bool bPhaseVisuals = false;
+
+	// T21 aftermath: a greybox stone tablet on the dais with one row per bout (results and times from the arena flags).
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> TabletSlab;
+
+	UPROPERTY()
+	TObjectPtr<UWidgetComponent> TabletText;
+
+	// T22 diegetic collar feedback, no numbers: a bright seam flashes on both wrist cuffs on each Crack, and two greybox
+	// Wardstones at the arena edge (inside the front 70 degree arc) glow with the day's Tithe and pulse on each point.
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> CrackSeams;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> Wardstones;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> WardstoneCaps;
+
+	bool bCollarVisuals = false;
+	double PhaseAt = -1.0;
+	int32 PhaseRivalId = 0;
+
+	// T23 air telegraphs, drawn from the air mage's pending cast: the Veering Bolt's arc (beads along the flown arc, in
+	// the air colour) with a shrinking ring where it lands, Downdraft's shrinking ring, and the Tempest Lance line
+	// (black core, red rim: the only leave-threat Air has). Air Form: a ring of air-coloured beads around the mage.
+	void SyncAirVisuals(const FArenaSession& Session, double Now);
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AirArcBeads;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirRing;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirLineBody;
+
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> AirLineRim;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMeshComponent>> AirFormBeads;
 };

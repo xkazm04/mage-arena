@@ -65,6 +65,8 @@ public:
 	void Reset();
 	void SetStyle(ESigilDrawStyle InStyle);
 	ESigilDrawStyle GetStyle() const { return Style; }
+	/** T26: the pen is down (a stroke is being drawn). Read by the audio for the draw loop. */
+	bool IsPenDown() const { return bPen; }
 
 	ESigilStrokeEvent AddTip(const FVector& TipCm, float Pinch, double TimeSeconds, TArray<FQPoint>& OutPoints);
 

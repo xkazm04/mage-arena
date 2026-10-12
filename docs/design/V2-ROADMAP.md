@@ -16,6 +16,31 @@ row below is built **greybox first** (current phase rule) and measured headless 
 | Sat 31 Oct | Desktop core gate | Lane B and the slice's voice and SFX in; the census still in band after the art pass |
 | Wed 18 Nov | Submission | Lane C only where it is green by the 11 Nov beta |
 
+## Status 2026-10-08 (end of the first execution day)
+
+Done and verified on `v2/slice`, merged to master (`MageArena.` 234/234 on the merged tree; workers were Claude
+subagents because Grok's balance was exhausted, HTTP 402): **T17, T18, T19, T20, T21, T22, T23, T26**, with change
+requests CR-004 and CR-005 written. The live overlay still loses Wave 1 (known); on the proposal the day loses Bout 3 to
+Brennic.
+
+Open for the owner (each file lists options and a recommendation):
+
+| Item | Question |
+|---|---|
+| `docs/schools/AIR.md` | Sign off the Air spell sheet (a proposal; no canon table existed) and its nine kernel readings |
+| Final rival | Lio (default now in data) or Iskar |
+| DF-005 | The split latch clear cannot restore a perfect: re-arm the ward on clear? |
+| DF-006 | Phases shorten the duel; the chained day loses Brennic: adopt `wide` plus a phase-break beat? |
+| DF-007 | Ember spit makes Bout 2 run 52 s live: thin the script's perfects and slow the spit? |
+| DF-008 | Lio loses every duel in ~20-24 s: AI first (ward, Air Form, tier II-III)? |
+| DF-009 | Tithe is mostly missed bolts: drop the Bolt miss weight? |
+| `collar.json` | The Cracks and Tithe weights (proposal) |
+| T26 audio | Listen to `runs/T26/audio/brennic-opening.wav` (not heard by a person yet; local only) |
+
+Next cards: C1 (mudra seal shape, Claude + owner), T24 (mudra detector), T25 (fist pose, spare or finish), C2 (story
+bible and slice script), T27 (voice), T28 (intermission scenes); CR-006 and CR-007 to write. Housekeeping: the
+conformance generator (BACKLOG), the stalled T16 in the main checkout.
+
 ## Lane A - combat core (Grok cards, mechanics gate)
 
 | # | Card | What | Depends on | Canon |

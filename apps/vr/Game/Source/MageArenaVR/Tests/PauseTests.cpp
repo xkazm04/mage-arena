@@ -226,7 +226,8 @@ bool FMageArenaPauseTracking::RunTest(const FString& Parameters)
 	Rig.Hands->SetTrackingDropped(false);
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
 	double Enter = 0.0;
-	while (Teach.GetStage() != TEXT("teach") && Enter < 4.0)
+	// T21: the first-launch prologue (10 s, day.json prologueMaxS) comes between cold and the teach.
+	while (Teach.GetStage() != TEXT("teach") && Enter < 16.0)
 	{
 		Teach.Advance(kDt, true);
 		Enter += kDt;
@@ -451,9 +452,13 @@ bool FMageArenaPauseSave::RunTest(const FString& Parameters)
 		Resume.Advance(kDt, true);
 		Elapsed += kDt;
 	}
-	bPass &= TestEqual(TEXT("palm continues the bout"), Resume.GetStage(), FString(TEXT("active")));
-	bPass &= TestEqual(TEXT("continued wave"), Resume.GetGames().Wave, 2);
-	bPass &= TestFalse(TEXT("continue deletes the save"), IFileManager::Get().FileExists(*Path));
+	// T21: the palm continues into the collar ritual (every launch), then the saved bout. The save stays until the day
+	// moves on: it also records that the teach is done.
+	bPass &= TestEqual(TEXT("palm continues to the ritual"), Resume.GetStage(), FString(TEXT("ritual")));
+	bPass &= TestEqual(TEXT("continued bout"), Resume.GetBoutIndex(), 2);
+	FString Kept;
+	bPass &= TestTrue(TEXT("continue keeps the save"), FFileHelper::LoadFileToString(Kept, *Path));
+	bPass &= TestTrue(TEXT("kept save still says bout=2"), Kept.Contains(TEXT("bout=2")));
 	Resume.Unbind();
 
 	FFileHelper::SaveStringToFile(TEXT("bout=1\n"), *Path);
@@ -497,7 +502,8 @@ bool FMageArenaPauseTeachResume::RunTest(const FString& Parameters)
 	bool bPass = TestTrue(TEXT("arc"), Session.BeginArc(1));
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
 	double Elapsed = 0.0;
-	while (Session.GetStage() != TEXT("teach") && Elapsed < 4.0)
+	// T21: the first-launch prologue (10 s) comes between cold and the teach.
+	while (Session.GetStage() != TEXT("teach") && Elapsed < 16.0)
 	{
 		Session.Advance(kDt, true);
 		Elapsed += kDt;

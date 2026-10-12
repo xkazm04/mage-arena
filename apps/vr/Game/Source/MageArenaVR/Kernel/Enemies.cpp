@@ -7,6 +7,7 @@
 #include "Algo/Sort.h"
 #include "Internationalization/Regex.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace
@@ -255,8 +256,9 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules
 		{
 			if (const FVrAttackMode* Mode = Rules->FindThrow(Spec->Id))
 			{
-				Attack.ProjectileMps = Mode->ProjectileMps;
-				Attack.RangeM = Mode->RangeM;
+				// A throw copies speed and range. A spit (DF-004 option A) also takes the ember's family, tier, damage
+				// and windup, so ScheduleAttack makes a magic projectile telegraph instead of the bite.
+				VrApplyAttackMode(*Mode, Attack);
 			}
 		}
 		double AttackRange = Attack.RangeM.Get(Data.DefaultMeleeRangeM);
@@ -404,6 +406,70 @@ TMap<int32, FInputFrame> EnemyInputs(FArenaState& State, const FVrRuleset* Rules
 	return Inputs;
 }
 
+namespace
+{
+// DF-004 option A. A dying spitter throws one last ember after the pinned onDeath delay, beside the pinned area burst.
+// Only with an active ruleset whose spit sets deathEmber; the null path queues nothing extra, so its ids are unchanged.
+void QueueDeathEmber(FArenaState& State, const FActor& Actor, const FDeathSpec& Death, const FSimVec& Origin, const FVrRuleset* Rules)
+{
+	if (!Rules || !Rules->bActive)
+	{
+		return;
+	}
+	const FVrAttackMode* Spit = Rules->FindSpit(Actor.Enemy->Id);
+	if (!Spit || !Spit->bDeathEmber)
+	{
+		return;
+	}
+	// Aimed at the nearest living opponent at the death tick, like a spit is aimed when its windup starts.
+	const FActor* Target = nullptr;
+	double Best = 0.0;
+	for (const FActor& Candidate : State.Actors)
+	{
+		if (Candidate.Team == Actor.Team || Candidate.bDown)
+		{
+			continue;
+		}
+		const double Distance = SimDistance(Actor.Pos, Candidate.Pos);
+		if (!Target || Distance < Best || (Distance == Best && Candidate.Id < Target->Id))
+		{
+			Target = &Candidate;
+			Best = Distance;
+		}
+	}
+	if (!Target)
+	{
+		return;
+	}
+	const int32 Id = State.NextId++;
+	FTelegraph Ember;
+	Ember.Id = Id;
+	Ember.ActivationId = Id;
+	Ember.OwnerId = Actor.Id;
+	Ember.Family = Spit->Family;
+	Ember.Tier = Spit->Tier;
+	Ember.Damage = Spit->Damage;
+	if (Rules->Pressure.EnemyDamage != 1.0)
+	{
+		Ember.Damage *= Rules->Pressure.EnemyDamage;
+	}
+	Ember.Source = Actor.Pos;
+	Ember.Kind = TEXT("projectile");
+	Ember.Origin = Origin;
+	Ember.Target = Target->Pos;
+	Ember.StartTick = State.Tick;
+	// The pinned ember_burst delay (0.6 s, 36 ticks at 60 Hz). The ember leaves on the same tick the area burst resolves.
+	Ember.ResolveTick = State.Tick + SimTicks(Death.DelayS);
+	Ember.SpeedMps = Spit->ProjectileMps;
+	// Choice (T18): a hound that dies beyond the spit range still throws its ember. The reach is stretched to the aim
+	// point so the ember reaches the seat instead of fizzling short; inside the range it is the spit range unchanged.
+	Ember.RangeM = std::max(Spit->RangeM, SimDistance(Origin, Ember.Target));
+	Ember.WidthM = 0.0;
+	Ember.bSurvivesOwner = true;
+	State.Telegraphs.Add(Ember);
+}
+}
+
 void QueueDeathEffects(FArenaState& State, const FVrRuleset* Rules)
 {
 	for (FActor& Actor : State.Actors)
@@ -443,5 +509,6 @@ void QueueDeathEffects(FArenaState& State, const FVrRuleset* Rules)
 		Telegraph.WidthM = Death.RadiusM;
 		Telegraph.bSurvivesOwner = true;
 		State.Telegraphs.Add(Telegraph);
+		QueueDeathEmber(State, Actor, Death, Telegraph.Origin, Rules);
 	}
 }

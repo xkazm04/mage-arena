@@ -1,6 +1,6 @@
 # T17 - Split hands: the perfect latch clears on idle, and a split Bolt at Flow 5
 
-Status: open
+Status: done with a design finding (verified 2026-10-07: MageArena. 175/175, design numbers unchanged live and proposal; the idle clear cannot restore a perfect inside one hold under the pinned 0.15 s window - DF-005)
 Max turns: 200
 
 ## Goal
@@ -71,3 +71,11 @@ UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDe
 Write `runs/T17/REPORT.md`: files changed, each acceptance command with its real output (pass counts, the design
 numbers before and after), the tick arithmetic, anything you could not do with the exact error, and every decision
 the card did not specify.
+
+## Orchestrator verification (2026-10-07)
+Grok's balance was exhausted (HTTP 402), so a Claude subagent implemented the card in worktree `v2/T17`. The orchestrator
+re-ran the build (green) and `MageArena.` (175 Success, `EXIT CODE: 0`) and read the diff. Design numbers were diffed
+identical before and after, live and proposal. The conformance command fails on master too, before this card
+(`PINNED.json commit baeac66... is not 68a4d68`: `generate.mjs` predates the 2026-10-07 pin rewrite; backlog).
+Finding DF-005: the perfect window (pinned 0.15 s) starts at the ward raise, and a split cast needs the ward already up,
+so the 18-tick idle clear always lands after the window; the latch now only affects the split ward drain.

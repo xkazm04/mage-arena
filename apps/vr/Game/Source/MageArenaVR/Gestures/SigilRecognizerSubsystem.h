@@ -25,6 +25,8 @@ public:
 
 	void SetDrawStyle(ESigilDrawStyle Style);
 	ESigilDrawStyle GetDrawStyle() const { return DrawStyle; }
+	/** T26: a stroke is being drawn on the hand or the mouse builder. */
+	bool IsDrawing() const { return HandBuilder.IsPenDown() || MouseBuilder.IsPenDown(); }
 
 	/** Loads every template clip in the directory. Missing or unrecognizable files are logged and skipped. */
 	void LoadTemplatesFromDirectory(const FString& Directory);

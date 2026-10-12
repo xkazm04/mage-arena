@@ -1,6 +1,6 @@
 # T19 - Named rivals fight in HP-gated phases; the last phase opens with the signature (DF-003)
 
-Status: open
+Status: done with a design finding (verified 2026-10-07: MageArena. 177/177; signature 100 % in every set; median 24-42 s, under 45-80; win in band only on the proposal - DF-006)
 Max turns: 320
 
 ## Goal
@@ -82,3 +82,13 @@ UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDe
 Write `runs/T19/REPORT.md`: files, every acceptance command with real output, the census table (live and proposal,
 both competences) against the four targets, the arithmetic behind each test literal, and every decision the card did
 not specify.
+
+## Orchestrator verification (2026-10-07)
+Grok's balance was exhausted (HTTP 402), so a Claude subagent implemented the card in worktree `v2/T19`. The orchestrator
+re-ran the build (green) and `MageArena.` (177 Success, `EXIT CODE: 0`) and reviewed `Kernel/VrRivals.cpp`. With the
+`rivals` block removed the semifinal duel matches the pre-T19 digest; the no-phase census rows reproduce the T12
+`baseline` and `wide` numbers. Worker choices accepted: phase state in the ruleset runtime (not hashed); `appliesTo`
+= Tiro wave 3 semifinal, Fire; the surge is a normal unlock and the 6 s gap counts from it; a killing blow is the win,
+not a break; the granted Sunfall waits for a free rival and is lost to a staff interrupt; `FireSeated` now runs Brennic
+in the semifinal (competence 1.5 via a test-only override). Not verified by eye: the greybox flare (no capture run).
+The conformance generator is broken on every branch (backlog). Census and options: DF-006.

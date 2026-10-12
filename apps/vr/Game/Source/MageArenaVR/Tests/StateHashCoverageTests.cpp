@@ -22,6 +22,7 @@ struct FCase
 #define ACT S.Actors[0]
 #define WAT S.Actors[0].Water
 #define FIR S.Actors[0].Fire
+#define AIR S.Actors[0].Air
 #define MAG S.Actors[0].MageAI.GetValue()
 #define PRJ S.Projectiles[0]
 #define TEL S.Telegraphs[0]
@@ -59,6 +60,16 @@ FArenaState MakeBase()
 	Channel.SpellId = TEXT("fire_beam");
 	Channel.Family = TEXT("magic");
 	A.Fire.Channel = Channel;
+	// T23: the air block is mixed only for an air actor, so the base is one.
+	A.Air.bSchool = true;
+	A.Air.Cooldowns.Add({TEXT("air_bolt"), 4});
+	FAirVolley Volley;
+	Volley.SpellId = TEXT("air_squall");
+	A.Air.Volley = Volley;
+	FFireChannel AirChannel;
+	AirChannel.SpellId = TEXT("air_cyclone");
+	AirChannel.Family = TEXT("magic");
+	A.Air.Channel = AirChannel;
 	FEnemyBrain Brain;
 	Brain.Id = TEXT("conscript");
 	A.Enemy = Brain;
@@ -81,6 +92,8 @@ FArenaState MakeBase()
 	P.Family = TEXT("magic");
 	P.Delivery = TEXT("projectile");
 	P.HitIds.Add(1);
+	P.bAir = true;
+	P.bCurved = true;
 	S.Projectiles.Add(P);
 	FTelegraph T;
 	T.Id = 3;
@@ -196,6 +209,40 @@ void BuildSimCases(TArray<FCase>& Cases)
 	CASE("Water.Decoy.Pos.X", WAT.Decoy->Pos.X += 1.0);
 	CASE("Water.Decoy.Until", WAT.Decoy->Until += 1);
 
+	CASE("Air.bSchool", AIR.bSchool = !AIR.bSchool);
+	CASE("Air.Momentum", AIR.Momentum += 1.0);
+	CASE("Air.MaxMomentum", AIR.MaxMomentum += 1.0);
+	CASE("Air.LockUntil", AIR.LockUntil += 1);
+	CASE("Air.LockValue", AIR.LockValue += 1.0);
+	CASE("Air.AbsorbDrainSpellMult", AIR.AbsorbDrainSpellMult += 1.0);
+	CASE("Air.AbsorbDrainSpellUntil", AIR.AbsorbDrainSpellUntil += 1);
+	CASE("Air.FormUntil", AIR.FormUntil += 1);
+	CASE("Air.FormPhysical", AIR.FormPhysical += 1.0);
+	CASE("Air.FormMagic", AIR.FormMagic += 1.0);
+	CASE("Air.Forms", AIR.Forms += 1);
+	CASE("Air.Evades", AIR.Evades += 1);
+	CASE("Air.Deflects", AIR.Deflects += 1);
+	CASE("Air.TempestCastTick", AIR.TempestCastTick += 1);
+	CASE("Air.Cooldowns[0].SpellId", AIR.Cooldowns[0].SpellId += TEXT("x"));
+	CASE("Air.Cooldowns[0].Until", AIR.Cooldowns[0].Until += 1);
+	CASE("Air.Cooldowns add", AIR.Cooldowns.Add(FFireCooldown{TEXT("x"), 1}));
+	CASE("Air.Volley reset", AIR.Volley.Reset());
+	CASE("Air.Volley.SpellId", AIR.Volley->SpellId += TEXT("x"));
+	CASE("Air.Volley.Aim.X", AIR.Volley->Aim.X += 1.0);
+	CASE("Air.Volley.Left", AIR.Volley->Left += 1);
+	CASE("Air.Volley.NextTick", AIR.Volley->NextTick += 1);
+	CASE("Air.Volley.IntervalTicks", AIR.Volley->IntervalTicks += 1);
+	CASE("Air.Volley.Damage", AIR.Volley->Damage += 1.0);
+	CASE("Air.Volley.RangeMult", AIR.Volley->RangeMult += 1.0);
+	CASE("Air.Volley.PierceLeft", AIR.Volley->PierceLeft += 1);
+	CASE("Air.Channel reset", AIR.Channel.Reset());
+	CASE("Air.Channel.SpellId", AIR.Channel->SpellId += TEXT("x"));
+	CASE("Air.Channel.Until", AIR.Channel->Until += 1);
+	CASE("Air.Channel.NextTick", AIR.Channel->NextTick += 1);
+	CASE("Air.Channel.TicksDone", AIR.Channel->TicksDone += 1);
+	CASE("Air.Channel.Damage", AIR.Channel->Damage += 1.0);
+	CASE("Air.Channel.RangeM", AIR.Channel->RangeM += 1.0);
+
 	CASE("Fire.bSchool", FIR.bSchool = !FIR.bSchool);
 	CASE("Fire.Heat", FIR.Heat += 1.0);
 	CASE("Fire.MaxHeat", FIR.MaxHeat += 1.0);
@@ -307,6 +354,14 @@ void BuildSimCases(TArray<FCase>& Cases)
 	CASE("Projectile.HeatOnHit", PRJ.HeatOnHit += 1.0);
 	CASE("Projectile.bSuppressPerfect", PRJ.bSuppressPerfect = !PRJ.bSuppressPerfect);
 	CASE("Projectile.bPierceShields", PRJ.bPierceShields = !PRJ.bPierceShields);
+	CASE("Projectile.MomentumOnHit", PRJ.MomentumOnHit += 1.0);
+	CASE("Projectile.PierceLeft", PRJ.PierceLeft += 1);
+	CASE("Projectile.bCurved", PRJ.bCurved = !PRJ.bCurved);
+	CASE("Projectile.ArcCentre.X", PRJ.ArcCentre.X += 1.0);
+	CASE("Projectile.ArcRadiusM", PRJ.ArcRadiusM += 1.0);
+	CASE("Projectile.ArcAngle", PRJ.ArcAngle += 1.0);
+	CASE("Projectile.ArcSign", PRJ.ArcSign = -PRJ.ArcSign);
+	CASE("Projectile.ArcLeftM", PRJ.ArcLeftM += 1.0);
 
 	CASE("Telegraph.Id", TEL.Id += 1);
 	CASE("Telegraph.ActivationId", TEL.ActivationId += 1);
@@ -399,8 +454,8 @@ bool FMageArenaKernelStateHashFieldGuard::RunTest(const FString& Parameters)
 	// until someone adds it. These sizes change when a field is added or removed. When one fails: add the field to the
 	// matching Mix function in StateHash.cpp and to the case list in this file (or to the presentation-only list in both),
 	// then update the number. Win64 editor sizes, which is where this suite runs.
-	TestEqual(TEXT("sizeof(FActor): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FActor)), 1096);
-	TestEqual(TEXT("sizeof(FProjectile): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FProjectile)), 240);
+	TestEqual(TEXT("sizeof(FActor): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FActor)), 1376);
+	TestEqual(TEXT("sizeof(FProjectile): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FProjectile)), 304);
 	TestEqual(TEXT("sizeof(FTelegraph): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FTelegraph)), 200);
 	TestEqual(TEXT("sizeof(FZone): a field was added or removed, see the comment"), static_cast<int32>(sizeof(FZone)), 64);
 	return true;

@@ -8,11 +8,15 @@
 #include "Gestures/StaffDetector.h"
 #include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Kernel/ArenaKernel.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimTypes.h"
+#include "Kernel/VrRules.h"
 #include "HAL/FileManager.h"
 #include "MageArenaVR.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Session/ArenaSession.h"
 
@@ -226,6 +230,10 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 		DamageTaken,
 		Session.GetBlinkAccepts(),
 		Perfects);
+	// T22, measured, not asserted: the bout's collar tally.
+	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated collar %s cracks=%d tithe=%d %s"),
+		FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("proposal") : TEXT("live"),
+		Session.GetCollar().GetBoutCracks(), Session.GetCollar().GetBoutTithe(), *Session.GetCollar().Breakdown());
 	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f"),
 		Measured, PinnedWindowLo, PinnedWindowHi,
 		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
@@ -251,15 +259,31 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		return false;
 	}
 	const double Dt = 1.0 / 72.0;
+	// DECISIONS 2026-10-07 (DF-003 answered): median 45-80 s, the signature in every duel that reaches the last phase,
+	// and the player wins at competence 1. T19: both runs are Brennic, the Tiro semifinal Fire mage (wave index 2), with
+	// his HP-gated phases; competence 1.5 is the same duel with the opponent's brain at 1.5.
 	const double Lo = 45.0;
 	const double Hi = 80.0;
 	bool bPass = true;
-	auto RunOne = [&](int32 Wave, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
+	FVrRuleset Loaded;
+	FString RulesError;
+	if (!LoadVrRuleset(Loaded, RulesError))
+	{
+		AddError(RulesError);
+		FArenaSession Dummy;
+		Rig.Close(Dummy);
+		return false;
+	}
+	bPass &= TestTrue(TEXT("combat.vr.json names a rival"), Loaded.Rivals.Num() > 0);
+	auto RunOne = [&](double Competence, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
 	{
 		FArenaSession Session;
 		Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 		Session.SetScripted(true);
-		Session.SetBout(Wave, true);
+		Session.SetBout(2, true);
+		FVrRuleset Rules = Loaded;
+		Rules.MageCompetenceOverride = Competence;
+		Session.SetRulesOverride(Rules);
 		if (!Session.Start(Seed))
 		{
 			AddError(FString::Printf(TEXT("%s start failed"), Label));
@@ -284,7 +308,9 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 			WorstOffPad = FMath::Max(WorstOffPad, OffPad);
 		}
 		const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
-		FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("%s-chain.log"), Label)));
+		// T19 owns this measurement. The proposal run keeps its own chain so it does not overwrite the live one.
+		const TCHAR* Variant = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("-proposal") : TEXT("");
+		FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("../T19/%s%s-chain.log"), Label, Variant)));
 		const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
 		bool bSunfall = false;
 		for (const FActor& Actor : Session.GetGames().State.Actors)
@@ -297,13 +323,27 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		const double Measured = Session.GetSimSeconds();
 		const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
 		const bool bBand = Measured >= Lo && Measured <= Hi && Session.GetGames().Phase != TEXT("active");
-		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d"),
-			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0,
+		const FVrRuleset* Live = Session.GetVrRules();
+		const bool bBound = Live && Live->BoundRival() != nullptr;
+		const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
+		const int32 LastBreaks = bBound ? Live->BoundRival()->Phases.Num() : 2;
+		const bool bSignature = Live && Live->RivalRuntime.GrantTick >= 0;
+		// T20: the player plays cassia (Mirror II A), so perfects can reflect. Measured, not tuned.
+		int32 Reflects = 0;
+		for (const FArenaEvent& Event : Session.GetGames().State.Events)
+		{
+			Reflects += Event.Kind == TEXT("reflect") && Player && Event.ActorId == Player->Id ? 1 : 0;
+		}
+		UE_LOG(LogMageArena, Log, TEXT("FireSeated %s phase=%s t=%.2f won=%d sunfall=%d breaks=%d signature=%d hp=%.1f dealt=%.1f walls=%d splits=%d plants=%d perfects=%d reflects=%d"),
+			Label, *Session.GetGames().Phase, Measured, bWon ? 1 : 0, bSunfall ? 1 : 0, Breaks, bSignature ? 1 : 0,
 			Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0,
-			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants());
+			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants(),
+			Player ? Player->Metrics.Perfects : -1, Reflects);
 		bool bOne = true;
+		bOne &= TestTrue(*FString::Printf(TEXT("%s Brennic bound"), Label), bBound);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);
-		bOne &= TestTrue(*FString::Printf(TEXT("%s Sunfall cast"), Label), bSunfall);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s reached the last phase (%d of %d breaks)"), Label, Breaks, LastBreaks), Breaks >= LastBreaks);
+		bOne &= TestTrue(*FString::Printf(TEXT("%s signature cast in the last phase"), Label), Breaks < LastBreaks || bSignature);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s stayed on a pad (worst %.4f m)"), Label, WorstOffPad), WorstOffPad < 1.0e-3);
 		if (bRequireWin)
 		{
@@ -312,10 +352,138 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		Session.Unbind();
 		return bOne;
 	};
-	bPass &= RunOne(2, 1, TEXT("fire-c1"), true);
-	bPass &= RunOne(3, 1, TEXT("fire-c15"), false);
+	bPass &= RunOne(1.0, 1, TEXT("brennic-c1"), true);
+	bPass &= RunOne(1.5, 1, TEXT("brennic-c15"), false);
 	FArenaSession Dummy;
 	Rig.Close(Dummy);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaAirSeated, "MageArenaDesign.Duel.AirSeated",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaAirSeated::RunTest(const FString& Parameters)
+{
+	FSessionRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	// T23: the seated player against Lio, the Tiro final's air mage (wave index 3, pinned competence 1.5), with his
+	// HP-gated phases. DECISIONS 2026-10-07 (DF-003 answered): the duel lasts 45-80 s, the signature is cast in a duel that
+	// reaches the last phase, and the player wins. Measured, not tuned: this test may be red, and the report says so.
+	const double Lo = 45.0;
+	const double Hi = 80.0;
+	FVrRuleset Loaded;
+	FString RulesError;
+	if (!LoadVrRuleset(Loaded, RulesError))
+	{
+		AddError(RulesError);
+		FArenaSession Dummy;
+		Rig.Close(Dummy);
+		return false;
+	}
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+	Session.SetScripted(true);
+	Session.SetBout(3, true);
+	Session.SetAirFinal(true);
+	FVrRuleset Rules = Loaded;
+	Rules.MageCompetenceOverride = 1.5;
+	Session.SetRulesOverride(Rules);
+	if (!Session.Start(1))
+	{
+		AddError(TEXT("lio start failed"));
+		Rig.Close(Session);
+		return false;
+	}
+	const double Dt = 1.0 / 72.0;
+	int32 Guard = 0;
+	double WorstOffPad = 0.0;
+	// What Lio cast, by row (each pending cast once, by activation id), and how many of his bolts flew.
+	TMap<int32, FString> LioCasts;
+	TSet<int32> LioShots;
+	while (Session.GetGames().Phase == TEXT("active") && Session.GetSimSeconds() < 120.0 && Guard < 10000)
+	{
+		Session.Advance(Dt, true);
+		++Guard;
+		if (const FVrRuleset* Bound = Session.GetVrRules())
+		{
+			if (const FActor* Rival = SimFindActor(Session.GetGames().State, Bound->RivalRuntime.ActorId))
+			{
+				if (Rival->Pending.IsSet() && Rival->Pending->SpellId.IsSet())
+				{
+					LioCasts.Add(Rival->Pending->ActivationId, Rival->Pending->SpellId.GetValue());
+				}
+				for (const FProjectile& Shot : Session.GetGames().State.Projectiles)
+				{
+					if (Shot.OwnerId == Rival->Id)
+					{
+						LioShots.Add(Shot.Id);
+					}
+				}
+			}
+		}
+		if (const FActor* Marked = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId))
+		{
+			double OffPad = 1.0e9;
+			for (int32 Pad = 0; Pad < 3; ++Pad)
+			{
+				OffPad = FMath::Min(OffPad, SimDistance(Marked->Pos, Session.PadKernel(Pad)));
+			}
+			WorstOffPad = FMath::Max(WorstOffPad, OffPad);
+		}
+	}
+	const TCHAR* Variant = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("-proposal") : TEXT("");
+	FFileHelper::SaveStringToFile(FString::Join(Session.GetChain(), TEXT("\n")), *ChainPath(*FString::Printf(TEXT("../T23/lio-c15%s-chain.log"), Variant)));
+	const FGames& Games = Session.GetGames();
+	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
+	const FVrRuleset* Live = Session.GetVrRules();
+	const FActor* Lio = Live ? SimFindActor(Games.State, Live->RivalRuntime.ActorId) : nullptr;
+	const double Measured = Session.GetSimSeconds();
+	const bool bWon = Games.Phase == TEXT("intermission") || Games.Phase == TEXT("complete");
+	const bool bBand = Measured >= Lo && Measured <= Hi && Games.Phase != TEXT("active");
+	const bool bBound = Live && Live->BoundRival() != nullptr && Live->BoundRival()->Id == TEXT("lio");
+	const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
+	const int32 LastBreaks = bBound ? Live->BoundRival()->Phases.Num() : 2;
+	const bool bSignature = Live && Live->RivalRuntime.GrantTick >= 0;
+	int32 Tempests = 0;
+	int32 Evades = 0;
+	int32 Deflects = 0;
+	int32 Forms = 0;
+	for (const FArenaEvent& Event : Games.State.Events)
+	{
+		const bool bLio = Lio && Event.ActorId == Lio->Id;
+		Tempests += bLio && Event.Kind == TEXT("cast") && Event.Value == 4.0 ? 1 : 0;
+		Evades += bLio && Event.Kind == TEXT("evade") ? 1 : 0;
+		Deflects += bLio && Event.Kind == TEXT("deflect") ? 1 : 0;
+		Forms += bLio && Event.Kind == TEXT("airform") ? 1 : 0;
+	}
+	UE_LOG(LogMageArena, Log, TEXT("AirSeated lio-c15 phase=%s t=%.2f won=%d breaks=%d signature=%d signatureS=%.2f tier4casts=%d hp=%.1f dealt=%.1f lioHp=%.1f lioMomentumMax=%.1f forms=%d evades=%d deflects=%d perfects=%d walls=%d splits=%d plants=%d"),
+		*Games.Phase, Measured, bWon ? 1 : 0, Breaks, bSignature ? 1 : 0, bSignature ? SimSeconds(Live->RivalRuntime.GrantTick) : -1.0, Tempests,
+		Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0, Lio ? Lio->Hp : -1.0, Lio ? Lio->Air.MaxMomentum : -1.0,
+		Forms, Evades, Deflects, Player ? Player->Metrics.Perfects : -1, Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants());
+	TMap<FString, int32> ByRow;
+	for (const TPair<int32, FString>& Cast : LioCasts)
+	{
+		ByRow.FindOrAdd(Cast.Value)++;
+	}
+	ByRow.KeySort([](const FString& A, const FString& B) { return A < B; });
+	FString Rows;
+	for (const TPair<FString, int32>& Row : ByRow)
+	{
+		Rows += FString::Printf(TEXT("%s=%d "), *Row.Key, Row.Value);
+	}
+	UE_LOG(LogMageArena, Log, TEXT("AirSeated lio-c15 windup casts: %s(zero-windup rows release on the press and are not listed) shots=%d lioCastEvents=%d lioDealt=%.1f lioPerfects=%d lioBlocks=%d"),
+		*Rows, LioShots.Num(), Lio ? Lio->Metrics.Casts : -1, Lio ? Lio->Metrics.DamageDealt : -1.0, Lio ? Lio->Metrics.Perfects : -1, Lio ? Lio->Metrics.Blocks : -1);
+	bool bPass = TestTrue(TEXT("Lio bound in the final"), bBound);
+	bPass &= TestTrue(TEXT("Lio is the air mage"), Lio && Lio->Air.bSchool);
+	bPass &= TestTrue(*FString::Printf(TEXT("length %.2fs in %.0f-%.0f"), Measured, Lo, Hi), bBand);
+	bPass &= TestTrue(*FString::Printf(TEXT("reached the last phase (%d of %d breaks)"), Breaks, LastBreaks), Breaks >= LastBreaks);
+	bPass &= TestTrue(TEXT("signature cast in the last phase"), Breaks < LastBreaks || bSignature);
+	bPass &= TestTrue(*FString::Printf(TEXT("stayed on a pad (worst %.4f m)"), WorstOffPad), WorstOffPad < 1.0e-3);
+	bPass &= TestTrue(*FString::Printf(TEXT("player wins (phase %s)"), *Games.Phase), bWon);
+	Rig.Close(Session);
 	return bPass;
 }
 
@@ -492,63 +660,137 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFullSeated, "MageArenaDesign.Session.
 
 bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 {
+	// T21: the whole Tiro day as the reference script plays it, measured, not tuned. The ritual (the script holds both
+	// palms), four bouts with their intro lines, the intermissions (continued at once by a raised palm, as before; the
+	// T20 pick is not taken), and the aftermath (the script palms the centre stone). The prologue and the teach are
+	// skipped as before; a second, first-launch session measures cold + prologue + teach for the total with the teach.
+	// Plan target: a 7-10 minute session (docs/campaign/04-vr-campaign-design.md section 1, Games day 6-10 min, and the
+	// V2-ROADMAP mechanics gate). A bout the script loses is the end of the run: the script is deterministic, so a retry
+	// of bouts 1-3 loses again; a lost final goes to the aftermath on the centre stone.
+	const bool bProposal = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal"));
+	const double PlanLoS = 7.0 * 60.0;
+	const double PlanHiS = 10.0 * 60.0;
+	const double Dt = 1.0 / 72.0;
 	FSessionRig Rig;
 	if (!Rig.Open(*this)) return false;
+
+	// First launch: cold -> prologue -> teach, until the ritual.
+	double FirstLaunchS = 0.0;
+	{
+		FArenaSession First;
+		First.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+		First.SetScripted(true);
+		const FString FirstDir = ScratchSaveDir();
+		First.SetSaveDirectory(FirstDir);
+		if (!First.BeginArc(1))
+		{
+			AddError(TEXT("first launch BeginArc failed"));
+			Rig.Close(First);
+			return false;
+		}
+		int32 Guard = 0;
+		while (First.GetStage() != TEXT("ritual") && Guard < 72 * 300)
+		{
+			First.Advance(Dt, true);
+			FirstLaunchS += Dt;
+			++Guard;
+		}
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated first launch: cold+prologue+teach=%.2f s (teach %.3f s) stage=%s"),
+			FirstLaunchS, First.GetTeachSeconds(), *First.GetStage());
+		TestEqual(TEXT("the first launch reaches the ritual"), First.GetStage(), FString(TEXT("ritual")));
+		First.Unbind();
+		IFileManager::Get().DeleteDirectory(*FirstDir, false, true);
+	}
+
 	FArenaSession Session;
 	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
 	Session.SetScripted(true);
-	Session.SetSaveDirectory(ScratchSaveDir());
-	if (!Session.Start(1))
+	const FString Dir = ScratchSaveDir();
+	Session.SetSaveDirectory(Dir);
+	if (!Session.BeginArc(1))
 	{
-		AddError(TEXT("Session.Start failed"));
+		AddError(TEXT("BeginArc failed"));
 		Rig.Close(Session);
 		return false;
 	}
+	Session.SkipTeach();
 
-	const double Dt = 1.0 / 72.0;
+	TMap<FString, double> PhaseS;
+	double IntroS[4] = {0.0, 0.0, 0.0, 0.0};
+	double DayS = 0.0;
 	int32 Guard = 0;
-	bool bWasIntermission = false;
-	
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Starting session"));
-
-	double BoutStartTime = 0.0;
-	int32 CurrentBout = Session.GetGames().Wave;
-
-	while (Session.GetGames().Phase != TEXT("complete") && Session.GetGames().Phase != TEXT("lost") && Guard < 100000)
+	bool bStopped = false;
+	FString LastStage;
+	while (Session.GetStage() != TEXT("closed") && Guard < 72 * 1800)
 	{
-		if (Session.GetGames().Phase == TEXT("intermission") && !bWasIntermission)
+		const FString Stage = Session.GetStage();
+		if (Stage != LastStage)
 		{
-			bWasIntermission = true;
-			double BoutDuration = Session.GetSimSeconds() - BoutStartTime;
-			UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d won in %.2f s. Triggering intermission advance..."), CurrentBout, BoutDuration);
-			// Trigger palm raise to continue
-			Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-			
-			// Next bout will start
-			CurrentBout = Session.GetGames().Wave;
-			BoutStartTime = Session.GetSimSeconds();
+			UE_LOG(LogMageArena, Log, TEXT("FullSeated stage=%s bout=%d t=%.2f"), *Stage, Session.GetGames().Wave + 1, DayS);
+			if (Stage == TEXT("intermission"))
+			{
+				Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+			}
+			LastStage = Stage;
 		}
-		else if (Session.GetGames().Phase == TEXT("active"))
+		if (Stage == TEXT("lost") && Session.GetGames().Wave < 3)
 		{
-			bWasIntermission = false;
+			bStopped = true;
+			break;
 		}
-		
 		Session.Advance(Dt, true);
+		PhaseS.FindOrAdd(Stage) += Dt;
+		if (Stage == TEXT("intro") && Session.GetGames().Wave >= 0 && Session.GetGames().Wave < 4)
+		{
+			IntroS[Session.GetGames().Wave] += Dt;
+		}
+		DayS += Dt;
 		++Guard;
 	}
 
-	double FinalBoutDuration = Session.GetSimSeconds() - BoutStartTime;
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Bout %d ended in phase=%s in %.2f s"), CurrentBout, *Session.GetGames().Phase, FinalBoutDuration);
-
-	const double Measured = Session.GetSimSeconds();
-	const double TotalWithTeach = Measured + 63.3; // teach measured at 63.3 s
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated: Session ended with phase=%s t=%.2f minutes=%.2f (total with teach: %.2f s, %.2f minutes). Plan: 7-10 mins."),
-		*Session.GetGames().Phase, Measured, Measured / 60.0, TotalWithTeach, TotalWithTeach / 60.0);
+	const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
+	FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("../T21/fullseated%s-chain.log"), bProposal ? TEXT("-proposal") : TEXT(""))));
+	int32 Won = 0;
+	double FightS = 0.0;
+	for (int32 WaveN = 1; WaveN <= 4; ++WaveN)
+	{
+		bool bWon = false;
+		double Seconds = -1.0;
+		double Attempts = 0.0;
+		double Perfects = 0.0;
+		const bool bFought = Session.GetFlags().GetBool(FArenaFlags::TiroKey(WaveN, TEXT("won")), bWon);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), Perfects);
+		double Cracks = -1.0;
+		double Tithe = -1.0;
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), Cracks);
+		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), Tithe);
+		Won += bFought && bWon ? 1 : 0;
+		FightS += bFought ? Seconds : 0.0;
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated bout %d %s outcome=%s fight=%.2f s intro=%.2f s attempts=%.0f perfects=%.0f cracks=%.0f tithe=%.0f school=%s"),
+			WaveN, bProposal ? TEXT("proposal") : TEXT("live"), bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"),
+			Seconds, IntroS[WaveN - 1], Attempts, Perfects, Cracks, Tithe, *Session.DaySchool(WaveN - 1));
+	}
+	// T22, measured, not asserted: the day's collar (the -1 rows above were not fought) and the collar's lifetime.
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated collar %s day cracks=%d tithe=%d lifetimeCracks=%d lifetimeTithe=%d"),
+		bProposal ? TEXT("proposal") : TEXT("live"), Session.GetDayCracks(), Session.GetDayTithe(), Session.GetCollar().GetLifetimeCracks(),
+		Session.GetCollar().GetLifetimeTithe());
+	const double WithTeachS = FirstLaunchS + DayS;
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated phases ritual=%.2f intro=%.2f active=%.2f intermission=%.2f aftermath=%.2f lost=%.2f"),
+		PhaseS.FindRef(TEXT("ritual")), PhaseS.FindRef(TEXT("intro")), PhaseS.FindRef(TEXT("active")), PhaseS.FindRef(TEXT("intermission")),
+		PhaseS.FindRef(TEXT("aftermath")), PhaseS.FindRef(TEXT("lost")));
+	UE_LOG(LogMageArena, Log, TEXT("FullSeated day %s: stage=%s won=%d/4 fights=%.2f s day=%.2f s (%.2f min) with teach=%.2f s (%.2f min) plan=7-10 min %s"),
+		bProposal ? TEXT("proposal") : TEXT("live"), *Session.GetStage(), Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
+		WithTeachS >= PlanLoS && WithTeachS <= PlanHiS ? TEXT("INSIDE") : TEXT("OUTSIDE"));
 
 	bool bPass = true;
-	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 100000);
-	bPass &= TestEqual(TEXT("Session completes (all bouts won)"), Session.GetGames().Phase, FString(TEXT("complete")));
-
+	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 72 * 1800);
+	bPass &= TestFalse(*FString::Printf(TEXT("the script did not lose bout %d"), Session.GetGames().Wave + 1), bStopped);
+	bPass &= TestEqual(TEXT("the day closes"), Session.GetStage(), FString(TEXT("closed")));
+	bPass &= TestEqual(TEXT("all four bouts won"), Won, 4);
+	bPass &= TestTrue(*FString::Printf(TEXT("the day with the teach (%.2f s) is in the plan's 7-10 min"), WithTeachS), WithTeachS >= PlanLoS && WithTeachS <= PlanHiS);
+	IFileManager::Get().DeleteDirectory(*Dir, false, true);
 	Rig.Close(Session);
 	return bPass;
 }

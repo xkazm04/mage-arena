@@ -53,6 +53,34 @@
       "mode": "unchanged",
       "attackId": "sling_stone",
       "_note": "sling_stone stays pinned: damage 7, windupS 0.5, cooldownS 2.2, projectileMps 14, keepDistanceM [8, 10]. No field is replaced. The dais no-entry still applies if a strafe would step onto the stone."
+    },
+    {
+      "enemyId": "cinder_hound",
+      "mode": "spit",
+      "attackId": "bite",
+      "family": "magic",
+      "tier": 0,
+      "damage": 5,
+      "windupS": 0.6,
+      "projectileMps": 7,
+      "rangeM": 9,
+      "deathEmber": true,
+      "_about": "Owner decision 2026-10-07, DF-004 option A (docs/DECISIONS.md). From the seat no hound death burst (radius 1.5 m) reaches the player, so the hounds hold at the dais hold line like a thrower (CR-003 steering) and spit a slow, telegraphed magic ember instead of biting. The pinned bite row is not edited and keeps its recoveryS 0.4. A VR overlay attack until the TV change request lands.",
+      "_family": "The pinned onDeath ember_burst family. Magic, so a ward takes combat.json absorb.reduction.magic 0.85 off it and a fresh raise inside absorb.perfect.windowS 0.15 perfects it.",
+      "_tier": "The pinned ember_burst tier 0. A tier-0 perfect returns 4 mana (combat.json absorb.perfect.manaReturned).",
+      "_damage": "The pinned ember_burst damage 5. Not a new number.",
+      "_windupS": "Above the combat.json reactionBands.minimumTelegraphPositionalS floor of 0.40 s, and the pinned ember_burst delayS 0.6, so the spit telegraph reads as long as the burst does.",
+      "_projectileMps": "Half the 14 m/s steel speed (pinned sling_stone projectileMps, the thrown spear's speed), so the ember reads as slow and the perfect window has room. From the hold line to the centre pad (about 3.5 m) it flies about 0.5 s.",
+      "_rangeM": "The thrower reach from CR-003 (conscript throw rangeM 9): the longest line from the front lip of the hold box to a pad is about 8.6 m.",
+      "_deathEmber": "A dying hound throws one last ember with these numbers from where it died, after the pinned ember_burst delayS 0.6. The pinned 1.5 m area burst still happens unchanged.",
+      "replaces": [
+        {
+          "field": "bite",
+          "pinned": "physical 6, windupS 0.35, melee",
+          "overlay": "magic 5, windupS 0.6, projectile 7 m/s, range 9 m",
+          "why": "The bite is melee and DF-001 option A keeps every body off the dais, so it never reaches the seat (DF-004)."
+        }
+      ]
     }
   ],
 
@@ -61,13 +89,17 @@
     "_throwerClosesToLip": "The conscript ready delay is unchanged: windupS 0.6 + recoveryS 0.5, then the behaviour text 'back off 1 s'. runtime.json conscriptBackoffM stays 3. While that delay runs and the player is farther than 3 m, the kernel stands still. A thrower instead keeps walking to the hold line, then holds. The delay before the next throw is the pinned one. Unlisted enemy ids keep their pinned attack; the dais no-entry still rejects their bodies."
   },
 
-  "_unlisted": "An enemy id with no entry keeps its pinned attack. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM.",
+  "_unlisted": "An enemy id with no entry keeps its pinned attack. A spit is accepted for cinder_hound only; any other enemy with mode spit fails the load. Every enemy, listed or not, is kept outside the dais footprint expanded by standoffM.",
 
   "splitHands": {
     "oneHandPower": 0.6,
     "maxTier": 2,
     "_oneHandPower": "Proposal from SCHOOL-DEFENCES A. With the ward held and the staff not planted, Bolt and lines up to maxTier deal this fraction and build no Flow. Calibration may change it. Not signed off.",
-    "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate."
+    "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate.",
+    "latchClearIdleS": 0.3,
+    "boltAtFullFlow": true,
+    "_latchClearIdleS": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'the perfect latch clears after the casting hand is idle about 0.3 s'. The kernel rounds up to whole ticks: 0.3 s at 60 Hz is 18. A ward drop still clears the latch at once. Absent means the latch holds until the ward drops.",
+    "_boltAtFullFlow": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'a split Bolt at Flow 5 is allowed and does not spend the Crest'. The Bolt resolves at oneHandPower and leaves Flow and Crests as they are. Every other split cast at full Flow is still refused for crest. Absent or false keeps the refusal."
   },
 
   "plantedStaff": {
@@ -96,6 +128,64 @@
     "_manaCost": "Proposal. Paid once on the raise tick, after that tick's regen. Above a bolt, below Sunfall. Not signed off.",
     "_heatPerStop": "Proposal. Heat granted to the caster for each magic or physical projectile the curtain destroys. Between a bolt hit and a flick. Not signed off.",
     "_burnDamage": "Proposal. Magic damage to an enemy body that crosses the arc. A ward can chip it. Unblockable projectiles pass and do not burn by themselves. Not signed off."
+  },
+
+  "rivals": {
+    "_about": "DECISIONS 2026-10-07 'v2 vision accepted', DF-003 answered: named mages fight in HP-gated phases; each break surges both tier clocks by one tier and swells the crowd; the last phase opens with the rival's signature. A VR overlay rule until the TV change request (CR-005) lands. Absent block: no rival, the duel is today's.",
+    "brennic": {
+      "school": "fire",
+      "_school": "Brennic is the Ember mage (DECISIONS 2026-10-07: 'Brennic in the semifinal'; his signature is Sunfall). Fire is the kernel school his duel runs on.",
+      "appliesTo": {
+        "tier": "tiro",
+        "waveN": 3,
+        "kind": "semifinal",
+        "_why": "DECISIONS 2026-10-07 slice: 'a full Tiro day (... Brennic in the semifinal ...)'. Pinned arena-tiers.json Tiro wave n 3 is the semifinal, one mage at competence 1. The session binds the Fire mage of that wave; the final (n 4) is not Brennic."
+      },
+      "phases": [
+        {
+          "atHpFraction": 0.66,
+          "_why": "DECISIONS 2026-10-07: 'Named mages get 2-3 HP-gated phases (proposal 66 % and 33 % HP)'. First break at 66 % of max HP: 95 x 0.66 = 62.7 at vigor 1."
+        },
+        {
+          "atHpFraction": 0.33,
+          "opensWith": "fire_sunfall",
+          "_why": "DECISIONS 2026-10-07: second threshold 33 % (95 x 0.33 = 31.35), and 'the last phase opens with the rival's signature (Brennic: Sunfall)'. fire_sunfall is the pinned spells-fire.csv row (tier 4, mana 70, damage 95, unblockable); the opening cast is granted once, ignoring the tier gate and the mana cost."
+        }
+      ],
+      "surgeTiers": 1,
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. Both the rival and the player rise one tier per break, capped at tier IV (kernel TierCap 4); the surge ignores minimumSecondsBetweenUnlocks."
+    },
+    "lio": {
+      "school": "air",
+      "_school": "Lio is the Gale Tent entrant (DECISIONS 2026-10-07: 'Second school for the Tiro final: Air ... The Gale Tent entrant (Iskar or Lio) as an AI opponent with defence D (air form)'; docs/schools/AIR.md open point 1 names Lio the slice default). Air is the kernel school his duel runs on (card T23).",
+      "appliesTo": {
+        "tier": "tiro",
+        "waveN": 4,
+        "kind": "final",
+        "_why": "DECISIONS 2026-10-07 slice: 'a full Tiro day (... the final against a second school)'. Pinned arena-tiers.json Tiro wave n 4 is the final, one mage at competence 1.5. With the school mages on, the session spawns that mage as Air (FGames bAirFinal); the semifinal (n 3) stays Brennic, Fire."
+      },
+      "phases": [
+        {
+          "atHpFraction": 0.66,
+          "_why": "DECISIONS 2026-10-07: 'Named mages get 2-3 HP-gated phases (proposal 66 % and 33 % HP)'. First break at 66 % of max HP: 95 x 0.66 = 62.7 at vigor 1."
+        },
+        {
+          "atHpFraction": 0.33,
+          "opensWith": "air_tempest",
+          "_why": "DECISIONS 2026-10-07: 'the last phase opens with the rival's signature'; docs/schools/AIR.md 'Signature: Tempest Lance (tier IV, unblockable line, 1.2 s drawn telegraph): the rival's last-phase opener (CR-005 pattern)'. air_tempest is the VR proposal row in data/vr/schools/spells-air.csv (tier 4, mana 70, damage 85, UNBLOCKABLE); the opening cast is granted once, ignoring the tier gate, the cooldown and the mana cost."
+        }
+      ],
+      "surgeTiers": 1,
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. The same rule as Brennic's, capped at tier IV."
+    }
+  },
+
+  "tiroFinal": {
+    "school": "air",
+    "rival": "lio",
+    "_why": "DECISIONS 2026-10-07 'v2 vision accepted': the slice day ends with 'the final against a second school', and the cut rule: 'First cut if the Fri 23 Oct checkpoint slips: the second school; the final becomes Corvo, a second Ember entrant on the Fire kernel.' The second school is Air (same entry, card T23). Until T23 lands an Air rival, the final is Corvo: pinned arena-tiers.json Tiro wave n 4 (kind final, one mage at competence 1.5) as a Fire mage with no phases.",
+    "_school": "The kernel school of the final's mage. Without a rival it must be a kernel school (fire or water). With a rival it must be that rival's school. T23's merge switches this block to { \"school\": \"air\", \"rival\": \"lio\" }; until rivals.lio exists, that value fails the load.",
+    "_rival": "null: no HP-gated phases, and no entry in rivals may apply to the final in this school. A rival id: that entry in rivals, whose appliesTo must be tier tiro, waveN 4, kind final, in the same school. The bout 4 intro line is strings.json story.bout4.intro.<rival>, or story.bout4.intro.corvo when null."
   },
 
   "narrowFov": {

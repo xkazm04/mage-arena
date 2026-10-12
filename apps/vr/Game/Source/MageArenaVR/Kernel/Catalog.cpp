@@ -97,6 +97,13 @@ const FSpell* FindSpellById(const FString& Id)
 			return &Spell;
 		}
 	}
+	for (const FSpell& Spell : KernelData().AirCatalog)
+	{
+		if (Spell.Id == Id)
+		{
+			return &Spell;
+		}
+	}
 	return nullptr;
 }
 

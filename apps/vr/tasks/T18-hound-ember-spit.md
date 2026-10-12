@@ -1,6 +1,6 @@
 # T18 - Cinder hounds spit embers (DF-004 option A)
 
-Status: open
+Status: done with a design finding (verified 2026-10-07: MageArena. 175/175; live CreaturesSeated 52.02 s with 11 perfects, outside 30-45; proposal 31.02 s inside with 0 perfects - DF-007)
 Max turns: 260
 
 ## Goal
@@ -72,3 +72,12 @@ powershell -NoProfile -File apps/vr/tools/capture-creatures.ps1   # stills in ru
 Write `runs/T18/REPORT.md`: files, every acceptance command with real output, the measured CreaturesSeated and
 FullSeated numbers (live and proposal, before and after), a description of each still, and every decision the card did
 not specify.
+
+## Orchestrator verification (2026-10-07)
+Grok's balance was exhausted (HTTP 402), so a Claude subagent implemented the card in worktree `v2/T18`. The orchestrator
+re-ran the build (green) and `MageArena.` (175 Success, `EXIT CODE: 0`) and looked at still 06 (an ember in flight with
+the white bead ring inside the perfect window). The loader ties the spit's family, tier and damage to the pinned
+`ember_burst`. Mutation check failed all three spit tests as expected. Bout 2 perfects went from 0 to 11 live (DF-004
+closed), but the reference seat holds fire to perfect embers, so live Bout 2 runs 52.02 s, past the pinned 30-45 s; on
+the proposal the 14 s dome keeps the seat planted and it perfects none (DF-007). Presentation backlog: embers draw in the
+Water turquoise (T26), stills 07 and 08 are weakly framed, player bolts leave the seat at lens height.
