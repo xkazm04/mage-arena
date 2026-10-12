@@ -405,6 +405,43 @@ bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
 	{
 		return false;
 	}
+	FString StyleArg;
+	if (FParse::Value(FCommandLine::Get(), TEXT("MageArenaStyle="), StyleArg) && StyleArg != TEXT("greybox") && !StyleArg.IsEmpty())
+	{
+		FString StylePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/styles/style-") + StyleArg + TEXT(".json"));
+		FPaths::CollapseRelativeDirectories(StylePath);
+		FString StyleJson;
+		if (FFileHelper::LoadFileToString(StyleJson, *StylePath))
+		{
+			TSharedPtr<FJsonObject> StyleRoot;
+			const TSharedRef<TJsonReader<>> StyleReader = TJsonReaderFactory<>::Create(StyleJson);
+			if (FJsonSerializer::Deserialize(StyleReader, StyleRoot) && StyleRoot.IsValid())
+			{
+				auto ReadCol = [&](const TSharedPtr<FJsonObject>& Obj, const TCHAR* Field, FLinearColor& Out) {
+					const TArray<TSharedPtr<FJsonValue>>* Arr;
+					if (Obj->TryGetArrayField(Field, Arr) && Arr->Num() >= 3) {
+						Out = FLinearColor((*Arr)[0]->AsNumber(), (*Arr)[1]->AsNumber(), (*Arr)[2]->AsNumber(), Out.A);
+					}
+				};
+				ReadCol(StyleRoot, TEXT("arena"), Stone);
+				ReadCol(StyleRoot, TEXT("arena"), Seat);
+				ReadCol(StyleRoot, TEXT("dais"), Dais);
+				ReadCol(StyleRoot, TEXT("pads"), PadRing);
+				ReadCol(StyleRoot, TEXT("hands"), Hand);
+				ReadCol(StyleRoot, TEXT("groundTone"), Sand);
+				ReadCol(StyleRoot, TEXT("arena"), Brazier);
+				ReadCol(StyleRoot, TEXT("arena"), BannerCloth);
+				ReadCol(StyleRoot, TEXT("arena"), BannerPole);
+				ReadCol(StyleRoot, TEXT("skyTone"), SkyHorizon);
+				ReadCol(StyleRoot, TEXT("dome"), SkyUpper);
+				ReadCol(StyleRoot, TEXT("dome"), SkyZenith);
+				const TSharedPtr<FJsonObject>* Proj = nullptr;
+				if (StyleRoot->TryGetObjectField(TEXT("projectiles"), Proj) && Proj && (*Proj).IsValid()) {
+					ReadCol(*Proj, TEXT("fire"), Flame);
+				}
+			}
+		}
+	}
 	return true;
 }
 

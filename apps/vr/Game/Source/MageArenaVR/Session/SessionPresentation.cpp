@@ -31,20 +31,62 @@
 
 namespace
 {
-const FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
-const FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
-const FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
-const FLinearColor SteelColour(0.68f, 0.68f, 0.68f);
-const FLinearColor FireColour(0.760525f, 0.05448f, 0.013702f);
-const FLinearColor UnblockableBody(0.006995f, 0.006995f, 0.008023f);
-const FLinearColor UnblockableRim(0.745404f, 0.014444f, 0.009134f);
-const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
-const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
-const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
-const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
-const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
-const FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
-const FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
+FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
+FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
+FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
+FLinearColor SteelColour(0.68f, 0.68f, 0.68f);
+FLinearColor FireColour(0.760525f, 0.05448f, 0.013702f);
+FLinearColor UnblockableBody(0.006995f, 0.006995f, 0.008023f);
+FLinearColor UnblockableRim(0.745404f, 0.014444f, 0.009134f);
+FLinearColor HpColour(0.65f, 0.08f, 0.05f);
+FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
+FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
+FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
+FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
+FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
+FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
+
+bool bStyleLoaded = false;
+void LoadStylePresentation()
+{
+	if (bStyleLoaded) return;
+	bStyleLoaded = true;
+
+	FString StyleArg;
+	if (FParse::Value(FCommandLine::Get(), TEXT("MageArenaStyle="), StyleArg) && StyleArg != TEXT("greybox") && !StyleArg.IsEmpty())
+	{
+		FString StylePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/styles/style-") + StyleArg + TEXT(".json"));
+		FPaths::CollapseRelativeDirectories(StylePath);
+		FString StyleJson;
+		if (FFileHelper::LoadFileToString(StyleJson, *StylePath))
+		{
+			TSharedPtr<FJsonObject> Root;
+			const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(StyleJson);
+			if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
+			{
+				auto ReadCol = [&](const TSharedPtr<FJsonObject>& Obj, const TCHAR* Field, FLinearColor& Out) {
+					const TArray<TSharedPtr<FJsonValue>>* Arr;
+					if (Obj->TryGetArrayField(Field, Arr) && Arr->Num() >= 3) {
+						Out = FLinearColor((*Arr)[0]->AsNumber(), (*Arr)[1]->AsNumber(), (*Arr)[2]->AsNumber(), Out.A);
+					}
+				};
+
+				ReadCol(Root, TEXT("soldiers"), ConscriptColour);
+				ReadCol(Root, TEXT("soldiers"), SlingerColour);
+				ReadCol(Root, TEXT("fireMage"), FireColour);
+				
+				const TSharedPtr<FJsonObject>* Proj;
+				if (Root->TryGetObjectField(TEXT("projectiles"), Proj))
+				{
+					ReadCol(*Proj, TEXT("magic"), WaterColour);
+					ReadCol(*Proj, TEXT("steel"), SteelColour);
+					ReadCol(*Proj, TEXT("unblockableBody"), UnblockableBody);
+					ReadCol(*Proj, TEXT("unblockableRim"), UnblockableRim);
+				}
+			}
+		}
+	}
+}
 
 FVector PadForward(const FArenaSession& Session)
 {
@@ -1061,6 +1103,7 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
+	LoadStylePresentation();
 	if (!Session.IsRunning())
 	{
 		return;

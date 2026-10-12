@@ -3,6 +3,7 @@
 #include "Session/CreaturesCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
+#include "Session/StylePickCapture.h"
 #include "Session/TeachCapture.h"
 #include "Session/Wave1Capture.h"
 
@@ -1795,6 +1796,13 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		SettingsCapture = NewObject<USettingsCaptureDriver>(this);
 		SettingsCapture->Start();
+		return;
+	}
+	const bool bStylePickCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaStylePickCapture"));
+	if (bStylePickCapture)
+	{
+		StylePickCapture = NewObject<UStylePickCaptureDriver>(this);
+		StylePickCapture->Start();
 		return;
 	}
 	if (bGame && !bGreyboxCapture)

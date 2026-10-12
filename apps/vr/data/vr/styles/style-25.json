@@ -1,0 +1,30 @@
+{
+  "_source": "25-moonlit-silver/key-art.png, monochrome environment, bright magic",
+  "groundTone": [0.102, 0.133, 0.208],
+  "skyTone": [0.102, 0.133, 0.208],
+  "arena": [0.298, 0.353, 0.431],
+  "dais": [0.298, 0.353, 0.431],
+  "pads": [0.788, 0.827, 0.871],
+  "soldiers": [0.298, 0.353, 0.431],
+  "fireMage": [0.298, 0.353, 0.431],
+  "projectiles": {
+    "magic": [0.098, 0.878, 0.878],
+    "fire": [1.0, 0.231, 0.122],
+    "steel": [0.788, 0.827, 0.871],
+    "unblockableBody": [0.102, 0.133, 0.208],
+    "unblockableRim": [1.0, 0.231, 0.122]
+  },
+  "telegraphs": {
+    "magic": [0.098, 0.878, 0.878],
+    "fire": [1.0, 0.231, 0.122],
+    "steel": [0.788, 0.827, 0.871],
+    "unblockableBody": [0.102, 0.133, 0.208],
+    "unblockableRim": [1.0, 0.231, 0.122]
+  },
+  "dome": [0.102, 0.133, 0.208],
+  "wall": [0.298, 0.353, 0.431],
+  "hands": [0.788, 0.827, 0.871],
+  "cuff": [0.298, 0.353, 0.431],
+  "outlineTreatment": "none",
+  "edgeTreatment": "emissive"
+}

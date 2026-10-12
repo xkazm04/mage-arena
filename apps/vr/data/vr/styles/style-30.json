@@ -1,0 +1,30 @@
+{
+  "_source": "30-chalk-slate/key-art.png, slate background, chalk lines",
+  "groundTone": [0.165, 0.184, 0.2],
+  "skyTone": [0.165, 0.184, 0.2],
+  "arena": [0.165, 0.184, 0.2],
+  "dais": [0.165, 0.184, 0.2],
+  "pads": [0.949, 0.816, 0.420],
+  "soldiers": [0.929, 0.929, 0.910],
+  "fireMage": [0.941, 0.416, 0.302],
+  "projectiles": {
+    "magic": [0.486, 0.769, 0.910],
+    "fire": [0.941, 0.416, 0.302],
+    "steel": [0.929, 0.929, 0.910],
+    "unblockableBody": [0.165, 0.184, 0.2],
+    "unblockableRim": [0.941, 0.416, 0.302]
+  },
+  "telegraphs": {
+    "magic": [0.486, 0.769, 0.910],
+    "fire": [0.941, 0.416, 0.302],
+    "steel": [0.929, 0.929, 0.910],
+    "unblockableBody": [0.165, 0.184, 0.2],
+    "unblockableRim": [0.941, 0.416, 0.302]
+  },
+  "dome": [0.165, 0.184, 0.2],
+  "wall": [0.165, 0.184, 0.2],
+  "hands": [0.929, 0.929, 0.910],
+  "cuff": [0.949, 0.816, 0.420],
+  "outlineTreatment": "chalk",
+  "edgeTreatment": "sketch"
+}

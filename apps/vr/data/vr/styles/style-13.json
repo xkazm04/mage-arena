@@ -1,0 +1,30 @@
+{
+  "_source": "13-screen-print/key-art.png, background paper, mage robes, fire spells, shadows",
+  "groundTone": [0.945, 0.906, 0.812],
+  "skyTone": [0.945, 0.906, 0.812],
+  "arena": [0.945, 0.906, 0.812],
+  "dais": [0.231, 0.137, 0.251],
+  "pads": [0.886, 0.702, 0.235],
+  "soldiers": [0.118, 0.435, 0.451],
+  "fireMage": [0.231, 0.137, 0.251],
+  "projectiles": {
+    "magic": [0.118, 0.435, 0.451],
+    "fire": [0.910, 0.455, 0.231],
+    "steel": [0.231, 0.137, 0.251],
+    "unblockableBody": [0.231, 0.137, 0.251],
+    "unblockableRim": [0.910, 0.455, 0.231]
+  },
+  "telegraphs": {
+    "magic": [0.118, 0.435, 0.451],
+    "fire": [0.910, 0.455, 0.231],
+    "steel": [0.231, 0.137, 0.251],
+    "unblockableBody": [0.231, 0.137, 0.251],
+    "unblockableRim": [0.910, 0.455, 0.231]
+  },
+  "dome": [0.945, 0.906, 0.812],
+  "wall": [0.945, 0.906, 0.812],
+  "hands": [0.231, 0.137, 0.251],
+  "cuff": [0.886, 0.702, 0.235],
+  "outlineTreatment": "bold",
+  "edgeTreatment": "halftone"
+}

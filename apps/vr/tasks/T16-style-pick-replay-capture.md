@@ -63,3 +63,28 @@ powershell -NoProfile -File apps/vr/tools/build.ps1
 UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArena.;Quit" -unattended -nullrhi -nosplash -log
 powershell -NoProfile -File apps/vr/tools/capture-style-pick.ps1    # 4 MP4s + 16 stills + 4 identical event logs
 ```
+
+## Retry 1 (orchestrator, 2026-10-04)
+
+Verified: build green, conformance byte-identical, overlay/proposal untouched, `MageArena.` 142/142 incl.
+`MageArena.Replay.Deterministic`. The orchestrator re-ran `capture-style-pick.ps1` to completion (your session ended
+while it ran and its background tasks were killed). Result (`runs/T16/cmp/grid-*.jpg`, frames 300/1200/2400/3600 of each
+skin side by side): **the capture never runs the duel.** Every frame of all four videos shows `Sim: 0.00s | Last: (Actor 0)`,
+an empty arena, no hands, no Fire mage. Fix these; evidence rules above still bind.
+
+1. **The simulation does not advance in `UStylePickCaptureDriver`** (`Session/StylePickCapture.cpp`, `Start()` ~26-60 and
+   the tick): the session is started (`SetBout(2, true)`, `Start(1)`) but never stepped. Step the scripted session by
+   exactly one kernel tick (1/60 s) per captured frame, so frame N is sim tick N in every skin; assert sim time > 0 after
+   the first second and log it. Use the seated Fire duel at competence 1, seed 1 (as the card says); confirm the Fire mage
+   and the hands are on screen.
+2. **Each run ended on the 12-minute script timeout**, so the end-of-run event log was never written, no stills were
+   cut, and the "identical" check passed on missing files. Write `runs/T16/events-<style>.jsonl` as events happen (append
+   per tick) or end the run deterministically at a fixed tick count (e.g. 3600 ticks = 60 s) so it always completes well
+   inside the timeout; make the script **fail** (non-zero exit, clear message) if any of the four logs is missing or
+   differs; cut the 4 stills per style at the same event ticks.
+3. **The skins barely differ** (`grid-*.jpg`): only the floor tint changes; the sky band, roof, stands and walls stay the
+   greybox orange/blue/grey in every style. Apply the style data to every greybox surface (sky panels, stands, walls,
+   roof, banners, braziers, ground), so each skin reads as its study at a glance - still unlit, still the threat language.
+4. Run the full capture yourself **in the foreground and wait for it** (about 4 x 12 min is too long: with item 2 each
+   run should take a few minutes). Look at the frames and stills; describe them in `runs/T16/REPORT.md` with real
+   numbers (frames, durations, event counts, the md5 of each event log).

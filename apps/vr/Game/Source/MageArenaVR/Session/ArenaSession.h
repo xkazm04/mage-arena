@@ -418,4 +418,7 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<USettingsCaptureDriver> SettingsCapture;
+
+	UPROPERTY()
+	TObjectPtr<class UStylePickCaptureDriver> StylePickCapture;
 };
