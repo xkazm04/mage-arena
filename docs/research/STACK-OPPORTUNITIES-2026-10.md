@@ -1189,7 +1189,7 @@ Two findings, F11 and F12. Neither is applied.
 
 #### F12. A 5.8.4 hotfix is announced, so F9's freeze-or-take decision is due before about 2026-10-20
 
-- **Status:** open, the owner's call: freeze UE_5.8 at 5.8.3 until 11-18, or take 5.8.4 on purpose on one day; due before about 2026-10-20 (inferred).
+- **Status:** open, the owner's call, re-read 2026-10-13 (section 8): 5.8.4 is still not posted (no hotfix topic, no release-notes mention), so its notes and CompatibleChangelist cannot yet be read against BuildId 55116800; the engine is still 5.8.3 (CL 58210709, CompatibleChangelist 55116800, `Build.version` unchanged since 10-03) and both v207 plugins still match on 55116800; Meta lists nothing above 207.0; the known 5.8.4 contents are two staff-confirmed fixes, UE-397316 (Niagara scene-depth sampling, 10-05) and UE-396802 (macOS 27 game build, 10-12), neither on the 7.1 row-3 list; recommendation (a) freeze at 5.8.3 until 11-18, with launcher auto-update off before about 10-20, and (b) only if the posted notes name a row-3 fix; due before about 2026-10-20 (inferred from the 28-day cadence).
 - **Upstream statements:**
   - Forum bug thread "ShallowWaterRiver simulation does not initialize in Unreal Engine 5.7.4". On 2026-09-18 a user
     (no staff flag) wrote "The fix has been submitted and will be in 5.8.4." On 2026-10-05 Epic's Bug-Reporter
@@ -1686,4 +1686,517 @@ Android: (Status=Valid, MinAllowed_Sdk=r27c, MaxAllowed_Sdk=r29, Current_Sdk=r28
 | Piece | Value |
 | CMake | 3.22.1 present |
 [exit 0]
+```
+
+## 8. Feed 2026-10-13
+
+This section records what changed upstream between the 2026-10-08 read (section 7) and 2026-10-13, for the stack in
+section 1. It answers three questions. (1) Has UE 5.8.4 been posted, and if so, what do its notes and its
+CompatibleChangelist say? (2) Is there a MetaXR release above v207 for 5.8? (3) Does anything dated after 2026-10-08
+change the status of F1 to F12? Sections 1 to 7 are unchanged and are the history. The only edit outside this section
+is F12's status line. Nothing here is applied. No Unreal process ran: no build, editor, commandlet, cook or automation
+run. Nothing was installed.
+
+- **How the quotes were checked.** Every page was downloaded with `curl` into a new, empty directory outside the repo
+  (`/tmp/mav-feed1013-c4e1`). Each quote below was then found in the raw file with `grep` or `node` (8.4). Two
+  WebSearch calls only cross-checked the result, and no statement below rests on them alone.
+- **Answer in one line.** 5.8.4 is **not posted** as of 2026-10-13, and Meta lists **nothing above 207.0**. The one new
+  fact is a second staff-confirmed 5.8.4 fix, dated 2026-10-12: a macOS build fix. It touches nothing here. **No new
+  finding.** F12 stays open, with its status line updated.
+
+### 8.1 The stack, re-read
+
+| Piece | On 10-08 | Now (10-13) | Where it was read |
+|---|---|---|---|
+| Engine | 5.8.3, CL 58210709, CompatibleChangelist 55116800 | the same; `Build.version` is still dated 2026-10-03 11:15 +02:00, so the launcher has not moved the engine since | `Engine/Build/Build.version` (log 1) |
+| BuildId match | engine and both plugins on 55116800 | the same: `UnrealEditor.version`, `MetaXR` and `MetaXRInteraction` `UnrealEditor.modules` all say 55116800 | log 1 |
+| Meta XR plugins | `OculusXR` and `OculusInteraction` 1.207.0, EngineVersion 5.8.0 | the same | main checkout `.uplugin` files, read-only (log 1) |
+| F1 target SDK | `TargetSDKVersion=34` | the same, now at `apps/vr/Game/Config/DefaultEngine.ini:53` | log 7 |
+| F2 devices | `+SupportedDevices=Quest3`, `Quest3S`; the `ExtraApplicationSettings` guard comment | the same, at `DefaultEngine.ini:59`, `:67-68` | log 7 |
+| F7 hand-tracking rate | `HandTrackingFrequency=LOW` | the same, at `DefaultEngine.ini:65` | log 7 |
+| Pinned data | `pin OK: 9 files @ baeac66` | the same | log 9 |
+
+Since 10-08 no commit touched `Config/`, the `.uproject`, `package-android.ps1`, `XR-TOOLCHAIN.md`, `CLAUDE.md` or
+`DECISIONS.md`, apart from the merge 83372e7 (10-09) and the 10-08 commits section 7 already covers (log 7).
+`DECISIONS.md` has no F12 or 5.8.4 entry, and nothing in it mentions launcher auto-update (log 7, log 8).
+
+### 8.2 What was read upstream
+
+| # | Piece | On 10-08 | Now (10-13) | Page date | URL | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | Meta XR Unreal Engine 5 Integration | 207.0 | 207.0; versions 201.0, 203.0, 205.0 and 207.0, nothing above | "Updated: Sep 23, 2026"; newest `release_date` 2026-09-23T23:37Z | https://developers.meta.com/vr/downloads/package/unreal-engine-5-integration/ | no change |
+| 2 | Meta XR Interaction SDK (Unreal) | 207.0 | 207.0, nothing above | "Updated: Sep 22, 2026"; newest `release_date` 2026-09-22T19:42Z | https://developers.meta.com/horizon/downloads/package/meta-xr-interaction-sdk-unreal/ | no change |
+| 3 | UE 5.8 hotfix tag | 5.8.1, 5.8.2, 5.8.3 | the same three, no 5.8.4 topic; forum search "5.8.4 hotfix released" returns 0 posts | 5.8.3 posted 2026-09-22 | https://forums.unrealengine.com/tag/hotfix | F12 |
+| 4 | Fixes announced for 5.8.4 | UE-397316 (staff, 10-05) and a user's macOS 27 remark | UE-397316 and **UE-396802**: staff, 2026-10-12, "UE-396802 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4." in "UE5.8 Unable to build Game on macOS 27" | 2026-10-05, 2026-10-12 | https://forums.unrealengine.com/t/2731772, https://forums.unrealengine.com/t/2746676 | F12 |
+| 5 | UE 5.8 release notes | `updated_at` 2026-06-23, no "5.8.4" | the same | `updated_at` 2026-06-23 | https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes | no change |
+| 6 | Store: release-build manifest (F1) | 2026-09-30 | 2026-09-30; "must set their targetSdkVersion to 34" and "32-34 for immersive, 32-36 for 2D" still there | 2026-09-30 | https://developers.meta.com/horizon/resources/publish-mobile-manifest/ | no change |
+| 7 | Store: Android 14 post (F1) | upload-enforcement sentence | still there | Nov 24, 2025 | https://developers.meta.com/horizon/blog/meta-quest-apps-android-14-march-1/ | no change |
+| 8 | Store: compatibility mode, `supportedDevices` (F2) | 2026-09-08 | 2026-09-08; the sentence is still there | 2026-09-08 | https://developers.meta.com/horizon/documentation/native/android/os-compatibility-mode/ | no change |
+| 9 | Store: VRC list (F5 package size) | 2026-08-19 | 2026-08-19; "APK file size must be less than 1 GB" | 2026-08-19 | https://developers.meta.com/vr/resources/publish-quest-req/ | no change |
+| 10 | Meta Unreal release-notes page (first try) | not read | HTTP 404 at the URL tried | none | https://developers.meta.com/horizon/documentation/unreal/unreal-release-notes/ | no change: rows 1 and 2 are the version source |
+
+Notes on the rows:
+
+- **Rows 1 and 2, question (2).** There is no release above 207.0 for 5.8, so nothing changes for hand tracking, the
+  manifest, or the packaging rows F1, F2 and F8. The WebSearch for a v208 found none either. The v207 Interaction SDK
+  known issue it summarised, `r.Mobile.ShadingPath=0` for packaged UE 5.8 APKs, is already set at
+  `DefaultEngine.ini:11-12` and in `AndroidEngine.ini`.
+- **Rows 3 to 5, question (1).** 5.8.4 has no notes yet, so there is no hotfix list to read against F12 and the
+  section 7.1 row-3 list, and no CompatibleChangelist to read against BuildId 55116800. Its known contents are two
+  staff-confirmed fixes:
+  - UE-397316: the Niagara scene-depth sampling shader behind ShallowWaterRiver. The six `NS_Budget_` proxies name
+    no scene-capture data interface (F12).
+  - UE-396802: building a game on macOS 27. This project builds on Windows only.
+
+  Neither is on the row-3 list (Android or Vulkan mobile, Niagara on mobile or GPU simulation, occlusion queries, the
+  clang or NDK toolchain, commandlets).
+- **The date.** On the 28-day cadence (5.8.1 07-28, 5.8.2 08-25, 5.8.3 09-22), 5.8.4 is due around 2026-10-20. That
+  is still an inference (**unconfirmed**).
+- **Question (3).** Nothing dated after 2026-10-08 changes the status of F1 to F11. The only movement is F12's evidence.
+- **Not counted.** A 2026-10-08 user post on an unrelated megaplants crash thread called 5.8 "a skip-it version"
+  (https://forums.unrealengine.com/t/2730113). It is an opinion about PVE assets this project does not use (log 6).
+
+### 8.3 Findings
+
+No new finding. F12 is updated in place. Its status line now carries the 10-13 facts and the recommendation.
+
+- **For the owner (from F12).**
+  - (a) Freeze `UE_5.8` at 5.8.3 until 11-18.
+  - (b) Take 5.8.4 on purpose, on one day after it posts.
+
+  Recommendation: **(a)**. Both fixes known for 5.8.4 sit outside the row-3 list. The engine and both plugins match on
+  55116800 today. 5.8.4 is expected around 10-20, inside the sprint to the 10-31 desktop gate.
+
+  If 5.8.4 posts with a fix on the row-3 list, (b) becomes worth a day. Its first check needs no editor: compare
+  `Build.version`'s CompatibleChangelist with the plugins' BuildId 55116800, using the three reads in log 1.
+- **Either way.** Launcher auto-update for `UE_5.8` should be off before about 10-20. With it on, a choice of (a) can
+  turn into an unplanned (b). Only the owner can do this, and it is unverified whether auto-update is on (F9).
+- **Not decided here.** The choice goes to result.json's questions.
+
+### 8.4 Commands run for this section, with exit codes
+
+**Tool calls that are not shell commands, so they have no exit code:**
+
+- WebSearch, 2 queries. Both are cross-checks only, and nothing above rests on them:
+  - "Meta XR plugin Unreal v208 release notes October 2026": no v208, newest 207.0.
+  - "\"5.8.4\" hotfix Unreal Engine released": no 5.8.4, newest 5.8.3.
+- WebFetch: none.
+
+**Exploration without an exit-code log.** Reading this file, `CLAUDE.md`, `DefaultEngine.ini`, `AndroidEngine.ini`,
+the `.uproject` and `git log` was done with ad hoc `sed`, `grep`, `cat` and `git`. All of these exited 0, except one
+`grep` of `DECISIONS.md` for F12 and F9, which matched nothing (exit 1). Log 7 repeats that check. One heredoc
+`cat` that drafted this section failed on shell quoting (exit 2) and wrote nothing.
+
+**Shell, run from the worktree root.** A small runner printed each command, ran it, and printed `[exit N]`. The logs
+are verbatim, except that trailing whitespace was trimmed and repeated blank lines were collapsed. `grep -c` exits 1
+when it counts 0 matches, and log 6 uses that as evidence that the release notes lack "5.8.4". `| head -1` and
+`| sort -u` hide grep's exit code. A loop with `printf` and `echo` exits 0 whatever its `grep`s did. In log 6, `u1`
+prints no `lastUpdated` because the blog page has none; its date comes from section 7.1 row 6.
+
+```
+# log 1
+$ cat '/c/Program Files/Epic Games/UE_5.8/Engine/Build/Build.version'
+{
+	"MajorVersion": 5,
+	"MinorVersion": 8,
+	"PatchVersion": 3,
+	"Changelist": 58210709,
+	"CompatibleChangelist": 55116800,
+	"IsLicenseeVersion": 0,
+	"IsPromotedBuild": 1,
+	"BranchName": "++UE5+Release-5.8"
+}[exit 0]
+
+$ ls -l --time-style=+%Y-%m-%dT%H:%M%z '/c/Program Files/Epic Games/UE_5.8/Engine/Build/Build.version'
+-rw-r--r-- 1 kazda 197610 215 2026-10-03T11:15+0200 /c/Program Files/Epic Games/UE_5.8/Engine/Build/Build.version
+[exit 0]
+
+$ grep -o '"BuildId": *"[0-9]*"' '/c/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.version' /c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXR/Binaries/Win64/UnrealEditor.modules /c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXRInteraction/Binaries/Win64/UnrealEditor.modules
+/c/Program Files/Epic Games/UE_5.8/Engine/Binaries/Win64/UnrealEditor.version:"BuildId": "55116800"
+/c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXR/Binaries/Win64/UnrealEditor.modules:"BuildId": "55116800"
+/c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXRInteraction/Binaries/Win64/UnrealEditor.modules:"BuildId": "55116800"
+[exit 0]
+
+$ grep -h '"VersionName"\|"EngineVersion"' /c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXR/OculusXR.uplugin /c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/MetaXRInteraction/OculusInteraction.uplugin
+	"VersionName": "1.207.0",
+	"EngineVersion": "5.8.0",
+	"VersionName": "1.207.0",
+	"EngineVersion": "5.8.0",
+[exit 0]
+
+# log 2
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/u10 -w '%{http_code} %{size_download} u10\n' 'https://developers.meta.com/vr/downloads/package/unreal-engine-5-integration/'
+200 640217 u10
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/u17 -w '%{http_code} %{size_download} u17\n' 'https://developers.meta.com/horizon/downloads/package/meta-xr-interaction-sdk-unreal/'
+200 527172 u17
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-tag-hotfix.json -w '%{http_code} %{size_download} f-tag-hotfix.json\n' 'https://forums.unrealengine.com/tag/hotfix.json'
+200 30251 f-tag-hotfix.json
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-search-584.json -w '%{http_code} %{size_download} f-search-584.json\n' 'https://forums.unrealengine.com/search.json?q=5.8.4%20hotfix%20released'
+200 354 f-search-584.json
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-search-584b.json -w '%{http_code} %{size_download} f-search-584b.json\n' 'https://forums.unrealengine.com/search.json?q=%225.8.4%22%20after%3A2026-10-08'
+200 1681 f-search-584b.json
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-announce.json -w '%{http_code} %{size_download} f-announce.json\n' 'https://forums.unrealengine.com/c/general/announcements/9.json'
+200 73497 f-announce.json
+[exit 0]
+
+# log 3
+$ LC_ALL=C grep -o 'Updated: [A-Z][a-z]\{2\} [0-9]\{1,2\}, 2026' /tmp/mav-feed1013-c4e1/u10 /tmp/mav-feed1013-c4e1/u17 | sort -u
+/tmp/mav-feed1013-c4e1/u10:Updated: Sep 23, 2026
+/tmp/mav-feed1013-c4e1/u17:Updated: Sep 22, 2026
+[exit 0]
+
+$ LC_ALL=C grep -o '"version":"[0-9.]*"' /tmp/mav-feed1013-c4e1/u10 | sort -u
+"version":"201.0"
+"version":"203.0"
+"version":"205.0"
+"version":"207.0"
+"version":"39.0"
+"version":"40.0"
+"version":"41.0"
+"version":"42.0"
+"version":"43.0"
+"version":"44.0"
+"version":"46.0"
+"version":"47.0"
+"version":"49.0"
+"version":"50.0"
+"version":"51.0"
+"version":"53.0"
+"version":"54.0"
+"version":"55.0"
+"version":"56.0"
+"version":"57.0"
+"version":"59.0"
+"version":"60.0"
+"version":"62.0"
+"version":"63.0"
+"version":"64.0"
+"version":"65.0"
+"version":"66.0"
+"version":"67.0"
+"version":"68.0"
+"version":"69.0"
+"version":"71.0"
+"version":"72.0"
+"version":"72.0.1"
+"version":"74.0"
+"version":"74.1"
+"version":"76.0"
+"version":"76.0.1"
+"version":"77.0"
+"version":"78.0"
+"version":"81.0"
+"version":"83.0"
+"version":"85.0"
+[exit 0]
+
+$ LC_ALL=C grep -o '"version":"[0-9.]*"' /tmp/mav-feed1013-c4e1/u17 | sort -u
+"version":"201.0"
+"version":"203.0"
+"version":"205.0"
+"version":"207.0"
+"version":"69.0.0"
+"version":"71.0.0"
+"version":"72.0.0"
+"version":"74.0.0"
+"version":"76.0.0"
+"version":"77.0.0"
+"version":"78.0.0"
+"version":"81.0.0"
+"version":"83.0.0"
+"version":"85.0.0"
+[exit 0]
+
+$ LC_ALL=C grep -o 'release_date[^,]\{0,30\}' /tmp/mav-feed1013-c4e1/u10 /tmp/mav-feed1013-c4e1/u17 | sort -u
+/tmp/mav-feed1013-c4e1/u10:release_date":1651099603
+/tmp/mav-feed1013-c4e1/u10:release_date":1654110691
+/tmp/mav-feed1013-c4e1/u10:release_date":1655934121
+/tmp/mav-feed1013-c4e1/u10:release_date":1658257774
+/tmp/mav-feed1013-c4e1/u10:release_date":1661308781
+/tmp/mav-feed1013-c4e1/u10:release_date":1664932329
+/tmp/mav-feed1013-c4e1/u10:release_date":1666304384
+/tmp/mav-feed1013-c4e1/u10:release_date":1671148631
+/tmp/mav-feed1013-c4e1/u10:release_date":1675808794
+/tmp/mav-feed1013-c4e1/u10:release_date":1678928366
+/tmp/mav-feed1013-c4e1/u10:release_date":1682534215
+/tmp/mav-feed1013-c4e1/u10:release_date":1683855597
+/tmp/mav-feed1013-c4e1/u10:release_date":1686697407
+/tmp/mav-feed1013-c4e1/u10:release_date":1690320591
+/tmp/mav-feed1013-c4e1/u10:release_date":1692822944
+/tmp/mav-feed1013-c4e1/u10:release_date":1696889694
+/tmp/mav-feed1013-c4e1/u10:release_date":1699393679
+/tmp/mav-feed1013-c4e1/u10:release_date":1702582042
+/tmp/mav-feed1013-c4e1/u10:release_date":1708029421
+/tmp/mav-feed1013-c4e1/u10:release_date":1711482274
+/tmp/mav-feed1013-c4e1/u10:release_date":1713285676
+/tmp/mav-feed1013-c4e1/u10:release_date":1715789478
+/tmp/mav-feed1013-c4e1/u10:release_date":1719334254
+/tmp/mav-feed1013-c4e1/u10:release_date":1721343060
+/tmp/mav-feed1013-c4e1/u10:release_date":1724098432
+/tmp/mav-feed1013-c4e1/u10:release_date":1728501128
+/tmp/mav-feed1013-c4e1/u10:release_date":1732215698
+/tmp/mav-feed1013-c4e1/u10:release_date":1737657508
+/tmp/mav-feed1013-c4e1/u10:release_date":1738609732
+/tmp/mav-feed1013-c4e1/u10:release_date":1741969946
+/tmp/mav-feed1013-c4e1/u10:release_date":1743028910
+/tmp/mav-feed1013-c4e1/u10:release_date":1747416988
+/tmp/mav-feed1013-c4e1/u10:release_date":1747417323
+/tmp/mav-feed1013-c4e1/u10:release_date":1749142984
+/tmp/mav-feed1013-c4e1/u10:release_date":1756229151
+/tmp/mav-feed1013-c4e1/u10:release_date":1761867065
+/tmp/mav-feed1013-c4e1/u10:release_date":1765411925
+/tmp/mav-feed1013-c4e1/u10:release_date":1770774424
+/tmp/mav-feed1013-c4e1/u10:release_date":1776293397
+/tmp/mav-feed1013-c4e1/u10:release_date":1780523596
+/tmp/mav-feed1013-c4e1/u10:release_date":1784752760
+/tmp/mav-feed1013-c4e1/u10:release_date":1790206631
+/tmp/mav-feed1013-c4e1/u17:release_date":1728502473
+/tmp/mav-feed1013-c4e1/u17:release_date":1732217268
+/tmp/mav-feed1013-c4e1/u17:release_date":1737658881
+/tmp/mav-feed1013-c4e1/u17:release_date":1741972090
+/tmp/mav-feed1013-c4e1/u17:release_date":1745949001
+/tmp/mav-feed1013-c4e1/u17:release_date":1749484085
+/tmp/mav-feed1013-c4e1/u17:release_date":1756242027
+/tmp/mav-feed1013-c4e1/u17:release_date":1761855752
+/tmp/mav-feed1013-c4e1/u17:release_date":1765414606
+/tmp/mav-feed1013-c4e1/u17:release_date":1770775838
+/tmp/mav-feed1013-c4e1/u17:release_date":1776293245
+/tmp/mav-feed1013-c4e1/u17:release_date":1785274592
+/tmp/mav-feed1013-c4e1/u17:release_date":1785275015
+/tmp/mav-feed1013-c4e1/u17:release_date":1790106159
+[exit 0]
+
+$ LC_ALL=C grep -o '"title":"5\.8\.[0-9] Hotfix Released"' /tmp/mav-feed1013-c4e1/f-tag-hotfix.json
+"title":"5.8.3 Hotfix Released"
+"title":"5.8.2 Hotfix Released"
+"title":"5.8.1 Hotfix Released"
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",(j.posts||[]).length);for(const p of (j.posts||[]))console.log(p.created_at.slice(0,10),p.topic_id,(p.blurb||"").slice(0,140))' /tmp/mav-feed1013-c4e1/f-search-584.json
+posts 0
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",(j.posts||[]).length);for(const p of (j.posts||[]))console.log(p.created_at.slice(0,10),p.topic_id,(p.blurb||"").slice(0,140))' /tmp/mav-feed1013-c4e1/f-search-584b.json
+posts 1
+2026-10-12 2746676 UE-396802 is 'Closed' as 'Fixed'. The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));for(const t of j.topic_list.topics.slice(0,12))console.log(t.created_at.slice(0,10),t.id,t.title)' /tmp/mav-feed1013-c4e1/f-announce.json
+2026-10-12 2839855 UE5.8 蒙太奇内 Time Stretch Curve 不生效
+2026-10-12 2839856 closing stages of the game/ cierre de juego
+2026-10-12 2839842 MY Fortnite Map is on V12 instead of V13
+2026-10-12 2839685 Bug in rotator Twinmotion prev 2026?
+2026-10-12 2839591 Extremely Loud Popping Sound When Starting PIE with Ultra Dynamic Weather
+2026-05-28 2724849 UE5.74版官方水插件打包问题？
+2026-10-09 2839014 Detect if Specific Input is Active
+2026-10-05 2837453 Entdecken-Neugestaltung und Spam-Durchsetzung
+2026-10-05 2837452 إعادة تصميم قسم اكتشف وتطبيق وإنفاذ إجراءات مكافحة المحتوى المكرّر
+2026-10-05 2837454 Rediseño de Descubrir y aplicación de medidas contra el spam
+2026-10-05 2837457 디스커버 디자인 개편 및 스팸 관련 제재
+2026-10-05 2837456 ディスカバリーの再デザインとスパム対策
+[exit 0]
+
+# log 4
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-2746676.json -w '%{http_code} %{size_download} f-2746676\n' 'https://forums.unrealengine.com/t/2746676.json'
+200 56455 f-2746676
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-2731772.json -w '%{http_code} %{size_download} f-2731772\n' 'https://forums.unrealengine.com/t/2731772.json'
+200 43015 f-2731772
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-search-584c.json -w '%{http_code} %{size_download} f-search-584c\n' 'https://forums.unrealengine.com/search.json?q=%225.8.4%22%20order%3Alatest'
+200 4502 f-search-584c
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 60 -o /tmp/mav-feed1013-c4e1/f-search-hf.json -w '%{http_code} %{size_download} f-search-hf\n' 'https://forums.unrealengine.com/search.json?q=hotfix%20after%3A2026-10-08%20order%3Alatest'
+200 9412 f-search-hf
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log(j.title,"|posts_count",j.posts_count,"|last_posted_at",j.last_posted_at);for(const p of j.post_stream.posts.slice(-3))console.log(p.created_at.slice(0,10),p.username,"staff="+!!p.staff,p.cooked.replace(/<[^>]+>/g,"").replace(/\s+/g," ").slice(0,200))' /tmp/mav-feed1013-c4e1/f-2746676.json
+UE5.8 Unable to build Game on macOS 27 |posts_count 16 |last_posted_at 2026-10-12T20:00:10.193Z
+2026-09-25 _aking staff=false  500×500 2.84 KB not_jyc: Touch UBT generated tiles That fix went into the dev-5.8 github repo about 4 days ago, so it should be in the next 5.8 hotfix.
+2026-09-30 shepaldo staff=false With some help from Claude, I managed to package for TestFlight with a copy of Xcode 26.6 installed alongside Xcode 27. Download Xcode 26.6 (or I suppose an earlier version which you also got to work)
+2026-10-12 Bug-Reporter staff=true UE-396802 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log(j.title,"|posts_count",j.posts_count,"|last_posted_at",j.last_posted_at);for(const p of j.post_stream.posts.slice(-3))console.log(p.created_at.slice(0,10),p.username,"staff="+!!p.staff,p.cooked.replace(/<[^>]+>/g,"").replace(/\s+/g," ").slice(0,200))' /tmp/mav-feed1013-c4e1/f-2731772.json
+ShallowWaterRiver simulation does not initialize in Unreal Engine 5.7.4 |posts_count 9 |last_posted_at 2026-10-05T17:00:21.591Z
+2026-09-17 DevonPenney staff=false  500×500 2.84 KB AirborneCoder: The problem was in Niagara’s scene-depth sampling shader. Incorrect ground heights saturated at 65504, leaving water depth and velocity at zero. In: Engine/Plugins/FX/N
+2026-09-18 DevonPenney staff=false The fix has been submitted and will be in 5.8.4.
+2026-10-05 Bug-Reporter staff=true UE-397316 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",(j.posts||[]).length);for(const p of (j.posts||[]).slice(0,15))console.log(p.created_at.slice(0,10),p.topic_id,(p.blurb||"").replace(/\s+/g," ").slice(0,130))' /tmp/mav-feed1013-c4e1/f-search-584c.json
+posts 3
+2026-10-12 2746676 UE-396802 is 'Closed' as 'Fixed'. The issue will be addressed in 5.8.4.
+2026-10-05 2731772 UE-397316 is 'Closed' as 'Fixed'. The issue will be addressed in 5.8.4.
+2026-08-19 2745049 ...ne and start rendering. No special plug-ins are required to open the scene. Included Formats: Native applications and renderers
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log("posts",(j.posts||[]).length);for(const p of (j.posts||[]).slice(0,15))console.log(p.created_at.slice(0,10),p.topic_id,(p.blurb||"").replace(/\s+/g," ").slice(0,130))' /tmp/mav-feed1013-c4e1/f-search-hf.json
+posts 6
+2026-10-13 2839281 Upcoming 1.0.1 hotfix Two fixes are complete for the next TrueODS update: Render Whole Sequence: fixed an issue where using a save
+2026-10-12 2727808 @t1mph1l Prompt to save MI_Sam_OverlaySilhouette is now fixed! Along with reset to world transform when closing the widget. Please
+2026-10-12 2838372 ...IK Rig. To see the signature your build actually has, run help(unreal.IKRetargetBatchOperation.duplicate_and_retarget) in the O
+2026-10-09 2746950 ...ecovers from the exact historical failure state . So this test does not yet prove that the original update bug is fully fixed d
+2026-10-08 2730113 Looks like 5.8 is a skip-it version.. This thread saved me the bother of testing things in the newest hotfix, thanks. :smiley:
+2026-10-08 2838654 ...================================================= Premade AssetRegistry loaded from '../../../Twinmotion/EditorClientAssetRegis
+[exit 0]
+
+# log 5
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/u5 -w '%{http_code} %{size_download} u5\n' 'https://dev.epicgames.com/documentation/unreal-engine/unreal-engine-5-8-release-notes'
+200 5382530 u5
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/f-2730113.json -w '%{http_code} %{size_download} f-2730113.json\n' 'https://forums.unrealengine.com/t/2730113.json'
+200 32028 f-2730113.json
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/rn -w '%{http_code} %{size_download} rn\n' 'https://developers.meta.com/horizon/documentation/unreal/unreal-release-notes/'
+404 579726 rn
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/u2 -w '%{http_code} %{size_download} u2\n' 'https://developers.meta.com/horizon/resources/publish-mobile-manifest/'
+200 680625 u2
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/u8 -w '%{http_code} %{size_download} u8\n' 'https://developers.meta.com/horizon/documentation/native/android/os-compatibility-mode/'
+200 662562 u8
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/vrc -w '%{http_code} %{size_download} vrc\n' 'https://developers.meta.com/vr/resources/publish-quest-req/'
+200 977205 vrc
+[exit 0]
+
+$ curl -sL -A Mozilla/5.0 --max-time 90 -o /tmp/mav-feed1013-c4e1/u1 -w '%{http_code} %{size_download} u1\n' 'https://developers.meta.com/horizon/blog/meta-quest-apps-android-14-march-1/'
+200 610801 u1
+[exit 0]
+
+# log 6
+$ LC_ALL=C grep -c '5\.8\.4' /tmp/mav-feed1013-c4e1/u5
+0
+[exit 1]
+
+$ LC_ALL=C grep -o -m1 '"updated_at":"[^"]*"' /tmp/mav-feed1013-c4e1/u5 | head -1
+"updated_at":"2026-06-23T14:15:16.394Z"
+[exit 0]
+
+$ node -e 'const j=JSON.parse(require("fs").readFileSync(process.argv[1]));console.log(j.title,"|created",j.created_at.slice(0,10),"|posts_count",j.posts_count);for(const p of j.post_stream.posts.slice(-4))console.log(p.created_at.slice(0,10),"staff="+!!p.staff,p.cooked.replace(/<[^>]+>/g,"").replace(/\s+/g," ").slice(0,220))' /tmp/mav-feed1013-c4e1/f-2730113.json
+UE 5.8 megaplants error, crash |created 2026-06-20 |posts_count 7
+2026-06-23 staff=false You need to open up the procedural vegetation (PVE) file. Then export the skeletal meshes again. It should fix the crashing. I was having this exact issue with only the black alder trees. Even opening the skeletal mesh w
+2026-07-05 staff=false  500×500 2.84 KB Kunark: exporting them again from PVE file This doesn’t work for me. Seems to be an issue for megaplants in general, and needs a fix! Confirming the issue on UE5.8. Clean packaged build with any megaplan
+2026-10-08 staff=false Having a similar issue with UE 5.83 - opening the PVE file instantly crashes UE
+2026-10-08 staff=false Looks like 5.8 is a skip-it version.. This thread saved me the bother of testing things in the newest hotfix, thanks.
+[exit 0]
+
+$ for f in u1 u2 u8 vrc; do printf '%s ' $f; LC_ALL=C grep -o -m1 'lastUpdated[^,]\{0,20\}' /tmp/mav-feed1013-c4e1/$f | head -1; echo; done
+u1
+u2 lastUpdated\":\"2026-09-30\"}
+
+u8 lastUpdated\":\"2026-09-08\"}
+
+vrc lastUpdated\":\"2026-08-19\"}
+
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'must set their targetSdkVersion to 34' /tmp/mav-feed1013-c4e1/u2
+must set their targetSdkVersion to 34
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 '32-34 for immersive, 32-36 for 2D' /tmp/mav-feed1013-c4e1/u2
+32-34 for immersive, 32-36 for 2D
+32-34 for immersive, 32-36 for 2D
+32-34 for immersive, 32-36 for 2D
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'manifest entry lists the VR devices that your app supports' /tmp/mav-feed1013-c4e1/u8
+manifest entry lists the VR devices that your app supports
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'API level 34 will be enforced during binary upload' /tmp/mav-feed1013-c4e1/u1
+API level 34 will be enforced during binary upload
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'APK file size must be less than 1 GB' /tmp/mav-feed1013-c4e1/vrc
+APK file size must be less than 1 GB
+[exit 0]
+
+# log 7
+$ git log --since=2026-10-08T12:00 --format='%h %ad %s' --date=short -- apps/vr/Game/Config apps/vr/Game/MageArenaVR.uproject apps/vr/tools/package-android.ps1 docs/XR-TOOLCHAIN.md CLAUDE.md docs/DECISIONS.md
+83372e7 2026-10-09 Merge origin/master into master: reconcile local work with v2/slice on GitHub
+772eb42 2026-10-08 feat(tools): staged-clip guard stops a package shipping stale test clips
+2f089be 2026-10-08 docs(decisions): F11 keep JDK 22 with JDK 21 as fallback; F12 open; Q9 evidence from Devpost update 46826
+ffd47d5 2026-10-08 docs(decisions): D-G4 particle systems, a commandlet here now and pof P9 later
+[exit 0]
+
+$ grep -n 'F12\|5\.8\.4\|auto-update' docs/DECISIONS.md docs/XR-TOOLCHAIN.md docs/PROJECT-PLAN.md CLAUDE.md
+[exit 1]
+
+$ grep -n 'TargetSDKVersion\|SupportedDevices\|ExtraApplicationSettings\|HandTrackingFrequency' apps/vr/Game/Config/DefaultEngine.ini
+53:TargetSDKVersion=34
+56:; writes it into this file, unless ExtraApplicationSettings already contains both strings it searches for. This XML
+58:; (a comment is not a meta-data element), so the APK still declares only +SupportedDevices (STACK F2, XR-TOOLCHAIN).
+59:ExtraApplicationSettings=<!-- com.oculus.supportedDevices guard: quest2|questpro|quest3|quest3s is named here only so UE 5.8 HandleXRSupport adds no tag of its own, the real list comes from +SupportedDevices (STACK F2) -->
+65:HandTrackingFrequency=LOW
+67:+SupportedDevices=Quest3
+68:+SupportedDevices=Quest3S
+[exit 0]
+
+$ git show master:CLAUDE.md | sed -n 44p
+The engine has been UE 5.8.3 (CL 58210709) since 2026-10-03. A fresh worktree without the MetaXR plugins (marked
+[exit 0]
+
+$ ls /c/Users/kazda/kiro/mage-arena-vr/apps/vr/Game/Plugins/
+MetaXR
+MetaXRInteraction
+[exit 0]
+
+# log 8
+$ git show --stat --format='%h %s' 2f089be | head
+2f089be docs(decisions): F11 keep JDK 22 with JDK 21 as fallback; F12 open; Q9 evidence from Devpost update 46826
+
+ docs/PROJECT-PLAN.md                         |  2 +-
+ docs/XR-TOOLCHAIN.md                         |  2 +-
+ docs/research/STACK-OPPORTUNITIES-2026-10.md |  2 ++
+ docs/submission/ORGANIZER-QUESTION-Q9.md     | 14 ++++++++++++++
+ 4 files changed, 18 insertions(+), 2 deletions(-)
+[exit 0]
+
+$ git show 2f089be:docs/DECISIONS.md | grep -n 'F12' | cut -c1-240
+[exit 0]
+
+$ git ls-files | grep -i 'decisions'
+docs/DECISIONS.md
+[exit 0]
+
+# log 9
+$ node -e 'for(const s of [1790206631,1790106159,1785274592,1785275015])console.log(s,new Date(s*1000).toISOString())'
+1790206631 2026-09-23T23:37:11.000Z
+1790106159 2026-09-22T19:42:39.000Z
+1785274592 2026-07-28T21:36:32.000Z
+1785275015 2026-07-28T21:43:35.000Z
+[exit 0]
+
+$ LC_ALL=C grep -o -m1 'UE-396802 is .\{1,4\}Closed.\{1,4\} as .\{1,4\}Fixed.\{1,4\}\. The issue will be addressed in 5.8.4.' /tmp/mav-feed1013-c4e1/f-2746676.json | head -1
+UE-396802 is ‘Closed’ as ‘Fixed’. The issue will be addressed in 5.8.4.
+[exit 0]
+
+$ node apps/vr/tools/check-pin.mjs
+pin OK: 9 files @ baeac66
+[exit 0]
+
+$ git status --short
+[exit 0]
+
 ```
