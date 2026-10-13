@@ -24,6 +24,7 @@ bool NeedInt(const FJsonObject& Object, const TCHAR* Field, int32& Out, const FS
 bool NeedString(const FJsonObject& Object, const TCHAR* Field, FString& Out, const FString& Path, FKernelData& Data);
 bool NeedObject(const FJsonObject& Object, const TCHAR* Field, const FJsonObject*& Out, const FString& Path, FKernelData& Data);
 bool MatchDouble(const FString& Source, const FString& Pattern, double& Out, const FString& What, FKernelData& Data);
+bool MatchGroup(const FString& Source, const FString& Pattern, FString& Out);
 const FString* Cell(const TMap<FString, FString>& Row, const TCHAR* Key);
 
 bool BuildSpells(const FCsvTable& Rows, FKernelData& Data);
