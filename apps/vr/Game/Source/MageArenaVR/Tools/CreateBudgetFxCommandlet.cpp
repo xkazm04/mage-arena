@@ -4,11 +4,16 @@
 #include "MageArenaVR.h"
 
 #if WITH_EDITOR
+#include "HAL/FileManager.h"
 #include "Misc/PackageName.h"
+#include "EdGraph/EdGraphPin.h"
 #include "NiagaraEditorUtilities.h"
 #include "NiagaraEmitter.h"
 #include "NiagaraEmitterHandle.h"
+#include "NiagaraGraph.h"
+#include "NiagaraNodeFunctionCall.h"
 #include "NiagaraScript.h"
+#include "NiagaraScriptSource.h"
 #include "NiagaraSystem.h"
 #include "NiagaraSystemFactoryNew.h"
 #include "UObject/UnrealType.h"
@@ -74,6 +79,24 @@ void DumpEmitter(const FString& Name, UNiagaraEmitter& Emitter, const FGuid& Ver
 				*Variable.GetType().GetName(), *ParameterValueText(Script->RapidIterationParameters, Variable));
 		}
 	}
+	if (const UNiagaraScriptSource* Source = Cast<UNiagaraScriptSource>(Data->GraphSource))
+	{
+		TArray<UNiagaraNodeFunctionCall*> Calls;
+		Source->NodeGraph->GetNodesOfClass<UNiagaraNodeFunctionCall>(Calls);
+		for (const UNiagaraNodeFunctionCall* Call : Calls)
+		{
+			if (Call->GetFunctionName().StartsWith(TEXT("EmitterState")))
+			{
+				for (const UEdGraphPin* Pin : Call->Pins)
+				{
+					if (Pin->Direction == EGPD_Input && Pin->PinName.ToString().Contains(TEXT("Loop")))
+					{
+						UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_DUMP %s pin %s = '%s' (%s)"), *Name, *Pin->PinName.ToString(), *Pin->DefaultValue, *Pin->PinType.PinCategory.ToString());
+					}
+				}
+			}
+		}
+	}
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_DUMP %s emitter sim=%d alloc=%d prealloc=%d bounds=%d local=%d"), *Name,
 		static_cast<int32>(Data->SimTarget), static_cast<int32>(Data->AllocationMode), Data->PreAllocationCount,
 		static_cast<int32>(Data->CalculateBoundsMode), Data->bLocalSpace ? 1 : 0);
@@ -118,6 +141,44 @@ void ApplyEmitterData(const FBudgetFxRow& Row, FVersionedNiagaraEmitterData& Dat
 		Data.CalculateBoundsMode = ENiagaraEmitterCalculateBoundMode::Fixed;
 		Data.FixedBounds = FBox(FVector(-200.0), FVector(200.0));
 	}
+}
+
+/**
+ * A burst template loops once and then completes, and its component with it. The stress scene needs a burst every
+ * period for the whole window, so the emitter-state module's "Loop Behavior" static switch is set to the value the
+ * continuous templates carry (NewEnumerator0, Infinite). Returns whether the switch was found.
+ */
+bool SetLoopForever(FVersionedNiagaraEmitterData& Data)
+{
+	const UNiagaraScriptSource* Source = Cast<UNiagaraScriptSource>(Data.GraphSource);
+	if (!Source)
+	{
+		return false;
+	}
+	TArray<UNiagaraNodeFunctionCall*> Calls;
+	Source->NodeGraph->GetNodesOfClass<UNiagaraNodeFunctionCall>(Calls);
+	bool bSet = false;
+	for (UNiagaraNodeFunctionCall* Call : Calls)
+	{
+		if (!Call->GetFunctionName().StartsWith(TEXT("EmitterState")))
+		{
+			continue;
+		}
+		for (UEdGraphPin* Pin : Call->Pins)
+		{
+			if (Pin->Direction == EGPD_Input && Pin->PinName == TEXT("Loop Behavior"))
+			{
+				Pin->DefaultValue = TEXT("NewEnumerator0");
+				Call->PinDefaultValueChanged(Pin);
+				bSet = true;
+			}
+		}
+	}
+	if (bSet)
+	{
+		Source->NodeGraph->NotifyGraphChanged();
+	}
+	return bSet;
 }
 
 /** The rapid-iteration inputs (spawn rate, burst, lifetime, size, colour). Returns how many parameters it set. */
@@ -233,11 +294,22 @@ int32 UCreateBudgetFxCommandlet::Main(const FString& Params)
 		System->RequestCompile(true);
 		System->WaitForCompilationComplete(true, false);
 		const int32 InputsSet = ApplyInputs(Row, *Data);
+		if (Row.BurstCount > 0 && !SetLoopForever(*Data))
+		{
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s loop behavior switch not found"), *Row.Name);
+			++Failed;
+			continue;
+		}
 		System->RequestCompile(true);
 		System->WaitForCompilationComplete(true, false);
 
 		System->MarkPackageDirty();
 		const FString PackageFile = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+		if (bForce)
+		{
+			// Saving over an asset this process never loaded is refused; -force rebuilds, so the old file goes first.
+			IFileManager::Get().Delete(*PackageFile, false, true, true);
+		}
 		FSavePackageArgs SaveArgs;
 		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
 		SaveArgs.SaveFlags = SAVE_NoError;
