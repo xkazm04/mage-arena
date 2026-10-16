@@ -38,7 +38,7 @@ const TArray<FBudgetFxRow>& BudgetStress::FxRows()
 	static const TArray<FBudgetFxRow> Rows = {
 		MakeRow(TEXT("NS_Budget_BoltTrail"), TEXT("Fountain"), false, 300, 600.0, 0, 0.0, 0.5, 4.0, 8.0, WaterColour,
 			TEXT("attached to projectile 0")),
-		MakeRow(TEXT("NS_Budget_SigilTrail"), TEXT("LocationBasedRibbon"), false, 90, 90.0, 0, 0.0, 1.0, 1.0, 1.0, WaterColour,
+		MakeRow(TEXT("NS_Budget_SigilTrail"), TEXT("Fountain"), false, 90, 90.0, 0, 0.0, 1.0, 1.0, 1.0, WaterColour,
 			TEXT("right index tip joint")),
 		MakeRow(TEXT("NS_Budget_WardAbsorb"), TEXT("OmnidirectionalBurst"), false, 120, 0.0, 120, 0.5, 0.4, 4.0, 8.0, WaterColour,
 			TEXT("in front of the dais, at palm height")),
