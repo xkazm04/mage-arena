@@ -664,3 +664,75 @@ does not run and asked questions that now have answers.
 Meta download pages and the UE-160597 snippet (MI 1.6, 4). The UE-160597 page returned HTTP 403.
 
 **Revert.** This section is a record, so reverting means deleting it.
+
+## 10. The particle rows, measured
+
+**Label: desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz.** This section closes the
+"not exercised" of 8.5 and 9.6. Sections 0-9 stay as history.
+
+### 10.1 Provenance
+
+- **Base:** `9f338f0` on `master`, plus the commits of this run (`NIAGARA-PROXY-2026-10.md` section 5, steps 1-9).
+- **Engine:** UE 5.8.3, D3D12, the same capture flags as section 0 (`-game -RenderOffScreen -ResX=1920 -ResY=1080 -nohmd`).
+- **Scene:** section 1, plus 6 Niagara systems from `Content/Budget/NS_Budget_*.uasset` (LFS), made by
+  `apps/vr/tools/create-budget-fx.ps1` from the `BudgetStress::FxRows()` table. Five CPU systems and one GPU system
+  (`NS_Budget_Motes`, `GPUComputeSim`, fixed 4 m bounds). Authored peak 1,470 live particles, 870 CPU and 600 GPU.
+- **Command:** `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix fx`. Raw output is
+  `runs/DG4/fx1..3/` (gitignored). The committed summaries are `docs/research/budget-dg4/fx1.summary.json`,
+  `fx2.summary.json` and `fx3.summary.json`.
+- **Gate:** `MAGEVR_BUDGET_DONE`, both `MAGEVR_BUDGET_POP` lines at full count with `niagara=6`, and
+  `driver.particlesExercised`. All three runs passed it.
+- **How the count is read:** `NIAGARA-PROXY-2026-10.md` section 2. Component, system instance, `GetEmitters()`,
+  `GetNumParticles()` and `GetSimTarget()`, after `WaitForConcurrentTickAndFinalize`, on every sampled frame. GPU counts
+  are a delayed upper bound (instance-count readback).
+- **A first capture failed, and is not in the table.** It showed `niagara=4` at steady state and `MAGEVR_BUDGET_FAIL
+  population short at steady state`: the two burst templates loop once, then their components complete. The commandlet
+  now sets the emitter state's Loop Behavior to the continuous templates' value on burst rows, and the assets were
+  rebuilt. That is the only change between the failed capture and the three below.
+
+### 10.2 Results per run
+
+| Run | Frames | Live particles min / median / p95 / max | CPU max | GPU max | GPU emitters (max, cross-check) | Systems live (min) | Zero-particle frames |
+|---|---|---|---|---|---|---|---|
+| fx1 | 36,170 | 1,128 / 1,394 / 1,458 / 1,468 | 869 | 600 | 1, 1 | 6 | 0 |
+| fx2 | 40,039 | 1,132 / 1,398 / 1,461 / 1,468 | 869 | 600 | 1, 1 | 6 | 0 |
+| fx3 | 38,812 | 1,128 / 1,397 / 1,461 / 1,468 | 869 | 600 | 1, 1 | 6 | 0 |
+
+`niagara.allowGpuParticles` was true on the desktop in all three. The maximum of 1,468 sits just under the authored
+1,470: the GPU emitter reaches its `FixedCount` of 600 and the CPU systems come to 869 of 870.
+
+The other count rows with the 6 systems in the scene (over the sample window):
+
+| Run | Draw calls min / median / max | Frame ms median / p95 | GPU ms median / p95 | Game thread ms median / p95 (CSV) | BasePass triangles (dump max) | Peak working set |
+|---|---|---|---|---|---|---|
+| fx1 | 174 / 194 / 201 | 1.60 / 2.14 | 0.74 / 0.79 | 1.52 / 2.11 | 124,752 | 2,653 MB |
+| fx2 | 173 / 194 / 201 | 1.40 / 2.05 | 0.74 / 0.79 | 1.15 / 1.97 | 123,792 | 3,017 MB |
+| fx3 | 172 / 194 / 199 | 1.46 / 2.09 | 0.75 / 0.80 | 1.22 / 2.02 | 124,752 | 2,873 MB |
+
+### 10.3 Verdicts (desktop proxy)
+
+| Row | Target | Measured | Verdict |
+|---|---|---|---|
+| Live particles | ≤2,000 | max 1,468 (all three runs), 73% of the row | **pass** |
+| GPU emitters | ≤1 | 1 (cross-check 1) in every frame, all three runs | **pass** |
+| Draw calls | ≤150 | median 194, max 201 (8.5 had median 183, max 188 without the systems) | **fail**, as in 8.5; the 6 systems add about 11 at the median |
+| Visible triangles | ≤350k | BasePass max 124,752, in line with 8.5; the systems add sprites only | **pass** on desktop, with the limits in section 4 |
+
+### 10.4 What this does and does not show
+
+- The particle rows are exercised: all 6 systems were live on every sampled frame and no frame had a total of 0.
+  `EvaluateParticles` (`Budget/BudgetFx.cpp`) gave "pass" on all three runs.
+- It does not show device behaviour (`NIAGARA-PROXY-2026-10.md` section 6): the GPU emitter in both eyes, the readback
+  lag on Adreno, or the CPU cost of 870 CPU particles on the Quest game thread. The desktop game thread median of
+  1.15-1.52 ms is the number V1 compares against.
+- The figures are authored, not tuned, and each of the six systems is placed at one point (`NIAGARA-PROXY-2026-10.md`
+  1.4). The sigil trail uses the Fountain template with sprites, not a ribbon: `LocationBasedRibbon` has no spawn
+  module (it is driven by location events), so it would spawn nothing on its own.
+- For V1 (R6): the APK's cook log must list `/Game/Budget/NS_Budget_*`.
+
+### 10.5 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`
+2. `powershell -NoProfile -File apps/vr/tools/create-budget-fx.ps1` (reports `unchanged` when the assets exist;
+   `-Force` rebuilds, `-Dump` and `-Verify` log the rapid-iteration parameters).
+3. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix fx`

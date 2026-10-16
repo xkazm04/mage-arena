@@ -1,0 +1,332 @@
+﻿{
+    "run":  "fx3",
+    "label":  "desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz",
+    "ok":  true,
+    "doneMarker":  true,
+    "populationLines":  [
+                            "MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1225",
+                            "MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8553"
+                        ],
+    "failLines":  [
+
+                  ],
+    "started":  "2026-10-16T21:39:58",
+    "wallSeconds":  92.2,
+    "timedOut":  false,
+    "editorExitCode":  null,
+    "command":  "\"C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe\" \u003crepo\u003e\\apps\\vr\\Game\\MageArenaVR.uproject -game -RenderOffScreen -ResX=1920 -ResY=1080 -unattended -nosplash -nohmd -stdout -FullStdOutLogOutput -log -abslog=\u003crepo\u003e\\runs\\DG4\\fx3\\capture.log -MageArenaGreyboxCapture -MageArenaBudgetStress -MageArenaBudgetRun=fx3 -csvprofile",
+    "driver":  {
+                   "label":  "desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz",
+                   "run":  "fx3",
+                   "ok":  true,
+                   "failReason":  "",
+                   "commandLine":  "-RenderOffScreen -ResX=1920 -ResY=1080 -unattended -nosplash -nohmd -stdout -FullStdOutLogOutput -log -abslog=<repo>\\runs\\DG4\\fx3\\capture.log -MageArenaGreyboxCapture -MageArenaBudgetStress -MageArenaBudgetRun=fx3 -csvprofile -game",
+                   "rhi":  "D3D12",
+                   "gpu":  "NVIDIA GeForce RTX 4090",
+                   "cpu":  "AMD Ryzen 7 7800X3D 8-Core Processor",
+                   "warmupS":  10.001545500010252,
+                   "sampleWindowS":  60,
+                   "scene":  {
+                                 "enemies":  20,
+                                 "partsPerEnemy":  3,
+                                 "projectiles":  100,
+                                 "spears":  25,
+                                 "partsPerProjectile":  1,
+                                 "hands":  2,
+                                 "handClip":  "Game/Clips/both-palms.normal.jsonl, looped",
+                                 "nearDistanceM":  8,
+                                 "nearArcDeg":  66,
+                                 "farDistanceM":  15,
+                                 "farArcDeg":  36.5,
+                                 "niagaraSystems":  6
+                             },
+                   "populationSteady":  {
+                                            "enemies":  20,
+                                            "projectiles":  100,
+                                            "hands":  2,
+                                            "handInstances":  102,
+                                            "niagara":  6
+                                        },
+                   "populationEnd":  {
+                                         "enemies":  20,
+                                         "projectiles":  100,
+                                         "hands":  2,
+                                         "handInstances":  102,
+                                         "niagara":  6
+                                     },
+                   "minLiveProjectiles":  100,
+                   "projectileLaunches":  8553,
+                   "frames":  38812,
+                   "drawCalls":  {
+                                     "n":  38812,
+                                     "min":  172,
+                                     "median":  194,
+                                     "p95":  197,
+                                     "max":  199
+                                 },
+                   "rhiPrimitivesDrawn":  {
+                                              "n":  38812,
+                                              "min":  198575,
+                                              "median":  207007,
+                                              "p95":  212575,
+                                              "max":  219721
+                                          },
+                   "lod0InFrustumTriangles":  {
+                                                  "n":  38812,
+                                                  "min":  88592,
+                                                  "median":  124528,
+                                                  "p95":  126448,
+                                                  "max":  127408
+                                              },
+                   "frameMs":  {
+                                   "n":  38812,
+                                   "min":  0.84650143980979919,
+                                   "median":  1.4568008482456207,
+                                   "p95":  2.086099237203598,
+                                   "max":  930.6332990527153
+                               },
+                   "gpuMs":  {
+                                 "n":  38812,
+                                 "min":  0.64399999380111694,
+                                 "median":  0.74839997291564941,
+                                 "p95":  0.79790002107620239,
+                                 "max":  1.4079999923706055
+                             },
+                   "peakWorkingSetMB":  2873.140625,
+                   "liveParticles":  1468,
+                   "gpuEmitters":  1,
+                   "liveParticlesSpread":  {
+                                               "n":  38812,
+                                               "min":  1128,
+                                               "median":  1397,
+                                               "p95":  1461,
+                                               "max":  1468
+                                           },
+                   "liveParticlesCpu":  {
+                                            "n":  38812,
+                                            "min":  565,
+                                            "median":  801,
+                                            "p95":  864,
+                                            "max":  869
+                                        },
+                   "liveParticlesGpu":  {
+                                            "n":  38812,
+                                            "min":  561,
+                                            "median":  596,
+                                            "p95":  599,
+                                            "max":  600
+                                        },
+                   "gpuEmittersCrossCheck":  1,
+                   "niagaraSystemsLive":  {
+                                              "min":  6,
+                                              "max":  6
+                                          },
+                   "zeroParticleFrames":  0,
+                   "particlesExercised":  true,
+                   "particlesVerdict":  "pass",
+                   "particlesNote":  "exercised",
+                   "gpuCountNote":  "GPU counts are a delayed upper bound (instance-count readback)",
+                   "niagara":  {
+                                   "allowGpuParticles":  true,
+                                   "systems":  [
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_BoltTrail",
+                                                       "authoredPeak":  300,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_SigilTrail",
+                                                       "authoredPeak":  90,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_WardAbsorb",
+                                                       "authoredPeak":  120,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_PerfectFlash",
+                                                       "authoredPeak":  60,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_Telegraph",
+                                                       "authoredPeak":  300,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_Motes",
+                                                       "authoredPeak":  600,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "gpu"
+                                                                      ]
+                                                   }
+                                               ]
+                               },
+                   "meshDrawCommandDumpsRequested":  6,
+                   "csv":  "<repo>/runs/DG4/fx3/dg4-fx3.csv"
+               },
+    "csvProfile":  {
+                       "columns":  {
+                                       "drawCalls":  "RHI/DrawCalls",
+                                       "drawCallsBasePass":  "DrawCall/Basepass",
+                                       "drawCallsPrepass":  "DrawCall/Prepass",
+                                       "drawCallsOcclusionTests":  "DrawCall/BeginOcclusionTests",
+                                       "drawCallsSlateUI":  "DrawCall/SlateUI",
+                                       "rhiPrimitivesDrawn":  "RHI/PrimitivesDrawn",
+                                       "meshDrawCommandVisiblePrimitives":  "missing",
+                                       "frameTimeMs":  "FrameTime",
+                                       "gameThreadMs":  "GameThreadTime",
+                                       "renderThreadMs":  "RenderThreadTime",
+                                       "gpuMs":  "GPUTime",
+                                       "physicalUsedMB":  "PhysicalUsedMB"
+                                   },
+                       "drawCalls":  {
+                                         "n":  38812,
+                                         "min":  172,
+                                         "median":  194,
+                                         "p95":  197,
+                                         "max":  199
+                                     },
+                       "drawCallsBasePass":  {
+                                                 "n":  38812,
+                                                 "min":  0,
+                                                 "median":  145,
+                                                 "p95":  290,
+                                                 "max":  441
+                                             },
+                       "drawCallsPrepass":  {
+                                                "n":  38812,
+                                                "min":  0,
+                                                "median":  11,
+                                                "p95":  22,
+                                                "max":  36
+                                            },
+                       "drawCallsOcclusionTests":  {
+                                                       "n":  38812,
+                                                       "min":  0,
+                                                       "median":  0,
+                                                       "p95":  0,
+                                                       "max":  0
+                                                   },
+                       "drawCallsSlateUI":  {
+                                                "n":  38812,
+                                                "min":  0,
+                                                "median":  3,
+                                                "p95":  6,
+                                                "max":  9
+                                            },
+                       "rhiPrimitivesDrawn":  {
+                                                  "n":  38812,
+                                                  "min":  198575,
+                                                  "median":  207007,
+                                                  "p95":  212575,
+                                                  "max":  219721
+                                              },
+                       "meshDrawCommandVisiblePrimitives":  {
+                                                                "n":  0,
+                                                                "min":  0,
+                                                                "median":  0,
+                                                                "p95":  0,
+                                                                "max":  0
+                                                            },
+                       "frameTimeMs":  {
+                                           "n":  38812,
+                                           "min":  0.8468,
+                                           "median":  1.4566,
+                                           "p95":  2.0853,
+                                           "max":  930.6383
+                                       },
+                       "gameThreadMs":  {
+                                            "n":  38812,
+                                            "min":  0.8303,
+                                            "median":  1.21795,
+                                            "p95":  2.0177,
+                                            "max":  20.8107
+                                        },
+                       "renderThreadMs":  {
+                                              "n":  38812,
+                                              "min":  0.9456,
+                                              "median":  1.2676,
+                                              "p95":  1.6236,
+                                              "max":  931.4918
+                                          },
+                       "gpuMs":  {
+                                     "n":  38812,
+                                     "min":  0.644,
+                                     "median":  0.7485,
+                                     "p95":  0.8007,
+                                     "max":  1.408
+                                 },
+                       "physicalUsedMB":  {
+                                              "n":  38812,
+                                              "min":  2808.082,
+                                              "median":  2846.7539,
+                                              "p95":  2869.1289,
+                                              "max":  2873.1406
+                                          }
+                   },
+    "meshDrawCommandDumps":  {
+                                 "frames":  6,
+                                 "allPasses":  {
+                                                   "n":  6,
+                                                   "min":  318496,
+                                                   "median":  321350,
+                                                   "p95":  327112,
+                                                   "max":  327112
+                                               },
+                                 "perPass":  {
+                                                 "BasePass":  {
+                                                                  "n":  6,
+                                                                  "min":  121872,
+                                                                  "median":  122832,
+                                                                  "p95":  124752,
+                                                                  "max":  124752
+                                                              },
+                                                 "DepthPass":  {
+                                                                   "n":  6,
+                                                                   "min":  121872,
+                                                                   "median":  122832,
+                                                                   "p95":  124752,
+                                                                   "max":  124752
+                                                               },
+                                                 "TranslucencyAfterDOF":  {
+                                                                              "n":  6,
+                                                                              "min":  3448,
+                                                                              "median":  3465,
+                                                                              "p95":  3588,
+                                                                              "max":  3588
+                                                                          },
+                                                 "TranslucentVelocity":  {
+                                                                             "n":  6,
+                                                                             "min":  2776,
+                                                                             "median":  2793,
+                                                                             "p95":  2916,
+                                                                             "max":  2916
+                                                                         },
+                                                 "Velocity":  {
+                                                                  "n":  6,
+                                                                  "min":  68480,
+                                                                  "median":  69440,
+                                                                  "p95":  71360,
+                                                                  "max":  71360
+                                                              }
+                                             }
+                             }
+}
