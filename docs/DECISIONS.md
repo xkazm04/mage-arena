@@ -2,6 +2,30 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-13 - F12: take UE 5.8.4 on purpose, on one planned day
+
+> Owner, 2026-10-13, answered in the Athena session. The ask was F12 of `docs/research/STACK-OPPORTUNITIES-2026-10.md`,
+> "(a) freeze at 5.8.3 until 11-18, or (b) take 5.8.4 on purpose, on one day?": "(b)". The owner's wording is not quoted
+> beyond the choice; the answer is recorded as relayed.
+
+- **What binds:** UE 5.8.4 is taken on purpose, on one planned day after it posts, rather than freezing at 5.8.3 until
+  11-18. The engine is not updated by surprise and is not touched before that day.
+- **The constraint:** 5.8.4 is expected around 2026-10-20 (inferred from the 28-day cadence), inside the sprint to the
+  10-31 desktop core gate. The engine and both v207 MetaXR plugins match today on CompatibleChangelist 55116800.
+- **The day's procedure** (`STACK-OPPORTUNITIES-2026-10.md` 8.3 and F9):
+  1. Before installing, read the posted 5.8.4 notes and compare the new `Build.version` CompatibleChangelist with the
+     plugins' BuildId 55116800. If they differ, stop and raise it: the plugins must be rebuilt or updated first.
+  2. Cold `apps/vr/tools/build.ps1`.
+  3. The full `MageArena` suite, with a per-test diff against the 5.8.3 run.
+  4. `node apps/vr/tools/check-pin.mjs`, and the pin hash in the boot log.
+  5. Update `docs/XR-TOOLCHAIN.md` and the `CLAUDE.md` Build line.
+  - Never take it on a day another UE build or automation run is in flight.
+- **Owner action still open:** launcher auto-update for `UE_5.8` should be off, so the update lands on the chosen day and
+  not by surprise. Unverified whether it is on now.
+- Lost: (a) freeze at 5.8.3 until 11-18. The 10-13 feed recommended it because both known 5.8.4 fixes (UE-397316,
+  UE-396802) sit outside the row-3 list. The owner chose otherwise.
+- Not part of this ruling: `CLAUDE.md` and `XR-TOOLCHAIN.md` still say 5.8.3 until the day's procedure runs.
+
 ## 2026-10-08 - D-G4 particle systems: a commandlet here now, pof P9 later
 
 > Owner, 2026-10-08, asked "The 10-31 budget's particle rows need 6 Niagara systems. The reading (6015e16) says to make

@@ -1189,7 +1189,7 @@ Two findings, F11 and F12. Neither is applied.
 
 #### F12. A 5.8.4 hotfix is announced, so F9's freeze-or-take decision is due before about 2026-10-20
 
-- **Status:** open, the owner's call, re-read 2026-10-13 (section 8): 5.8.4 is still not posted (no hotfix topic, no release-notes mention), so its notes and CompatibleChangelist cannot yet be read against BuildId 55116800; the engine is still 5.8.3 (CL 58210709, CompatibleChangelist 55116800, `Build.version` unchanged since 10-03) and both v207 plugins still match on 55116800; Meta lists nothing above 207.0; the known 5.8.4 contents are two staff-confirmed fixes, UE-397316 (Niagara scene-depth sampling, 10-05) and UE-396802 (macOS 27 game build, 10-12), neither on the 7.1 row-3 list; recommendation (a) freeze at 5.8.3 until 11-18, with launcher auto-update off before about 10-20, and (b) only if the posted notes name a row-3 fix; due before about 2026-10-20 (inferred from the 28-day cadence).
+- **Status:** decided 2026-10-13 by the owner: (b), take 5.8.4 on purpose on one planned day; recorded in `docs/DECISIONS.md` ("2026-10-13 - F12: take UE 5.8.4 on purpose, on one planned day"); not yet applied, the engine is still 5.8.3.
 - **Upstream statements:**
   - Forum bug thread "ShallowWaterRiver simulation does not initialize in Unreal Engine 5.7.4". On 2026-09-18 a user
     (no staff flag) wrote "The fix has been submitted and will be in 5.8.4." On 2026-10-05 Epic's Bug-Reporter
