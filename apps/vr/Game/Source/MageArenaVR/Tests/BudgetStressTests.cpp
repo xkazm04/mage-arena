@@ -8,6 +8,9 @@
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/GreyboxUtil.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraEmitter.h"
+#include "NiagaraEmitterHandle.h"
+#include "NiagaraSystem.h"
 #include "UObject/Package.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetStressPopulation, "MageArena.Budget.StressPopulation",
@@ -226,6 +229,42 @@ bool FMageArenaBudgetZeroIsNotAPass::RunTest(const FString& Parameters)
 	TestTrue(TEXT("exactly at the limits passes"),
 		EvaluateParticles(Rows, BudgetStress::MaxLiveParticles, 0, BudgetStress::MaxGpuEmitters, Reason) == EBudgetParticleVerdict::Pass);
 	TestEqual(TEXT("a pass reads exercised"), Reason, FString(TEXT("exercised")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetFxAssets, "MageArena.Budget.FxAssets",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaBudgetFxAssets::RunTest(const FString& Parameters)
+{
+	// Loading a Niagara system needs no RHI. This catches a commandlet run that was not committed, or a table edit
+	// that was not followed by tools/create-budget-fx.ps1 -Force.
+	for (const FBudgetFxRow& Row : BudgetStress::FxRows())
+	{
+		const UNiagaraSystem* System = LoadObject<UNiagaraSystem>(nullptr, *FString::Printf(TEXT("%s.%s"), *Row.AssetPath, *Row.Name));
+		if (!TestNotNull(*FString::Printf(TEXT("%s loads from %s"), *Row.Name, *Row.AssetPath), System))
+		{
+			continue;
+		}
+		TestEqual(*FString::Printf(TEXT("%s has one emitter"), *Row.Name), System->GetEmitterHandles().Num(), 1);
+		if (System->GetEmitterHandles().Num() != 1)
+		{
+			continue;
+		}
+		const FVersionedNiagaraEmitterData* Data = System->GetEmitterHandle(0).GetEmitterData();
+		if (!TestNotNull(*FString::Printf(TEXT("%s has emitter data"), *Row.Name), Data))
+		{
+			continue;
+		}
+		const ENiagaraSimTarget Expected = Row.bGpu ? ENiagaraSimTarget::GPUComputeSim : ENiagaraSimTarget::CPUSim;
+		TestTrue(*FString::Printf(TEXT("%s simulates on the %s"), *Row.Name, Row.bGpu ? TEXT("GPU") : TEXT("CPU")), Data->SimTarget == Expected);
+		TestTrue(*FString::Printf(TEXT("%s allocates a fixed %d"), *Row.Name, Row.PeakLive),
+			Data->AllocationMode == EParticleAllocationMode::FixedCount && Data->PreAllocationCount == Row.PeakLive);
+		if (Row.bGpu)
+		{
+			TestTrue(*FString::Printf(TEXT("%s has fixed bounds"), *Row.Name), Data->CalculateBoundsMode == ENiagaraEmitterCalculateBoundMode::Fixed);
+		}
+	}
 	return true;
 }
 
