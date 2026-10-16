@@ -2,6 +2,31 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-16 - Plan milestone 3, "Asset footprint reduced": measured by waste, not by tracked size
+
+> Athena, 2026-10-16, under the operator's delegation, answered the App Master's scope ask. The ask was whether
+> milestone 3's goal compares tracked bytes at or below `11b9bb2`, or something else
+> (`docs/research/BASELINE-2026-10-07.md` section B, last bullets). Recorded as relayed; the wording is not quoted beyond
+> the ruling.
+
+- **What binds:** the goal measures WASTE, not tracked size. It is met by all three of: 0 unexplained duplicate groups,
+  no texture over budget, and no test-only content in the staged `Clips` folder. It is not met or missed by tracked bytes
+  against `11b9bb2`.
+- **The constraint:** the re-measure at `ddbd3c1` (`BASELINE-2026-10-07.md` section B, commit `9fef818`) found tracked
+  bytes at 66,776,864 against 61,109,210 at `11b9bb2`, +9.3 %. The growth is real game content: the first audio import
+  (20 SFX uassets, 2.5 MB of LFS), clips, source and docs. Every possible removal recovers under 1 MB: the mudra mirror
+  duplicates are 622,918 bytes and kept by design (A.6), and the test-only clips are 311,952 bytes. Together they could
+  not close the 5,667,654-byte gap.
+- **Where it stands against the three tests** (as of the `ddbd3c1` re-measure): the 2 duplicate groups are the mudra
+  mirrors, explained in A.6; 0 texture assets exist and 0 images are over 2048 px; the staged `Clips` folder still holds
+  the test-only `Clips/system/` and `Clips/ward/` clips.
+- **The action this orders:** move `Clips/system` and `Clips/ward` out of the staged folder. It is being delivered in a
+  separate run and is **not done** by this entry. Until it lands, the third test is open and the goal is not met.
+- Lost: (a) keep tracked bytes as the measure, which can only be met by deleting real content. (b) Measure staged
+  package bytes, where A.3 already removed 188 MB (188,292,369 bytes), so it would read as met while the test-only clips
+  still ship.
+- Not part of this ruling: the research docs are not edited; they still ask the question as open.
+
 ## 2026-10-13 - F12: take UE 5.8.4 on purpose, on one planned day
 
 > Owner, 2026-10-13, answered in the Athena session. The ask was F12 of `docs/research/STACK-OPPORTUNITIES-2026-10.md`,
