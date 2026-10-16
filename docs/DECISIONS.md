@@ -2,6 +2,37 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-16 - D-G4 draw calls are one total budget, and the two Build.cs bBuildEditor blocks stay separate
+
+> Athena, 2026-10-16, under the operator's delegation, answered run `ef6642f6`'s two questions. Recorded as relayed; the
+> wording is not quoted beyond the rulings.
+
+**1. Draw calls: one total of <=150, no separate particle line**
+
+- **What binds:** the D-G4 draw-call row is a single total budget of <=150 for the whole frame. Particle systems get no
+  draw-call line of their own. The measured gap, median 194 and max 201 against 150
+  (`docs/research/BUDGET-DG4-2026-10.md` section 10.2 and 10.3, commit `ca28cce`), belongs to lever B in the
+  presentation lane. Lever B's target now includes the particles: the 6 `NS_Budget_` systems add about 11 draw calls at
+  the median (8.5 measured median 183 without them), and they are closed by lever B along with the rest.
+- **The constraint:** the plan's section 7 Quest 3 budget is one frame. The GPU draws one frame, so a particle
+  allowance carved out of it would not give the frame more room.
+- Lost: a separate particle draw-call allowance (for example 150 plus a particle line). It would have turned the row
+  into a pass on paper with the frame still over 150.
+- The row stays **fail** until lever B is on master and the stress driver follows the shipping presentation (section 9).
+
+**2. Build.cs: the two bBuildEditor blocks stay separate**
+
+- **What binds:** `apps/vr/Game/Source/MageArenaVR/MageArenaVR.Build.cs` keeps its two `if (Target.bBuildEditor)`
+  blocks apart, as the spec required: the D-G4 `NiagaraEditor` block near the top (for the commandlet that builds the
+  `NS_Budget_` systems) and the T26 `UnrealEd` and `AssetTools` block at the end (for the SFX import commandlet). A
+  sweep, cleanup or refactor must not fold them into one.
+- **The constraint:** the spec (`docs/research/NIAGARA-PROXY-2026-10.md` section 4.1) placed the Niagara lines above
+  the public dependency block so a three-way merge with lane A's edit to the end of the file takes both. A second block
+  in the same place conflicts, and each block belongs to a different lane's feature.
+- Lost: folding them into one block. Section 4.1 had called that a follow-up commit on master after the merge. It is
+  not wanted.
+- Not part of this ruling: neither research doc nor `Build.cs` is edited.
+
 ## 2026-10-16 - Plan milestone 3, "Asset footprint reduced": measured by waste, not by tracked size
 
 > Athena, 2026-10-16, under the operator's delegation, answered the App Master's scope ask. The ask was whether
