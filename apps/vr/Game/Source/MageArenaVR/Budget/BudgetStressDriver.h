@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Async/Future.h"
+#include "Budget/BudgetFx.h"
 #include "Budget/BudgetStressPlan.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -10,6 +11,7 @@
 
 class UMaterialInstanceDynamic;
 class UMaterialInterface;
+class UNiagaraComponent;
 class UStaticMeshComponent;
 
 /** Diagnostic only (-MageArenaBudgetSharedMaterials): one tinted material per colour, reused by every part of that colour. */
@@ -38,6 +40,8 @@ private:
  * D-G4 stress capture. Started by -MageArenaGreyboxCapture -MageArenaBudgetStress (apps/vr/tools/capture-budget.ps1).
  * Waits for a stable frame, spawns 20 enemy proxies and 100 projectiles, loops a two-hand clip, warms up,
  * then samples 60 s of draw calls, triangles and frame times into runs/DG4/<run>/.
+ * Also spawns the six NS_Budget_ Niagara systems (Budget/BudgetFx.h, docs/research/NIAGARA-PROXY-2026-10.md) and counts
+ * their live particles and GPU emitters on every frame of the window.
  * Logs MAGEVR_BUDGET_POP twice and ends with MAGEVR_BUDGET_DONE or MAGEVR_BUDGET_FAIL.
  * Diagnostic variant: -MageArenaBudgetSharedMaterials makes the parts of one colour share one material (D-G4 levers).
  */
@@ -75,11 +79,18 @@ private:
 		int32 Projectiles = 0;
 		int32 Hands = 0;
 		int32 HandInstances = 0;
+		/** Niagara systems live: not complete, with a system instance. */
+		int32 Niagara = 0;
 	};
 
 	void Enter(EStep Next);
 	void Fail(const FString& Why);
 	bool SpawnPopulation();
+	bool SpawnFx(UWorld* World, const FArenaLayout& Layout, const FVector& PadCm);
+	void UpdateFx();
+	void SampleFx();
+	void JudgeParticles();
+	int32 CountLiveFx() const;
 	void UpdateShots(double Seconds);
 	void KeepHandsLooping();
 	FPopulation CountPopulation() const;
@@ -124,6 +135,10 @@ private:
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> ShotParts;
 
+	/** The six NS_Budget_ systems, in BudgetStress::FxRows() order. */
+	UPROPERTY()
+	TArray<TObjectPtr<UNiagaraComponent>> FxComponents;
+
 	FPopulation SteadyPopulation;
 	FPopulation EndPopulation;
 
@@ -133,6 +148,16 @@ private:
 	TArray<double> FrameMs;
 	TArray<double> GpuMs;
 	TArray<int32> LiveShots;
+	TArray<int32> LiveParticles;
+	TArray<int32> LiveParticlesCpu;
+	TArray<int32> LiveParticlesGpu;
+	TArray<int32> GpuEmitterCounts;
+	TArray<int32> GpuCrossCheckCounts;
+	TArray<int32> NiagaraLive;
+	int32 ZeroParticleFrames = 0;
+	EBudgetParticleVerdict ParticleVerdict = EBudgetParticleVerdict::NotExercised;
+	FString ParticlesNote = TEXT("not exercised: the window did not finish");
+	bool bAllowGpuParticles = false;
 	uint64 PeakWorkingSetBytes = 0;
 	FString CsvPath;
 	bool bCsvStarted = false;

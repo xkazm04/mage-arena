@@ -21,6 +21,7 @@
 #include "Hands/HandFrame.h"
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
+#include "HeadMountedDisplayTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "MageArenaVR.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -28,6 +29,13 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "NiagaraCommon.h"
+#include "NiagaraComponent.h"
+#include "NiagaraEmitterInstance.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "NiagaraSystemInstance.h"
+#include "NiagaraSystemInstanceController.h"
 #include "ProfilingDebugging/CsvProfiler.h"
 #include "RHI.h"
 #include "RHIStats.h"
@@ -287,6 +295,10 @@ bool UBudgetStressDriver::SpawnPopulation()
 		}
 		ShotParts.Add(Part);
 	}
+	if (!SpawnFx(World, Layout, PadCm))
+	{
+		return false;
+	}
 	PopulationStartWall = FPlatformTime::Seconds();
 	UpdateShots(0.0);
 	KeepHandsLooping();
@@ -294,6 +306,168 @@ bool UBudgetStressDriver::SpawnPopulation()
 		Plan.Enemies.Num(), Plan.Shots.Num(), Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot) { return Shot.bSpear; }).Num(),
 		Plan.NearDistanceM, Plan.NearArcDeg, Plan.FarDistanceM, Plan.FarArcDeg, BudgetStress::HandClipAction);
 	return true;
+}
+
+bool UBudgetStressDriver::SpawnFx(UWorld* World, const FArenaLayout& Layout, const FVector& PadCm)
+{
+	const FRunePad* Pad = Layout.FindPadById(TEXT("centre"));
+	const FVector Forward = Pad ? Layout.FlatForwardM(*Pad) : FVector::ForwardVector;
+	// In front of the dais at palm height; the motes hang over the arena centre.
+	const FVector PalmCm = PadCm + Forward * 60.0 + FVector(0.0, 0.0, 110.0);
+	const FVector MotesCm = PadCm + Forward * 250.0 + FVector(0.0, 0.0, 130.0);
+	FVector TelegraphCm = PadCm + Forward * 600.0;
+	double FarthestM = -1.0;
+	for (const FBudgetEnemy& Enemy : Plan.Enemies)
+	{
+		if (Enemy.DistanceM > FarthestM)
+		{
+			FarthestM = Enemy.DistanceM;
+			TelegraphCm = Enemy.GroundM * 100.0 + FVector(0.0, 0.0, 100.0);
+		}
+	}
+	bAllowGpuParticles = FNiagaraUtilities::AllowGPUParticles();
+
+	for (const FBudgetFxRow& Row : BudgetStress::FxRows())
+	{
+		UNiagaraSystem* System = LoadObject<UNiagaraSystem>(nullptr, *FString::Printf(TEXT("%s.%s"), *Row.AssetPath, *Row.Name));
+		if (!System)
+		{
+			Fail(FString::Printf(TEXT("niagara system %s did not load"), *Row.AssetPath));
+			return false;
+		}
+		UNiagaraComponent* Component = nullptr;
+		if (Row.Name == TEXT("NS_Budget_BoltTrail") && ShotParts.Num() > 0 && ShotParts[0])
+		{
+			Component = UNiagaraFunctionLibrary::SpawnSystemAttached(System, ShotParts[0], NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
+				EAttachLocation::SnapToTarget, false);
+		}
+		else
+		{
+			FVector At = PalmCm;
+			if (Row.Name == TEXT("NS_Budget_Telegraph"))
+			{
+				At = TelegraphCm;
+			}
+			else if (Row.Name == TEXT("NS_Budget_Motes"))
+			{
+				At = MotesCm;
+			}
+			Component = UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, System, At, FRotator::ZeroRotator, FVector::OneVector, false);
+		}
+		if (!Component)
+		{
+			Fail(FString::Printf(TEXT("niagara system %s did not spawn"), *Row.AssetPath));
+			return false;
+		}
+		FxComponents.Add(Component);
+	}
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_FX spawned=%d allowGpuParticles=%d"), FxComponents.Num(), bAllowGpuParticles ? 1 : 0);
+	return true;
+}
+
+void UBudgetStressDriver::UpdateFx()
+{
+	// The sigil trail (row 1) follows the right index fingertip; joints are local to the hand presentation component.
+	constexpr int32 SigilIndex = 1;
+	UWorld* World = GetWorld();
+	UGameInstance* Instance = World ? World->GetGameInstance() : nullptr;
+	const UHandInputSubsystem* Hands = Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr;
+	AMageArenaPawn* Pawn = FindPawn(World);
+	UHandPresentationComponent* Presentation = Pawn ? Pawn->FindComponentByClass<UHandPresentationComponent>() : nullptr;
+	FHandFrame Frame;
+	if (!FxComponents.IsValidIndex(SigilIndex) || !FxComponents[SigilIndex] || !Hands || !Presentation || !Hands->GetLatest(EControllerHand::Right, Frame)
+		|| !Frame.Joints.IsValidIndex(static_cast<int32>(EHandKeypoint::IndexTip)))
+	{
+		return;
+	}
+	const FVector Local = Frame.Joints[static_cast<int32>(EHandKeypoint::IndexTip)].Location;
+	FxComponents[SigilIndex]->SetWorldLocation(Presentation->GetComponentTransform().TransformPosition(Local));
+}
+
+int32 UBudgetStressDriver::CountLiveFx() const
+{
+	int32 Live = 0;
+	for (const UNiagaraComponent* Component : FxComponents)
+	{
+		if (Component && !Component->IsComplete() && Component->GetSystemInstanceController().IsValid())
+		{
+			++Live;
+		}
+	}
+	return Live;
+}
+
+void UBudgetStressDriver::SampleFx()
+{
+	// NIAGARA-PROXY 2.2: component -> system instance -> emitters. The instance accessor is "unsafe" because a concurrent
+	// tick may still be running; the driver ticks after the world, so wait for it to finish first.
+	TArray<FBudgetEmitterSample> Samples;
+	int32 Live = 0;
+	int32 CrossCheck = 0;
+	for (UNiagaraComponent* Component : FxComponents)
+	{
+		if (!Component || Component->IsComplete())
+		{
+			continue;
+		}
+		FNiagaraSystemInstanceControllerPtr Controller = Component->GetSystemInstanceController();
+		FNiagaraSystemInstance* SystemInstance = Controller.IsValid() ? Controller->GetSystemInstance_Unsafe() : nullptr;
+		if (!SystemInstance)
+		{
+			continue;
+		}
+		SystemInstance->WaitForConcurrentTickAndFinalize();
+		++Live;
+		CrossCheck += static_cast<int32>(SystemInstance->ActiveGPUEmitterCount);
+		for (const FNiagaraEmitterInstanceRef& Emitter : SystemInstance->GetEmitters())
+		{
+			FBudgetEmitterSample Sample;
+			Sample.bEnabled = !Emitter->IsDisabled();
+			Sample.SimTarget = Emitter->GetSimTarget() == ENiagaraSimTarget::GPUComputeSim ? EBudgetSimTarget::Gpu : EBudgetSimTarget::Cpu;
+			switch (Emitter->GetExecutionState())
+			{
+			case ENiagaraExecutionState::Active:
+				Sample.ExecutionState = EBudgetExecutionState::Active;
+				break;
+			case ENiagaraExecutionState::Inactive:
+				Sample.ExecutionState = EBudgetExecutionState::Inactive;
+				break;
+			case ENiagaraExecutionState::InactiveClear:
+				Sample.ExecutionState = EBudgetExecutionState::InactiveClear;
+				break;
+			case ENiagaraExecutionState::Complete:
+				Sample.ExecutionState = EBudgetExecutionState::Complete;
+				break;
+			default:
+				Sample.ExecutionState = EBudgetExecutionState::Disabled;
+				break;
+			}
+			Sample.ParticleCount = Emitter->GetNumParticles();
+			Samples.Add(Sample);
+		}
+	}
+	const FBudgetParticleCount Count = CountEmitters(Samples);
+	LiveParticles.Add(Count.Total());
+	LiveParticlesCpu.Add(Count.Cpu);
+	LiveParticlesGpu.Add(Count.Gpu);
+	GpuEmitterCounts.Add(Count.ActiveGpuEmitters);
+	GpuCrossCheckCounts.Add(CrossCheck);
+	NiagaraLive.Add(Live);
+	ZeroParticleFrames += Count.Total() == 0 ? 1 : 0;
+}
+
+void UBudgetStressDriver::JudgeParticles()
+{
+	const int32 MinLive = NiagaraLive.Num() ? FMath::Min(NiagaraLive) : 0;
+	const int32 MaxParticles = LiveParticles.Num() ? FMath::Max(LiveParticles) : 0;
+	const int32 MaxGpu = GpuEmitterCounts.Num() ? FMath::Max(GpuEmitterCounts) : 0;
+	ParticleVerdict = EvaluateParticles(MinLive, MaxParticles, ZeroParticleFrames, MaxGpu, ParticlesNote);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_PARTICLES live=%d gpuEmitters=%d zeroFrames=%d minSystems=%d verdict=%s"), MaxParticles, MaxGpu,
+		ZeroParticleFrames, MinLive, *ParticlesNote);
+	if (ParticleVerdict == EBudgetParticleVerdict::NotExercised)
+	{
+		Fail(FString::Printf(TEXT("particles not exercised (%s)"), *ParticlesNote));
+	}
 }
 
 void UBudgetStressDriver::UpdateShots(double Seconds)
@@ -364,6 +538,7 @@ UBudgetStressDriver::FPopulation UBudgetStressDriver::CountPopulation() const
 	UWorld* World = GetWorld();
 	UGameInstance* Instance = World ? World->GetGameInstance() : nullptr;
 	const UHandInputSubsystem* Hands = Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr;
+	Population.Niagara = CountLiveFx();
 	int32 Tracked = 0;
 	if (Hands)
 	{
@@ -397,13 +572,14 @@ bool UBudgetStressDriver::PopulationFull(const FPopulation& Population) const
 {
 	return Population.Enemies >= BudgetStress::EnemyCount
 		&& Population.Projectiles >= BudgetStress::ProjectileCount
-		&& Population.Hands >= BudgetStress::HandCount;
+		&& Population.Hands >= BudgetStress::HandCount
+		&& Population.Niagara >= BudgetStress::FxRowCount;
 }
 
 void UBudgetStressDriver::LogPopulation(const TCHAR* Phase, const FPopulation& Population) const
 {
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_POP enemies=%d projectiles=%d hands=%d phase=%s handInstances=%d launches=%lld"),
-		Population.Enemies, Population.Projectiles, Population.Hands, Phase, Population.HandInstances, Launches);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_POP enemies=%d projectiles=%d hands=%d niagara=%d phase=%s handInstances=%d launches=%lld"),
+		Population.Enemies, Population.Projectiles, Population.Hands, Population.Niagara, Phase, Population.HandInstances, Launches);
 }
 
 int32 UBudgetStressDriver::CountVisibleLod0() const
@@ -478,6 +654,7 @@ void UBudgetStressDriver::SampleFrame()
 	const FPopulation Population = CountPopulation();
 	LiveShots.Add(Population.Projectiles);
 	MinLiveShots = FMath::Min(MinLiveShots, Population.Projectiles);
+	SampleFx();
 	PeakWorkingSetBytes = FMath::Max<uint64>(PeakWorkingSetBytes, FPlatformMemory::GetStats().UsedPhysical);
 }
 
@@ -530,6 +707,7 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 	if (Rig && (Step == EStep::Warmup || Step == EStep::Sample))
 	{
 		UpdateShots(Now - PopulationStartWall);
+		UpdateFx();
 		KeepHandsLooping();
 	}
 
@@ -612,6 +790,7 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 			{
 				Fail(FString::Printf(TEXT("live projectiles fell to %d during the window"), MinLiveShots));
 			}
+			JudgeParticles();
 			EndCsv();
 			Enter(EStep::WaitCsv);
 		}
@@ -695,7 +874,7 @@ void UBudgetStressDriver::WriteResults()
 	Scene->SetNumberField(TEXT("nearArcDeg"), Plan.NearArcDeg);
 	Scene->SetNumberField(TEXT("farDistanceM"), Plan.FarDistanceM);
 	Scene->SetNumberField(TEXT("farArcDeg"), Plan.FarArcDeg);
-	Scene->SetNumberField(TEXT("niagaraSystems"), 0);
+	Scene->SetNumberField(TEXT("niagaraSystems"), BudgetStress::FxRows().Num());
 	Root->SetObjectField(TEXT("scene"), Scene);
 	if (bSharedMaterials)
 	{
@@ -713,6 +892,7 @@ void UBudgetStressDriver::WriteResults()
 		Object->SetNumberField(TEXT("projectiles"), Population.Projectiles);
 		Object->SetNumberField(TEXT("hands"), Population.Hands);
 		Object->SetNumberField(TEXT("handInstances"), Population.HandInstances);
+		Object->SetNumberField(TEXT("niagara"), Population.Niagara);
 		return Object;
 	};
 	Root->SetObjectField(TEXT("populationSteady"), PopulationJson(SteadyPopulation));
@@ -727,9 +907,49 @@ void UBudgetStressDriver::WriteResults()
 	Root->SetObjectField(TEXT("frameMs"), Spread(FrameMs));
 	Root->SetObjectField(TEXT("gpuMs"), Spread(GpuMs));
 	Root->SetNumberField(TEXT("peakWorkingSetMB"), static_cast<double>(PeakWorkingSetBytes) / (1024.0 * 1024.0));
-	Root->SetNumberField(TEXT("liveParticles"), 0);
-	Root->SetNumberField(TEXT("gpuEmitters"), 0);
-	Root->SetStringField(TEXT("particlesNote"), TEXT("not exercised: no effect exists yet"));
+	// The window maximum is the figure the particle row is judged on (NIAGARA-PROXY 2.5).
+	Root->SetNumberField(TEXT("liveParticles"), LiveParticles.Num() ? FMath::Max(LiveParticles) : 0);
+	Root->SetNumberField(TEXT("gpuEmitters"), GpuEmitterCounts.Num() ? FMath::Max(GpuEmitterCounts) : 0);
+	Root->SetObjectField(TEXT("liveParticlesSpread"), Spread(LiveParticles));
+	Root->SetObjectField(TEXT("liveParticlesCpu"), Spread(LiveParticlesCpu));
+	Root->SetObjectField(TEXT("liveParticlesGpu"), Spread(LiveParticlesGpu));
+	Root->SetNumberField(TEXT("gpuEmittersCrossCheck"), GpuCrossCheckCounts.Num() ? FMath::Max(GpuCrossCheckCounts) : 0);
+	TSharedRef<FJsonObject> SystemsLive = MakeShared<FJsonObject>();
+	SystemsLive->SetNumberField(TEXT("min"), NiagaraLive.Num() ? FMath::Min(NiagaraLive) : 0);
+	SystemsLive->SetNumberField(TEXT("max"), NiagaraLive.Num() ? FMath::Max(NiagaraLive) : 0);
+	Root->SetObjectField(TEXT("niagaraSystemsLive"), SystemsLive);
+	Root->SetNumberField(TEXT("zeroParticleFrames"), ZeroParticleFrames);
+	Root->SetBoolField(TEXT("particlesExercised"), ParticleVerdict != EBudgetParticleVerdict::NotExercised);
+	Root->SetStringField(TEXT("particlesVerdict"), ParticleVerdict == EBudgetParticleVerdict::Pass ? TEXT("pass")
+		: ParticleVerdict == EBudgetParticleVerdict::Fail ? TEXT("fail") : TEXT("not exercised"));
+	Root->SetStringField(TEXT("particlesNote"), ParticlesNote);
+	Root->SetStringField(TEXT("gpuCountNote"), TEXT("GPU counts are a delayed upper bound (instance-count readback)"));
+	TSharedRef<FJsonObject> NiagaraJson = MakeShared<FJsonObject>();
+	NiagaraJson->SetBoolField(TEXT("allowGpuParticles"), bAllowGpuParticles);
+	TArray<TSharedPtr<FJsonValue>> SystemsJson;
+	for (int32 Index = 0; Index < BudgetStress::FxRows().Num(); ++Index)
+	{
+		const FBudgetFxRow& Row = BudgetStress::FxRows()[Index];
+		TSharedRef<FJsonObject> One = MakeShared<FJsonObject>();
+		One->SetStringField(TEXT("asset"), Row.AssetPath);
+		One->SetNumberField(TEXT("authoredPeak"), Row.PeakLive);
+		TArray<TSharedPtr<FJsonValue>> Targets;
+		UNiagaraComponent* Component = FxComponents.IsValidIndex(Index) ? FxComponents[Index].Get() : nullptr;
+		FNiagaraSystemInstanceControllerPtr Controller = Component ? Component->GetSystemInstanceController() : nullptr;
+		FNiagaraSystemInstance* SystemInstance = Controller.IsValid() ? Controller->GetSystemInstance_Unsafe() : nullptr;
+		if (SystemInstance)
+		{
+			for (const FNiagaraEmitterInstanceRef& Emitter : SystemInstance->GetEmitters())
+			{
+				Targets.Add(MakeShared<FJsonValueString>(Emitter->GetSimTarget() == ENiagaraSimTarget::GPUComputeSim ? TEXT("gpu") : TEXT("cpu")));
+			}
+		}
+		One->SetNumberField(TEXT("emitters"), Targets.Num());
+		One->SetArrayField(TEXT("simTargets"), Targets);
+		SystemsJson.Add(MakeShared<FJsonValueObject>(One));
+	}
+	NiagaraJson->SetArrayField(TEXT("systems"), SystemsJson);
+	Root->SetObjectField(TEXT("niagara"), NiagaraJson);
 	Root->SetNumberField(TEXT("meshDrawCommandDumpsRequested"), DumpsRequested);
 	Root->SetStringField(TEXT("csv"), bCsvWritten ? CsvPath : FString());
 
@@ -740,6 +960,9 @@ void UBudgetStressDriver::WriteResults()
 	Samples->SetArrayField(TEXT("frameMs"), Series(FrameMs));
 	Samples->SetArrayField(TEXT("gpuMs"), Series(GpuMs));
 	Samples->SetArrayField(TEXT("liveProjectiles"), Series(LiveShots));
+	Samples->SetArrayField(TEXT("liveParticles"), Series(LiveParticles));
+	Samples->SetArrayField(TEXT("liveParticlesGpu"), Series(LiveParticlesGpu));
+	Samples->SetArrayField(TEXT("gpuEmitters"), Series(GpuEmitterCounts));
 
 	const bool bSummary = SaveJson(Root, FPaths::Combine(Dir, TEXT("driver.json")));
 	const bool bSamples = SaveJson(Samples, FPaths::Combine(Dir, TEXT("samples.json")));
