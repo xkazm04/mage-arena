@@ -168,9 +168,13 @@ void ReleaseCast(FArenaState& State, FActor& Actor, FVrRuleset* Rules)
 		Hit.OwnerId = Actor.Id;
 		Hit.ActivationId = Pending.ActivationId;
 		Hit.Damage = Data.BoltDamage;
-		if (Rules && Rules->bActive && Actor.Team == 0 && Rules->Power.BoltDamage != 1.0)
+		if (Rules)
 		{
-			Hit.Damage *= Rules->Power.BoltDamage;
+			const double Power = Rules->PlayerPowerMult(Actor, nullptr);
+			if (Power != 1.0)
+			{
+				Hit.Damage *= Power;
+			}
 		}
 		Hit.Family = TEXT("magic");
 		Hit.Tier = 0;
@@ -282,15 +286,8 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 			}
 			FSpellCastMod Mod;
 			Mod.bSuppressFlow = true;
-			Mod.PowerMult = Rules->Split.OneHandPower;
-			if (Actor.Team == 0 && Spell->Kind == TEXT("line") && Rules->Power.LineDamage != 1.0)
-			{
-				Mod.PowerMult *= Rules->Power.LineDamage;
-			}
-			else if (Actor.Team == 0 && (Spell->Kind == TEXT("projectile") || Spell->Line == TEXT("bolt")) && Rules->Power.BoltDamage != 1.0)
-			{
-				Mod.PowerMult *= Rules->Power.BoltDamage;
-			}
+			// Deliberate for now (review F1): the split path applies the player power without the bActive check.
+			Mod.PowerMult = Rules->Split.OneHandPower * Rules->PlayerPowerMult(Actor, Spell, false);
 			if (TrySpellCast(State, Actor, Input, &Mod))
 			{
 				Rules->SetSplitCasting(Actor.Id, true);
@@ -299,11 +296,7 @@ void StartCast(FArenaState& State, FActor& Actor, const FInputFrame& Input, FVrR
 			return;
 		}
 		const FSpell* PowerSpell = SpellFor(Actor, Input.Slot);
-		const bool bLine = PowerSpell && PowerSpell->Kind == TEXT("line");
-		const bool bBolt = PowerSpell && (PowerSpell->Kind == TEXT("projectile") || PowerSpell->Line == TEXT("bolt"));
-		const double Power = (Rules && Rules->bActive && Actor.Team == 0)
-			? (bLine ? Rules->Power.LineDamage : (bBolt ? Rules->Power.BoltDamage : 1.0))
-			: 1.0;
+		const double Power = (Rules && PowerSpell) ? Rules->PlayerPowerMult(Actor, PowerSpell) : 1.0;
 		if (Power != 1.0)
 		{
 			FSpellCastMod Mod;

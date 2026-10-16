@@ -409,6 +409,27 @@ void FVrRuleset::Lift(const TCHAR* Why)
 	UE_LOG(LogMageArena, Log, TEXT("defence staff lift %s"), Why);
 }
 
+double FVrRuleset::PlayerPowerMult(const FActor& Actor, const FSpell* Spell, bool bRequireActive) const
+{
+	if ((bRequireActive && !bActive) || Actor.Team != 0)
+	{
+		return 1.0;
+	}
+	if (!Spell)
+	{
+		return Power.BoltDamage;
+	}
+	if (Spell->Kind == TEXT("line"))
+	{
+		return Power.LineDamage;
+	}
+	if (Spell->Kind == TEXT("projectile") || Spell->Line == TEXT("bolt"))
+	{
+		return Power.BoltDamage;
+	}
+	return 1.0;
+}
+
 bool FVrRuleset::IsSplitCasting(int32 ActorId) const
 {
 	return SplitCasting.Contains(ActorId);

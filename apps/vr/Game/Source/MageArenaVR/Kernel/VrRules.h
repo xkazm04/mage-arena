@@ -253,6 +253,10 @@ struct FVrRuleset
 	// Null when a split cast of Spell is legal now, else the refusal reason ("tier" or "crest").
 	// The kernel and the session both ask this, so they cannot disagree.
 	const TCHAR* SplitRefusal(const FActor& Actor, const FSpell& Spell) const;
+	// The one player power multiplier (architecture review P3 / F1): Power.LineDamage for a line spell, Power.BoltDamage for a
+	// projectile or bolt-line spell, else 1. Team 0 only. A null Spell is the legacy bolt release, which is always a bolt.
+	// bRequireActive false is the split-hand path, which has no bActive check. That is deliberate for now (review F1).
+	double PlayerPowerMult(const FActor& Actor, const FSpell* Spell, bool bRequireActive = true) const;
 	// 0 for unblockable and for any other family. The dome never perfects.
 	double DomeReduction(const FString& Family) const;
 	void TickStaff(FArenaState& State, FActor& Actor, const FInputFrame& Input);
