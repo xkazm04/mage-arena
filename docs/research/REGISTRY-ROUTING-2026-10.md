@@ -4,6 +4,7 @@ Which findings of `docs/research/STACK-OPPORTUNITIES-2026-10.md` (F1-F12) and `d
 (G1-G4) that carry a `- **Registry:**` line have reached the ai-registry, and which have not.
 
 - Checked 2026-10-16 against ai-registry `main` at `2ec4f3a9` (read-only: `git ls-tree`, `git log`, and reading each file).
+  F5 was re-checked against `cffae938` on 2026-10-16 (local `main`; the commit changes the application and the technique file).
   `main` there is 10 commits ahead of `origin/main`; "on main" means the local branch of `C:/Users/kazda/kiro/ai-registry`.
 - A finding's own status line was not trusted. A ROUTED verdict means the application file exists on main **and** its text
   covers the finding's own case, not only the same subject.
@@ -20,7 +21,7 @@ Which findings of `docs/research/STACK-OPPORTUNITIES-2026-10.md` (F1-F12) and `d
 | F2 The APK would claim Quest 2 / Pro / 3S | EXTENDS `ship-pipeline-gating` (package gate also checks the device list) | **ROUTED** `engine-integration/ship-pipeline-gating/applications/cpp--preflight-before-an-expensive-cook.md`, `3bd58cb9`. Text covers `com.oculus.supportedDevices` and the `MARKER_SUPPORTED_DEVICES` gate. |
 | F3 Desktop AA key dead, Quest AA key missing | N5 `standalone-headset-frame-budgets` | **OPEN** subject N5 not on registry main; Phase-1 draft due V1 4 Nov, forged reconcile 19-30 Nov (`docs/subject-proposal-immersive-interaction.md:405`). |
 | F4 Mobile HDR on by default; blink vignette needs it | N5 (overdraw and full-screen effects) | **OPEN** same block as F3: N5 not on main. HDR change itself is due at V1, so device evidence is not yet in hand. |
-| F5 Pinned combat data not staged into a package | N7 `cross-runtime-rules-conformance` (data pins) | **OPEN** N7 is on main (`systems-canon/cross-runtime-rules-conformance/applications/cpp--pinned-rules-data-across-runtimes.md`, `11037a6c`), but its text covers the hash check on both sides, not staging the pin into the package or the boot-time log. That half needs a paragraph added to the application (or its own), and the packaged exe has not been run (F5 "not proven"). |
+| F5 Pinned combat data not staged into a package | N7 `cross-runtime-rules-conformance` (data pins) | **ROUTED** `systems-canon/cross-runtime-rules-conformance/applications/cpp--pinned-rules-data-across-runtimes.md`, `cffae938`. The technique gained a decision rule (the pin travels with the package) and the application cites the `DefaultGame.ini` staging line and the boot log. Not proven, as the registry text states: the packaged exe was not run and the Android path is unconfirmed. |
 | F6 Foveation off, per project only | N5 | **OPEN** N5 not on main; the change is V1 and not headless-verifiable. |
 | F7 Keep hand tracking LOW, stop assuming 72 Hz | N2 `hand-tracked-timing-windows` | **ROUTED** `couch-and-tv-play/immersive-interaction/hand-tracked-timing-windows/applications/cpp--sensor-latency-inside-the-window-budget.md`, `f1c273eb` (held and extrapolated 30 Hz models, `HeldSample.Latency`); also `.../cpp--onset-recovered-from-tracking-history.md`, `f1c273eb`. Both are `status: draft`. The V2 FMM A/B in F7 is not covered and has no evidence yet. |
 | F8 System gesture must not fire a game action | N1 `drawn-gesture-command-recognition` (the reject class) | **OPEN** `.../drawn-gesture-command-recognition/applications/cpp--reject-class-recognition.md` (`13d39368`) is about the sigil floor; it has no text on a reserved system gesture or `FHandFrame::bSystemGesture`. Wiring is V1, no device evidence. The mapping may be wrong: it needs a decision on whether N1 or a different subject owns it. |
@@ -35,12 +36,12 @@ Which findings of `docs/research/STACK-OPPORTUNITIES-2026-10.md` (F1-F12) and `d
 
 ## Count
 
-mapped 16, routed 6, open 10, declined 0.
+mapped 16, routed 7, open 9, declined 0.
 
-Routed: F1, F2, F7, F9, F12, G1. Open: F3, F4, F5, F6, F8, F10, F11, G2, G3, G4.
+Routed: F1, F2, F5, F7, F9, F12, G1. Open: F3, F4, F6, F8, F10, F11, G2, G3, G4.
 
 Open by blocker: N5 not on main (F3, F4, F6, F10, G4); device or package evidence missing (F11, G2, G3); application text
-does not cover the case (F5, F8).
+does not cover the case (F8).
 
 ## Not covered by this ledger
 
