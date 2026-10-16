@@ -48,8 +48,10 @@ Before the full `MageArena` suite in a fresh checkout or worktree, regenerate th
 `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs`
 (verified 2026-10-07: they wrote 270 corpus, 5 noise and 180 impostor clips, then 90 mouse clips, and `git status` stayed
 clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Never run `generate.mjs` bare or with
-`--templates` for this: both rewrite tracked clips. As of 24bcdfc, three suite failures are known on a clean tree:
-`MageArenaDesign.Duel.FireSeated`, `Session.FullSeated` and `Session.Wave1Seated`.
+`--templates` for this: both rewrite tracked clips. As of 9f338f0, five suite failures are known on a clean tree:
+`MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, `Session.Wave1Seated` and
+`Session.CreaturesSeated`. `Duel.AirSeated` and `Session.CreaturesSeated` were confirmed red on base 9f338f0 (owner ruling
+2026-10-16) and are not new regressions.
 
 Before any packaged build (a Win64 stage or an APK), `node apps/vr/tools/check-staged-clips.mjs` must print OK, and
 package-android.ps1 runs it.
