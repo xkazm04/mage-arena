@@ -762,3 +762,264 @@ for (const rel of process.argv.slice(3)) {
   });
 }
 ```
+
+## 7. Post-sweep re-review at master `b7f1009` (2026-10-16)
+
+The third run of the charter, on 2026-10-16. It is report-only and docs-only. It reads the committed tree at `b7f1009`
+(`master`) through git and files only. It ran no build, no editor and no automation run, and it did not read the main
+checkout's uncommitted foreign work (16 paths, among them `Session/ArenaSession.*`, `Session/SessionPresentation.cpp`,
+`Greybox/ArenaLayout.cpp` and the style-pick files). Card T16 is still `open` (command 30).
+
+- **What changed since section 6.** v2/slice is in master. The merge `0e988a3` (2026-10-12, "Merge origin/master (v2
+  T17-T26) into master with the T16 style-pick work") brought it in, and `git merge-base --is-ancestor e78871c master`
+  exits 0 (command 3). Since that merge, master has 8 non-merge commits, and only two touch C++: `94aba41` and `27fa533`,
+  sweep 6's blocks A and B (command 4). SWEEP's sweep 6 record names them by their branch SHAs, `a993651` and
+  `888d842`. Sweep 3 is the same case: its `b4da8af` is master's `48759c5`.
+- **Notation.** Every `file:line` is at `b7f1009`. `S` is `apps/vr/Game/Source/MageArenaVR`. Commands are numbered as
+  in section 7.6.
+- **Constraints, not findings.** These are not reopened: DECISIONS, including the F12 entry of `75447cf` (UE 5.8.4 is
+  taken on one planned day); the accepted MOONSHOT items M1 to M12 and their cards T33 to T36; CR-004 and CR-005; the DF
+  items; and the overlay-only rule. MOONSHOT declined "compile the Quest flavour on every gate", and that stands: nothing
+  below proposes a gate.
+
+### 7.1 (a) Section 6 reconciled
+
+**The `KernelData.cpp` split plan (6.1).** Every step is done. Two of the new files have different names from the plan.
+
+| 6.1 step | Status | Commit | Evidence at `b7f1009` |
+|---|---|---|---|
+| The seam: `namespace KernelDataLoad`, the file-scope `using`, `Kernel/KernelDataLoad.h` | done | `8a3e981` | `KernelData.cpp:15` is `namespace KernelDataLoad` (command 9) |
+| A: the air rows (planned as `KernelDataAirRows.cpp`) | done, as `Kernel/KernelDataAir.cpp` | `94aba41` | 442 lines, 13 functions (commands 5, 8) |
+| B: Fire, Heat and Momentum (planned as `KernelDataSchools.cpp`) | done, as `Kernel/KernelDataHeat.cpp` | `27fa533` | 690 lines, 14 functions |
+| C: water spells | done | `8a3e981` | `Kernel/KernelDataWater.cpp`, 340 lines, 10 functions |
+| D: enemy and arena-tier roster | done | `2342ce3` | `Kernel/KernelDataRoster.cpp`, 352 lines, 9 functions |
+| What stays: 31 functions, about 760 lines | done | - | `KernelData.cpp`: 31 functions, 747 lines |
+| `KernelDataLoad.h` at the end: `FCsvTable`, 11 readers, 5 steps | done, exactly that list | the four above | 36 lines (command 10) |
+| `KernelData.h` changes in no commit | held | - | none of the four split commits touches it (command 11: 0) |
+| Re-run command 6 and re-derive the ranges before the split | obsolete | - | sweep 6 re-derived them on `0e988a3` (its "Reconciliation" table) |
+| The proof (2.4 and the 6.1 extras) | done, quoted | - | The "proof" tables of SWEEP sweeps 5 and 6: build exit 0, per-test diff empty, pin and boot hash unchanged. Not re-run here. |
+| 6.6 "the plan in 6.1 has not been compiled" | obsolete | - | sweeps 5 and 6 compiled it |
+
+**Sections 2.1 and 2.2 (hotspots #2 and #3).** Commit A (`Kernel/StateHash.cpp`) is done in `b423496`, B
+(`Kernel/ArenaThreats.cpp`) in `43ba9f3`, and C (`Kernel/VrRulesLoad.cpp`) in `48759c5` (command 6). Commit D, which
+splits `LoadVrRuleset` into one reader per JSON section, is **still open**. It is part of N4 below.
+
+**The structural findings.**
+
+| Finding | Status | Evidence at `b7f1009` |
+|---|---|---|
+| F1, the power rule written three times | **still open**, unchanged since 6.3 | `ArenaKernel.cpp:171-173`, `:286-292` and `:304-305`. The split-hand copy (`:286`, `:290`) still has no `bActive` check. `ArenaKernel.cpp` has 11 `if (Rules` lines and 65 lines that name `Rules`; `ArenaThreats.cpp` has 8 and 30 (commands 12, 13) |
+| F2, `FArenaSession` | **still open**, unchanged since 6.3 | `ArenaSession.h:108-529`, 136 method declarations. 60, 58 and 25 member definitions in `ArenaSession.cpp` (2298 lines), `SessionFlow.cpp` (1636) and `DayFlow.cpp` (614). The bout-start ruleset block is still written twice: `ArenaSession.cpp:250-260` and `SessionFlow.cpp:307-317` (commands 14-16) |
+| F3, no slot for a live hand source | **still open** | One `IHandSource` (`Hands/HandClipPlayer.h:16`). `HandInputSubsystem.cpp/.h` unchanged since `76dec98`. `Build.cs` has no `OculusXR`; its one conditional is `:31`, `bBuildEditor`. 40 files reference `UHandInputSubsystem` (commands 17-20). Part (b) is now inside T35's write set (M3: `IHandSource.h`, `HandInputSubsystem.*`), and M2 lands "before any XR IHandSource" |
+| F4, `TPair` field loops | **still open** | 6.3 called it resolved on master, but the merge brought the slice's 12 loops: 12 loops in 7 files (command 21). See P4 |
+| F5, external-linkage loader helpers | **done** in `48759c5` | `linkage.mjs` (section 6.7) over the 101 tracked `.cpp` files finds no non-test hit. In `Tests/` it finds only the five `DefenceTests.cpp:1341-1678` helpers, which predate the slice (command 22) |
+| 6.2, the top 10 on v2/slice | **obsolete** | superseded by 7.2 |
+| 6.4, the merge surface | **obsolete** | merged in `0e988a3` |
+| N1, one capture driver per card | **still open, grew** | 10 drivers (T16 added `StylePickCapture`). See P5 |
+| N2, `ASessionPresentation::Sync` | **still open** | `SessionPresentation.cpp:1320-1818`, 499 lines; `SyncOrbPaths` `:2007-2143`, `SyncAirVisuals` `:2145-2306` (command 24). The file is in the foreign uncommitted set |
+| N3, the reference script in `FArenaSession` | **still open, now carded** | `DecideScript` `ArenaSession.cpp:1340-1616` (277 lines), `TrySunfallEscape` `:1196-1323` (128), `ScanThreats` `:872-981` (110). No `Session/ScriptedPlayer.*` exists (command 25). T36's first commit is "minimal N3" (`T36-session-tick-and-journal.md`, Constraints) |
+| N4, `VrRulesLoad.cpp` | **still open** | 1102 lines. `LoadVrRuleset` `:784-1102` (319), `ReadRivals` `:388-515` (128), `ReadTiroFinal` `:520-589` (70). No `Kernel/VrRivalsLoad.cpp` exists. 0 commits since `0e988a3` (command 26) |
+| N5, a fourth `FString`-sink reader set | **still open**; 6.5 itself puts it after 10-31 | `bool Fail(FString&, ...)` at `Combat/AbsorbResolver.cpp:11`, `Greybox/ArenaLayout.cpp:11`, `Kernel/VrRulesLoad.cpp:35` and `Session/PlayerPreset.cpp:13`. No `Json/` folder exists (command 27) |
+
+### 7.2 (b) The top 10 hotspots on master `b7f1009`
+
+The method is the baseline's: appendix B's `code.mjs`, with the `EXCLUDE` set emptied as in 6.2. The baseline excluded
+uncommitted T16 work. At `b7f1009` every file is read from its committed blob, so the committed state is what is
+measured and the foreign uncommitted edits are not. The score is the lines at `b7f1009` times the commits in
+`git log b7f1009 --no-merges --follow --since=2026-09-16 -- <file>`, which is the 30 days to 2026-10-16. The repo's first
+commit is `5bc06ee` (2026-10-02), so the window covers each file's whole history, as in the baseline.
+
+The script was cut from the baseline file itself (command 28), so it differs from appendix B only in the `EXCLUDE` line:
+
+```
+sed -n '/^## Appendix B/,/^## After/p' docs/research/BASELINE-2026-10-07.md | sed -n '/^```js/,/^```$/p' | sed '1d;$d' > /tmp/arch7/code.mjs
+node -e "const fs=require('fs');let s=fs.readFileSync('/tmp/arch7/code.mjs','utf8');s=s.replace(/const EXCLUDE = new Set\(\[[\s\S]*?\]\);/,'const EXCLUDE = new Set([]);');fs.writeFileSync('/tmp/arch7/code-v3.mjs',s)"
+node /tmp/arch7/code-v3.mjs b7f1009 2026-09-16
+```
+
+Its output starts `rev b7f1009; since 2026-09-16; C++ files 168; excluded 0; measured 168; lines 62577` (exit 0, 35 s).
+Its top 10:
+
+| # | File (under `$S/`) | Lines | Changes (30 d) | Lines × changes | 6.2 rank (`e78871c`) | Baseline rank (`11b9bb2`) |
+|---|---|---:|---:|---:|---|---|
+| 1 | `Session/ArenaSession.cpp` | 2298 | 16 | 36768 | #2 | excluded (T16) |
+| 2 | `Session/SessionPresentation.cpp` | 2306 | 15 | 34590 | #3 | excluded (T16) |
+| 3 | `Tests/HeldSampleTests.cpp` | 1435 | 11 | 15785 | #4 | - |
+| 4 | `Kernel/KernelData.cpp` | 747 | 18 | 13446 | #1 | #1 |
+| 5 | `Session/SessionFlow.cpp` | 1636 | 8 | 13088 | #6 | #4 |
+| 6 | `Kernel/VrRulesLoad.cpp` | 1102 | 11 | 12122 | #5 | - (split from #3) |
+| 7 | `Tests/SessionTests.cpp` | 870 | 13 | 11310 | #7 | #5 |
+| 8 | `Session/ArenaSession.h` | 597 | 14 | 8358 | #9 | excluded (T16) |
+| 9 | `Kernel/ArenaKernel.cpp` | 603 | 13 | 7839 | #8 | #2 |
+| 10 | `Hands/MageArenaPlayerController.cpp` | 451 | 15 | 6765 | #10 | #6 |
+
+**The baseline's top 3, before and after their splits.** Lines are `wc -l` of the blob. Changes use the same `git log`
+as the script (commands 5, 7, 28).
+
+| Baseline hotspot | Baseline `11b9bb2` | Last state before its split | `b7f1009` | Its split siblings at `b7f1009` (lines × changes = score) |
+|---|---|---|---|---|
+| `Kernel/KernelData.cpp` | 1754 × 7 = 12278 | 1861 × 16 = 29776 at `0e988a3` (after sweep 5's C and D) | **747** × 18 = 13446 (#4) | `KernelDataHeat.cpp` 690 × 1 = 690; `KernelDataAir.cpp` 442 × 1 = 442; `KernelDataRoster.cpp` 352 × 1 = 352; `KernelDataWater.cpp` 340 × 1 = 340; `KernelDataLoad.h` 36 × 4 = 144 |
+| `Kernel/ArenaKernel.cpp` | 1350 × 7 = 9450 | 1350 at `79dd3a5` | **603** × 13 = 7839 (#9) | `StateHash.cpp` 497 × 2 = 994; `ArenaThreats.cpp` 535 × 4 = 2140; `ArenaThreats.h` 8 × 1 = 8 |
+| `Kernel/VrRules.cpp` | 1167 × 5 = 5835 | 1167 at `d2f0dc7` | **549** × 10 = 5490 (#11 by score) | `VrRulesLoad.cpp` 1102 × 11 = 12122 (#6) |
+
+How to read it:
+
+- **The four `KernelData.cpp` moves** took out 343, 343, 433 and 681 lines (`8a3e981`, `2342ce3`, `94aba41`,
+  `27fa533`; command 11). The file went from 1861 to 747 lines in sweep 6, and from 1754 to 747 against the baseline.
+- **Its score went up against the baseline (12278 to 13446) while the file shrank by 57 %.** The formula counts refactors
+  as churn, as 6.2 also noted. 8 of its 18 changes are the sweeps' split commits (`6603a35`, `b6acbf1`, `7cca04f`,
+  `4ade0d9`, `8a3e981`, `2342ce3`, `94aba41`, `27fa533`; command 7). Without them it scores 747 × 10 = 7470, which would
+  still rank #10.
+- **A correction to the "Numbers" of SWEEP's sweep 6.** Sweep 6 gives 31637 before (1861 × 17) and 12699 or 14193
+  after. On master the count before is 16 (`git log 0e988a3 --no-merges --follow --since=2026-09-13`, with or without
+  `--follow`) and the count after is 18. The scores are therefore 29776 and 13446 (command 7).
+- **No new sibling is in the top 10.** Each has one change, the commit that created it.
+- **`--follow` still inflates `VrRulesLoad.cpp`**: 11 changes with it, 6 without (command 29), as 6.2 found. With 6 it
+  would score 6612, just under #10.
+- **The two session files lead, at 36768 and 34590**, about 2.2 to 2.3 times #3 (15785). No sweep has split either one.
+  Both are in the foreign uncommitted set, and `ArenaSession.cpp` is in six accepted write sets (P2).
+- **`Tests/HeldSampleTests.cpp` (#3)** is large because of its cases, not its structure, like the test files section 3
+  declined.
+
+### 7.3 (c) Structural findings that cost most before the 2026-10-31 desktop core gate
+
+Five at most, ranked by what they cost before 10-31. Each is marked **before 10-31** or **V1**.
+
+**P1. T33's write set and evidence predate sweep 6, so its own acceptance makes it leave the write set.** *Before 10-31.*
+- **Evidence.**
+  - MOONSHOT M6, T33's spec, was read on `83372e7` (2026-10-09), before sweep 6 (`83372e7` is an ancestor of
+    `94aba41`; command 31). Its write set lists `KernelData.cpp`, `KernelDataLoad.h`, `KernelDataWater.cpp` and
+    `KernelDataRoster.cpp`. It does not list `KernelDataAir.cpp` or `KernelDataHeat.cpp` (`MOONSHOT-2026-10.md:513-543`).
+  - Both new files call the singleton: `KernelDataAir.cpp:13` (`FindAirSpell`) and `KernelDataHeat.cpp:682`
+    (`FindFireSpell`) (command 32).
+  - M6 acceptance 3 is "a source lint finds 0 `KernelData()` calls in `Kernel/*.cpp` outside the `CreateArena` default
+    argument". The card also says "Stay inside the section's write set".
+  - Two evidence lines are stale. The static instance cited at `KernelData.cpp:1825-1842` is now at `:713`, and
+    `LoadKernelDataWithOverrides`, cited at `:1849-1855`, is now at `:735-739`. `GTextOverrides` at `:18` still holds
+    (command 33).
+- **Cost.** T33 is the first card of the determinism package (T33, then T34), and it runs only on the build machine. Its
+  worker either fails acceptance 3 or edits two files the card does not allow. By the card's own rule it then stops and
+  reports. That is one lost build-machine run in the 15 days left before 10-31, with T34 queued behind it.
+- **Change.** Before T33 starts, add `Kernel/KernelDataAir.cpp` and `Kernel/KernelDataHeat.cpp` to M6's write set and
+  refresh its evidence lines. Docs only, size S. Lane: the orchestrator (`docs/ORCHESTRATION.md`). This review does not
+  edit the card.
+
+**P2. `ArenaSession.cpp` is the #1 hotspot and in the write set of six accepted items.** *Before 10-31.*
+- **Evidence.**
+  - #1 at 2298 × 16 = 36768 (7.2). `FArenaSession` is unchanged since 6.3 (the F2 row above).
+  - `Session/ArenaSession.cpp` is in the write sets of M1a, M1b, M3, M4, M6 and M11 (`MOONSHOT-2026-10.md:85`, `:162`,
+    `:302`, `:379`, `:537`, `:894`; command 34). Three of these are open cards: T33 (M6), T35 (M3) and T36 (M4). T16
+    (open, command 30) holds the file too, and it is in the foreign uncommitted set.
+  - The bout-start ruleset block is still written twice: `ArenaSession.cpp:250-260` and `SessionFlow.cpp:307-317`.
+- **Cost.** Before 10-31, no two of T16, T33, T35 and T36 can run at the same time. Whichever lands second rebases by
+  hand in a 2298-line file in which another lane has uncommitted edits. Splitting the class now would add a seventh
+  writer to the same file and make every queued card's line numbers stale.
+- **Change.** Do not split `FArenaSession` before 10-31 beyond what is already carded. Keep the order T16, then T35, then
+  T36, and let T36's first commit (minimal N3) be the first cut: `DecideScript` (`:1340-1616`) moves into
+  `Session/ScriptedPlayer.*`. T33 keeps its session edits to call sites, as its card already says. The shared bout-start
+  function (F2) fits into T36's first commit if T36's owner agrees; otherwise it waits for V1. The full F2 split is V1.
+  Size: S for this rule; F2 stays L.
+
+**P3. F1: the player power rule still has three copies, and T33's codemod goes through the same file.** *Before 10-31.*
+- **Evidence.** The three copies are `ArenaKernel.cpp:171-173` (bolt release), `:286-292` (split-hand cast, with no
+  `bActive` check at `:286` and `:290`) and `:304-305` (normal cast). `ArenaKernel.cpp` has 14 `KernelData()` calls
+  (command 32) and is in M6's write set, so T33 rewrites lines around all three copies.
+- **Cost.** The 45 conformance vectors run with `Rules == nullptr`, so they do not guard this rule (SWEEP sweep 3,
+  "Later work"). A T33 codemod that touches one copy and not the others would change seated damage with no test failing.
+  Every new defence (DECISIONS 2026-10-03: Earth B, Air D) adds branches next to these copies.
+- **Change.** As in F1: one `FVrRuleset::PlayerPowerMult(const FActor&, const FSpell*)`, called from the three sites,
+  keeping the split path's missing `bActive` check exactly as it is. It needs its own proof: one test with an active
+  ruleset that asserts the multiplier on each of the three paths, seen red first against a deliberately wrong method.
+  Land it before T33 starts, or as T33's first commit. Size S. Lane: the kernel's conformance to the TS source.
+
+**P4. 20 clang-only error sites wait for the first Android compile.** *V1.*
+- **Evidence** (commands 21 and 23; a pattern match, not a compile):
+  - 12 `const TPair<FString, TSharedPtr<FJsonValue>>&` loops: `Kernel/KernelDataHeat.cpp:394`, `:486`, `:507`;
+    `Kernel/VrRulesLoad.cpp:357`, `:401`; `Session/ArenaAudio.cpp:158`, `:184`; `Session/ArenaFlags.cpp:125`;
+    `Session/CollarLedger.cpp:42`, `:103`; `Session/DayFlow.cpp:71`; `Tests/DayTests.cpp:855`. The three in
+    `KernelDataHeat.cpp` moved there unchanged in `27fa533`, because sweep 6 was move-only.
+  - 5 `for (TActorIterator ...) { return *It; }` loops, all in `Session/`: `AirCapture.cpp:103`, `CollarCapture.cpp:79`,
+    `ColourAudioCapture.cpp:115`, `DayCapture.cpp:78` and `PresetCapture.cpp:111`.
+  - 3 `{ ...; break; }` loops: `ArenaSession.cpp:2237`, `:2274`; `SessionPresentation.cpp:1095`.
+  - `Budget/BudgetStressDriver.cpp:143` is already fixed (sweep 4's finding 9).
+- **Cost.** This is SWEEP sweep 4's lane A list, and the whole list is still there after the merge. Under Android's
+  `-Wall -Werror`, each site is an error (`-Wrange-loop-construct` or `-Wunreachable-code-loop-increment`), so the first
+  APK compile on V1 day one fails. Not proven: no Android compile has run.
+- **Change.** Use the shapes of `2a76013` and `740f5e8`. 17 of the sites are in files no lane holds and can land any
+  time. The 3 in the session files wait for those files' owners. Size S.
+
+**P5. N1: ten capture drivers, each wired into the held session files by hand.** *V1.*
+- **Evidence.** There are 10 drivers in `Session/*Capture.cpp` (T16 added `StylePickCapture`). The session files have 10
+  `NewObject` blocks (`ArenaSession.cpp:2100-2155`), 10 `TObjectPtr` members (`ArenaSession.h:571-596`) and 9 forward
+  declarations (`:35-43`). The drivers define `::FindPawn`, `::RepoPath` and `::Fail` 26 times between them
+  (command 35). Five of P4's sites are copies of the same `FindPawn` in these drivers.
+- **Cost.** T24, T25, T27 and T28 are not written yet (`docs/design/V2-ROADMAP.md:40-41`). Each would add one driver,
+  and so one more edit of `ArenaSession.h/.cpp`, the P2 file. Before 10-31 that cost is paid only if one of them starts.
+- **Change.** As in N1: a `UCaptureDriver` base class that owns `FindPawn`, `RepoPath`, `Fail` and `Start`, a table from
+  flag to class, and one `TObjectPtr<UCaptureDriver>`. Size M. Do it after T16 releases the files and before the first
+  of T24 to T28 starts.
+
+Still open but not ranked here: N2 (`Sync`, 499 lines, held by foreign work); N4 (`VrRulesLoad.cpp`, #6, in T33's
+write set, so after T33); and N5 (after 10-31, as 6.5 says).
+
+### 7.4 (d) The baseline's "After" section
+
+Yes: `BASELINE-2026-10-07.md` has an "After: 2026-10-07, asset footprint pass" section, and its A.6 gives the tracked
+footprint at `4765085` (61,945,953 bytes, 59.08 MiB; LFS 253 files, 31,115,122 bytes) and the duplicate groups (the
+same 2 groups, 622,918 bytes); nobody has measured it since, so a figure for `b7f1009` needs one read-only run of
+appendix A's `assets.mjs` (`node <scratch>/assets.mjs b7f1009`, from the repo root), which this run did not do
+(command 36).
+
+### 7.5 What this run did not do
+
+- **No build, no editor and no automation run.** Every claim about behaviour is quoted from SWEEP or the cards, or read
+  from code. P4 is a pattern match.
+- **The foreign uncommitted work was not read.** P2, and P4's three sites in the session files, may have moved in it.
+- **Not checked:** whether a T33 worker has started. No `runs/T33/` is committed, and `runs/` is gitignored.
+
+### 7.6 Commands run for this section, with exit codes
+
+Run in this worktree on 2026-10-16, from the repo root, at `b7f1009`. `S` is `apps/vr/Game/Source/MageArenaVR`. For a
+pipeline, the exit code is the last stage's. `grep -c` exits 1 when it counts 0; here that 0 was the expected result.
+`rng` prints the range from the first line that starts with a given prefix to the next `}` in column 0:
+`rng(){ awk -v p="$2" 'index($0,p)==1 {s=NR} s&&/^}/{print s"-"NR" ("NR-s+1")"; exit}' "$1"; }`.
+
+| # | Command | Exit | Result |
+|---:|---|---:|---|
+| 1 | `git rev-parse HEAD master` | 0 | `b7f1009…` twice |
+| 2 | `git log --reverse --format='%h %ad' --date=short \| head -1` | 0 | `5bc06ee 2026-10-02` |
+| 3 | `git merge-base --is-ancestor e78871c master` | 0 | ancestor |
+| 4 | `git log --oneline --no-merges 0e988a3..b7f1009 \| wc -l`; the same with `-- apps/vr/Game/Source` | 0 | 8; `27fa533`, `94aba41` |
+| 5 | `git show b7f1009:$S/Kernel/<f> \| wc -l` for `KernelData.cpp`, `KernelDataAir.cpp`, `KernelDataHeat.cpp`, `KernelDataWater.cpp`, `KernelDataRoster.cpp`, `KernelDataLoad.h` | 0 | 747, 442, 690, 340, 352, 36 |
+| 6 | `git log --diff-filter=A --format='%h %s' -- $S/Kernel/<f>` for `StateHash.cpp`, `ArenaThreats.cpp`, `VrRulesLoad.cpp`, `KernelDataWater.cpp`, `KernelDataRoster.cpp`, `KernelDataAir.cpp`, `KernelDataHeat.cpp` | 0 | `b423496`, `43ba9f3`, `48759c5`, `8a3e981`, `2342ce3`, `94aba41`, `27fa533` |
+| 7 | `git log <rev> --no-merges [--follow] --since=<d> --format=%h -- $S/Kernel/KernelData.cpp \| wc -l` for `b7f1009` / 2026-09-16, `0e988a3` / 2026-09-13 and `11b9bb2` / 2026-09-07; and the full list at `b7f1009` | 0 | 18 (with and without `--follow`); 16 (both); 7; 18 commits, 8 of them the split commits named in 7.2 |
+| 8 | `git show b7f1009:$S/Kernel/<f>.cpp \| grep -E '^[A-Za-z].*\(' \| grep -v ';$' \| wc -l`, for the five `KernelData*.cpp` | 0 | 31, 13, 14, 10, 9 |
+| 9 | `git show b7f1009:$S/Kernel/KernelData.cpp \| grep -nE '^namespace\|^using namespace' \| head -1` | 0 | `15:namespace KernelDataLoad` |
+| 10 | `git show b7f1009:$S/Kernel/KernelDataLoad.h` | 0 | `FCsvTable`; `PinnedPath`, `Fail`, `LoadJson`, `LoadText`, `NeedNumber`, `NeedInt`, `NeedString`, `NeedObject`, `MatchDouble`, `MatchGroup`, `Cell`; `BuildSpells`, `LoadEnemies`, `LoadArenaTiers`, `LoadFireSpells`, `LoadHeat` |
+| 11 | `git show --stat=200 --format=%h 8a3e981 2342ce3 94aba41 27fa533`; `git show --name-only --format= <the four> \| grep -c 'Kernel/KernelData\.h'` | 1 | `KernelData.cpp` −343, −343, −433, −681; 0 |
+| 12 | `grep -c 'if (Rules' $S/Kernel/<f>.cpp` and `grep -c 'Rules'`, for `ArenaKernel` and `ArenaThreats` | 0 | 11, 65; 8, 30 |
+| 13 | `grep -n 'Rules->Power\.\(BoltDamage\|LineDamage\)\|Rules->bActive && Actor.Team == 0' $S/Kernel/ArenaKernel.cpp` | 0 | 171, 173, 286, 288, 290, 292, 304, 305, 481 |
+| 14 | `grep -nE '^class FArenaSession\|^};' $S/Session/ArenaSession.h`; `sed -n '108,529p'` of it `\| grep -cE '\(.*\)( const)?( override)?;'` | 0 | 108, 529; 136 |
+| 15 | `grep -cE '^[^ /].*FArenaSession::' $S/Session/<f>.cpp` and `wc -l`, for `ArenaSession`, `SessionFlow`, `DayFlow` | 0 | 60/2298, 58/1636, 25/614 |
+| 16 | `grep -n 'LoadVrRuleset(Rules' $S/Session/*.cpp $S/Hands/*.cpp`; `sed -n 250,262p` and `sed -n 307,318p` of the two session files | 0 | `ArenaSession.cpp:256`, `SessionFlow.cpp:313`, `MageSettings.cpp:366`; the two blocks differ only in the log text |
+| 17 | `grep -rn 'public IHandSource' $S` | 0 | `Hands/HandClipPlayer.h:16` |
+| 18 | `grep -c OculusXR $S/MageArenaVR.Build.cs`; `grep -n 'bBuildEditor'` in the same file | 1; 0 | 0; `:31` |
+| 19 | `grep -rl UHandInputSubsystem --include=*.cpp --include=*.h $S \| wc -l` | 0 | 40 |
+| 20 | `git diff --quiet 76dec98 b7f1009 -- $S/Hands/HandInputSubsystem.cpp $S/Hands/HandInputSubsystem.h` | 0 | unchanged |
+| 21 | `git grep -n 'const TPair<FString, TSharedPtr<FJsonValue>>&' b7f1009 -- $S` | 0 | the 12 sites in P4 |
+| 22 | in `$S`: `node /tmp/arch7/linkage.mjs . $(git ls-files '*.cpp' \| grep -v '^Tests/')`; the same over `git ls-files 'Tests/*.cpp'`; `git ls-files '*.cpp' \| wc -l` (`linkage.mjs` cut from section 6.7 with `sed`) | 0 | no output; `DefenceTests.cpp:1341`, `:1374`, `:1381`, `:1616`, `:1678`; 101 |
+| 23 | `git grep -n -A2 'for (TActorIterator' b7f1009 -- $S \| grep -E 'return \*It;\|break;'`; `grep -n -A4 'for (TActorIterator' $S/Session/ArenaSession.cpp $S/Session/SessionPresentation.cpp $S/Budget/BudgetStressDriver.cpp` | 0 | the 5 and 3 sites in P4; `BudgetStressDriver.cpp:143` is already `TActorIterator<AMageArenaPawn> It(World); return It ? *It : nullptr;` |
+| 24 | `rng $S/Session/SessionPresentation.cpp 'void ASessionPresentation::Sync('`; the same for `SyncOrbPaths(` and `SyncAirVisuals(` | 0 | 1320-1818 (499); 2007-2143 (137); 2145-2306 (162) |
+| 25 | the same as `rng`, but matching `FArenaSession::<f>(` on a line that starts with a letter, for `DecideScript`, `TrySunfallEscape` and `ScanThreats`; `ls $S/Session/ScriptedPlayer.cpp` | 0; 2 | 1340-1616 (277), 1196-1323 (128), 872-981 (110); no such file |
+| 26 | `rng $S/Kernel/VrRulesLoad.cpp` for `bool LoadVrRuleset(`, `bool ReadRivals(` and `bool ReadTiroFinal(`; `wc -l`; `ls $S/Kernel/VrRivalsLoad.cpp`; `git log --oneline --no-merges 0e988a3..b7f1009 -- $S/Kernel/VrRulesLoad.cpp \| wc -l` | 0; 0; 2; 0 | 784-1102 (319), 388-515 (128), 520-589 (70); 1102; no such file; 0 |
+| 27 | `git grep -nE '^bool Fail\(FString' b7f1009 -- $S`; `ls $S/Json` | 0; 2 | the four files in the N5 row; no such folder |
+| 28 | the three lines in 7.2 (the `sed` cut, the `node -e` edit, `node /tmp/arch7/code-v3.mjs b7f1009 2026-09-16 > out.txt`); `diff code.mjs code-v3.mjs`; the full list sorted by its last column (`awk -F'\|' '{print $6+0, $3}' \| sort -rn`) | 0 | the tables in 7.2; 168 files, 62577 lines; 35 s; the diff is the `EXCLUDE` set only; `VrRules.cpp` is #11 (5490) |
+| 29 | `git log b7f1009 --no-merges [--follow] --since=2026-09-16 --format=%h -- $S/Kernel/VrRulesLoad.cpp \| wc -l` | 0 | 11 with `--follow`, 6 without |
+| 30 | `grep -H -m1 'Status:' apps/vr/tasks/T16*.md apps/vr/tasks/T3[3-6]*.md` | 0 | T16 `open - deliverable 2 done (f933f5c …)`; T33 to T36 `open (needs the build machine …)` |
+| 31 | `git merge-base --is-ancestor 83372e7 94aba41` | 0 | ancestor |
+| 32 | `for f in $S/Kernel/*.cpp; do grep -c 'KernelData()' $f; done` (non-zero counts only); `grep -n 'KernelData()' $S/Kernel/KernelDataAir.cpp $S/Kernel/KernelDataHeat.cpp` | 0 | 16 files, among them `ArenaKernel.cpp` 14, `KernelDataAir.cpp` 1 and `KernelDataHeat.cpp` 1; `KernelDataAir.cpp:13`, `KernelDataHeat.cpp:682` |
+| 33 | `grep -n 'GTextOverrides\|static const FKernelData Loaded\|LoadKernelDataWithOverrides' $S/Kernel/KernelData.cpp` | 0 | `:18`, `:34`, `:234`, `:713`, `:735`, `:737`, `:739` |
+| 34 | `` awk '/^\*\*Write set:\*\*/{w=1;next} /^\*\*Acceptance/{w=0} w && /Session\/ArenaSession\.cpp`/{print NR}' docs/research/MOONSHOT-2026-10.md ``; `grep -n '^## M'` in the same file | 0 | 85, 162, 302, 379, 537, 894: inside M1a, M1b, M3, M4, M6 and M11 |
+| 35 | `ls $S/Session/*Capture*.cpp \| wc -l`; `grep -n 'CaptureDriver' $S/Session/ArenaSession.h`; `grep -n 'NewObject<U[A-Za-z0-9]*CaptureDriver>' $S/Session/ArenaSession.cpp`; `git grep -nE '::(FindPawn\|RepoPath\|Fail)\(' b7f1009 -- "$S/Session/*Capture.cpp" \| wc -l` | 0 | 10; 9 forward declarations at `:35-43` and 10 members at `:571-596`; 10, from `:2100` to `:2155`; 26 |
+| 36 | `grep -n '^## \|^### ' docs/research/BASELINE-2026-10-07.md` | 0 | `## After: 2026-10-07, asset footprint pass …` at `:746`, `### A.6 Tracked footprint at 4765085` at `:848` |
+| 37 | `node apps/vr/tools/check-pin.mjs` | 0 | `pin OK: 9 files @ baeac66` |
