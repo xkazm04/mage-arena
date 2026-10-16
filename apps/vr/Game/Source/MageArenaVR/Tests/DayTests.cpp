@@ -852,24 +852,25 @@ bool FMageArenaDayStrings::RunTest(const FString& Parameters)
 	}
 	bool bPass = true;
 	int32 Story = 0;
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
+	for (const auto& Pair : Root->Values)
 	{
+		const FString Key(Pair.Key);
 		FString Value;
-		if (Pair.Key.StartsWith(TEXT("story.")))
+		if (Key.StartsWith(TEXT("story.")))
 		{
 			++Story;
-			bPass &= TestTrue(*FString::Printf(TEXT("%s is a string"), *Pair.Key), Pair.Value->TryGetString(Value));
+			bPass &= TestTrue(*FString::Printf(TEXT("%s is a string"), *Key), Pair.Value->TryGetString(Value));
 			TArray<FString> Words;
 			Value.ParseIntoArrayWS(Words);
-			bPass &= TestTrue(*FString::Printf(TEXT("%s has 10 words or fewer (%d)"), *Pair.Key, Words.Num()), Words.Num() > 0 && Words.Num() <= 10);
-			const FString Marker = TEXT("_story.") + Pair.Key.Mid(6);
+			bPass &= TestTrue(*FString::Printf(TEXT("%s has 10 words or fewer (%d)"), *Key, Words.Num()), Words.Num() > 0 && Words.Num() <= 10);
+			const FString Marker = TEXT("_story.") + Key.Mid(6);
 			FString MarkerText;
-			bPass &= TestTrue(*FString::Printf(TEXT("%s has its C2 marker"), *Pair.Key), Root->TryGetStringField(Marker, MarkerText)
+			bPass &= TestTrue(*FString::Printf(TEXT("%s has its C2 marker"), *Key), Root->TryGetStringField(Marker, MarkerText)
 				&& MarkerText == TEXT("placeholder for C2"));
 		}
-		else if (Pair.Key.StartsWith(TEXT("_story.")))
+		else if (Key.StartsWith(TEXT("_story.")))
 		{
-			bPass &= TestTrue(*FString::Printf(TEXT("%s marks a line"), *Pair.Key), Root->HasField(TEXT("story.") + Pair.Key.Mid(7)));
+			bPass &= TestTrue(*FString::Printf(TEXT("%s marks a line"), *Key), Root->HasField(TEXT("story.") + Key.Mid(7)));
 		}
 	}
 	// Every line and label the day shows.

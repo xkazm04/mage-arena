@@ -39,30 +39,31 @@ bool ReadWeight(const TSharedPtr<FJsonObject>& Section, const TCHAR* SectionName
 bool CheckKeys(const TSharedPtr<FJsonObject>& Section, const TCHAR* SectionName, const TArray<FString>& Known,
 	const TArray<FString>& Reserved, FString& Error)
 {
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Section->Values)
+	for (const auto& Pair : Section->Values)
 	{
-		if (Pair.Key.StartsWith(TEXT("_")))
+		const FString Key(Pair.Key);
+		if (Key.StartsWith(TEXT("_")))
 		{
 			if (!Pair.Value.IsValid() || Pair.Value->Type != EJson::String || Pair.Value->AsString().TrimStartAndEnd().IsEmpty())
 			{
-				Error = FString::Printf(TEXT("collar.json %s.%s must be a non-empty string"), SectionName, *Pair.Key);
+				Error = FString::Printf(TEXT("collar.json %s.%s must be a non-empty string"), SectionName, *Key);
 				return false;
 			}
 			continue;
 		}
-		if (Reserved.Contains(Pair.Key))
+		if (Reserved.Contains(Key))
 		{
 			double Ignored = 0.0;
-			if (!Section->TryGetNumberField(Pair.Key, Ignored) || !(Ignored >= 0.0))
+			if (!Section->TryGetNumberField(Key, Ignored) || !(Ignored >= 0.0))
 			{
-				Error = FString::Printf(TEXT("collar.json %s.%s is reserved and must be a non-negative number if present"), SectionName, *Pair.Key);
+				Error = FString::Printf(TEXT("collar.json %s.%s is reserved and must be a non-negative number if present"), SectionName, *Key);
 				return false;
 			}
 			continue;
 		}
-		if (!Known.Contains(Pair.Key))
+		if (!Known.Contains(Key))
 		{
-			Error = FString::Printf(TEXT("collar.json %s has an unknown key %s"), SectionName, *Pair.Key);
+			Error = FString::Printf(TEXT("collar.json %s has an unknown key %s"), SectionName, *Key);
 			return false;
 		}
 	}
@@ -100,12 +101,13 @@ bool ParseCollarWeights(const FString& Text, FCollarWeights& Out, FString& Error
 		Error = TEXT("collar.json version must be 1");
 		return false;
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
+	for (const auto& Pair : Root->Values)
 	{
-		if (!Pair.Key.StartsWith(TEXT("_")) && Pair.Key != TEXT("version") && Pair.Key != TEXT("cracks") && Pair.Key != TEXT("tithe")
-			&& Pair.Key != TEXT("wardstones"))
+		const FString Key(Pair.Key);
+		if (!Key.StartsWith(TEXT("_")) && Key != TEXT("version") && Key != TEXT("cracks") && Key != TEXT("tithe")
+			&& Key != TEXT("wardstones"))
 		{
-			Error = FString::Printf(TEXT("collar.json has an unknown key %s"), *Pair.Key);
+			Error = FString::Printf(TEXT("collar.json has an unknown key %s"), *Key);
 			return false;
 		}
 	}

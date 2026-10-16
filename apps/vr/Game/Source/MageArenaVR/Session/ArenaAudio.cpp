@@ -155,19 +155,20 @@ bool FAudioTable::LoadFromString(const FString& Json, FString& OutError)
 		OutError = TEXT("audio.json: attenuations missing");
 		return false;
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*AttObject)->Values)
+	for (const auto& Pair : (*AttObject)->Values)
 	{
+		const FString Key(Pair.Key);
 		const TSharedPtr<FJsonObject> Object = Pair.Value.IsValid() ? Pair.Value->AsObject() : nullptr;
 		if (!Object.IsValid())
 		{
-			OutError = FString::Printf(TEXT("audio.json: attenuation %s is not an object"), *Pair.Key);
+			OutError = FString::Printf(TEXT("audio.json: attenuation %s is not an object"), *Key);
 			return false;
 		}
 		FAudioAttenuationSpec Spec;
-		Spec.Id = FName(*Pair.Key);
+		Spec.Id = FName(*Key);
 		if (!Object->TryGetNumberField(TEXT("falloffCm"), Spec.FalloffCm) || Spec.FalloffCm <= 0.0)
 		{
-			OutError = FString::Printf(TEXT("audio.json: attenuation %s falloffCm missing"), *Pair.Key);
+			OutError = FString::Printf(TEXT("audio.json: attenuation %s falloffCm missing"), *Key);
 			return false;
 		}
 		Object->TryGetNumberField(TEXT("innerFraction"), Spec.InnerFraction);
@@ -181,25 +182,26 @@ bool FAudioTable::LoadFromString(const FString& Json, FString& OutError)
 		OutError = TEXT("audio.json: cues missing");
 		return false;
 	}
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*CueObject)->Values)
+	for (const auto& Pair : (*CueObject)->Values)
 	{
+		const FString Key(Pair.Key);
 		const TSharedPtr<FJsonObject> Object = Pair.Value.IsValid() ? Pair.Value->AsObject() : nullptr;
 		if (!Object.IsValid())
 		{
-			OutError = FString::Printf(TEXT("audio.json: cue %s is not an object"), *Pair.Key);
+			OutError = FString::Printf(TEXT("audio.json: cue %s is not an object"), *Key);
 			return false;
 		}
 		FAudioCueSpec Cue;
-		Cue.Id = FName(*Pair.Key);
-		Cue.Asset = FString::Printf(TEXT("/Game/Audio/SFX/%s.%s"), *Pair.Key, *Pair.Key);
+		Cue.Id = FName(*Key);
+		Cue.Asset = FString::Printf(TEXT("/Game/Audio/SFX/%s.%s"), *Key, *Key);
 		if (!Object->TryGetNumberField(TEXT("gainDb"), Cue.GainDb))
 		{
-			OutError = FString::Printf(TEXT("audio.json: cue %s gainDb missing"), *Pair.Key);
+			OutError = FString::Printf(TEXT("audio.json: cue %s gainDb missing"), *Key);
 			return false;
 		}
 		if (Cue.GainDb > 0.0)
 		{
-			OutError = FString::Printf(TEXT("audio.json: cue %s gainDb %.1f is above 0 (the files peak at -1 dBFS)"), *Pair.Key, Cue.GainDb);
+			OutError = FString::Printf(TEXT("audio.json: cue %s gainDb %.1f is above 0 (the files peak at -1 dBFS)"), *Key, Cue.GainDb);
 			return false;
 		}
 		FString Text;
@@ -213,7 +215,7 @@ bool FAudioTable::LoadFromString(const FString& Json, FString& OutError)
 		}
 		if (!Attenuations.Contains(Cue.Attenuation))
 		{
-			OutError = FString::Printf(TEXT("audio.json: cue %s names attenuation %s, which is not defined"), *Pair.Key, *Cue.Attenuation.ToString());
+			OutError = FString::Printf(TEXT("audio.json: cue %s names attenuation %s, which is not defined"), *Key, *Cue.Attenuation.ToString());
 			return false;
 		}
 		if (Object->TryGetNumberField(TEXT("maxVoices"), Number))

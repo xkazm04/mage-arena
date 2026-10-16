@@ -122,8 +122,9 @@ bool FArenaFlags::Load(const FString& Path)
 		return false;
 	}
 	TMap<FString, FValue> Read;
-	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : (*Flags)->Values)
+	for (const auto& Pair : (*Flags)->Values)
 	{
+		const FString Key(Pair.Key);
 		FValue Value;
 		if (Pair.Value.IsValid() && Pair.Value->Type == EJson::Boolean)
 		{
@@ -136,10 +137,10 @@ bool FArenaFlags::Load(const FString& Path)
 		}
 		else
 		{
-			UE_LOG(LogMageArena, Warning, TEXT("Arena flag %s is not a bool or a number (%s); starting with none"), *Pair.Key, *Path);
+			UE_LOG(LogMageArena, Warning, TEXT("Arena flag %s is not a bool or a number (%s); starting with none"), *Key, *Path);
 			return false;
 		}
-		Read.Add(Pair.Key, Value);
+		Read.Add(Key, Value);
 	}
 	Values = MoveTemp(Read);
 	return true;
