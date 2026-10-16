@@ -1,7 +1,8 @@
 # Runs the D-G4 stress scene (docs/PROJECT-PLAN.md D-G4): greybox arena, 20 enemy proxies, 100 projectiles,
 # both hands from a looping clip. Real RHI, offscreen 1920x1080, -nohmd, the project's forward renderer.
 # Each launch samples 60 s after a warm-up and writes runs/DG4/<run>/ (gitignored).
-# Success per launch is MAGEVR_BUDGET_DONE plus both MAGEVR_BUDGET_POP lines at full count. The editor exit code is not the gate.
+# Success per launch is MAGEVR_BUDGET_DONE, both MAGEVR_BUDGET_POP lines at full count (niagara=6 included) and
+# driver.particlesExercised. The editor exit code is not the gate.
 # Usage: capture-budget.ps1 [-Runs 3] [-Prefix run] [-ExtraArgs "-csvCategories=MeshDrawCommandStats", ...]
 # Per-pass GPU-culled triangle counts come from r.MeshDrawCommands.DumpStats frames the driver requests every 10 s.
 param(
@@ -174,11 +175,11 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 	$LogText = ""
 	if (Test-Path $LogPath) { $LogText = Get-Content -Raw -Path $LogPath }
 	$Done = $LogText -match "MAGEVR_BUDGET_DONE"
-	$PopLines = @([regex]::Matches($LogText, "MAGEVR_BUDGET_POP enemies=(\d+) projectiles=(\d+) hands=(\d+) phase=(\w+)[^\r\n]*") | ForEach-Object { $_.Value })
+	$PopLines = @([regex]::Matches($LogText, "MAGEVR_BUDGET_POP enemies=(\d+) projectiles=(\d+) hands=(\d+) niagara=(\d+) phase=(\w+)[^\r\n]*") | ForEach-Object { $_.Value })
 	$PopOk = $PopLines.Count -ge 2
 	foreach ($Line in $PopLines) {
-		if ($Line -match "enemies=(\d+) projectiles=(\d+) hands=(\d+)") {
-			if ([int]$Matches[1] -lt 20 -or [int]$Matches[2] -lt 100 -or [int]$Matches[3] -lt 2) { $PopOk = $false }
+		if ($Line -match "enemies=(\d+) projectiles=(\d+) hands=(\d+) niagara=(\d+)") {
+			if ([int]$Matches[1] -lt 20 -or [int]$Matches[2] -lt 100 -or [int]$Matches[3] -lt 2 -or [int]$Matches[4] -lt 6) { $PopOk = $false }
 		}
 	}
 	$FailLines = @([regex]::Matches($LogText, "MAGEVR_BUDGET_FAIL[^\r\n]*") | ForEach-Object { $_.Value })
@@ -201,7 +202,8 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 	$MeshDraw = $null
 	if ($Dumps.Count -gt 0) { $MeshDraw = Read-MeshDrawDumps $Dumps }
 
-	$Ok = $Done -and $PopOk -and $Driver -and $Driver.ok
+	# A zero is never a pass: the run counts only when the six systems were live and their particles were counted.
+	$Ok = $Done -and $PopOk -and $Driver -and $Driver.ok -and ($Driver.particlesExercised -eq $true)
 	if (-not $Ok) { $AllOk = $false }
 	$Summary = [ordered]@{
 		run = $Run
@@ -233,6 +235,11 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 		Write-Host ("  RHI primitives (lower bound) median/max: {0} / {1}" -f $Driver.rhiPrimitivesDrawn.median, $Driver.rhiPrimitivesDrawn.max)
 		Write-Host ("  LOD0 in-frustum (estimate) median/max: {0} / {1}" -f $Driver.lod0InFrustumTriangles.median, $Driver.lod0InFrustumTriangles.max)
 		Write-Host ("  frame ms median/p95: {0:N2} / {1:N2}; gpu ms median/p95: {2:N2} / {3:N2}; peak working set {4:N0} MB" -f $Driver.frameMs.median, $Driver.frameMs.p95, $Driver.gpuMs.median, $Driver.gpuMs.p95, $Driver.peakWorkingSetMB)
+	}
+	if ($Driver -and $null -ne $Driver.liveParticlesSpread) {
+		Write-Host ("  live particles min/median/p95/max: {0} / {1} / {2} / {3}" -f $Driver.liveParticlesSpread.min, $Driver.liveParticlesSpread.median, $Driver.liveParticlesSpread.p95, $Driver.liveParticlesSpread.max)
+		Write-Host ("  gpu emitters max: {0} (cross-check {1}); niagara systems live min {2}; zero-particle frames {3}; allowGpuParticles {4}" -f $Driver.gpuEmitters, $Driver.gpuEmittersCrossCheck, $Driver.niagaraSystemsLive.min, $Driver.zeroParticleFrames, $Driver.niagara.allowGpuParticles)
+		Write-Host ("  particlesExercised {0}: {1} [{2}]" -f $Driver.particlesExercised, $Driver.particlesNote, $Driver.particlesVerdict)
 	}
 	if ($Csv) {
 		Write-Host ("  csv mesh-draw-command visible primitives (all passes) median/max: {0} / {1} [{2}]" -f $Csv.meshDrawCommandVisiblePrimitives.median, $Csv.meshDrawCommandVisiblePrimitives.max, $Csv.columns.meshDrawCommandVisiblePrimitives)
