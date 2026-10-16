@@ -1,5 +1,5 @@
 // The one @2 clip: the system gesture (an open palm toward the head, then a thumb-index pinch).
-// Opt in with `node apps/vr/tools/clipgen/system-gesture.mjs`. It writes Game/Clips/system/system-gesture.normal.jsonl
+// Opt in with `node apps/vr/tools/clipgen/system-gesture.mjs`. It writes Game/TestData/Clips/system/system-gesture.normal.jsonl
 // and nothing else, so it can never rewrite a tracked @1 clip. Same bytes every run. See docs/CLIP-SCHEMA.md, Schema @2.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -67,11 +67,11 @@ function build() {
 
 function main() {
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const dir = path.resolve(here, '..', '..', 'Game', 'Clips', 'system');
+  const dir = path.resolve(here, '..', '..', 'Game', 'TestData', 'Clips', 'system');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${ACTION}.${VARIANT}.jsonl`);
   fs.writeFileSync(file, build(), { encoding: 'utf8' });
-  process.stdout.write(`wrote 1 clip to Game/Clips/system (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
+  process.stdout.write(`wrote 1 clip to Game/TestData/Clips/system (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
 }
 
 main();

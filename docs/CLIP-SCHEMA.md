@@ -97,7 +97,7 @@ from that hand and cancel one in progress (Meta VRC.Quest.Input.8). A sample bet
 neighbour carries the bit.
 
 Objects stay closed: an `@1` file that carries `sys` is invalid, and so is an `@2` `sys` that is not a boolean. Both
-schemas load. The `@2` clips live in `apps/vr/Game/Clips/system/`; `generate.mjs` does not rewrite any `@1` clip.
+schemas load. The `@2` clips live in `apps/vr/Game/TestData/Clips/system/`, outside the staged `Clips/` folder; `generate.mjs` does not rewrite any `@1` clip.
 
 ## Seated space
 

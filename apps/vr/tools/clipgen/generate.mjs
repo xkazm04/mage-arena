@@ -1448,7 +1448,7 @@ function writeSettleClip(outDir) {
   });
   const normalText = fs.readFileSync(path.join(outDir, 'ward-raise.normal.jsonl'), 'utf8');
   const left = normalText.trim().split('\n').slice(1).map((line) => JSON.parse(line));
-  const dir = path.join(outDir, 'ward');
+  const dir = path.resolve(outDir, '..', 'TestData', 'Clips', 'ward');
   fs.mkdirSync(dir, { recursive: true });
   const filePath = path.join(dir, 'ward-raise.normal.settle.jsonl');
   fs.writeFileSync(filePath, rendered.text, { encoding: 'utf8' });

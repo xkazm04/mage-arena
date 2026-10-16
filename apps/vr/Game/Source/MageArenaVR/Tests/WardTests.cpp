@@ -1268,7 +1268,7 @@ bool FMageArenaWardSettle::RunTest(const FString& Parameters)
 	}
 	FHandClip Clip;
 	FString Error;
-	const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("ward"), TEXT("ward-raise.normal.settle.jsonl"));
+	const FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("TestData"), TEXT("Clips"), TEXT("ward"), TEXT("ward-raise.normal.settle.jsonl"));
 	if (!FHandClip::LoadFromFile(Path, Clip, Error))
 	{
 		AddError(Error);

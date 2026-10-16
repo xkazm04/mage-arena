@@ -167,7 +167,7 @@ FString QuickClipPath(const TCHAR* Action)
 
 FString SystemClipPath()
 {
-	return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("system"), TEXT("system-gesture.normal.jsonl"));
+	return FPaths::Combine(FPaths::ProjectDir(), TEXT("TestData"), TEXT("Clips"), TEXT("system"), TEXT("system-gesture.normal.jsonl"));
 }
 
 void ForceSystemGesture(FHandClip& Clip)
