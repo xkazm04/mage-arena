@@ -8,6 +8,13 @@ public class MageArenaVR : ModuleRules
 		// Latest build settings do not put this directory on the include path.
 		// Headers live in Hands/ and tests include them as Hands/Foo.h.
 		PrivateIncludePaths.Add(ModuleDirectory);
+		// D-G4: the stress scene spawns and counts Niagara systems (Budget/).
+		PrivateDependencyModuleNames.Add("Niagara");
+		if (Target.bBuildEditor)
+		{
+			// D-G4: Tools/CreateBudgetFxCommandlet builds the NS_Budget_ systems from engine templates.
+			PrivateDependencyModuleNames.Add("NiagaraEditor");
+		}
 		PublicDependencyModuleNames.AddRange(new[]
 		{
 			"Core",
