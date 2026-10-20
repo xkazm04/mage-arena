@@ -1,0 +1,70 @@
+# House style for apps/vr/Game/Source, read off the existing code (Unreal conventions): tabs, Allman
+# braces, case labels flush with the switch, namespace bodies not indented, include order left alone
+# (the .generated.h include must stay last), and no column limit, so existing line breaks survive.
+# Enforced on CHANGED LINES ONLY by apps/vr/tools/lint/format-check.mjs; the tree is never bulk-reformatted.
+Language: Cpp
+Standard: c++20
+BasedOnStyle: LLVM
+ColumnLimit: 0
+IndentWidth: 4
+TabWidth: 4
+UseTab: ForIndentation
+ContinuationIndentWidth: 4
+ConstructorInitializerIndentWidth: 4
+AccessModifierOffset: -4
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+LambdaBodyIndentation: OuterScope
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+IndentCaseLabels: false
+IndentCaseBlocks: false
+NamespaceIndentation: None
+FixNamespaceComments: false
+PointerAlignment: Left
+DerivePointerAlignment: false
+SortIncludes: false
+IncludeBlocks: Preserve
+AlignAfterOpenBracket: DontAlign
+AlignOperands: DontAlign
+AlignTrailingComments: false
+AlignEscapedNewlines: Left
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+Cpp11BracedListStyle: true
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpacesBeforeTrailingComments: 1
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 2
+ReflowComments: false
+# Unreal reflection macros stand on their own line ahead of the declaration they decorate.
+StatementMacros:
+  - UPROPERTY
+  - UFUNCTION
+  - GENERATED_BODY
+  - GENERATED_UCLASS_BODY
+  - GENERATED_USTRUCT_BODY

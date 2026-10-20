@@ -1,0 +1,10 @@
+# Keeps the GitHub Actions references current. Once the workflows pin actions to commit SHAs (see the
+# SUPPLY CHAIN note in .github/workflows/quality.yml), Dependabot bumps the SHA and its version comment together.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
