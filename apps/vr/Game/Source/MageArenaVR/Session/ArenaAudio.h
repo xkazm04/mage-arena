@@ -234,5 +234,4 @@ private:
 
 	double SwellUntil = -1.0;
 	double SwellDb = 0.0;
-	int32 LastStateTick = -1;
 };

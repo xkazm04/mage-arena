@@ -28,7 +28,6 @@ private:
 
 	bool bRunning = false;
 	double RunStartWall = 0.0;
-	double LastSequenceWall = 0.0;
 	int32 SequenceIndex = 0;
 	FString PendingShot;
 	bool bShotOpen = false;
