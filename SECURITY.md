@@ -29,19 +29,12 @@ In scope:
 | No secret file tracked (`secrets.neverCommit`, filenames only) | `.ai/doctor.mjs`, run by `ai-conformance.yml` on every PR | the PR goes red |
 | Pinned combat data unchanged (sha256) | `apps/vr/tools/check-pin.mjs`, run by `quality.yml` on every PR | the PR goes red |
 | Worker guard (no git history change, hook bypass, recursive delete or secret read; reviews are read-only) | `tools/agy-guard.mjs` (PreToolUse hook), tested in `quality.yml` | the tool call is refused |
+| Actions pinned to commit SHAs (`owner/repo@<40-hex sha> # vX.Y.Z`; checkout v4.2.2, setup-node v4.4.0, both upstream tag commits) | `tools/check-action-pins.mjs`, run by `quality.yml` on every PR | the PR goes red |
 | Action refs kept current | `.github/dependabot.yml` (weekly, `github-actions`) | a Dependabot PR opens |
 | Commit subjects follow the house forms | `tools/check-commits.mjs`, run by `commits.yml` on every PR | the PR goes red |
 
 ## Not yet in place, and why
 
-- **Actions pinned to commit SHAs.** Six refs still float on `@v4` (`actions/checkout` x4, `actions/setup-node` x2, in
-  `quality.yml` and `ai-conformance.yml`). The gate is written but not wired: `node tools/check-action-pins.mjs` fails
-  until every ref is `owner/repo@<40-hex sha> # vX.Y.Z`. To close it, resolve each tag
-  (`git ls-remote --tags https://github.com/actions/checkout 'v4.2.2*'`, using the peeled `^{}` sha for an annotated
-  tag), rewrite the refs, and run the pin check in `quality.yml` in the same commit. `commits.yml` uses no action at all.
-  An earlier attempt (commit `5316984`, branch `ascent/loop-20261005150814-xkazm04-mage-arena`) dropped off
-  `ascent/runner` at the next master merge and never reached `master`. Re-check its SHAs before reusing them: GitHub
-  resolves a SHA from any fork of the action repository, so a pin is only trustworthy if it equals the upstream peeled tag.
 - **Content secret scanning.** `neverCommit` matches file names, so a key pasted into a source file would pass it.
   Enable GitHub secret scanning with push protection when the repository goes public (free there, and it blocks the
   push itself, see `docs/MONOREPO.md`). A third-party scanner action would add one more dependency to pin; if content
