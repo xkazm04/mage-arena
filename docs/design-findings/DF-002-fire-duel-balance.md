@@ -1,6 +1,6 @@
 # DF-002 - The Fire mage, implemented from the data, wins every duel before Sunfall can appear
 
-Found 2026-10-03 by T09 (`runs/T09/REPORT.md`, scenarios `apps/vr/data/scenarios-vr/fire-duel-competence-*.json`).
+Found 2026-10-03 by T09 (`runs/T09/REPORT.md`, scenarios `apps/vr/data/scenarios-vr/fire-duel-competence-*.json`). Status: Owner ruling 2026-10-03: the VR channel calibrates Fire (the option A route; DECISIONS does not name the letter): the seated balance calibration may move all four knob families (wave composition, enemy pressure, player spell power, defence), VR overlay only, and the owner signs off the final numbers; see docs/DECISIONS.md 2026-10-03 (Seated balance). The calibrated numbers are not yet signed off; the census and re-run are carded for the UE host.
 
 ## Measurement
 - Fire school implemented faithfully from `spells-fire.csv` and `schools.json` (oracle tests compute expectations by hand
