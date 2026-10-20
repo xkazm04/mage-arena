@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
-const CONVENTIONAL = new RegExp(`^(?:${TYPES.join('|')})(?:\\([a-z0-9][a-z0-9._/-]*\\))?!?: \\S`);
+const CONVENTIONAL = new RegExp(`^(?:${TYPES.join('|')})(?:\\(\\.?[a-z0-9][a-z0-9._/-]*\\))?!?: \\S`);
 const CARD_ID = '(?:[TA]\\d{2}[a-z]?|CR-\\d{3}|DF-\\d{3})';
 const CARD = new RegExp(`^${CARD_ID}(?:[,/+] ?${CARD_ID})*: \\S`);
 const REVERT = /^Revert "/;
@@ -83,6 +83,7 @@ function selfTest() {
     'fix(hand-input-pipeline): stand mouse look down for every capture run',
     'chore(game-tests): scan-sweep round 5 ledger',
     'feat: fire wall',
+    'chore(.ai): a dot-directory scope',
     'refactor(arena)!: drop the legacy pad layout',
     'ci: bump actions/checkout',
     'T08: wave 1 integration',
