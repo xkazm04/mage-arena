@@ -1,6 +1,6 @@
 # DF-009 - Tithe is mostly missed bolts; Cracks come from one bout
 
-Found 2026-10-07 by T22. Status: open, owner decision needed (the `collar.json` weights are a proposal).
+Found 2026-10-07 by T22. Status: Owner ruling 2026-10-20: recommended option adopted (A, count only spectacle); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host.
 
 | Run | Bout | Outcome | Cracks | Tithe |
 |---|---|---|---|---|

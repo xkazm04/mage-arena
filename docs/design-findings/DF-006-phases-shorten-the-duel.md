@@ -1,6 +1,6 @@
 # DF-006 - Rival phases guarantee Sunfall but shorten the duel
 
-Found 2026-10-07 by T19. Status: open, owner decision needed. Census: `DF-006-census/` (20 seeds, seated Brennic duel,
+Found 2026-10-07 by T19. Status: Owner ruling 2026-10-20: recommended option adopted (B, phase-break beat, with A); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host. Census: `DF-006-census/` (20 seeds, seated Brennic duel,
 Tiro semifinal, 120 s cap; copied from `runs/T19/census/`).
 
 The DF-003 answer (DECISIONS 2026-10-07) is built as an overlay: phases at 66 % and 33 % HP, a one-tier surge on both

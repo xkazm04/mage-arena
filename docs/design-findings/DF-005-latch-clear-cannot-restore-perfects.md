@@ -1,6 +1,6 @@
 # DF-005 - The split latch clear cannot bring perfects back inside one ward hold
 
-Found 2026-10-07 by T17. Status: open, owner decision needed.
+Found 2026-10-07 by T17. Status: Owner ruling 2026-10-20: recommended option adopted (A, re-arm on clear); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host.
 
 The owner's rule (DECISIONS 2026-10-07, split hands): "the perfect latch clears after the casting hand is idle about
 0.3 s", so that perfects return while the ward stays up. T17 built it (18 ticks at 60 Hz). But a perfect needs a

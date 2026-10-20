@@ -2,6 +2,67 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-20 - Cut slice: no cut, the 31 Oct desktop core gate plans the full Tiro day
+
+> Operator, 2026-10-20, relayed through the App Master: "keep every bout; plan the 31 Oct gate on the full Tiro day and
+> flag the risk."
+
+- **What binds:** this rules the 18 Oct pivot. Bout 2 (creatures) stays, and the second school stays in: **Air**, the Gale
+  Tent final with Lio (`docs/change-requests/CR-007-air-school.md`; DECISIONS 2026-10-07). The 31 Oct desktop core gate
+  is planned on the full Tiro day, not on a cut slice.
+- **The risk, in plain words:** the 18 Oct mechanics gate was missed, and the 23 Oct second-school checkpoint is three
+  days away. The plan's own fallbacks are the two things this ruling declines: PROJECT-PLAN section 1 says a missed 18 Oct
+  gate slips at most to 21 Oct "and cut bout 2", and section 10 R4 lists the cut order (Mirror IV, Lash IV, bout 2,
+  narrow-FOV mode). DECISIONS 2026-10-07 names the second school as the first cut if the 23 Oct checkpoint slips. Keeping
+  everything leaves the 31 Oct gate with no scope to give back. DF-008 (Lio loses every duel in about 20-24 s) is also
+  still open.
+- Sections read: PROJECT-PLAN section 1 (milestone and gate rows, the 18 Oct and 31 Oct slip rows), section 5 (D2 and D4
+  rows), section 6 (the Tiro-day timeline, Bout 2 creatures), section 10 (R0, R4).
+- Lost: the cut options (cut bout 2; cut the second school; port a two-bout slice).
+- Not part of this ruling: PROJECT-PLAN.md is not edited; where it conflicts, this entry wins.
+
+## 2026-10-20 - DF-003, DF-005, DF-006, DF-007, DF-008, DF-009: adopt every recommendation
+
+> Operator, 2026-10-20, relayed through the App Master: "adopt each DF's recommended option; card one design-suite
+> re-run."
+
+- **What binds:** the recommended option of each finding, in the finding's own words:
+  - DF-003: its Recommendation section: leave `wide` in the proposal file (`calibration-proposal.json`); the finding
+    itself says do not sign it off.
+  - DF-005: **A. Re-arm on clear** (the ward counts as fresh again for one `perfectWindowS` after the latch clears; VR
+    overlay only).
+  - DF-006: **B. A phase-break beat**, with **A** (adopt the `wide` proposal).
+  - DF-007: **A and B together; re-measure** (A: ward some embers, not all, in the reference script; B: slower spit
+    cadence, 1.5 s, VR overlay).
+  - DF-008: **A. AI first** (Lio wards like the Fire mage, uses Air Form against the player's bolts, spends tier II-III
+    spells once unlocked; re-measure).
+  - DF-009: **A. Count only spectacle** (`missedCast` 0 for Bolts, kept for tier I+ casts).
+- **Where the work goes:** the implementation and the one `MageArenaDesign` re-run are a task card for the UE host
+  (Wolf, see the host entry below). Nothing here changes code or data. The design suite stays **red** until that run; no
+  result is claimed by this entry.
+- Lost: the other options of each finding (DF-005 B and C; DF-006 C and D; DF-007 C and D; DF-008 B and C; DF-009 B and C).
+
+## 2026-10-20 - T38 asset source: Claude + owner authoring
+
+> Operator, 2026-10-20, relayed through the App Master: "authored rig with four clips; Lynx's local TRELLIS + Blender
+> rigging pipeline (PoF 3D rounds) may feed it."
+
+- **What binds:** the first animated opponent (card T38) comes from an authored rig with four clips (idle, cast, hit,
+  death), authored by Claude and the owner. The local TRELLIS and Blender rigging pipeline on Lynx (PoF 3D rounds) may
+  feed it.
+- Lost: the Meta Asset Library as the source, and paid 3D or animation credits (PROJECT-PLAN R0's fallback and its paid
+  option).
+
+## 2026-10-20 - Unreal host: all Unreal work on Wolf (x64); Lynx gets no Unreal install
+
+> Operator, 2026-10-20, relayed through the App Master: "all Unreal work stays on the x64 machine (Wolf). Lynx is the
+> Node/docs/orchestration host and does not get an Unreal install. Write UE work as cards/source for Wolf; never claim UE
+> results from Lynx."
+
+- **What binds:** UE builds, automation suites and content work run on Wolf only. Lynx writes cards and source for Wolf and
+  reports no UE build or test result.
+- Lost: a UE install on Lynx.
+
 ## 2026-10-16 - D-G4 draw calls are one total budget, and the two Build.cs bBuildEditor blocks stay separate
 
 > Athena, 2026-10-16, under the operator's delegation, answered run `ef6642f6`'s two questions. Recorded as relayed; the
