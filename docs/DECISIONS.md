@@ -2,6 +2,28 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-20 - VR first: the TV data and design are the baseline, the TV game becomes obsolete
+
+> Operator, 2026-10-20, relayed through the App Master (answering Q9): "It would be preferred to use data and game design as the baseline, from this baseline TV game will become obsolete and VR suprerior with main focus"
+
+- **What binds:** VR (this repo) is the main product. The TV game is obsolete as a product. The TV combat data and game
+  design, as pinned in `apps/vr/data/PINNED.json`, are the starting baseline.
+- **What stays in force until the owner rules on the gate:** the pinned data stays as it is (`apps/vr/data/pinned/**` is
+  not edited), `node apps/vr/tools/check-pin.mjs` and the 45 conformance vectors stay a merge gate, and CR-001..CR-007 keep
+  their current status. The owner has not yet ruled how the conformance gate changes (frozen baseline, VR-owned data, or
+  keeping TV as the data channel). That is an open scope ask, and this entry does not decide it.
+- **Superseded in part, pending that ask (none of these is edited here):**
+  - DECISIONS 2026-10-07 "Two repositories, TV and VR" (the line that TV owns the canon);
+  - `docs/REPO-LAYOUT.md` (the "The canon" row and "Changes flow back as change requests");
+  - `CLAUDE.md` "Combat data has one owner";
+  - the "Filed for the desktop/TV kernel channel" lines in `docs/change-requests/CR-00x`;
+  - the brief's key goal 3 ("Keep combat data conformant with the TV game").
+- **Q9:** reusing the operator's own data and design still stands (DECISIONS 2026-10-07, Q9 entry). Whether Q9 is posted
+  or withdrawn is still open and is with the owner. `docs/submission/ORGANIZER-QUESTION-Q9.md` is not changed.
+- **Cross-channel record:** REPO-LAYOUT says a decision that changes every channel is recorded in the TV repository
+  (`kiro/mage-arena-tv`). That TV-side record is still owed; it has not been written.
+- Lost: TV as the main product or co-equal channel.
+
 ## 2026-10-20 - Cut slice: no cut, the 31 Oct desktop core gate plans the full Tiro day
 
 > Operator, 2026-10-20, relayed through the App Master: "keep every bout; plan the 31 Oct gate on the full Tiro day and
