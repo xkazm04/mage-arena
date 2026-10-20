@@ -1,6 +1,6 @@
 # CR-006 - The collar ledger: Cracks, Tithe, the tier IV collar cap and tier V at the Breaking
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged. DF-009 (`docs/design-findings/DF-009-tithe-is-mostly-missed-bolts.md`)
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged. DF-009 (`docs/design-findings/DF-009-tithe-is-mostly-missed-bolts.md`)
 is open with the owner: the Tithe weights are a proposal and may change, so a port should take the rule and read the
 numbers from data. The Breaking and tier V have no C++ implementation yet (see "The rule", last two items).
 

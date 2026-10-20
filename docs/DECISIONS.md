@@ -2,6 +2,25 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - Combat data: the current pin is VR's frozen baseline
+
+> Operator, 2026-10-21, relayed through the App Master (answering the gate ask): "A, frozen baseline."
+
+- **What binds:** the pin recorded in `apps/vr/data/PINNED.json` is VR's frozen baseline. `node apps/vr/tools/check-pin.mjs`
+  and the 45 conformance vectors stay a merge gate against that baseline, unchanged. `apps/vr/data/pinned/**` is still never
+  edited. Every VR combat-data change goes into the VR overlay (`apps/vr/data/vr/`). CR-001..CR-007 become VR design records
+  for overlay changes, not requests to TV, and nobody re-pins from TV.
+- **Brief goal 3 reads in effect:** "baseline unchanged (check-pin green, 45 vectors byte-identical) and the VR overlay
+  passes its checks".
+- **Supersedes:** the "pending that ask" lines of the 2026-10-20 "VR first" entry below (its body is not edited). The
+  gate question it left open is ruled here. The docs that entry listed are aligned in the same change: `docs/REPO-LAYOUT.md`,
+  `CLAUDE.md` "Combat data", `apps/vr/data/README.md` and the headers of `docs/change-requests/CR-00x`.
+- **Q9:** the operator's words: "post a revised Q9; the operator posts it." The revision is being drafted in
+  `docs/submission/ORGANIZER-QUESTION-Q9.md`; the status there records the date and link once the operator has posted it. It
+  has not been posted.
+- **Cross-channel record:** the TV-side record of this ruling is still owed.
+- Lost: B (VR-owned data, rework of check-pin); C (TV stays the data channel until 18 Nov).
+
 ## 2026-10-20 - VR first: the TV data and design are the baseline, the TV game becomes obsolete
 
 > Operator, 2026-10-20, relayed through the App Master (answering Q9): "It would be preferred to use data and game design as the baseline, from this baseline TV game will become obsolete and VR suprerior with main focus"

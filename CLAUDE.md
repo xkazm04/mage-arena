@@ -23,11 +23,14 @@ Repository layout and what is shared: `docs/REPO-LAYOUT.md`.
 - Forward shading is on from day one (it is what the Quest renderer uses).
 - Simulator target when VR starts: the **Meta Quest 3** profile.
 
-## Combat data has one owner
+## Combat data: the pin is VR's frozen baseline
 
-The tuned combat numbers (spells, enemies, tier clock, Flow) live in the TV/TS project `kiro/mage-arena-tv` and its
-calibrated simulator. This repo consumes a **pinned commit** of that data (see `apps/vr/data/README.md`) and never edits it in
-place; changes go back as change requests. A `combat.json` copied from a contest folder is stale - do not use it.
+The tuned combat numbers (spells, enemies, tier clock, Flow) were calibrated in the TV/TS project `kiro/mage-arena-tv`. TV is
+obsolete as a product; its pinned commit (see `apps/vr/data/README.md`, `apps/vr/data/PINNED.json`) is VR's frozen baseline
+(DECISIONS 2026-10-21). Never edit `apps/vr/data/pinned/**` in place, and nobody re-pins from TV. Every VR combat-data change
+goes into the VR overlay (`apps/vr/data/vr/`). `docs/change-requests/CR-*` are VR design records for overlay changes, not
+requests to TV. `check-pin.mjs` and the 45 conformance vectors stay a merge gate against the baseline. A `combat.json`
+copied from a contest folder is stale - do not use it.
 
 ## Tooling
 

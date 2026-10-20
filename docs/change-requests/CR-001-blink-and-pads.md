@@ -1,6 +1,6 @@
 # CR-001 — Blink input and rune pads
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged.
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged.
 
 Wave 1 in VR needs a blink between three rune pads. PROJECT-PLAN section 3 item 3 and section 6.2: blink replaces move, roll, and the staff strike. That is a change to shared combat semantics, so it belongs in the kernel that both channels run. This repo does not edit that kernel.
 

@@ -1,6 +1,6 @@
 # CR-007 - The second school: Air, Momentum and the Gale rival Lio
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged. DF-008 (`docs/design-findings/DF-008-lio-too-weak.md`)
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged. DF-008 (`docs/design-findings/DF-008-lio-too-weak.md`)
 is open: Lio loses every duel in about 20-24 s, so the Air balance is not settled. The 23 Oct Air-or-Corvo cut is the
 owner's call (`docs/DECISIONS.md`, 2026-10-07); this request records the Air rule whichever way that goes, and is filed
 for the TV channel only if Air stays.
