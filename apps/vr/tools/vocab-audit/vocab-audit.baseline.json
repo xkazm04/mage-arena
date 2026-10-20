@@ -1,0 +1,52 @@
+{
+  "cells": {
+    "mouse/normal/diagonal": {
+      "n": 30,
+      "ok": 29
+    },
+    "mouse/normal/horizontal": {
+      "n": 30,
+      "ok": 30
+    },
+    "mouse/normal/vertical": {
+      "n": 30,
+      "ok": 28
+    },
+    "synthetic/normal/diagonal": {
+      "n": 30,
+      "ok": 28
+    },
+    "synthetic/normal/horizontal": {
+      "n": 30,
+      "ok": 29
+    },
+    "synthetic/normal/vertical": {
+      "n": 30,
+      "ok": 30
+    },
+    "synthetic/sloppy/diagonal": {
+      "n": 30,
+      "ok": 30
+    },
+    "synthetic/sloppy/horizontal": {
+      "n": 30,
+      "ok": 24
+    },
+    "synthetic/sloppy/vertical": {
+      "n": 30,
+      "ok": 28
+    },
+    "synthetic/slow/diagonal": {
+      "n": 30,
+      "ok": 29
+    },
+    "synthetic/slow/horizontal": {
+      "n": 30,
+      "ok": 30
+    },
+    "synthetic/slow/vertical": {
+      "n": 30,
+      "ok": 29
+    }
+  }
+}

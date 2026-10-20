@@ -359,6 +359,39 @@ async function convertFile(input, output, options) {
   }
 }
 
+// Layered element assembly (registry: sound-effect-generation / layered-element-assembly).
+// A cue may later carry layers: [{ role, text, gainDb, offsetS }]; each layer is its own
+// ElevenLabs take, so a failed axis (weight, definition, size, space) is re-rolled alone
+// and the winners are kept. This is the assembly half only: every stem is trimmed to its
+// attack (leading silence below -50 dBFS), delayed by its offset, scaled by its gain and
+// summed without normalisation. The summed file then goes through convertFile like any
+// take, which peak-normalises it, so the layer gains set the balance and the sum cannot clip.
+async function mixLayers(stems, output, channels) {
+  if (!Array.isArray(stems) || stems.length < 2) throw new Error('a layered cue needs at least two stems');
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'a05-mix-'));
+  try {
+    const args = [];
+    const chains = [];
+    const layout = channels === 1 ? 'mono' : 'stereo';
+    for (let i = 0; i < stems.length; i++) {
+      const trimmed = path.join(work, `stem${i}.wav`);
+      await trimToPcm(stems[i].file, trimmed, channels, false);
+      args.push('-i', trimmed);
+      const delayMs = Math.max(0, Math.round((stems[i].offsetS || 0) * 1000));
+      const gainDb = Number.isFinite(stems[i].gainDb) ? stems[i].gainDb : 0;
+      chains.push(
+        `[${i}:a]aformat=sample_rates=${SAMPLE_RATE}:channel_layouts=${layout},volume=${gainDb}dB,adelay=${delayMs}:all=1[l${i}]`
+      );
+    }
+    const inputs = stems.map((_s, i) => `[l${i}]`).join('');
+    const graph = `${chains.join(';')};${inputs}amix=inputs=${stems.length}:duration=longest:dropout_transition=0:normalize=0[out]`;
+    await ffmpeg([...args, '-filter_complex', graph, '-map', '[out]', '-ar', String(SAMPLE_RATE), '-ac', String(channels), '-c:a', 'pcm_s16le', output]);
+    return measureWav(output);
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
+  }
+}
+
 function hasMp3Magic(buf) {
   if (!buf || buf.length < 2) return false;
   if (buf.length >= 3 && buf[0] === 0x49 && buf[1] === 0x44 && buf[2] === 0x33) return true;
@@ -661,7 +694,44 @@ async function selfTest() {
     if (tone.duration < 0.48 || tone.duration > 0.52) {
       throw new Error(`plain tone duration drifted to ${tone.duration}s`);
     }
+
+    // Layered assembly: a low layer that starts late in its file and a transient that starts
+    // at once must land on one attack, and the summed balance must follow the declared gains.
+    const lowIn = path.join(work, 'low.wav');
+    const crackIn = path.join(work, 'crack.wav');
+    const mixOut = path.join(work, 'mix.wav');
+    const lowLead = Math.round(SAMPLE_RATE * 0.3);
+    const lowFrames = Math.round(SAMPLE_RATE * 0.6);
+    writeTestWav(lowIn, lowLead + lowFrames, 1, (i) => {
+      if (i < lowLead) return 0;
+      return 0.4 * Math.sin((2 * Math.PI * 60 * (i - lowLead)) / SAMPLE_RATE);
+    });
+    writeTestWav(crackIn, Math.round(SAMPLE_RATE * 0.3), 1, (i) => 0.4 * Math.sin((2 * Math.PI * 3000 * i) / SAMPLE_RATE));
+    const mixed = await mixLayers(
+      [{ file: lowIn, gainDb: 0 }, { file: crackIn, gainDb: -12 }],
+      mixOut, 1
+    );
+    if (mixed.duration < 0.55 || mixed.duration > 0.65) {
+      throw new Error(`layer mix duration ${mixed.duration}s, the low layer's lead silence was not aligned away`);
+    }
+    const mixWav = measureWav(mixOut);
+    let mixEarly = 0;
+    for (let i = 0; i < Math.round(SAMPLE_RATE * 0.03); i++) {
+      mixEarly = Math.max(mixEarly, Math.abs(mixWav.data.readInt16LE(i * 2)));
+    }
+    if (mixEarly < mixWav.peak * 0.3) throw new Error('layered cue does not start on the shared attack');
+    // The -12 dB crack must sit about 12 dB under the low layer: compare energy after the crack has ended.
+    const late = Math.round(SAMPLE_RATE * 0.35);
+    let lateEnergy = 0;
+    let lateCount = 0;
+    for (let i = late; i < late + 2000; i++) { const v = mixWav.data.readInt16LE(i * 2); lateEnergy += v * v; lateCount++; }
+    let earlyEnergy = 0;
+    let earlyCount = 0;
+    for (let i = 0; i < 2000; i++) { const v = mixWav.data.readInt16LE(i * 2); earlyEnergy += v * v; earlyCount++; }
+    const crackShare = 10 * Math.log10((earlyEnergy / earlyCount) / (lateEnergy / lateCount));
+    if (crackShare < -1 || crackShare > 3) throw new Error(`crack layer gain off: attack/tail energy ${crackShare.toFixed(2)} dB`);
     log('self-test passed');
+    log(`layer mix ${mixed.duration.toFixed(3)}s early-peak ${mixEarly} attack-vs-tail ${crackShare.toFixed(2)} dB`);
     log(`ramp seam ${ramp.seam.boundary} typical ${ramp.seam.typical} join ${ramp.join} frames ${ramp.frames}`);
     log(`stereo seam ${stereo.seam.boundary} typical ${stereo.seam.typical} frames ${stereo.frames} ch ${stereo.channels}`);
     log(`lead ${lead.duration.toFixed(3)}s early-peak ${early} tone ${tone.duration.toFixed(3)}s`);
