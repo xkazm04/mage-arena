@@ -37,8 +37,7 @@ Open for the owner (each file lists options and a recommendation):
 | `collar.json` | The Cracks and Tithe weights (proposal) |
 | T26 audio | Listen to `runs/T26/audio/brennic-opening.wav` (not heard by a person yet; local only) |
 
-Next cards: C1 (mudra seal shape, Claude + owner), T24 (mudra detector), T25 (fist pose, spare or finish), C2 (story
-bible and slice script), T27 (voice), T28 (intermission scenes); T39 (adopt the DF recommendations and re-run the design suite, on Wolf). CR-006 and CR-007
+Next cards: C1 (mudra seal shape, Claude + owner), `apps/vr/tasks/T24-mudra-seal-detector.md`, `apps/vr/tasks/T25-closed-fist-pose-and-spare-or-finish.md`, C2 (story bible and slice script, Claude + owner), `apps/vr/tasks/T27-voice-and-chorus.md`, `apps/vr/tasks/T28-intermission-scenes.md`, `apps/vr/tasks/T40-two-music-loops.md` (the two music loops), `apps/vr/tasks/T41-cold-desktop-playtests.md` (the cold testers); T39 (adopt the DF recommendations and re-run the design suite, on Wolf). CR-006 and CR-007
 are filed and open: `docs/change-requests/CR-006-collar-ledger.md` and `docs/change-requests/CR-007-air-school.md`.
 Housekeeping: the
 conformance generator (BACKLOG), the stalled T16 in the main checkout.
