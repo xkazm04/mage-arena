@@ -1,0 +1,305 @@
+{
+  "version": 1,
+  "_about": "C2: the authored story content of the one Tiro day the slice ships (docs/campaign/05-c2-slice-story-bible-and-script.md). Inert until T27 reads the lines and T28 reads the scenes. A missing, unreadable or non-version-1 file is skipped with a warning and the day plays one line per beat from strings.json (each beat's 'fallback'), which is how it plays today. Session pacing and story text only: no combat number, no pinned value. Every line is 10 words or fewer (Tests/DayTests.cpp) and every stone label 5 words or fewer.",
+  "_status": "draft for the owner's ruling (C2 decisions D1-D4). No audio asset exists for any cue; voice is additive and the day is complete as text.",
+  "_cueSheet": "docs/campaign/05-c2-slice-story-bible-and-script.md section 9. Every line carries a cue id; the id is also what the strings.json _story.* marker becomes (section 10).",
+  "_budget": "floorS <= naturalS <= maxS. Story total: 54 s floor, 213 s natural, 242 s max. With the 63 s teach and the pinned 145-235 s fight band that is 4.4 min rushed, 7.0-8.5 min natural, 9.0 min max (section 4).",
+  "_when": "null means always. Otherwise { flag, op (eq|gte|lte), value }: the clause shape of docs/campaign/04-vr-campaign-design.md section 4. Variants are evaluated in file order and the FIRST MATCH WINS, so a default variant is last and carries when: null. A clause naming a flag that does not exist does not match and is never an error. Every flag used here is one the session already writes (Session/DayFlow.cpp:347-358, :385).",
+
+  "beats": [
+    {
+      "id": "prologue",
+      "phase": "prologue",
+      "fallback": "story.prologue.tableau",
+      "floorS": 6,
+      "naturalS": 36,
+      "maxS": 45,
+      "_about": "A static tableau of the ford. Unvoiced in the recommended cue count: block P is cut first. Nobody explains the collaring; the player reads it. Needs day.json prologueMaxS 10 -> 45 (T28).",
+      "lines": [
+        { "cue": "PRO-01", "speaker": null, "text": "The ford. Four mages held the line.", "dwellS": 11 },
+        { "cue": "PRO-02", "speaker": null, "text": "The legion they held it for closed four collars.", "dwellS": 13 },
+        { "cue": "PRO-03", "speaker": null, "text": "Rome calls this the Games. The collar calls it rent.", "dwellS": 12 }
+      ]
+    },
+    {
+      "id": "ritual",
+      "phase": "ritual",
+      "fallback": "story.ritual.septima",
+      "fallbackSecond": "story.ritual.offer",
+      "floorS": 10,
+      "naturalS": 38,
+      "maxS": 45,
+      "_about": "Warden Septima, dais rail left, ritual register, third person, never says 'I'. The only beat that teaches the collar clock: RIT-02 states the 15 s tier unlock in-world, which no line in the build does today. Needs day.json ritualLineS -> array and ritualTimeoutS 20 -> 45 (T27).",
+      "lines": [
+        { "cue": "RIT-01", "speaker": "septima", "text": "The Vigil wakes the collar. Kneel, Tide.", "dwellS": 12 },
+        { "cue": "RIT-02", "speaker": "septima", "text": "It will give back one tier each fifteen seconds.", "dwellS": 14 },
+        { "cue": "RIT-03", "speaker": "septima", "text": "Offer both wrists. The Vigil does not ask twice.", "dwellS": 12 }
+      ]
+    },
+    {
+      "id": "intro-w1",
+      "phase": "intro",
+      "wave": 1,
+      "fallback": "story.bout1.intro",
+      "floorS": 4,
+      "naturalS": 8,
+      "maxS": 8,
+      "_about": "Venno at the grille above the gate, genial showman, selling a card to senators. Each intro ends on the threat instruction. Needs day.json introS 3 -> [8, 8, 12, 12] per wave, which is a code change: SessionFlow.cpp reads one scalar (T28).",
+      "lines": [
+        { "cue": "VEN-01", "speaker": "venno", "text": "Legion soldiers, for the warm-up. Hold the dais.", "dwellS": 8 }
+      ]
+    },
+    {
+      "id": "intro-w2",
+      "phase": "intro",
+      "wave": 2,
+      "fallback": "story.bout2.intro",
+      "floorS": 4,
+      "naturalS": 8,
+      "maxS": 8,
+      "lines": [
+        { "cue": "VEN-02", "speaker": "venno", "text": "Cinder hounds and a mire maw. Mind the embers.", "dwellS": 8 }
+      ]
+    },
+    {
+      "id": "intro-w3",
+      "phase": "intro",
+      "wave": 3,
+      "fallback": "story.bout3.intro",
+      "floorS": 5,
+      "naturalS": 12,
+      "maxS": 12,
+      "_about": "The existing placeholder line is kept verbatim: it tells a player who has read nothing that this opponent is personal, in nine words, and it is the only place K-ford-betrayal surfaces - as weather, not as a fact.",
+      "lines": [
+        { "cue": "VEN-03", "speaker": "venno", "text": "Brennic of the Ember. The ford remembers you both.", "dwellS": 12 }
+      ]
+    },
+    {
+      "id": "intro-w4",
+      "phase": "intro",
+      "wave": 4,
+      "fallback": "story.bout4.intro.lio",
+      "floorS": 5,
+      "naturalS": 12,
+      "maxS": 12,
+      "_about": "The final's rival comes from combat.vr.json rivals.tiroFinal (school air, rival lio). The corvo variant stays authored as the cut fallback: if T23's Air rival is pulled the final becomes Corvo on the Fire kernel, and SessionFlow.cpp:629 defaults to corvo when no rival is bound.",
+      "variants": [
+        {
+          "id": "lio",
+          "rival": "lio",
+          "fallback": "story.bout4.intro.lio",
+          "lines": [
+            { "cue": "VEN-04", "speaker": "venno", "text": "Lio of the Gale. She has never lost politely.", "dwellS": 12 }
+          ]
+        },
+        {
+          "id": "corvo",
+          "rival": "corvo",
+          "fallback": "story.bout4.intro.corvo",
+          "lines": [
+            { "cue": "VEN-05", "speaker": "venno", "text": "Corvo of the Ember, second choice. The final.", "dwellS": 12 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aftermath-tablet",
+      "phase": "aftermath",
+      "fallback": "story.aftermath.tablet",
+      "floorS": 5,
+      "naturalS": 16,
+      "maxS": 18,
+      "_about": "Needs day.json aftermathTabletS 4 -> 16 (T28).",
+      "lines": [
+        { "cue": null, "speaker": null, "text": "The day is cut into stone.", "dwellS": 16 }
+      ]
+    },
+    {
+      "id": "closing",
+      "phase": "aftermath",
+      "fallback": "story.aftermath.close",
+      "fallbackLost": "story.aftermath.close.lost",
+      "floorS": 6,
+      "naturalS": 31,
+      "maxS": 34,
+      "_about": "The won and lost lines deliberately END IDENTICALLY - 'The collar keeps its due.' Winning the Tiro final changes your standing and changes nothing about the collar. The lost line also CORRECTS the current placeholder ('The sand drinks your blood'), which contradicts the missio rule the pinned arena-tiers.json _about states and the result vocabulary the kernel uses (Kernel/Games.cpp:207-212). Needs a new day.json closingCardS (31 natural, 34 max) (T28).",
+      "variants": [
+        {
+          "id": "won",
+          "when": null,
+          "requiresFinalWon": true,
+          "lines": [
+            { "cue": "VEN-06", "speaker": "venno", "text": "The crowd keeps your name. The collar keeps its due.", "dwellS": 15 },
+            { "cue": "OPH-10", "speaker": "ophel", "text": "Rest, Tide. The sand will be raked by dawn.", "dwellS": 16 }
+          ]
+        },
+        {
+          "id": "lost",
+          "when": null,
+          "requiresFinalWon": false,
+          "lines": [
+            { "cue": "VEN-07", "speaker": "venno", "text": "Missio. The crowd spares you. The collar keeps its due.", "dwellS": 15 },
+            { "cue": "OPH-10", "speaker": "ophel", "text": "Rest, Tide. The sand will be raked by dawn.", "dwellS": 16 }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "scenes": [
+    {
+      "id": "int-1",
+      "intermission": 1,
+      "afterWave": 1,
+      "floorS": 3,
+      "naturalS": 16,
+      "maxS": 20,
+      "_about": "WRAPS THE PICK THAT ALREADY EXISTS AND MUST NOT BREAK IT. The build already offers Leviathan or Rain of Orbs here through PlayerPreset.Pick with labels pick.tideOrb.A/.B and pick.continue (SessionFlow.cpp:1536-1612). C2 adds Ophel's framing and nothing else: the stones, the 0.40 s hold, the timeout and the tideOrb branch effect stay exactly as they are. The labels are the EXISTING strings, which already read in Cassia's register - 'if it comes' and 'rather' are the conditional hedges characters.json gives her, at no extra words.",
+      "variants": [
+        {
+          "id": "1A",
+          "when": null,
+          "lines": [
+            { "cue": "OPH-01", "speaker": "ophel", "text": "The collar reaches its fourth rune near the end.", "dwellS": 8 },
+            { "cue": "OPH-02", "speaker": "ophel", "text": "Choose what it spends that rune on.", "dwellS": 8 }
+          ]
+        }
+      ],
+      "choice": {
+        "writes": "arena.intermission.1.choice",
+        "keepsExistingPick": true,
+        "stones": [
+          { "index": 0, "label": "pick.tideOrb.A", "_label": "Leviathan" },
+          { "index": 1, "label": "pick.continue", "_label": "Continue" },
+          { "index": 2, "label": "pick.tideOrb.B", "_label": "Rain of Orbs" }
+        ]
+      }
+    },
+    {
+      "id": "int-2",
+      "intermission": 2,
+      "afterWave": 2,
+      "floorS": 3,
+      "naturalS": 18,
+      "maxS": 20,
+      "_about": "Ophel tells the player how to fight the semifinal, and the when picks WHICH lesson from how bout 2 actually went - the VR identity the campaign design asks for. OPH-05 pre-warns the Sunfall one bout early, so Brennic's second taunt is a reminder and not a surprise. The choice is a STANCE, NOT A STAT: neither option changes a combat number, which would mean touching signed data. The stones are recorded so the tablet and a future eve scene can refer to how the player chose to meet him.",
+      "variants": [
+        {
+          "id": "2A",
+          "when": { "flag": "arena.tiro.1.w2.perfects", "op": "gte", "value": 2 },
+          "lines": [
+            { "cue": "OPH-03", "speaker": "ophel", "text": "You read the embers. Brennic is louder and slower.", "dwellS": 9 }
+          ]
+        },
+        {
+          "id": "2B",
+          "when": null,
+          "lines": [
+            { "cue": "OPH-04", "speaker": "ophel", "text": "The hounds spat. Brennic throws the same, larger.", "dwellS": 9 }
+          ]
+        }
+      ],
+      "always": [
+        { "cue": "OPH-05", "speaker": "ophel", "text": "He breaks twice. The second break is unblockable.", "dwellS": 9 }
+      ],
+      "choice": {
+        "writes": "arena.intermission.2.choice",
+        "stones": [
+          { "index": 0, "label": "Then I take the first" },
+          { "index": 1, "label": "pick.continue", "_label": "Continue" },
+          { "index": 2, "label": "I would rather read him" }
+        ]
+      }
+    },
+    {
+      "id": "int-3",
+      "intermission": 3,
+      "afterWave": 3,
+      "floorS": 3,
+      "naturalS": 18,
+      "maxS": 20,
+      "_about": "The one scene that reacts to the day's most personal outcome. Variant 3B exists because the slice must have something to say to a player who LOST AND CAME BACK, and 'He will remember that' is information, not comfort - Ophel's register is footnotes, and the crowd carries approval so the cast never has to. 3A and 3B are distinguished by attempts, which the session already writes.",
+      "variants": [
+        {
+          "id": "3A",
+          "when": { "flag": "arena.tiro.1.w3.won", "op": "eq", "value": true },
+          "andWhen": { "flag": "arena.tiro.1.w3.attempts", "op": "lte", "value": 1 },
+          "lines": [
+            { "cue": "OPH-06", "speaker": "ophel", "text": "He went down once and stayed down. Rare.", "dwellS": 9 }
+          ]
+        },
+        {
+          "id": "3B",
+          "when": { "flag": "arena.tiro.1.w3.won", "op": "eq", "value": true },
+          "lines": [
+            { "cue": "OPH-07", "speaker": "ophel", "text": "You lost to him first. He will remember that.", "dwellS": 9 }
+          ]
+        },
+        {
+          "id": "3C",
+          "when": null,
+          "lines": [
+            { "cue": "OPH-08", "speaker": "ophel", "text": "The Ember takes the other half of the card.", "dwellS": 9 }
+          ]
+        }
+      ],
+      "always": [
+        { "cue": "OPH-09", "speaker": "ophel", "text": "Lio of the Gale. She does not hold still.", "dwellS": 9 }
+      ],
+      "choice": {
+        "writes": "arena.intermission.3.choice",
+        "stones": [
+          { "index": 0, "label": "I will hold the centre" },
+          { "index": 1, "label": "pick.continue", "_label": "Continue" },
+          { "index": 2, "label": "I would rather move" }
+        ]
+      }
+    }
+  ],
+
+  "taunts": [
+    {
+      "rival": "brennic",
+      "_about": "Two HP-gated phases at 66 % and 33 %; the second opens with fire_sunfall, UNBLOCKABLE (combat.vr.json rivals.brennic.phases). So BRE-02 is not flavour, it is the warning for an attack the player must not try to absorb. NO TEXT is shown for a taunt: the player is mid-duel with both hands committed and a line on the rail during a Sunfall telegraph competes with the exact thing it warns about. If voice is declined (D4) these are CUT, not converted to text.",
+      "lines": [
+        { "cue": "BRE-01", "speaker": "brennic", "atHpFraction": 0.66, "text": "Still polite, Tide? Hit me properly." },
+        { "cue": "BRE-02", "speaker": "brennic", "atHpFraction": 0.33, "opensWith": "fire_sunfall", "text": "Sunfall. Nothing catches this. Move." }
+      ]
+    },
+    {
+      "rival": "lio",
+      "_about": "Signature air_tempest, UNBLOCKABLE (combat.vr.json rivals.lio.phases). LIO-02 says the same mechanical thing as BRE-02 in a different voice: your ward is no use, leave. Brennic orders; Lio mocks. Neither names a colour, because the black core and red rim are already on screen - the line tells the player what to DO, which is what a cold player misses.",
+      "lines": [
+        { "cue": "LIO-01", "speaker": "lio", "atHpFraction": 0.66, "text": "Oh, you're actually trying. How sweet." },
+        { "cue": "LIO-02", "speaker": "lio", "atHpFraction": 0.33, "opensWith": "air_tempest", "text": "Tempest. Your palm will not help. Run." }
+      ]
+    }
+  ],
+
+  "chorus": [
+    { "cue": "chorus.break", "trigger": "rivalPhaseBreak", "_about": "A swell. The overlay data already says a break 'swells the crowd' (combat.vr.json rivals._about)." },
+    { "cue": "chorus.perfect", "trigger": "perfectAbsorb", "_about": "A short bark of approval, under 1 s, no pitch climb." },
+    { "cue": "chorus.missio", "trigger": "playerDown", "_about": "A low murmur falling away. Mercy, not booing." },
+    { "cue": "chorus.champion", "trigger": "finalWon", "_about": "The only full roar in the day, by design: it is the payoff the aftermath line refuses to give in words, and the beat the submission video should end on." }
+  ],
+
+  "speakers": {
+    "septima": { "stage": "dais-rail-left", "register": "ritual, third person; never says 'I'; addresses the player as 'Tide'" },
+    "venno": { "stage": "grille-above-gate", "register": "genial showman; plays to the crowd, not the player; never cruel, always selling" },
+    "ophel": { "stage": "dais-rail-right", "register": "dry, scholarly, footnotes; understated; gives information, never encouragement" },
+    "brennic": { "stage": "arena-floor-centre", "register": "hard-headed, aggressive, stronger under tension; short sentences" },
+    "lio": { "stage": "arena-floor-centre", "register": "restless, free, contemptuous of rules; mocking, light" },
+    "cassia": { "stage": "first-person", "register": "precise, courteous, conditional sentences", "_about": "The player. DELIBERATELY SILENT: no voiced line in the slice. Not a budget cut - the player's hands are the player's, and a voice put in her mouth competes with them. Her register governs every stone label, which are her thoughts." }
+  },
+
+  "_comfort": "Every speaker is inside the front +/-70 deg, or +/-40 deg in narrow view, and no line is head-locked (docs/campaign/04-vr-campaign-design.md section 2; plan section 6.1). Text is world-locked on the dais rail, one line at a time.",
+  "_neverSay": [
+    "'you died', 'death', or blood as the price of losing - below the Summa every loss is missio, the crowd's mercy",
+    "loop language: 'again', 'this time', 'reset', 'the last day of every loop' - TV removed loops (plan D2)",
+    "a proper noun with no tent or role attached: 'Brennic of the Ember', never bare 'Brennic'",
+    "K-ford-betrayal as an on-screen revelation - the prologue SHOWS the collaring; nobody explains it",
+    "K-wardstones-drink or the Breaking - a Summa ending the slice does not reach (C2 decision D5)",
+    "'sine missione' - reserved for high tiers, not built",
+    "a line that tells the player they did well - the crowd carries approval, the cast carries information"
+  ]
+}

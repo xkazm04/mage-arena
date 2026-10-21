@@ -76,7 +76,7 @@ CR-006 and CR-007 are filed and open (paths under "Next cards" above).
 | 9 | T24 | Mudra seal detector, 1.5 s data window, the seal gates the tier IV cast | Grok, after C1 |
 | 10 | T25 | Closed-fist held pose, and spare (open palm) or finish (fist) at missio; writes the arena flag | Grok |
 | 11 | T26 | Element-correct colour (fire reads as fire, not turquoise) and the first `UAudioComponent`: A05 SFX plus threat cues, spatialised | Grok |
-| 12 | C2 | Story bible v0 and the slice script: ritual words, Brennic's taunts, crowd chorus, intermission secrets, the Wardstones line (10 words or fewer each) | Claude + owner |
+| 12 | C2 | Story bible v0 and the slice script: ritual words, Brennic's taunts, crowd chorus, intermission secrets, the Wardstones line (10 words or fewer each). **Drafted 2026-10-21: `docs/campaign/05-c2-slice-story-bible-and-script.md`** + `apps/vr/data/vr/story/slice.json`. 27 cues, 3 intermission scenes, a 213 s natural story budget that puts the day at 7.0-8.5 min. Awaiting the owner on D1-D4; the Wardstones line is **cut** (D5) and **CR-008 is not written** (D7: no "four routes" are defined anywhere in the repo) | Claude + owner |
 | 13 | T27 | Voice and chorus from the C2 cue sheet (ElevenLabs, pre-rendered, count on the card), wired to the ritual, phase breaks and the aftermath | Grok |
 | 14 | T28 | Intermission scenes on the stones: one optional choice per intermission (secrets, the first pact), never blocking (20 s) | Grok, after C2 |
 

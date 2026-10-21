@@ -419,7 +419,7 @@ gates green, `git fetch` and rebase (or merge) first, never force-push. GitHub i
 |---|---|---|---|---|
 | H1 | T38 rigged mesh (FBX or GLB) with four clips `Idle`, `Cast`, `Hit`, `Death`, plus a `SOURCE.md` draft (tool versions, prompts, seed, date) | Lynx: TRELLIS and Blender rigging (PoF 3D rounds); Claude + owner author | `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\` on Lynx, outside git (T38 "Hand-off") | Copy to the same path on Wolf (shared drive or copy, operator's choice, not decided). Wolf runs the T38 checks, imports to `Content/Characters/Brennic/` and commits only the import (LFS) |
 | H2 | C1, the mudra seal shape | Claude + owner (on Lynx or anywhere) | a committed design doc (C1 states the path; roadmap lane B row 8) | `git pull`, then P7 T24. Its path is the first line of the T24 report |
-| H3 | **C2, story bible and slice script with the cue sheet - the critical path for the day's length.** Does not exist in the repo as of 2026-10-21. DF-010 ruled E + B, so T27 and T28 are the only route to 7-10 min, and both are blocked on this. Owner's writing time comes before any Wolf time on either | Claude + owner | a committed doc (C2 states the path; roadmap row 12) | `git pull`, then P7 T27 and T28 |
+| H3 | **C2, story bible and slice script with the cue sheet - the critical path for the day's length. DRAFTED 2026-10-21** at `docs/campaign/05-c2-slice-story-bible-and-script.md`, with the authored data at `apps/vr/data/vr/story/slice.json`. DF-010 ruled E + B, so T27 and T28 are the only route to 7-10 min. **What Wolf still waits on is the owner's ruling of C2 decisions D1-D4, not the writing** - D4 (voice approval, recommended 14 cues) gates T27; D1-D3 gate both | Claude + owner | committed: the doc above plus `apps/vr/data/vr/story/slice.json` | `git pull`, then P7 T27 and T28 |
 | H4 | Two music loops and their `SOURCE.md` | the owner, or the App Master on the owner's go (ElevenLabs, count 2) | `apps/vr/art/audio/music/` (LFS) | `git pull`, `git lfs pull`, then P7 T40 |
 | H5 | Voice WAVs, `manifest.json`, `SOURCE.md` | the owner or the App Master after the owner's go | `apps/vr/art/audio/voice/` (LFS) | `git pull`, `git lfs pull`, then P7 T27 |
 | H6 | Card amendments, new cards, DECISIONS entries, Node tooling | Lynx (App Master) | `apps/vr/tasks/`, `docs/`, `apps/vr/tools/*.mjs` | `git pull` before each phase; re-read the card and DECISIONS |
@@ -479,10 +479,13 @@ run, the submission package.
 4. **The style pick** after P4 (13, 25 or 30).
 5. **T38:** how the H1 file crosses to Wolf, when it lands, and the look (greybox flat colour or the picked skin).
 6. **The R0 checkpoint:** it was Fri 23 Oct and cannot be met with an animated opponent; when the owner judges it (after P6).
-7. **C1** (the seal shape), Claude + owner. **C2** (the story bible and slice script with the cue sheet), Claude +
-   owner - **no longer just an input: it is the critical path.** DF-010 was ruled E + B on 2026-10-21, which makes T27
-   and T28 the only arithmetic route to the 7-10 min day the owner kept. It does not exist yet. The open part is the
-   owner's writing time and when it lands; Claude can draft it on Lynx for the owner to rule on.
+7. **C1** (the seal shape), Claude + owner - not written. **C2** (the story bible and slice script with the cue sheet),
+   **drafted 2026-10-21** at `docs/campaign/05-c2-slice-story-bible-and-script.md`. It is the critical path: DF-010 was
+   ruled E + B, which makes T27 and T28 the only arithmetic route to the 7-10 min day the owner kept. **What is open is
+   now a ruling, not writing time** - C2's own section 11 lists it: D1 the voice of the game, D2 the 213 s time budget,
+   D3 three intermission choices instead of the campaign doc's one, D4 voice approval and the cue count (recommended 14
+   of 27). D5 cuts the Wardstones line; D7 reports that **CR-008's "four routes" are defined nowhere in the repo**, so
+   that CR is either the owner's to define or should be retired.
 8. **T40's music source**, and the go for generation (count 2); **T27's** generation go and count.
 9. **Two cold desktop testers** for T41, and three cold device testers for V3 (plan section 12 Q6).
 10. **The device order** without a full gate pass (STATE-EVAL section 6 risk 4; plan section 12 Q2), and the dashboard app

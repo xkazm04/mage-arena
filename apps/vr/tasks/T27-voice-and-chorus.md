@@ -1,7 +1,10 @@
 # T27 - Voice and crowd chorus from the C2 cue sheet
 
-Status: open, blocked on C2 (the story bible and slice script with the cue sheet, Claude + owner, roadmap lane B row 12; an
-owner design call, not a worker task). The wiring runs on the build machine (Wolf, the x64 UE host: UE 5.8.3 editor).
+Status: open. **C2 is drafted: `docs/campaign/05-c2-slice-story-bible-and-script.md`** (2026-10-21), with the cue sheet in
+its section 9 - 27 cues, every one 10 words or fewer. Still blocked, but now on the **owner's ruling of C2 decisions D1-D4**,
+not on the writing. **D4 is the one that gates this card: voice is not yet approved** (the ElevenLabs approval in
+`docs/DECISIONS.md` names SFX and music). Recommended go: **14 cues, blocks A + B**. Until D4 is ruled, build the importer,
+wiring and tests against the manifest and generate nothing. The wiring runs on the build machine (Wolf, the x64 UE host: UE 5.8.3 editor).
 The generation step needs the owner's go (see Constraints). Written 2026-10-20 on the ARM64 laptop, where none of it runs.
 Max turns: 160
 
@@ -14,7 +17,10 @@ verdict, felt). It moves no mechanical K3 row.
 
 ## Read first
 - `CLAUDE.md`, `docs/DECISIONS.md` (they outrank this card if they conflict; read the voice-lines entry and the paid-service rule)
-- C2 once written, and the cue sheet in it: its path is the first line of the report; without it, stop and report blocked
+- **C2: `docs/campaign/05-c2-slice-story-bible-and-script.md`** - sections 5 (the lines), 9 (the cue sheet and the A-P cut
+  blocks) and 10 (the `_story.*` marker convention this card must apply). Its path is the first line of the report. This card
+  also owns, per C2 section 4: `day.json` `ritualLineS` -> an array, `ritualTimeoutS` 20 -> 45, the `strings.json` `story.*`
+  lines and `_story.*` markers, and the `DayTests.cpp` marker assertion (C2 section 10)
 - `docs/ORCHESTRATION.md` "Budgets and limits" (ElevenLabs is the only approved paid service; a card that generates states the count)
 - `apps/vr/tasks/T26-element-colour-and-first-audio.md`, `apps/vr/tools/import-sfx.ps1` and `capture-colour-audio.ps1` (the
   import and capture route this card follows), `apps/vr/art/audio/sfx/manifest.json`
