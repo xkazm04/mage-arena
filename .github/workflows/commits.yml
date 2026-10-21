@@ -1,10 +1,14 @@
-# Commit-subject gate: every non-merge commit a pull request adds must read `type(scope): summary` or
-# `<card id>: summary` (tools/check-commits.mjs; CLAUDE.md "Git"). Red on any other subject.
-# No third-party action on purpose: the runner's own gh CLI reads the PR's commits and fetches the checker,
-# so this workflow adds no floating action ref to pin (SECURITY.md "Supply chain").
-# The checker is resolved at the PR's BASE sha, never at the head: fetched at the head, a pull request that
-# weakened `subjectOk` (or deleted the file) would also weaken the gate judging it. The subjects still come
-# from the head side - that is the thing under test.
+# Commit-subject gate: every non-merge commit must read `type(scope): summary` or `<card id>: summary`
+# (tools/check-commits.mjs; CLAUDE.md "Git"). Red on any other subject.
+# No third-party action on purpose: the runner's own gh CLI reads the commits and fetches the checker, so
+# this workflow adds no floating action ref to pin (SECURITY.md "Supply chain").
+# ON BOTH PATHS: a pull request, and a DIRECT PUSH TO MASTER, which is how CLAUDE.md "Git" has agents land
+# verified work. The local pre-push hook (tools/install-hooks.mjs) runs the same checker first; this is the
+# backstop that cannot be skipped per clone.
+# The checker is always resolved at the BASE, never at the code under test: fetched at the head, a change
+# that weakened `subjectOk` (or deleted the file) would also weaken the gate judging it. The base is the
+# PR's base sha on a pull request, and the push event's `before` - master's previous tip - on a push. The
+# subjects come from the head side either way; that is the thing under test.
 # clang-tidy is not run here or in quality.yml: it needs UBT's compile database and hosted runners have no
 # Unreal Engine, so it stays on demand (apps/vr/tools/lint/tidy.ps1). Branch protection is set by the owner:
 # mark `commits / subjects`, `quality / lint-and-test`, `quality / format` and `ai-conformance / conformance`
@@ -12,6 +16,8 @@
 name: commits
 on:
   pull_request:
+  push:
+    branches: [master]
 permissions:
   contents: read
   pull-requests: read
@@ -19,7 +25,8 @@ jobs:
   subjects:
     runs-on: ubuntu-latest
     steps:
-      - name: commit subjects (conventional or task-card id)
+      - name: commit subjects (pull request)
+        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -32,5 +39,37 @@ jobs:
           gh api "repos/$REPO/contents/tools/check-commits.mjs?ref=$BASE_SHA" -H 'Accept: application/vnd.github.raw+json' > "$checker"
           gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/commits" \
             --jq '.[] | select((.parents | length) < 2) | .commit.message | split("\n")[0]' > "$subjects"
+          node "$checker" --self-test
+          node "$checker" --subjects "$subjects"
+      - name: commit subjects (direct push to master)
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.after }}
+        run: |
+          set -euo pipefail
+          zero='0000000000000000000000000000000000000000'
+          # A branch deletion has nothing to check, and a branch CREATION has no previous tip, so there is
+          # no honest base to resolve the checker at or range to read. Both are loud no-ops rather than a
+          # green light that means nothing: branch protection makes either on master an event in itself.
+          if [ "$AFTER_SHA" = "$zero" ]; then
+            echo "::notice::master was deleted by this push; no commits to check."
+            exit 0
+          fi
+          if [ "$BEFORE_SHA" = "$zero" ]; then
+            echo "::warning::master was CREATED by this push, so there is no previous tip to use as a base. Commit subjects were NOT checked - review them by hand."
+            exit 0
+          fi
+          checker="$RUNNER_TEMP/check-commits.mjs"
+          subjects="$RUNNER_TEMP/subjects.txt"
+          # Resolved at `before`, i.e. master as it stood BEFORE this push, so a push that weakens the
+          # checker is still judged by the version it tried to replace.
+          gh api "repos/$REPO/contents/tools/check-commits.mjs?ref=$BEFORE_SHA" -H 'Accept: application/vnd.github.raw+json' > "$checker"
+          # compare/before...after is exactly the commits this push adds, and it falls back to the merge
+          # base when `before` is not an ancestor, so a force-push is still gated rather than skipped.
+          gh api --paginate "repos/$REPO/compare/$BEFORE_SHA...$AFTER_SHA" \
+            --jq '.commits[] | select((.parents | length) < 2) | .commit.message | split("\n")[0]' > "$subjects"
           node "$checker" --self-test
           node "$checker" --subjects "$subjects"

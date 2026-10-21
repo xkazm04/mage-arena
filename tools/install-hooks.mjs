@@ -9,6 +9,7 @@
 // outside .git/ is touched and no tracked file has to carry an executable bit). The hook runs
 //   1. the `test` capability from .ai/manifest.yaml  (agy guard + the pinned-data sha256 gate + its self-test)
 //   2. node tools/check-repo-law.mjs                (the laws no other gate enforces)
+//   3. node tools/check-commits.mjs                 (commit subjects; CLAUDE.md "Git")
 // and then delegates to the Git LFS pre-push hook, which is preserved verbatim, not reimplemented: the
 // original is moved to .git/hooks/pre-push.lfs and exec'd last, so `git lfs pre-push` still runs and large
 // files still upload. Removing this hook is `git checkout`-proof in the other direction too: --uninstall
@@ -29,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const MARKER = 'mage-arena pre-push gate';
-const VERSION = 1;
+const VERSION = 2;
 const VERSION_LINE = `# ${MARKER} v${VERSION} - installed by tools/install-hooks.mjs; re-run it to refresh.`;
 
 function fail(message) {
@@ -98,9 +99,9 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 
-# The three groups are independent, so they run concurrently: sequentially they take about 10 s, which is
+# The four groups are independent, so they run concurrently: sequentially they take about 10 s, which is
 # the whole budget. Output is captured and printed only for a group that fails, so a green push is quiet
-# and a red one is readable instead of three interleaved streams.
+# and a red one is readable instead of four interleaved streams.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
@@ -111,9 +112,14 @@ pid_guard=$!
 pid_pin=$!
 node tools/check-repo-law.mjs >"$tmp/law" 2>&1 &
 pid_law=$!
-wait $pid_guard; rc_guard=$?
-wait $pid_pin;   rc_pin=$?
-wait $pid_law;   rc_law=$?
+# Commit subjects: the same gate .github/workflows/commits.yml runs. Bare, it resolves its own base from
+# @{upstream} (else master, else origin/master), which is the branch being pushed - the right range here.
+node tools/check-commits.mjs >"$tmp/subjects" 2>&1 &
+pid_subjects=$!
+wait $pid_guard;    rc_guard=$?
+wait $pid_pin;      rc_pin=$?
+wait $pid_law;      rc_law=$?
+wait $pid_subjects; rc_subjects=$?
 set -e
 
 failed=0
@@ -130,6 +136,7 @@ report() {
 report "test: agy worker guard" "$rc_guard" "$tmp/guard"
 report "test: pinned-data hash gate" "$rc_pin" "$tmp/pin"
 report "repo law" "$rc_law" "$tmp/law"
+report "commit subjects" "$rc_subjects" "$tmp/subjects"
 
 if [ "$failed" -ne 0 ]; then
   printf >&2 '%s\\n' "pre-push: BLOCKED. Fix the above, or push with --no-verify and say in the report that you bypassed the gate."
@@ -225,7 +232,7 @@ function install(root) {
 
   for (const line of done) console.log(`install-hooks: ${line}`);
   console.log(
-    `install-hooks: on push it runs the \`test\` capability and tools/check-repo-law.mjs, then Git LFS. Bypass: git push --no-verify.`,
+    `install-hooks: on push it runs the \`test\` capability, tools/check-repo-law.mjs and tools/check-commits.mjs, then Git LFS. Bypass: git push --no-verify.`,
   );
   console.log(`install-hooks: hooks directory ${state.viaConfig ? 'from core.hooksPath' : 'is the default <git-dir>/hooks'}; core.hooksPath was not changed.`);
   console.log('install-hooks: .git/hooks is not tracked, so every clone and worktree runs this once for itself.');
