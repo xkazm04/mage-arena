@@ -2,51 +2,63 @@
   "cells": {
     "mouse/normal/diagonal": {
       "n": 30,
-      "ok": 29
+      "ok": 29,
+      "wrong": 1
     },
     "mouse/normal/horizontal": {
       "n": 30,
-      "ok": 30
+      "ok": 30,
+      "wrong": 0
     },
     "mouse/normal/vertical": {
       "n": 30,
-      "ok": 28
+      "ok": 28,
+      "wrong": 2
     },
     "synthetic/normal/diagonal": {
       "n": 30,
-      "ok": 28
+      "ok": 28,
+      "wrong": 2
     },
     "synthetic/normal/horizontal": {
       "n": 30,
-      "ok": 29
+      "ok": 29,
+      "wrong": 1
     },
     "synthetic/normal/vertical": {
       "n": 30,
-      "ok": 30
+      "ok": 30,
+      "wrong": 0
     },
     "synthetic/sloppy/diagonal": {
       "n": 30,
-      "ok": 30
+      "ok": 30,
+      "wrong": 0
     },
     "synthetic/sloppy/horizontal": {
       "n": 30,
-      "ok": 24
+      "ok": 24,
+      "wrong": 6
     },
     "synthetic/sloppy/vertical": {
       "n": 30,
-      "ok": 28
+      "ok": 28,
+      "wrong": 2
     },
     "synthetic/slow/diagonal": {
       "n": 30,
-      "ok": 29
+      "ok": 29,
+      "wrong": 1
     },
     "synthetic/slow/horizontal": {
       "n": 30,
-      "ok": 30
+      "ok": 30,
+      "wrong": 0
     },
     "synthetic/slow/vertical": {
       "n": 30,
-      "ok": 29
+      "ok": 29,
+      "wrong": 1
     }
   }
 }
