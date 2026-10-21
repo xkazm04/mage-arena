@@ -1,7 +1,10 @@
 # Commit-subject gate: every non-merge commit a pull request adds must read `type(scope): summary` or
 # `<card id>: summary` (tools/check-commits.mjs; CLAUDE.md "Git"). Red on any other subject.
-# No third-party action on purpose: the runner's own gh CLI reads the PR's commits and fetches the checker at
-# the PR head, so this workflow adds no floating action ref to pin (SECURITY.md "Supply chain").
+# No third-party action on purpose: the runner's own gh CLI reads the PR's commits and fetches the checker,
+# so this workflow adds no floating action ref to pin (SECURITY.md "Supply chain").
+# The checker is resolved at the PR's BASE sha, never at the head: fetched at the head, a pull request that
+# weakened `subjectOk` (or deleted the file) would also weaken the gate judging it. The subjects still come
+# from the head side - that is the thing under test.
 # clang-tidy is not run here or in quality.yml: it needs UBT's compile database and hosted runners have no
 # Unreal Engine, so it stays on demand (apps/vr/tools/lint/tidy.ps1). Branch protection is set by the owner:
 # mark `commits / subjects`, `quality / lint-and-test`, `quality / format` and `ai-conformance / conformance`
@@ -21,12 +24,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
           checker="$RUNNER_TEMP/check-commits.mjs"
           subjects="$RUNNER_TEMP/subjects.txt"
-          gh api "repos/$REPO/contents/tools/check-commits.mjs?ref=$HEAD_SHA" -H 'Accept: application/vnd.github.raw+json' > "$checker"
+          gh api "repos/$REPO/contents/tools/check-commits.mjs?ref=$BASE_SHA" -H 'Accept: application/vnd.github.raw+json' > "$checker"
           gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/commits" \
             --jq '.[] | select((.parents | length) < 2) | .commit.message | split("\n")[0]' > "$subjects"
           node "$checker" --self-test
