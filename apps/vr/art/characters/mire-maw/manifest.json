@@ -1,0 +1,101 @@
+{
+  "card": "T15",
+  "generated": "2026-10-21",
+  "model_sheet": "apps/vr/art/model-sheets/06-mire-maw-turnaround.jpg",
+  "note": "Concept art for the Bout 2 mire maw, derived from model sheet 06 (silhouette), with one flat colour per material. Every call is in leonardo-log.json (28 credits for this asset; 56 for the hound and maw cap group of 112). The front view was the TRELLIS.2 input (seed 42, used without its face; front seed 7 and the side panel at seed 42 were rejected). Mesh, rig, clips and evidence are in git under export/ (FBX and PNGs through Git LFS, owner 2026-10-21); work/ stays in the archive C:/Users/kazda/kiro/mage-arena-archive/T15/mire-maw/work/ (see HANDOFF.md). The face (mouth slot, tongue, eyes, pupils) is hand-authored Blender geometry (apps/vr/tools/assets/beast_parts.py), not generated.",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/mire-maw/concept-front-s4401-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4401,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (seed 42)"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/mire-maw/concept-turnaround-s4402-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4402,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front, side and back reference (its side panel was the rejected third TRELLIS input)"
+    },
+    {
+      "asset": "SK_MireMaw",
+      "path": "apps/vr/art/characters/mire-maw/export/SK_MireMaw.fbx",
+      "sha256": "748fb3dfb682324fd1116441e460d82f9241db040d060c13567aa941e5185272",
+      "bytes": 1339852,
+      "tris": 19786,
+      "bones": 11,
+      "clips": [
+        "Idle",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "hand_authored_parts": {
+        "kind": "mouth slot, tongue, two eyes with pupils",
+        "source": "hand-authored in Blender (apps/vr/tools/assets/beast_parts.py, parametric bmesh geometry, EXACT booleans); no Leonardo, TRELLIS, ComfyUI or third-party source",
+        "tris_added": 2292
+      }
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/mire-maw/export/SOURCE.md",
+      "sha256": "eea9e5d697087ee691fd1355b54a1b1d31a612a48923f2874eedc8a0f20779a5",
+      "bytes": 8541
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/mire-maw/export/metrics.json",
+      "sha256": "cd1a699903e5d7b36143e2265c85b39fba457ed6369a44b0d70baf306313f6fd",
+      "bytes": 4364
+    },
+    {
+      "asset": "MireMaw_turnaround",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_turnaround.png",
+      "sha256": "e31d8383904528b49d05e04f5b0a7c0e1b934f2637ddc37611a22cfbd0b943d4",
+      "bytes": 1420027
+    },
+    {
+      "asset": "MireMaw_game_640x480",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_game_640x480.png",
+      "sha256": "f5514204b69db372e1d9548798422c6f62d0512a65bb78c565dfe503e86b326e",
+      "bytes": 260384
+    },
+    {
+      "asset": "MireMaw_clip_Idle",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_clip_Idle.png",
+      "sha256": "900a97099263110fe0f102156fd1dbf81f628443a17d9a2059209f01ee41afe8",
+      "bytes": 414593
+    },
+    {
+      "asset": "MireMaw_clip_Attack",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_clip_Attack.png",
+      "sha256": "d5d6e1e68b7832c7f7e3c6e9b031d76cb1b4d10ffdc790a3965c5dbe14a80afe",
+      "bytes": 930045
+    },
+    {
+      "asset": "MireMaw_clip_Hit",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_clip_Hit.png",
+      "sha256": "37df2266bc05a4a27b9df71c3c23ed1c46fb95d44bd0f3a148466905d0733399",
+      "bytes": 553363
+    },
+    {
+      "asset": "MireMaw_clip_Death",
+      "path": "apps/vr/art/characters/mire-maw/export/MireMaw_clip_Death.png",
+      "sha256": "c84b05d6143b845c89f213d13178c8ed11495ef6952a5718334f78385a3a3bf0",
+      "bytes": 690642
+    }
+  ]
+}
