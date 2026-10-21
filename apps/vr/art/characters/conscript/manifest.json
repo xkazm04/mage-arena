@@ -1,0 +1,87 @@
+{
+  "card": "T15",
+  "generated": "2026-10-21",
+  "note": "Concept art for the Bout 2 Conscript, derived from model sheet 03-conscript-turnaround.jpg, with one flat colour per material. Every call is in leonardo-log.json (42 credits for this asset). The front view was the TRELLIS.2 input. Mesh, rig, clips and evidence are in git under apps/vr/art/characters/conscript/export/ (FBX and PNGs through Git LFS, owner 2026-10-21); the work/ folder stays in the archive C:/Users/kazda/kiro/mage-arena-archive/Conscript/work/ (see HANDOFF.md).",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/conscript/concept-front-s4101-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4101,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "768x1376",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (seed 42)"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/conscript/concept-turnaround-s4102-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4102,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front, side and back reference"
+    },
+    {
+      "asset": "SK_Conscript",
+      "path": "apps/vr/art/characters/conscript/export/SK_Conscript.fbx",
+      "sha256": "7b50106cdd86a523b2cf6445c9af64f5c0db8b1d9d68f0b7c1130f086b0dd594",
+      "bytes": 1890764
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/conscript/export/SOURCE.md",
+      "sha256": "34fc80a70fb0a0cb1d9611d19f97a788ffca1a7db7b1d72f20d8f363deda827b",
+      "bytes": 8027
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/conscript/export/metrics.json",
+      "sha256": "90f61385fffafe8070627a871a61a2280807ca888c4e608c4450e0a66735fd75",
+      "bytes": 4329
+    },
+    {
+      "asset": "Conscript_turnaround",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_turnaround.png",
+      "sha256": "de65a7c385ac05f3647a53f9b548c204a471fa21c1e3d911b99bbdce6686158f",
+      "bytes": 1607262
+    },
+    {
+      "asset": "Conscript_game_640x480",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_game_640x480.png",
+      "sha256": "14f70f10f4db1e118d30a5c354af8cca6647467b9fdec0df1d35a6c05511b586",
+      "bytes": 261330
+    },
+    {
+      "asset": "Conscript_clip_Idle",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_clip_Idle.png",
+      "sha256": "36340548cc8c513a8223733b6dac09854233a85a83c3de35d051cb8d04d8880a",
+      "bytes": 434992
+    },
+    {
+      "asset": "Conscript_clip_Attack",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_clip_Attack.png",
+      "sha256": "7271533014a680cb01a5a6ad479d0b6b3c0b40a719dc823312f5d92f67ca47be",
+      "bytes": 743420
+    },
+    {
+      "asset": "Conscript_clip_Hit",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_clip_Hit.png",
+      "sha256": "e7ee1dae951b803fad2beb7c17e2d206932114e9b395f5c15a4b23179ac13a06",
+      "bytes": 602931
+    },
+    {
+      "asset": "Conscript_clip_Death",
+      "path": "apps/vr/art/characters/conscript/export/Conscript_clip_Death.png",
+      "sha256": "0d39369390e9a88e16d9e149bf38a5c6044df54c31112a492053dd406fd7f5b9",
+      "bytes": 817117
+    }
+  ]
+}
