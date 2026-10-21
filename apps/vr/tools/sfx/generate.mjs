@@ -1,6 +1,6 @@
 // Greybox SFX starter pack. Node built-ins only.
 // One ElevenLabs take per cue (one HTTP retry, then stop on 401/402/quota).
-// The API key is read from the environment or pof's .env and is never printed,
+// The API key is read from the environment or bp's .env and is never printed,
 // logged, written to a file, or placed on a command line.
 
 import crypto from 'node:crypto';
@@ -18,7 +18,9 @@ const OUT_DIR = path.join(APP, 'art', 'audio', 'sfx');
 const SRC_DIR = path.join(OUT_DIR, 'src');
 const MANIFEST_PATH = path.join(OUT_DIR, 'manifest.json');
 const HTML_PATH = path.join(OUT_DIR, 'index.html');
-const ENV_PATH = 'C:\\Users\\kazda\\kiro\\pof\\.env';
+const ENV_PATH = 'C:\\Users\\kazda\\kiro\\bp\\.env';
+const KEY_NAME = 'ELEVEN_LABS_API_KEY';
+const FFMPEG_FALLBACK = 'C:\\Users\\kazda\\ai\\tools\\ffmpeg-master-latest-winarm64-gpl\\bin\\ffmpeg.exe';
 const LEDGER_PATH = path.join(os.tmpdir(), 'a05-sfx-ledger.json');
 const ENDPOINT = 'https://api.elevenlabs.io/v1/sound-generation';
 const PROMPT_INFLUENCE = 0.4;
@@ -91,13 +93,13 @@ function atomicWrite(file, text) {
 }
 
 function loadKey() {
-  const fromEnv = process.env.ELEVENLABS_API_KEY;
+  const fromEnv = process.env[KEY_NAME];
   if (fromEnv && fromEnv.trim()) return fromEnv.trim();
   let text;
   try {
     text = fs.readFileSync(ENV_PATH, 'utf8');
   } catch {
-    throw new Error('ELEVENLABS_API_KEY is not set and pof .env could not be read');
+    throw new Error(`${KEY_NAME} is not set and the bp .env could not be read`);
   }
   if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
   for (const raw of text.split(/\r?\n/)) {
@@ -107,7 +109,7 @@ function loadKey() {
     if (eq < 0) continue;
     let name = line.slice(0, eq).trim();
     if (name.startsWith('export ')) name = name.slice(7).trim();
-    if (name !== 'ELEVENLABS_API_KEY') continue;
+    if (name !== KEY_NAME) continue;
     let value = line.slice(eq + 1).trim();
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
@@ -118,7 +120,7 @@ function loadKey() {
     if (!value) break;
     return value;
   }
-  throw new Error('ELEVENLABS_API_KEY is not set');
+  throw new Error(`${KEY_NAME} is not set`);
 }
 
 function run(bin, args) {
@@ -140,8 +142,18 @@ function run(bin, args) {
   });
 }
 
-function ffmpeg(args) {
-  return run('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args]);
+let ffmpegBin = null;
+async function ffmpeg(args) {
+  const full = ['-hide_banner', '-loglevel', 'error', '-y', ...args];
+  if (!ffmpegBin) {
+    try {
+      await run('ffmpeg', ['-version']);
+      ffmpegBin = 'ffmpeg';
+    } catch {
+      ffmpegBin = FFMPEG_FALLBACK;
+    }
+  }
+  return run(ffmpegBin, full);
 }
 
 function parseWav(buf) {
@@ -453,6 +465,9 @@ function ledgerTotals(ledger) {
 
 class StopRun extends Error {}
 
+// One entry per HTTP call made by this run; appended to manifest.calls.
+const callLog = [];
+
 async function postSound(body) {
   const response = await fetch(ENDPOINT, {
     method: 'POST',
@@ -489,6 +504,7 @@ async function generateMp3(cue, prompt, mp3Path, ledger) {
     try {
       result = await postSound(sent);
     } catch (error) {
+      callLog.push({ id: cue.id, prompt: sent.text, seconds: cue.seconds, attempt, http_status: 0, outcome: 'network-error', characters: null });
       ledger.events.push({
         id: cue.id,
         ok: false,
@@ -503,6 +519,15 @@ async function generateMp3(cue, prompt, mp3Path, ledger) {
       continue;
     }
     const audio = isMp3(result.bytes);
+    callLog.push({
+      id: cue.id,
+      prompt: sent.text,
+      seconds: cue.seconds,
+      attempt,
+      http_status: result.status,
+      outcome: result.status === 200 && audio ? 'ok' : isFatal(result.status, result.bytes.toString('utf8')) ? 'stopped' : 'failed',
+      characters: result.characterCost,
+    });
     ledger.events.push({
       id: cue.id,
       ok: result.status === 200 && audio,
@@ -586,7 +611,7 @@ function writeHtml(rows, common) {
 <body>
   <header>
     <h1>Greybox SFX starter pack</h1>
-    <p class="lede">Twenty style-neutral placeholders for the mechanics gate. Each prompt was the common line followed by the sentence below. Common line: ${esc(common)}</p>
+    <p class="lede">${rows.length} style-neutral placeholders for the mechanics gate. Each prompt was the common line followed by the sentence below. Common line: ${esc(common)}</p>
     <p class="lede">Files are 48 kHz, 16-bit, peak-normalised to -1 dBFS, mono except the stereo arena crowd. Looping rows repeat so the join can be heard. ${esc(LOOP_NOTE)}</p>
   </header>
   <main>
@@ -748,8 +773,8 @@ async function main() {
   }
   apiKey = loadKey();
   const sheet = JSON.parse(fs.readFileSync(CUES_PATH, 'utf8'));
-  if (!sheet.common || !Array.isArray(sheet.cues) || sheet.cues.length !== 20) {
-    throw new Error('cues.json does not contain the common line and 20 cues');
+  if (!sheet.common || !Array.isArray(sheet.cues) || sheet.cues.length < 20) {
+    throw new Error('cues.json does not contain the common line and at least 20 cues');
   }
   const ids = new Set();
   for (const cue of sheet.cues) {
@@ -808,7 +833,10 @@ async function main() {
       if (!validMp3(mp3Path)) continue;
       const channels = cue.id === 'arena-crowd-loop' ? 2 : 1;
       const crossfadeSeconds = cue.id === 'arena-crowd-loop' ? CROWD_CROSSFADE_S : SHORT_CROSSFADE_S;
-      const fresh = !args.reconvert
+      const prior = previous?.cues?.find((c) => c.id === cue.id);
+      const kept = Boolean(prior) && !args.reconvert && !args.force.has(cue.id) && fs.existsSync(wavPath)
+        && crypto.createHash('sha256').update(fs.readFileSync(wavPath)).digest('hex') === prior.sha256;
+      const fresh = kept || !args.reconvert
         && !args.force.has(cue.id)
         && wavAcceptable(wavPath, channels)
         && fs.statSync(wavPath).mtimeMs >= fs.statSync(mp3Path).mtimeMs;
@@ -846,6 +874,10 @@ async function main() {
         continue;
       }
       const bytes = fs.readFileSync(wavPath);
+      if (kept) {
+        cueRows.push({ ...prior, cueText: prior.cue_text, file: `${cue.id}.wav`, duration: prior.actual_seconds });
+        continue;
+      }
       const prompt = `${sheet.common} ${cue.text}`;
       cueRows.push({
         id: cue.id,
@@ -888,6 +920,7 @@ async function main() {
         stopped,
         failures,
       },
+      calls: [...(previous?.calls || []), ...callLog],
       cues: cueRows.map((row) => ({
         id: row.id,
         text: row.text,
@@ -914,7 +947,7 @@ async function main() {
     if (failures.length) log(`failures: ${failures.length}`);
     log(`generated_seconds: ${totals.generated_seconds}`);
     log(`requests: ${totals.requests}`);
-    if (stopped || failures.length || cueRows.length !== 20) process.exitCode = 1;
+    if (stopped || failures.length || cueRows.length !== sheet.cues.length) process.exitCode = 1;
   } catch (error) {
     log(`error ${sanitize(error.message)}`);
     log(`requests: ${ledgerTotals(ledger).requests}`);

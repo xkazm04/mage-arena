@@ -23,6 +23,21 @@
     {"id": "crest", "seconds": 2.0, "loop": false, "text": "A great wave cresting and crashing, powerful rising rush of water ending in a bright magical burst."},
     {"id": "hound-snarl", "seconds": 1.2, "loop": false, "text": "A creature made of embers snarling, a crackling fiery growl, no human voice."},
     {"id": "arena-crowd-loop", "seconds": 10.0, "loop": true, "text": "Distant murmur of a large crowd in an open stone arena, steady and seamless, no individual words."},
-    {"id": "ui-pause", "seconds": 0.5, "loop": false, "text": "A soft muted low tone for pausing, gentle and quiet."}
+    {"id": "ui-pause", "seconds": 0.5, "loop": false, "text": "A soft muted low tone for pausing, gentle and quiet."},
+    {"id": "conscript-swing", "seconds": 0.6, "loop": false, "text": "A short sharp sword swing through the air, a fast metal whoosh of a soldier attacking."},
+    {"id": "conscript-hit", "seconds": 0.6, "loop": false, "text": "A blunt sword blow striking a wooden shield, a hard knock with a brief metallic rattle."},
+    {"id": "conscript-death", "seconds": 1.0, "loop": false, "text": "A soldier in armour collapsing, a clatter of metal plates and a dull thud on sand, no human voice."},
+    {"id": "slinger-whirl", "seconds": 1.2, "loop": false, "text": "A leather sling whirling a stone in fast circles, a rising rhythmic whirr ending in a sharp snap of release."},
+    {"id": "slinger-stone-impact", "seconds": 0.6, "loop": false, "text": "A hurled stone striking packed sand and stone, a hard crack and a short scatter of grit."},
+    {"id": "slinger-hit", "seconds": 0.6, "loop": false, "text": "A small stone hitting a leather cuirass, a short sharp smack and thud."},
+    {"id": "slinger-death", "seconds": 1.0, "loop": false, "text": "A light soldier falling to the sand, a soft clatter of leather gear and a muffled thump, no human voice."},
+    {"id": "hound-ember-windup", "seconds": 1.0, "loop": false, "text": "A fiery beast drawing breath to spit, a low rising crackle and hiss as glowing embers gather, slow and ominous."},
+    {"id": "hound-ember-spit", "seconds": 1.0, "loop": false, "text": "A slow glowing ember spat through the air, a soft fiery spit with a lazy crackling whoosh."},
+    {"id": "hound-death", "seconds": 1.4, "loop": false, "text": "A creature of embers dying, a crackling hiss collapsing into scattered sparks and a last soft burst, no human voice."},
+    {"id": "maw-emerge", "seconds": 1.6, "loop": false, "text": "A huge creature rising out of thick bog mud, a heavy wet squelch and bubbling suck of mire."},
+    {"id": "maw-lunge", "seconds": 0.8, "loop": false, "text": "A heavy wet creature lunging forward, a fast slap of mud and a gulping snap."},
+    {"id": "maw-death", "seconds": 1.6, "loop": false, "text": "A giant bog creature sinking and collapsing into mud, a long wet gurgle and slump, no human voice."},
+    {"id": "arena-gate-open", "seconds": 2.0, "loop": false, "text": "A heavy wooden portcullis gate being raised in a stone arena, deep chain rattle, creaking timber and a final stone thud."},
+    {"id": "arena-crowd-cheer", "seconds": 3.0, "loop": false, "text": "A large crowd cheering in an open stone arena, a swelling roar of applause and excitement, no individual words."}
   ]
 }
