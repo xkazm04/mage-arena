@@ -3,9 +3,11 @@
 Made on Lynx (Windows ARM64) on 2026-10-21. No Unreal Engine was run here, so nothing below is a UE result. Wolf runs
 the T38 checks again on import (`apps/vr/tasks/T38-first-animated-opponent.md`, "Hand-off").
 
-## Archive path (outside git)
+## Landing path (in git, LFS)
 
-`C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\`
+`apps/vr/art/characters/brennic/export/`, pushed to origin master through Git LFS (owner ruling 2026-10-21: "through git LFS;
+same for creatures and props; push to origin master"). Every file below was copied byte for byte from the Lynx archive
+`C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\`; sha256 and size per file are in `manifest.json`.
 
 | File | What |
 |---|---|
@@ -15,9 +17,9 @@ the T38 checks again on import (`apps/vr/tasks/T38-first-animated-opponent.md`, 
 | `Brennic_turnaround.png` | EEVEE, 8 views, Idle frame 0 |
 | `Brennic_game_640x480.png` | seated view: eye 1.2 m, rival 6 m away, 90 degree horizontal FOV |
 | `Brennic_clip_{Idle,Cast,Hit,Death}.png` | one still strip per clip, at its authored key frames |
-| `work/` | TRELLIS raw GLB (seed 42), finish and rig `.blend` files, the base-colour bake PNG (a record only) |
+| `work/` | not in git: stays in the archive `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\work\` as the record (TRELLIS raw GLB seed 42, finish and rig `.blend` files, the base-colour bake PNG) |
 
-How the files cross from Lynx to Wolf is the operator's choice (T38 "Hand-off").
+Wolf pulls them from origin master (T38 "Hand-off"). The FBX and the seven PNGs are LFS objects; `SOURCE.md` and `metrics.json` are plain text.
 
 ## Metrics summary (`metrics.json`)
 

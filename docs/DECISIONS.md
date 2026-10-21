@@ -2,6 +2,18 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - Asset transport and ElevenLabs as the audio source
+
+> Owner, 2026-10-21: "through git LFS; same for creatures and props; push to origin master"
+
+- Lynx-made assets (FBX, PNG) cross to Wolf through Git LFS in this repo, pushed to origin master, for characters,
+  creatures and props alike.
+
+> Owner, 2026-10-21: ElevenLabs is the source for the SFX and the T40 music. The key is `ELEVEN_LABS_API_KEY` in
+> `C:/Users/kazda/kiro/bp/.env`, read at runtime, never printed or committed, and every call is logged next to the assets.
+
+- Pipeline: `C:/Users/kazda/ai/lynx-bench/ASSET-PIPELINE.md`.
+
 ## 2026-10-21 - Deadlines and Q9: 18 Nov is the only hard date; Q9 is not posted
 
 > Operator, 2026-10-21, relayed through the App Master: "No need to post anything, final deadline is Nov 18, 2026, other

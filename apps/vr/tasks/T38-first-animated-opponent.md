@@ -27,11 +27,10 @@ The owner also names the look: greybox-compatible (one flat colour per material,
 ## Hand-off: Lynx makes the mesh, Wolf imports and verifies
 Lynx (Windows ARM64, no Unreal) may run TRELLIS and the Blender rigging step and write one rigged FBX (or GLB) with the
 four clips named `Idle`, `Cast`, `Hit`, `Death`, plus a `SOURCE.md` draft (tool versions, prompts, seed, date).
-- **Landing path:** `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\` (outside git, per `docs/DECISIONS.md`
-  2026-10-07 "evidence out of git"; also outside `apps/vr/data/pinned` and outside the tracked `Content/` tree). The file
-  is a work product, not evidence, so Wolf imports it to `Content/Characters/Brennic/` and only that import is
-  committed (LFS). How the file crosses from Lynx to Wolf (shared drive or copy) is the operator's choice; it is not
-  decided here.
+- **Landing path:** `apps/vr/art/characters/brennic/export/` (Git LFS). Transport: git LFS, pushed to origin master (owner,
+  2026-10-21, `docs/DECISIONS.md`). Wolf pulls, runs the pre-import checks below and imports to
+  `Content/Characters/Brennic/` as before; only that import is committed there (LFS). The `work/` folder (`.blend`
+  files, raw GLB, bake PNG) stays in the Lynx archive `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\work\`.
 - **Wolf checks before import:** one skeleton and one skinned mesh; exactly the four clips, none empty; LOD0 triangle
   count recorded (budget <=350k total with hands, arena and 20 actors); one flat colour per material, no embedded
   textures beyond the greybox rule; origin at the feet, +X forward, unit scale matching `FBody`; tool versions and

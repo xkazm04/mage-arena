@@ -1,7 +1,7 @@
 {
   "card": "T38",
   "generated": "2026-10-21",
-  "note": "Concept art for Brennic, the Fire mage opponent, derived from the A04 sheets 01 and 02 (bare-headed, bearded, no hood) with one flat colour per material. Every call is logged in leonardo-log.json (28 credits for this run). The front view was the TRELLIS.2 input. The mesh, rig, clips and evidence are outside git at C:/Users/kazda/kiro/mage-arena-archive/T38/Brennic/ (see HANDOFF.md).",
+  "note": "Concept art for Brennic, the Fire mage opponent, derived from the A04 sheets 01 and 02 (bare-headed, bearded, no hood) with one flat colour per material. Every call is logged in leonardo-log.json (28 credits for this run). The front view was the TRELLIS.2 input. The mesh, rig, clips and evidence are in git under apps/vr/art/characters/brennic/export/ (FBX and PNGs through Git LFS, owner 2026-10-21); the work/ folder stays in the archive C:/Users/kazda/kiro/mage-arena-archive/T38/Brennic/work/ (see HANDOFF.md).",
   "items": [
     {
       "asset": "concept-front",
@@ -28,6 +28,60 @@
       "credits": 14,
       "regen_reasons": [],
       "use": "front, side and back reference"
+    },
+    {
+      "asset": "SK_Brennic",
+      "path": "apps/vr/art/characters/brennic/export/SK_Brennic.fbx",
+      "sha256": "b2e17c05e2a08501721c1d41db527df3f317576ada53573cd0f331a0b5d5ea60",
+      "bytes": 1900572
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/brennic/export/SOURCE.md",
+      "sha256": "f33a9645b9f336f1afde5fa7f5191dd8e33ea30e9890504fdd7117f44fbacc6f",
+      "bytes": 7203
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/brennic/export/metrics.json",
+      "sha256": "b1f49050884281960fd2e17df6b6b7f58791696f3f1fb9f2c448116a534aa3dc",
+      "bytes": 4292
+    },
+    {
+      "asset": "Brennic_turnaround",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_turnaround.png",
+      "sha256": "718b711c1cbf1a19221733d95136928211a28e350cf689d3245038eb415c4977",
+      "bytes": 1597606
+    },
+    {
+      "asset": "Brennic_game_640x480",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_game_640x480.png",
+      "sha256": "75183ff42208b96df0a98f916c92b29063e09481aaeec401ab7d9675ce15cc01",
+      "bytes": 261281
+    },
+    {
+      "asset": "Brennic_clip_Idle",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_clip_Idle.png",
+      "sha256": "91ad7b5203d5b6860d2a0163b65d54f72547c67f82731d5012d350b9a06eb458",
+      "bytes": 442122
+    },
+    {
+      "asset": "Brennic_clip_Cast",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_clip_Cast.png",
+      "sha256": "c1999625522db4162afe78da8baabc248ff640f6c0014b97f91253838059f260",
+      "bytes": 870817
+    },
+    {
+      "asset": "Brennic_clip_Hit",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_clip_Hit.png",
+      "sha256": "ffef1eddb563069ee70150f310dc5fe6888f1a12786ba02ce956eb42a30585c8",
+      "bytes": 602813
+    },
+    {
+      "asset": "Brennic_clip_Death",
+      "path": "apps/vr/art/characters/brennic/export/Brennic_clip_Death.png",
+      "sha256": "58ef4bb706b7568530ec8e20a7ddac9f4fcaa950e86e16685cfa08e27dba8239",
+      "bytes": 840141
     }
   ]
 }
