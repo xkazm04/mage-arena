@@ -7,7 +7,9 @@
 #   blender -b -P finish.py -- <hi.glb> <outdir> <name> <rot_z_deg> <bake_res> <voxel_m> <target_tris> [<palette set, default Brennic>]
 # Palette sets (PALETTES): PALETTE are the display colours of the concept's palette blocks, REFERENCE the same parts as
 # TRELLIS bakes them, RULES re-label parts that share a colour: by height (from, to, 'below' | 'above', fraction of height)
-# or by place (from, to, 'box', (xmin, xmax, zmin, zmax) in metres, character frame: left is +X). On a tie in REFERENCE the part listed first wins.
+# or by place (from, to, 'box', (xmin, xmax, zmin, zmax[, ymin, ymax]) in metres, character frame: left is +X, front is -Y). On a tie in REFERENCE the part listed first wins.
+# or by an ellipse on the front (from, to, 'inside' | 'outside', (x centre, z centre, x radius, z radius)).
+# Optional per set: HEIGHT (metres, default 1.8) and SLAB (drop a fused ground slab of that thickness, in import units).
 # The k-means centres of the face colours go to <name>_finish.json ('face_kmeans') to tune a new set's REFERENCE.
 import bpy, sys, json, time, bmesh, math, numpy as np, mathutils
 
@@ -83,8 +85,50 @@ PALETTES = {
         },
         'RULES': [('Iron', 'Bag', 'below', 0.86)],  # the net pouch of stones bakes grey
     },
+    # The Bout 2 beasts. A set's HEIGHT replaces the humanoid 1.8 m. The A04 sheets carry no unit: the scale is the pixel
+    # scale of sheet 03, where the conscript is 1.80 m over 626 px (2.875 mm/px, the 42.6 px grid that sheets 03 and 06
+    # share; sheet 05's grid is that grid halved). Cinder hound: side view of sheet 05, ear tips to paws 473 px -> 1.36 m.
+    # concept-turnaround-s4302-medium.jpg (side panel) was the TRELLIS input.
+    'CinderHound': {
+        'HEIGHT': 1.36,
+        'PALETTE': {
+            'Cinder': (0.20, 0.20, 0.21),
+            'Ember': (0.96, 0.45, 0.10),
+            'Paw': (0.06, 0.06, 0.07),
+        },
+        'REFERENCE': {
+            'Cinder': (0.15, 0.15, 0.15),
+            'Ember': (0.733, 0.221, 0.086),
+            'Paw': (0.05, 0.052, 0.054),
+        },
+        'RULES': [],
+    },
+    # Mire maw: sheet 06, top of the mound to the feet 435 px -> 1.25 m. concept-front-s4401-medium.jpg was the TRELLIS input.
+    'MireMaw': {
+        'HEIGHT': 1.25,
+        'SLAB': 0.006,  # TRELLIS units: the seed-42 mesh stands on a 1 m square slab about 5 mm thick
+        'PALETTE': {
+            'Skin': (0.42, 0.40, 0.22),
+            'Belly': (0.62, 0.55, 0.38),
+            'Moss': (0.25, 0.33, 0.12),
+        },
+        # k-means of the seed-42 bake of 2026-10-21; the pebbles bake as moss speckle, so they take no part of their own
+        'REFERENCE': {
+            'Skin': (0.25, 0.23, 0.13),
+            'Belly': (0.43, 0.36, 0.27),
+            'Moss': (0.09, 0.15, 0.04),
+        },
+        # concept front: moss caps the top and covers the back, the belly is the front, the skin is the rest; the moss
+        # bakes speckled, so its place decides where colour alone does not
+        'RULES': [('Belly', 'Moss', 'box', (-2, 2, 0.98, 2)), ('Skin', 'Moss', 'box', (-2, 2, 1.06, 2)),
+                  ('Belly', 'Moss', 'box', (-2, 2, 0.62, 2, 0.05, 2)), ('Belly', 'Skin', 'box', (-2, 2, -1, 0.62, 0.05, 2)),
+                  ('Moss', 'Skin', 'below', 0.42), ('Moss', 'Skin', 'box', (-0.45, 0.45, -1, 0.98, -2, -0.35)),
+                  ('Belly', 'Skin', 'below', 0.12), ('Skin', 'Moss', 'box', (-2, 2, 0.62, 2, 0.05, 2)),
+                  ('Belly', 'Skin', 'outside', (0.0, 0.47, 0.40, 0.33)), ('Skin', 'Belly', 'inside', (0.0, 0.47, 0.36, 0.30))],
+    },
 }
 PALETTE, REFERENCE, RULES = (PALETTES[SET][k] for k in ('PALETTE', 'REFERENCE', 'RULES'))
+HEIGHT = PALETTES[SET].get('HEIGHT', HEIGHT)
 R = {}; T = {}; t0 = time.time()
 
 
@@ -125,6 +169,11 @@ bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 hm = hi.data
 if ROT: hm.transform(mathutils.Matrix.Rotation(math.radians(ROT), 4, 'Z'))
 R['hi_tris'] = tris(hi)
+if 'SLAB' in PALETTES[SET]:  # a ground slab TRELLIS fused under the feet: drop the faces that lie wholly inside the bottom band
+    bm = bmesh.new(); bm.from_mesh(hm); zlo = min(v.co.z for v in bm.verts) + PALETTES[SET]['SLAB']
+    kill = [f for f in bm.faces if all(v.co.z < zlo for v in f.verts)]; R['slab_faces_removed'] = len(kill)
+    bmesh.ops.delete(bm, geom=kill, context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    bm.to_mesh(hm); bm.free(); hm.update()
 R['hi_floaters_removed'], R['hi_components'] = drop_small_components(hm, 0.005)
 co = np.empty(len(hm.vertices) * 3); hm.vertices.foreach_get('co', co); co = co.reshape(-1, 3); mn, mx = co.min(0), co.max(0)
 s = HEIGHT / (mx[2] - mn[2])
@@ -195,9 +244,14 @@ names = list(PALETTE); P = to_lab([REFERENCE[n] for n in names])
 d = ((to_lab(srgb)[:, None, :] - P[None, :, :]) ** 2).sum(2); lab = d.argmin(1)
 # parts that share a colour are told apart by height (RULES)
 cz = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cz); cz = cz.reshape(-1, 3)[:, 2]
-cx = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cx); cx = cx.reshape(-1, 3)[:, 0]
+cx = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cx); cy = cx.reshape(-1, 3)[:, 1]; cx = cx.reshape(-1, 3)[:, 0]
 for p_from, p_to, where, frac in RULES:
-    if where == 'box': hit = (cx >= frac[0]) & (cx <= frac[1]) & (cz >= frac[2]) & (cz <= frac[3])
+    if where == 'box':
+        hit = (cx >= frac[0]) & (cx <= frac[1]) & (cz >= frac[2]) & (cz <= frac[3])
+        if len(frac) > 4: hit &= (cy >= frac[4]) & (cy <= frac[5])
+    elif where in ('inside', 'outside'):  # an ellipse on the front half, seen from the front: (x centre, z centre, x radius, z radius)
+        e = ((cx - frac[0]) / frac[2]) ** 2 + ((cz - frac[1]) / frac[3]) ** 2
+        hit = (e <= 1) & (cy < 0) if where == 'inside' else (e > 1) | (cy >= 0)
     else: hit = (cz < frac * HEIGHT) if where == 'below' else (cz > frac * HEIGHT)
     sel = (lab == names.index(p_from)) & hit
     lab[sel] = names.index(p_to)
