@@ -19,7 +19,7 @@ PT, which is 21:00 in Prague (`docs/PROJECT-PLAN.md` section 2).
 | 4 | Target launch date (Q5) | `DESCRIPTION.md`, "Launch date" | **open, for the owner** | The owner decides. The plan's proposed default is spring 2027 (`docs/PROJECT-PLAN.md` section 11). Written as [confirm] |
 | 5 | Hand-interaction write-up | `HAND-INTERACTION.md` | draft, for the owner | Real-hand and cross-user figures are pending; the mudra seal and the fist pose are designed, not built |
 | 6 | Video beat sheet and script | `VIDEO-BEAT-SHEET.md` | draft, 2:50 total | Owner rewrite of the script; the seal beat depends on T24 |
-| 7 | Video captured and public | none | **not started.** No footage on record | A style, the animated opponent and a device or simulator capture first: see "Footage that does not exist yet" in the beat sheet. Milestone 4 |
+| 7 | Video captured and public | none | **not started.** No footage on record | A style, the animated opponent and a device or simulator capture first: see "Footage that does not exist yet" in the beat sheet. Milestone 4. Key art and 6 concept stills (Leonardo, not gameplay) exist in `apps/vr/art/key-art/` (`index.html`, ledger group 6); gameplay captures are still owed from Wolf |
 | 8 | APK on the "Competition" channel, with the invite URL | none | **not started.** No APK has been produced (`docs/XR-TOOLCHAIN.md:9`) | Android engine component, `package-android.ps1`, the dashboard app and channel: milestones 3 and 4 (K5) |
 | 9 | Rules checklist | `RULES-CHECKLIST.md` | draft, for the owner. No row is met | Audits on the final build; owner answers on the rows marked "for the owner" |
 | 10 | Sponsor-funding confirmation | `RULES-CHECKLIST.md`, row 7 | **open, for the owner** | The owner confirms in writing. Written as [confirm] |

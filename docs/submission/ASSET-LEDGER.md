@@ -139,3 +139,20 @@ Source unknown: owner to confirm - nothing under `apps/vr/art/` lacks a recorded
 glyph and HUD art is code-generated; the generator output was not re-run here. Outside `apps/vr/art/` the Niagara effects
 (commandlet-made, `DECISIONS.md` 2026-10-08), the voice lines (T27, not made) and any engine content are tracked in
 `RULES-CHECKLIST.md` "Asset ledger" and have no row here yet.
+
+## Group 6 - key art and gallery stills (`apps/vr/art/key-art/`)
+
+Concept images for the submission (items 2 and 7). Each is labelled "concept key art, not a gameplay capture" in
+`index.html` and `manifest.json`; none is an in-engine screenshot. Made by `apps/vr/tools/keyart/leonardo-keyart.mjs`
+(prompts in `manifest.json`; every call logged in `leonardo-log.json`, 98 credits for 7 calls, no regeneration).
+
+| Asset | Source line | Licence line | Mark |
+|---|---|---|---|
+| `key-art-s5101-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5101, MEDIUM, 14 credits, 2026-10-21T12:22Z; log `leonardo-log.json`), drawn from the Brennic concept and the storyboard look; hero key art for the competition entry (submission items 2 and 7). Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-06-soldiers-s5102-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5102, MEDIUM, 14 credits, 2026-10-21T12:22Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/06-bout-soldiers.jpg` and the Brennic, conscript and slinger concepts; gallery still: Bout 1, the soldiers. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-08-creatures-s5103-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5103, MEDIUM, 14 credits, 2026-10-21T12:22Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/08-bout-creatures.jpg` and the Brennic, conscript and slinger concepts; gallery still: Bout 2, the creatures. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-09-entrance-s5104-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5104, MEDIUM, 14 credits, 2026-10-21T12:23Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/09-fire-mage-entrance.jpg` and the Brennic, conscript and slinger concepts; gallery still: the Fire mage enters. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-10-sunfall-s5105-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5105, MEDIUM, 14 credits, 2026-10-21T12:23Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/10-duel-sunfall.jpg` and the Brennic, conscript and slinger concepts; gallery still: the duel, the unstoppable spell. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-11-finisher-s5106-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5106, MEDIUM, 14 credits, 2026-10-21T12:23Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/11-finisher.jpg` and the Brennic, conscript and slinger concepts; gallery still: the finisher. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `still-12-victory-s5107-medium.jpg` | Leonardo `openai/gpt-image-2.5-flare`, 1 call (seed 5107, MEDIUM, 14 credits, 2026-10-21T12:24Z; log `leonardo-log.json`), drawn from the storyboard beat `session-storyboard/12-victory.jpg` and the Brennic, conscript and slinger concepts; gallery still: victory. Concept art, not a gameplay capture; no human edit | Leonardo terms: **not read**. Rests on the row 6 ruling | open (Leonardo) |
+| `manifest.json`, `index.html`, `leonardo-log.json` | Written by the generator script from the log; no asset of their own | The entrant's own work | ok |
