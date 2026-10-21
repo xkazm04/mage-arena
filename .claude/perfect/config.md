@@ -202,6 +202,33 @@ Settled or already-captured - never re-suggest as a new direction. **Check all t
 
 ## Skill improvement log
 
+- 2026-10-21 (sweep round 1, 12 scouts over 15 contexts, 7 builder lots): **brief the scouts on a prior
+  campaign's UNTRIAGED remainder, not just its accepted items.** The briefs pointed every scout at
+  `MOONSHOT-2026-10.md`'s decision table (M1-M12) to avoid re-deriving accepted work, and that worked - almost
+  nothing was re-proposed. But nobody was told to read its ~40 untriaged incidental defects, and that list turned
+  out to hold four items this sweep missed which bear directly on the cards it produced, including an
+  `-Wrange-loop-construct` APK build risk across 11 loops and a census test that dirties tracked data. A prior
+  campaign's remainder is as load-bearing as its verdicts and far cheaper to read than to re-derive.
+- 2026-10-21: **the Director's evidence spot-check is worth more than the method claims.** Checking one
+  load-bearing line per direction before dispatch caught a `$Q` normalization claim that needed restating
+  (the centroid subtraction is dead work, which is verifiable; "not the published $Q" was not). More
+  importantly, the builders' own re-verification found **19 rotten or wrong references across three lots**,
+  including two the Director had passed down: `bRunning` is set in two places not one, and
+  `capture-colour-audio.ps1`'s broken peak guard is at `:72-75` in an 83-line file, not `:187-190`. One was a
+  genuine premise failure that would have broken a card: a shared `ParseFamily` rejecting `"n/a"` would break Air,
+  because `"n/a"` is a real fourth family value that `Air.cpp` and `Fire.cpp` map to `"magic"` at the point of
+  use. **Promote to the method: require each builder to re-verify its brief's references and report the
+  corrections, as a named deliverable.** It is the cheapest defect filter in the loop.
+- 2026-10-21: **a builder's own retraction is a quality signal to design for.** One lot reported a flat "7.0 s"
+  hook timing, then retracted it unprompted with measured ranges (5.4-19.5 s, load-dependent) and named the
+  single cause. Briefs that say "paste the real output, do not summarise" get this behaviour; briefs that ask for
+  a summary get the unretracted number.
+- 2026-10-21: **a wave whose directions are mostly un-buildable on the host is still a productive wave, if the
+  deliverable shape changes.** Five of six accepted directions were Wolf-owned C++, so they shipped as task
+  cards with acceptance blocks instead of commits - and the one Lynx-buildable direction was split into two lots
+  so it could be gated here. Net: 14 commits, zero C++ touched, zero compile-unverified claims. The overlay's
+  "third gate state" (ungateable here) is what made that legible rather than looking like a stalled wave.
+
 - 2026-10-21 (adoption round, Lynx): the overlay's first job in a two-machine repo is the **machine split**. The
   method assumes the Director can gate what its builders write; here 10 of 19 contexts compile only on another box,
   so `## Gates` needed a third state beyond green/red - *ungateable here* - and the brief needed a rule that a
