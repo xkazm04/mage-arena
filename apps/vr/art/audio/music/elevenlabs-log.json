@@ -1,0 +1,39 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/music",
+  "calls": [
+    {
+      "id": "arena",
+      "timestamp": "2026-10-21T10:21:25.824Z",
+      "endpoint": "https://api.elevenlabs.io/v1/music",
+      "model_id": "music_v1",
+      "prompt": "Instrumental only, no vocals, no choir words. Roman-arena fantasy spell duel, ancient stone amphitheatre, cinematic, a seamless loop with a steady pulse and no intro or final cadence. Mixed to sit under sound effects. Bout music under combat: slow, steady low war drums and frame drums, cellos and low brass playing a repeating dark minor ostinato, sparse and restrained tension. No lead melody, nothing busy or bright in the high-mid range, no shrill strings or cymbal washes, so alert sound cues stay clear on top.",
+      "force_instrumental": true,
+      "seed": null,
+      "requested_ms": 60000,
+      "output_format": "mp3_44100_128",
+      "status": 200,
+      "bytes": 961350,
+      "elapsed_s": 8.931,
+      "song_id": "IpD4qxL3o6a6M5LYE5hp",
+      "regen_reason": null,
+      "ok": true
+    },
+    {
+      "id": "intermission",
+      "timestamp": "2026-10-21T10:21:34.757Z",
+      "endpoint": "https://api.elevenlabs.io/v1/music",
+      "model_id": "music_v1",
+      "prompt": "Instrumental only, no vocals, no choir words. Roman-arena fantasy spell duel, ancient stone amphitheatre, cinematic, a seamless loop with a steady pulse and no intro or final cadence. Mixed to sit under sound effects. The calm bed between bouts and after a duel: warm sustained strings and soft low drone, a gentle lyre or harp figure far in the background, slow and reflective, breathing room after the fight. No drums, no lead melody, quiet and even.",
+      "force_instrumental": true,
+      "seed": null,
+      "requested_ms": 60000,
+      "output_format": "mp3_44100_128",
+      "status": 200,
+      "bytes": 961350,
+      "elapsed_s": 8.155,
+      "song_id": "fFFqtmeOI2PnmCpeLgDS",
+      "regen_reason": null,
+      "ok": true
+    }
+  ]
+}

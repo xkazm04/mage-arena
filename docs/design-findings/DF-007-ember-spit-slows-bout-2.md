@@ -1,6 +1,6 @@
 # DF-007 - Ember spit makes Bout 2 perfect practice, and slower than its window
 
-Found 2026-10-07 by T18. Status: open, owner decision needed.
+Found 2026-10-07 by T18. Status: Owner ruling 2026-10-20: recommended option adopted (A and B together, re-measure); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host.
 
 | Run | CreaturesSeated (pinned window 30-45 s) | Perfects | Damage taken |
 |---|---|---|---|

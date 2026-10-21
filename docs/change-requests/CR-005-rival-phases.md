@@ -1,6 +1,6 @@
 # CR-005 - Named rivals: HP-gated phases, the collar surge and the granted signature
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged. The balance outcome is not settled (DF-006).
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged. The balance outcome is not settled (DF-006).
 
 Date: 2026-10-07. Owner decision the same day (`docs/DECISIONS.md`, "v2 vision accepted", DF-003 answered): named
 mages fight in HP-gated phases, each break surges both tier clocks by one tier, and the last phase opens with the

@@ -1,6 +1,6 @@
 # CR-002 — Fire school and Heat
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged.
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged.
 
 Date: 2026-10-03. Owner decision the same day: every channel's kernel implements all four schools, and VR starts with Fire because the competition slice ends on the Fire mage duel. The pinned desktop/TV kernel has Water only. Its duels are water proxies. This request is the Fire rules as the VR C++ kernel now runs them.
 

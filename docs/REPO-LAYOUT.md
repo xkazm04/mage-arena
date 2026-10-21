@@ -6,7 +6,7 @@ Owner decision 2026-10-07 (`DECISIONS.md`). It supersedes `MONOREPO.md`. The sam
 
 | Local folder | GitHub | Channel | Owns |
 |---|---|---|---|
-| `kiro/mage-arena-tv` | `xkazm04/mage-arena-tv` (was `mage-arena-pc`) | TV / desktop (TypeScript, PixiJS) | **The canon:** combat data and its calibrated simulator (`packages/core`), the story and quests (`story/`, `docs/campaign`), the TV game, its art and audio |
+| `kiro/mage-arena-tv` | `xkazm04/mage-arena-tv` (was `mage-arena-pc`) | TV / desktop (TypeScript, PixiJS) | **The original canon, now VR's frozen baseline (DECISIONS 2026-10-21):** combat data and its calibrated simulator (`packages/core`), the story and quests (`story/`, `docs/campaign`), the TV game, its art and audio |
 | `kiro/mage-arena-vr` | `xkazm04/mage-arena-vr` (was `mage-arena`) | VR (Unreal 5.8, Meta Quest) | The VR game, the VR data overlay (`apps/vr/data/vr/`), VR-only docs (`docs/gameplay`, `docs/campaign`) |
 
 There is no third repository. The PC channel, when it starts, joins the TV repository (it shares the TypeScript code).
@@ -17,7 +17,7 @@ GitHub keeps redirects from the old names.
 - **VR consumes a pinned commit of TV**, never a working tree: `apps/vr/data/PINNED.json` plus
   `node apps/vr/tools/check-pin.mjs --source C:/Users/kazda/kiro/mage-arena-tv`. Story and quest data will be pinned the
   same way once TV commits them.
-- **Changes flow back as change requests** (`mage-arena-vr/docs/change-requests/`), applied by the TV side, then re-pinned.
+- **Frozen baseline (DECISIONS 2026-10-21):** TV is obsolete as a product and its pinned commit is VR's frozen baseline. VR changes go in the overlay (`apps/vr/data/vr/`), recorded as CRs in this repo (`docs/change-requests/`). Nothing is applied by TV and nobody re-pins.
 - **Decisions:** a decision that changes every channel is recorded in the TV repository (the canon owner) and quoted in
   the VR `DECISIONS.md`; a VR-only decision lives only in VR.
 

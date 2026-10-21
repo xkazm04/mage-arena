@@ -1,0 +1,57 @@
+{
+  "card": "T40",
+  "provider": "ElevenLabs",
+  "endpoint": "https://api.elevenlabs.io/v1/music",
+  "model_id": "music_v1",
+  "source_format": "mp3_44100_128",
+  "sample_rate": 48000,
+  "bit_depth": 16,
+  "peak_target_dbfs": -1,
+  "loop_crossfade": "Same method as tools/sfx/generate.mjs: silence below -50 dBFS trimmed from both ends, the last 1.5 s faded out and mixed at unity gain with the first 1.5 s faded in (quarter sine), then the untouched middle appended; the file is 1.5 s shorter than the trimmed take.",
+  "run": {
+    "calls": 2,
+    "stopped": null
+  },
+  "cues": [
+    {
+      "id": "arena",
+      "file": "arena-loop.wav",
+      "loop": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "bit_depth": 16,
+      "frames": 2804394,
+      "duration_s": 58.425,
+      "peak_dbfs": -1,
+      "crossfade_s": 1.5,
+      "head_100ms_dbfs": -8.611,
+      "tail_100ms_dbfs": -4.184,
+      "seam_delta": 127,
+      "typical_step": 41,
+      "mp3": "apps/vr/art/audio/music/src/arena.mp3",
+      "wav": "apps/vr/art/audio/music/arena-loop.wav",
+      "bytes": 11217620,
+      "sha256": "490adec0baeb7d144a2ea03e58f087d0f1c1360629b10caed7d6d6f3f8411dc5"
+    },
+    {
+      "id": "intermission",
+      "file": "intermission-loop.wav",
+      "loop": true,
+      "sample_rate": 48000,
+      "channels": 2,
+      "bit_depth": 16,
+      "frames": 2797889,
+      "duration_s": 58.289,
+      "peak_dbfs": -1,
+      "crossfade_s": 1.5,
+      "head_100ms_dbfs": -15.837,
+      "tail_100ms_dbfs": -15.655,
+      "seam_delta": 59,
+      "typical_step": 96,
+      "mp3": "apps/vr/art/audio/music/src/intermission.mp3",
+      "wav": "apps/vr/art/audio/music/intermission-loop.wav",
+      "bytes": 11191600,
+      "sha256": "63212edc63230bbe6ccf033396b9b1519bafa7a90f8974d982a2eeef552e848d"
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 // Validate hand clips against docs/CLIP-SCHEMA.md. Node built-ins only.
-// Usage: node tools/clipgen/validate.mjs [dir]
+// Usage: node apps/vr/tools/clipgen/validate.mjs [dir]   (no dir: apps/vr/Game/Clips, from any working directory)
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SCHEMA_V1 = 'mage-arena/hand-clip@1';
 const SCHEMA_V2 = 'mage-arena/hand-clip@2';
@@ -245,7 +246,10 @@ function collectJsonl(dir, out) {
 }
 
 function main() {
-  const dir = path.resolve(process.cwd(), process.argv[2] || path.join('Game', 'Clips'));
+  // The default is found from this file (apps/vr/tools/clipgen -> apps/vr/Game/Clips). It was `Game/Clips` under the
+  // working directory, which stopped resolving when the project moved to apps/vr/ (d5713d6).
+  const defaultDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'Game', 'Clips');
+  const dir = path.resolve(process.cwd(), process.argv[2] || defaultDir);
   if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
     process.stdout.write(`FAIL ${dir} is not a directory\n`);
     process.stdout.write('0 clips, 1 violations\n');

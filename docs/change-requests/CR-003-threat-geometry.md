@@ -1,6 +1,6 @@
 # CR-003 — Threat geometry: enemies stay off the dais
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged.
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged.
 
 Date: 2026-10-03. Owner decision the same day (`docs/DECISIONS.md`, DF-001 option A): from a seat the player lost Wave 1 at 16.45 s because melee reached the pads. Enemies stay on the arena floor below the raised dais and attack from range. Conscripts throw their spear. Slingers sling. Melee does not touch the dais.
 

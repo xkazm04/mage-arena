@@ -25,7 +25,7 @@
 <body>
   <header>
     <h1>Greybox SFX starter pack</h1>
-    <p class="lede">Twenty style-neutral placeholders for the mechanics gate. Each prompt was the common line followed by the sentence below. Common line: Clean, close-miked game sound effect, no music, no voice, no speech, no words, no reverb tail longer than needed, no background noise.</p>
+    <p class="lede">35 style-neutral placeholders for the mechanics gate. Each prompt was the common line followed by the sentence below. Common line: Clean, close-miked game sound effect, no music, no voice, no speech, no words, no reverb tail longer than needed, no background noise.</p>
     <p class="lede">Files are 48 kHz, 16-bit, peak-normalised to -1 dBFS, mono except the stereo arena crowd. Looping rows repeat so the join can be heard. Leading silence below -50 dBFS is removed from every cue (5 ms detection window). Loop cues also have trailing silence below -50 dBFS removed, because a dead tail cannot meet the head. The last X seconds are then faded out on a quarter-sine curve and mixed at unity gain with the first X seconds faded in on the same curve. That mix becomes the head and the untouched middle (from X to duration minus X) is appended, so the file is X seconds shorter than the trimmed take. The last sample of the middle is the sample just before the old tail, and the first sample of the mix is that tail at full level, so the waveform continues across the loop point while the content eases from the end back to the start. X is 0.080 s (3840 samples) for the short loops and 0.250 s (12000 samples) for arena-crowd-loop.</p>
   </header>
   <main>
@@ -148,6 +148,96 @@
       <p>A soft muted low tone for pausing, gentle and quiet.</p>
       <audio controls preload="none" src="ui-pause.wav"> </audio>
       <p class="dur">0.48 s</p>
+    </article>
+    <article class="cue">
+      <h2>conscript-swing</h2>
+      <p>A short sharp sword swing through the air, a fast metal whoosh of a soldier attacking.</p>
+      <audio controls preload="none" src="conscript-swing.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>conscript-hit</h2>
+      <p>A blunt sword blow striking a wooden shield, a hard knock with a brief metallic rattle.</p>
+      <audio controls preload="none" src="conscript-hit.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>conscript-death</h2>
+      <p>A soldier in armour collapsing, a clatter of metal plates and a dull thud on sand, no human voice.</p>
+      <audio controls preload="none" src="conscript-death.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>slinger-whirl</h2>
+      <p>A leather sling whirling a stone in fast circles, a rising rhythmic whirr ending in a sharp snap of release.</p>
+      <audio controls preload="none" src="slinger-whirl.wav"> </audio>
+      <p class="dur">1.20 s</p>
+    </article>
+    <article class="cue">
+      <h2>slinger-stone-impact</h2>
+      <p>A hurled stone striking packed sand and stone, a hard crack and a short scatter of grit.</p>
+      <audio controls preload="none" src="slinger-stone-impact.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>slinger-hit</h2>
+      <p>A small stone hitting a leather cuirass, a short sharp smack and thud.</p>
+      <audio controls preload="none" src="slinger-hit.wav"> </audio>
+      <p class="dur">0.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>slinger-death</h2>
+      <p>A light soldier falling to the sand, a soft clatter of leather gear and a muffled thump, no human voice.</p>
+      <audio controls preload="none" src="slinger-death.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>hound-ember-windup</h2>
+      <p>A fiery beast drawing breath to spit, a low rising crackle and hiss as glowing embers gather, slow and ominous.</p>
+      <audio controls preload="none" src="hound-ember-windup.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>hound-ember-spit</h2>
+      <p>A slow glowing ember spat through the air, a soft fiery spit with a lazy crackling whoosh.</p>
+      <audio controls preload="none" src="hound-ember-spit.wav"> </audio>
+      <p class="dur">1.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>hound-death</h2>
+      <p>A creature of embers dying, a crackling hiss collapsing into scattered sparks and a last soft burst, no human voice.</p>
+      <audio controls preload="none" src="hound-death.wav"> </audio>
+      <p class="dur">1.36 s</p>
+    </article>
+    <article class="cue">
+      <h2>maw-emerge</h2>
+      <p>A huge creature rising out of thick bog mud, a heavy wet squelch and bubbling suck of mire.</p>
+      <audio controls preload="none" src="maw-emerge.wav"> </audio>
+      <p class="dur">1.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>maw-lunge</h2>
+      <p>A heavy wet creature lunging forward, a fast slap of mud and a gulping snap.</p>
+      <audio controls preload="none" src="maw-lunge.wav"> </audio>
+      <p class="dur">0.80 s</p>
+    </article>
+    <article class="cue">
+      <h2>maw-death</h2>
+      <p>A giant bog creature sinking and collapsing into mud, a long wet gurgle and slump, no human voice.</p>
+      <audio controls preload="none" src="maw-death.wav"> </audio>
+      <p class="dur">1.60 s</p>
+    </article>
+    <article class="cue">
+      <h2>arena-gate-open</h2>
+      <p>A heavy wooden portcullis gate being raised in a stone arena, deep chain rattle, creaking timber and a final stone thud.</p>
+      <audio controls preload="none" src="arena-gate-open.wav"> </audio>
+      <p class="dur">2.00 s</p>
+    </article>
+    <article class="cue">
+      <h2>arena-crowd-cheer</h2>
+      <p>A large crowd cheering in an open stone arena, a swelling roar of applause and excitement, no individual words.</p>
+      <audio controls preload="none" src="arena-crowd-cheer.wav"> </audio>
+      <p class="dur">3.00 s</p>
     </article>
   </main>
 </body>

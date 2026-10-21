@@ -41,3 +41,11 @@ apps/vr/Game/Clips/impostors/
 /.claude/rules/ai-registry-access.md
 /.ai/skill-runs.local.jsonl
 # END ai-registry linked skills
+
+# secrets: API keys (ElevenLabs etc.) belong in .env, never in git
+.env
+.env.*
+!.env.example
+# Python tool caches
+__pycache__/
+.venv/

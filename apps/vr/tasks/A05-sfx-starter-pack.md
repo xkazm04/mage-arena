@@ -1,6 +1,13 @@
 # A05 - SFX starter pack for the greybox (ElevenLabs, no Unreal build)
 
 Status: done (verified by measurement 2026-10-03; owner to audition)
+
+Wolf note (2026-10-21, 15 cues added for Bout 2 and the arena; UE import via import-sfx.ps1 and SoundCue wiring are Wolf work).
+Source: apps/vr/art/audio/sfx/<id>.wav, all mono 48 kHz, one-shot, one take each, call log in manifest.json under "calls".
+Spatial (3D attenuation at the emitter, threat cues): conscript-swing, conscript-hit, conscript-death, slinger-whirl,
+slinger-stone-impact, slinger-hit, slinger-death, hound-ember-windup, hound-ember-spit, hound-death, maw-emerge,
+maw-lunge, maw-death. Non-spatial or wide (2D / large radius, arena-wide): arena-gate-open, arena-crowd-cheer.
+The telegraph cues (slinger-whirl, hound-ember-windup, hound-ember-spit, maw-emerge) must stay audible over the arena music.
 Max turns: 120
 
 ## Goal

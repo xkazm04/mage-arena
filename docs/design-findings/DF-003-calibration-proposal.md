@@ -1,5 +1,7 @@
 # DF-003 - Seated calibration proposal, not signed off
 
+Owner ruling 2026-10-20: recommended option adopted (leave wide in the proposal file, not signed off); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host.
+
 Found 2026-10-03 by T12 (`runs/T12/REPORT.md`; the official census is committed beside this file as `DF-003-census/sweep.csv` and `DF-003-census/summary.json` - `runs/` is not tracked). Orchestrator re-ran the census: `sweep.csv` reproduced byte-identical. Rewritten the same day after Retry 1. The first census (600 rows, wall 251.7 s) measured a fire wall that destroyed the caster's own bolts and paid her Heat for them. That bug lengthened every duel in which the mage raised a wall. The table below is the census after the fix.
 
 The census wrote `apps/vr/data/vr/calibration-proposal.json`. That file is applied only with `-MageArenaProposal` (or `MageArenaProposal=1` / `true`). The live overlay in `combat.vr.json` still has the T11 hands and dome, plus the fire wall at the SCHOOL-DEFENCES C proposal (4 m, 90 degrees, 3 s, 12 mana, Heat 4, burn 12). Nothing in the census was copied into those live values.

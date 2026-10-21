@@ -9,6 +9,8 @@
 apps/vr/data/pinned/** -text
 # Hand clips are JSONL with LF. Regeneration must be byte-identical.
 apps/vr/Game/Clips/** text eol=lf
+# The test-only clips moved out of the staged folder (b4fd51f) are the same format and need the same rule
+apps/vr/Game/TestData/Clips/** text eol=lf
 # Generated art (style studies and later assets) goes through LFS
 apps/vr/art/**/*.jpg filter=lfs diff=lfs merge=lfs -text
 apps/vr/art/**/*.jpeg filter=lfs diff=lfs merge=lfs -text

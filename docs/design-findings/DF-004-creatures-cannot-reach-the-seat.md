@@ -1,6 +1,6 @@
 # DF-004 - Bout 2's creatures cannot reach a seated player, so the hounds teach nothing
 
-Found 2026-10-04 by T15 (`runs/T15/verify2/`, `runs/T15/verify3/`). Status: open, for the owner.
+Found 2026-10-04 by T15 (`runs/T15/verify2/`, `runs/T15/verify3/`). Status: Owner ruling 2026-10-07: option A adopted (ember spit: hounds spit slow, telegraphed magic embers from range, the death burst throws one last ember; a VR overlay attack until the TV change request lands); see docs/DECISIONS.md 2026-10-07.
 
 ## Measurement
 - Bout 2 (3 cinder hounds + 1 mire maw) is won from a seat at **33.05 s** on the live overlay (inside the pinned

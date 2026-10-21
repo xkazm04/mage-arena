@@ -2,6 +2,160 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - Asset originality: AI-made assets ship with a licence ledger (RULES-CHECKLIST row 6)
+
+> Owner, 2026-10-21 (11:49Z), on RULES-CHECKLIST row 6: "accept, with a licence ledger. Assets made with Leonardo, TRELLIS.2 and ElevenLabs may ship, on the reading that the entrant authors them by prompting, selecting and editing, and holds each service's licence. The owner knowingly accepts the risk that Meta reads "original" to exclude AI output."
+
+- **What binds:** assets made with Leonardo, TRELLIS.2 and ElevenLabs may ship. The reading is that the entrant authors
+  them by prompting, selecting and editing, and holds each service's licence. Row 6 of `docs/submission/RULES-CHECKLIST.md`
+  is closed on this entry. Other AI tools (the Grok and Antigravity image tools behind the A01-A09 studies, sheets and
+  storyboards) are not named by the ruling and are not covered by it.
+- **Accepted risk:** the rules (Official Rules section 4, "Originality") say the Project "must be ORIGINAL to each
+  Entrant" and never mention AI output. Meta may read "original" to exclude AI-made assets, and the Sponsor "may at any
+  time request written proof of ownership or proper license". A reading against the entrant can mean disqualification.
+  The owner accepts this knowingly. It is not removed by the ledger.
+- **Condition: the licence ledger.** `docs/submission/ASSET-LEDGER.md` carries, for every shipped asset, a source line
+  (tool, model, the log that records the call, the human edits) and a licence line (the terms that grant it and any
+  condition). An asset with no ledger row does not ship. A row whose terms were not read, or whose plan condition is not
+  confirmed, is open and its class does not ship until it closes. As written on 2026-10-21, the ElevenLabs conditions
+  (a paid plan, and the music "Studio Games" carve-out) and the Leonardo terms (not read) are open in the ledger.
+- **Where it is used:** a hand-modelled Blender part (no AI) is the entrant's own work and takes its own ledger row.
+- Lost: certainty on the originality rule. Nothing in the repo can settle how Meta reads it.
+
+## 2026-10-21 - Asset transport and ElevenLabs as the audio source
+
+> Owner, 2026-10-21: "through git LFS; same for creatures and props; push to origin master"
+
+- Lynx-made assets (FBX, PNG) cross to Wolf through Git LFS in this repo, pushed to origin master, for characters,
+  creatures and props alike.
+
+> Owner, 2026-10-21: ElevenLabs is the source for the SFX and the T40 music. The key is `ELEVEN_LABS_API_KEY` in
+> `C:/Users/kazda/kiro/bp/.env`, read at runtime, never printed or committed, and every call is logged next to the assets.
+
+- Pipeline: `C:/Users/kazda/ai/lynx-bench/ASSET-PIPELINE.md`.
+
+## 2026-10-21 - Deadlines and Q9: 18 Nov is the only hard date; Q9 is not posted
+
+> Operator, 2026-10-21, relayed through the App Master: "No need to post anything, final deadline is Nov 18, 2026, other
+> ones were soft milestones."
+
+- **What binds, Q9:** the organizer question is not posted. Q9 is closed as not needed.
+  `docs/submission/ORGANIZER-QUESTION-Q9.md` records this in its status line and is otherwise unchanged. The provisional
+  acceptance of the reuse (2026-10-07, Q9 entry) is not changed by this entry.
+- **What binds, dates:** the only hard date is the competition final deadline, Wed 18 Nov 2026
+  (https://start-developer-competition-26.devpost.com/; 12:00 PT per `docs/PROJECT-PLAN.md` line 4). Every other dated
+  gate in the plan, the KPI readings and the cards is a soft internal milestone: among them 12 Oct (Q9), 18 Oct
+  (mechanics), 19 Oct (style pick), 23 Oct (R0), 25 Oct (content freeze), 31 Oct (desktop core gate), 4 Nov (V1),
+  8 Nov (V2), 11 and 13 Nov (beta, RC) and 16 Nov (store-upload freeze). A missed soft milestone is a re-plan, not a stop.
+- **Supersedes:** the Q9 line of the 2026-10-21 frozen-baseline entry below ("post a revised Q9; the operator posts it")
+  and the open Q9 line of the 2026-10-20 "VR first" entry (their bodies are not edited). PROJECT-PLAN section 10 R8 and
+  section 12 Q9 ("the owner posts ...") and the item 1 row of `docs/submission/README.md` are stale on this point; they
+  are not edited here, and where they conflict this entry wins.
+- **Where it is used:** `docs/concepts/WOLF-PLAN.md` dates every phase as a soft milestone against 18 Nov.
+- Lost: an organizer answer on the reuse question.
+
+## 2026-10-21 - Combat data: the current pin is VR's frozen baseline
+
+> Operator, 2026-10-21, relayed through the App Master (answering the gate ask): "A, frozen baseline."
+
+- **What binds:** the pin recorded in `apps/vr/data/PINNED.json` is VR's frozen baseline. `node apps/vr/tools/check-pin.mjs`
+  and the 45 conformance vectors stay a merge gate against that baseline, unchanged. `apps/vr/data/pinned/**` is still never
+  edited. Every VR combat-data change goes into the VR overlay (`apps/vr/data/vr/`). CR-001..CR-007 become VR design records
+  for overlay changes, not requests to TV, and nobody re-pins from TV.
+- **Brief goal 3 reads in effect:** "baseline unchanged (check-pin green, 45 vectors byte-identical) and the VR overlay
+  passes its checks".
+- **Supersedes:** the "pending that ask" lines of the 2026-10-20 "VR first" entry below (its body is not edited). The
+  gate question it left open is ruled here. The docs that entry listed are aligned in the same change: `docs/REPO-LAYOUT.md`,
+  `CLAUDE.md` "Combat data", `apps/vr/data/README.md` and the headers of `docs/change-requests/CR-00x`.
+- **Q9:** the operator's words: "post a revised Q9; the operator posts it." The revision is being drafted in
+  `docs/submission/ORGANIZER-QUESTION-Q9.md`; the status there records the date and link once the operator has posted it. It
+  has not been posted.
+- **Cross-channel record:** the TV-side record of this ruling is still owed.
+- Lost: B (VR-owned data, rework of check-pin); C (TV stays the data channel until 18 Nov).
+
+## 2026-10-20 - VR first: the TV data and design are the baseline, the TV game becomes obsolete
+
+> Operator, 2026-10-20, relayed through the App Master (answering Q9): "It would be preferred to use data and game design as the baseline, from this baseline TV game will become obsolete and VR suprerior with main focus"
+
+- **What binds:** VR (this repo) is the main product. The TV game is obsolete as a product. The TV combat data and game
+  design, as pinned in `apps/vr/data/PINNED.json`, are the starting baseline.
+- **What stays in force until the owner rules on the gate:** the pinned data stays as it is (`apps/vr/data/pinned/**` is
+  not edited), `node apps/vr/tools/check-pin.mjs` and the 45 conformance vectors stay a merge gate, and CR-001..CR-007 keep
+  their current status. The owner has not yet ruled how the conformance gate changes (frozen baseline, VR-owned data, or
+  keeping TV as the data channel). That is an open scope ask, and this entry does not decide it.
+- **Superseded in part, pending that ask (none of these is edited here):**
+  - DECISIONS 2026-10-07 "Two repositories, TV and VR" (the line that TV owns the canon);
+  - `docs/REPO-LAYOUT.md` (the "The canon" row and "Changes flow back as change requests");
+  - `CLAUDE.md` "Combat data has one owner";
+  - the "Filed for the desktop/TV kernel channel" lines in `docs/change-requests/CR-00x`;
+  - the brief's key goal 3 ("Keep combat data conformant with the TV game").
+- **Q9:** reusing the operator's own data and design still stands (DECISIONS 2026-10-07, Q9 entry). Whether Q9 is posted
+  or withdrawn is still open and is with the owner. `docs/submission/ORGANIZER-QUESTION-Q9.md` is not changed.
+- **Cross-channel record:** REPO-LAYOUT says a decision that changes every channel is recorded in the TV repository
+  (`kiro/mage-arena-tv`). That TV-side record is still owed; it has not been written.
+- Lost: TV as the main product or co-equal channel.
+
+## 2026-10-20 - Cut slice: no cut, the 31 Oct desktop core gate plans the full Tiro day
+
+> Operator, 2026-10-20, relayed through the App Master: "keep every bout; plan the 31 Oct gate on the full Tiro day and
+> flag the risk."
+
+- **What binds:** this rules the 18 Oct pivot. Bout 2 (creatures) stays, and the second school stays in: **Air**, the Gale
+  Tent final with Lio (`docs/change-requests/CR-007-air-school.md`; DECISIONS 2026-10-07). The 31 Oct desktop core gate
+  is planned on the full Tiro day, not on a cut slice.
+- **The risk, in plain words:** the 18 Oct mechanics gate was missed, and the 23 Oct second-school checkpoint is three
+  days away. The plan's own fallbacks are the two things this ruling declines: PROJECT-PLAN section 1 says a missed 18 Oct
+  gate slips at most to 21 Oct "and cut bout 2", and section 10 R4 lists the cut order (Mirror IV, Lash IV, bout 2,
+  narrow-FOV mode). DECISIONS 2026-10-07 names the second school as the first cut if the 23 Oct checkpoint slips. Keeping
+  everything leaves the 31 Oct gate with no scope to give back. DF-008 (Lio loses every duel in about 20-24 s) is also
+  still open.
+- Sections read: PROJECT-PLAN section 1 (milestone and gate rows, the 18 Oct and 31 Oct slip rows), section 5 (D2 and D4
+  rows), section 6 (the Tiro-day timeline, Bout 2 creatures), section 10 (R0, R4).
+- Lost: the cut options (cut bout 2; cut the second school; port a two-bout slice).
+- Not part of this ruling: PROJECT-PLAN.md is not edited; where it conflicts, this entry wins.
+
+## 2026-10-20 - DF-003, DF-005, DF-006, DF-007, DF-008, DF-009: adopt every recommendation
+
+> Operator, 2026-10-20, relayed through the App Master: "adopt each DF's recommended option; card one design-suite
+> re-run."
+
+- **What binds:** the recommended option of each finding, in the finding's own words:
+  - DF-003: its Recommendation section: leave `wide` in the proposal file (`calibration-proposal.json`); the finding
+    itself says do not sign it off.
+  - DF-005: **A. Re-arm on clear** (the ward counts as fresh again for one `perfectWindowS` after the latch clears; VR
+    overlay only).
+  - DF-006: **B. A phase-break beat**, with **A** (adopt the `wide` proposal).
+  - DF-007: **A and B together; re-measure** (A: ward some embers, not all, in the reference script; B: slower spit
+    cadence, 1.5 s, VR overlay).
+  - DF-008: **A. AI first** (Lio wards like the Fire mage, uses Air Form against the player's bolts, spends tier II-III
+    spells once unlocked; re-measure).
+  - DF-009: **A. Count only spectacle** (`missedCast` 0 for Bolts, kept for tier I+ casts).
+- **Where the work goes:** the implementation and the one `MageArenaDesign` re-run are a task card for the UE host
+  (Wolf, see the host entry below). Nothing here changes code or data. The design suite stays **red** until that run; no
+  result is claimed by this entry.
+- Lost: the other options of each finding (DF-005 B and C; DF-006 C and D; DF-007 C and D; DF-008 B and C; DF-009 B and C).
+
+## 2026-10-20 - T38 asset source: Claude + owner authoring
+
+> Operator, 2026-10-20, relayed through the App Master: "authored rig with four clips; Lynx's local TRELLIS + Blender
+> rigging pipeline (PoF 3D rounds) may feed it."
+
+- **What binds:** the first animated opponent (card T38) comes from an authored rig with four clips (idle, cast, hit,
+  death), authored by Claude and the owner. The local TRELLIS and Blender rigging pipeline on Lynx (PoF 3D rounds) may
+  feed it.
+- Lost: the Meta Asset Library as the source, and paid 3D or animation credits (PROJECT-PLAN R0's fallback and its paid
+  option).
+
+## 2026-10-20 - Unreal host: all Unreal work on Wolf (x64); Lynx gets no Unreal install
+
+> Operator, 2026-10-20, relayed through the App Master: "all Unreal work stays on the x64 machine (Wolf). Lynx is the
+> Node/docs/orchestration host and does not get an Unreal install. Write UE work as cards/source for Wolf; never claim UE
+> results from Lynx."
+
+- **What binds:** UE builds, automation suites and content work run on Wolf only. Lynx writes cards and source for Wolf and
+  reports no UE build or test result.
+- Lost: a UE install on Lynx.
+
 ## 2026-10-16 - D-G4 draw calls are one total budget, and the two Build.cs bBuildEditor blocks stay separate
 
 > Athena, 2026-10-16, under the operator's delegation, answered run `ef6642f6`'s two questions. Recorded as relayed; the
