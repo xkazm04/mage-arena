@@ -2,12 +2,20 @@
 # Mesh metrics adapted from lynx-bench pof3d/round2/characters/work/pofmetrics2.py + met.py (vertices welded by exact
 # position, components by shared edges, watertight / winding). The gate checks of gate.cjs come from pof's compiled
 # libraries, which are not copied here; the checks below are the T38 card's, written out.
-#   blender -b -P metrics.py -- <in.fbx> <metrics.json> [<attack clip name, default Cast>]
+#   blender -b -P metrics.py -- <in.fbx> <metrics.json> [<attack clip name, default Cast>] [<profile, default Humanoid>]
+# Profiles: Humanoid (the T38 checks, 1.8 m mannequin) | CinderHound | MireMaw (the Bout 2 beasts: their own scale target
+# from the A04 sheets, +-10 %, their tri budget, +X forward read from their own bones, and no floaters).
 import bpy, sys, json, os, numpy as np
 
 a = sys.argv[sys.argv.index('--') + 1:]; fbx, outp = a[:2]
 CLIPS = ['Idle', a[2] if len(a) > 2 else 'Cast', 'Hit', 'Death']
 TRI_BUDGET_LOD0 = (18000, 30000)
+PROFILE = a[3] if len(a) > 3 else 'Humanoid'
+# height target (m, sheet 03 pixel scale, see finish.py), LOD0 tri budget, a left and a right bone, a bone that points forward
+BEASTS = {'CinderHound': {'height': 1.36, 'tris': 12000, 'side': ('front_paw_l', 'front_paw_r'), 'forward': 'head',
+                          'budget_note': 'three hounds on screen at once'},
+          'MireMaw': {'height': 1.25, 'tris': 20000, 'side': ('foot_l', 'foot_r'), 'forward': 'jaw', 'budget_note': 'one maw'}}
+BEAST = BEASTS.get(PROFILE)
 
 
 def compute(V, F):
@@ -90,7 +98,13 @@ weights = {'unweighted_verts': int((sums < 1e-6).sum()), 'max_abs_sum_error': ro
            'max_influences': int(infl.max()), 'normalised': bool(np.abs(sums - 1).max() < 1e-3)}
 # skeleton and facing: +X forward means the left side is +Y and the toes point +X
 skel = {}
-if arm:
+if arm and BEAST:
+    B = arm.data.bones; Mw = arm.matrix_world
+    pos = lambda n, end='head': Mw @ (B[n].head_local if end == 'head' else B[n].tail_local)
+    l_, r_ = BEAST['side']; fw = BEAST['forward']
+    skel = {'bones': len(B), 'names': list(B.keys()), 'left_y': round(pos(l_).y, 3), 'right_y': round(pos(r_).y, 3),
+            'forward_dx': round((pos(fw, 'tail') - pos(fw)).x, 3), 'root_head': [round(x, 3) for x in pos('root')]}
+elif arm:
     B = arm.data.bones; Mw = arm.matrix_world
     pos = lambda n, end='head': Mw @ (B[n].head_local if end == 'head' else B[n].tail_local)
     skel = {'bones': len(B), 'names': list(B.keys()),
@@ -126,10 +140,21 @@ checks = [
     ('4 LOD0 triangle count recorded', TRI_BUDGET_LOD0[0] <= mesh['tris'] <= TRI_BUDGET_LOD0[1], f'{mesh["tris"]} tris (target {TRI_BUDGET_LOD0[0]}-{TRI_BUDGET_LOD0[1]}, scene budget 350000)'),
     ('5 one flat colour per material, no embedded textures', fbx_file['textures'] == 0 and all(m['image_nodes'] == 0 for m in mats), f'{len(mats)} materials, {fbx_file["textures"]} textures'),
     ('6 origin at the feet', abs(mesh['min_z_m']) < 0.01 and all(abs(c) < 0.15 for c in mesh['centre_xy_m']), f'min z {mesh["min_z_m"]} m, bbox centre xy {mesh["centre_xy_m"]} m'),
-    ('7 +X forward', bool(skel) and skel['hand_l_y'] > 0 > skel['hand_r_y'] and skel['toe_dx_l'] > 0, f'hand_l y {skel.get("hand_l_y")}, hand_r y {skel.get("hand_r_y")}, toe dx {skel.get("toe_dx_l")}'),
+    ('7 +X forward', bool(skel) and skel.get('hand_l_y', 0) > 0 > skel.get('hand_r_y', 0) and skel.get('toe_dx_l', 0) > 0, f'hand_l y {skel.get("hand_l_y")}, hand_r y {skel.get("hand_r_y")}, toe dx {skel.get("toe_dx_l")}'),
     ('8 unit scale, height 1.62-1.98 m', 1.62 <= mesh['height_m'] <= 1.98 and all(abs(s - 1) < 1e-4 for o in (ob, arm) if o for s in o.matrix_world.to_scale()), f'height {mesh["height_m"]} m, object scale {[round(s, 4) for s in ob.matrix_world.to_scale()]}'),
     ('9 weights normalised', weights['normalised'] and weights['unweighted_verts'] == 0, f'max |sum-1| {weights["max_abs_sum_error"]}, unweighted {weights["unweighted_verts"]}, max influences {weights["max_influences"]}'),
 ]
+if BEAST:
+    lo_, hi_ = 0.9 * BEAST['height'], 1.1 * BEAST['height']; l_, r_ = BEAST['side']
+    checks[3] = ('4 LOD0 triangle count within budget', 0 < mesh['tris'] <= BEAST['tris'],
+                 f'{mesh["tris"]} tris (budget {BEAST["tris"]}, {BEAST["budget_note"]})')
+    checks[6] = ('7 +X forward', bool(skel) and skel['left_y'] > 0 > skel['right_y'] and skel['forward_dx'] > 0,
+                 f'{l_} y {skel.get("left_y")}, {r_} y {skel.get("right_y")}, {BEAST["forward"]} dx {skel.get("forward_dx")}')
+    checks[7] = (f'8 unit scale, height {BEAST["height"]} m +-10 % ({lo_:.3f}-{hi_:.3f} m)',
+                 lo_ <= mesh['height_m'] <= hi_ and all(abs(s - 1) < 1e-4 for o in (ob, arm) if o for s in o.matrix_world.to_scale()),
+                 f'height {mesh["height_m"]} m ({100 * (mesh["height_m"] / BEAST["height"] - 1):+.1f} %), object scale {[round(s, 4) for s in ob.matrix_world.to_scale()]}')
+    checks.append(('10 no floaters', mesh['components'] == 1 and mesh['floaters'] == 0,
+                   f'{mesh["components"]} component(s), {mesh["floaters"]} floaters'))
 M = {'fbx': fbx, 'fbx_file': fbx_file, 'mesh': mesh, 'skeleton': skel, 'weights': weights, 'clips': clips, 'fps': fps, 'materials': mats,
      'checks': [{'check': c, 'pass': bool(p), 'value': v} for c, p, v in checks]}
 json.dump(M, open(outp, 'w'), indent=1)
