@@ -4,6 +4,7 @@ A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** 
 the Meta VR Start Developer Competition 2026 (Gaming track; deadline **2026-11-18**). One of three channels of one game:
 TV (`kiro/mage-arena-tv`, the canon owner), VR (this repo), PC (future, joins the TV repo).
 Repository layout and what is shared: `docs/REPO-LAYOUT.md`.
+**Wolf sessions (the x64 UE host): read `docs/concepts/WOLF-PLAN.md` first and follow its phases in order.**
 
 ## Read first
 
