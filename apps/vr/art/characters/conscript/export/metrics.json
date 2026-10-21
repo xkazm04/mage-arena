@@ -1,8 +1,8 @@
 {
- "fbx": "C:/Users/kazda/kiro/mage-arena-archive/Conscript/SK_Conscript.fbx",
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/_armed/Conscript/SK_Conscript.fbx",
  "fbx_file": {
   "version": 7400,
-  "bytes": 1890764,
+  "bytes": 1991772,
   "limb_nodes": 23,
   "mesh_models": [
    "SM_Conscript"
@@ -41,27 +41,31 @@
   ]
  },
  "mesh": {
-  "verts": 11989,
-  "tris": 23978,
+  "verts": 12051,
+  "tris": 24086,
   "watertight": true,
   "windingConsistent": true,
-  "components": 1,
-  "floaters": 0,
+  "components": 5,
+  "floaters": 4,
   "componentFaces": [
-   23978
+   23978,
+   30,
+   28,
+   28,
+   22
   ],
   "degenerateFaces": 0,
-  "euler": 0,
-  "height_m": 1.7995,
+  "euler": 8,
+  "height_m": 1.8003,
   "bbox_m": [
-   0.4361,
-   1.0269,
-   1.7995
+   0.6399,
+   1.0273,
+   1.8003
   ],
   "min_z_m": -0.0,
   "centre_xy_m": [
-   -0.0001,
-   -0.0002
+   0.1018,
+   -0.0004
   ]
  },
  "skeleton": {
@@ -111,7 +115,7 @@
    "action": "Armature|Attack",
    "frames": 36,
    "fcurves": 239,
-   "max_channel_range": 0.7724
+   "max_channel_range": 1.0377
   },
   "Death": {
    "action": "Armature|Death",
@@ -208,7 +212,7 @@
   {
    "check": "4 LOD0 triangle count recorded",
    "pass": true,
-   "value": "23978 tris (target 18000-30000, scene budget 350000)"
+   "value": "24086 tris (target 18000-30000, scene budget 350000)"
   },
   {
    "check": "5 one flat colour per material, no embedded textures",
@@ -218,7 +222,7 @@
   {
    "check": "6 origin at the feet",
    "pass": true,
-   "value": "min z -0.0 m, bbox centre xy [-0.0001, -0.0002] m"
+   "value": "min z -0.0 m, bbox centre xy [0.1018, -0.0004] m"
   },
   {
    "check": "7 +X forward",
@@ -228,7 +232,7 @@
   {
    "check": "8 unit scale, height 1.62-1.98 m",
    "pass": true,
-   "value": "height 1.7995 m, object scale [1.0, 1.0, 1.0]"
+   "value": "height 1.8003 m, object scale [1.0, 1.0, 1.0]"
   },
   {
    "check": "9 weights normalised",

@@ -3,12 +3,12 @@
 AI-assisted (Claude + owner, option 2); shippability pending the originality check in docs/submission/RULES-CHECKLIST.md row 6
 
 - Date: 2026-10-21, made on Lynx (Windows ARM64). No Unreal Engine was run; nothing here is a UE result.
-- Subject: Roman conscript foot soldier (mail shirt, brimmed helmet with cheek guards, curved shield, short sword), drawn to match `apps/vr/art/model-sheets/03-conscript-turnaround.jpg`.
+- Subject: Roman conscript foot soldier (mail shirt, brimmed helmet with cheek guards, curved shield, short sword at the hip, and a short spear in the right hand), drawn to match `apps/vr/art/model-sheets/03-conscript-turnaround.jpg`.
 - File: `SK_Conscript.fbx` (FBX 7.4 binary, 1.8 MB). One skeleton (23 bones, UE5 mannequin names), one skinned mesh
-  `SM_Conscript` (23,978 tris, 11,989 verts), 6 flat-colour materials, no textures, four takes
+  `SM_Conscript` (24,086 tris, 12,051 verts: 23,978 body + 108 spear), 6 flat-colour materials, no textures, four takes
   `Idle` (61 frames), `Attack` (36), `Hit` (25), `Death` (61, last pose held) at 30 fps. +X forward, Z up, origin at the feet, 1.80 m.
 - Repo scripts (kiro/mage-arena, `apps/vr/tools/assets/`): `leonardo.mjs --asset conscript`, `trellis.mjs` + `trellis-api.json`,
-  `finish.py` (palette set `Conscript`), `rig_anim.py` (attack style `Thrust`), `metrics.py`, `render_evidence.py`.
+  `finish.py` (palette set `Conscript`), `rig_anim.py` (attack style `Thrust`), `weapon.py` (`spear`), `metrics.py`, `render_evidence.py`.
 
 ## Tools and versions
 
@@ -54,9 +54,20 @@ The front view was the TRELLIS input.
    Each clip is an NLA strip, so each FBX take carries the clip's own name.
 3. `metrics.py` re-imports the FBX and writes `metrics.json`; `render_evidence.py` renders the evidence from the FBX.
 
+## Weapon (added 2026-10-21, after the first hand-off)
+
+The Director's review found the Attack clip empty-handed. `weapon.py` (`apps/vr/tools/assets/`, run on `work/Conscript_rigged.blend`) adds a short spear:
+a 1.45 m wooden shaft, iron socket, leaf head and butt cap, 108 tris in 4 separate watertight pieces. **Hand-authored in Blender**: parametric
+bmesh geometry written for this project, no Leonardo, TRELLIS, ComfyUI or other generated or third-party source, no new image or texture.
+It uses the creature's own materials (`M_Conscript_Wood` for the shaft, `M_Conscript_Iron` for the rest), is joined into `SM_Conscript` and weighted
+100 % to `hand_r`, so the FBX still holds one skeleton and one skinned mesh. Rigid on one bone, it rests along a fixed axis in Idle, Hit and Death
+(spear carried upright and leaning forward at the right hip); at Attack keys 7, 12 and 18 the `hand_r` key is re-solved so the spear points
+forward (wrist turn up to 123 degrees), which is what the strike strip shows. 4 floaters in `metrics.json` are these weapon pieces.
+
 ## Known limitations
 
 - The face is a flat-colour read; there are no eye or mouth materials.
+- The spear is a rigid prop on `hand_r`: it does not bend and the hand does not wrap it (no finger bones). The sheathed sword stays at the hip.
 - The shield and the sheathed sword are part of the one mesh and weighted like the body, so the shield follows the left thigh and spine rather than the arm.
 - The shield face is told apart from the leather by its place (box rules in `finish.py`), so a few of its edge faces stay Leather or Mail.
 - Attack key 7 (draw back) opens both arms outward more than a sword draw would; the thrust at keys 12-18 reads as intended.
