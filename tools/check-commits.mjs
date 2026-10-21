@@ -1,7 +1,9 @@
 // Commit-subject gate. Node built-ins only.
 // Every non-merge commit a branch adds must open with one of the repo's two subject forms:
 //   type(scope)!: summary   conventional, type in TYPES, scope and ! optional
-//   T08: summary            a task card (apps/vr/tasks/), change request or design finding id (docs/ORCHESTRATION.md step 4)
+//   T08: summary            a task card (apps/vr/tasks/), change request or design finding id (docs/ORCHESTRATION.md step 4),
+//                           or an owner/Claude design deliverable from V2-ROADMAP lane B (C1 the seal shape, C2 the
+//                           story bible). C ids are single-digit by design; T ids stay two-digit, so T8 stays rejected.
 // plus git's own `Revert "..."`. Only the branch's commits are read, never history, so the gate holds from day one.
 // Run: node tools/check-commits.mjs [--base <ref>] [--self-test]   (default base: upstream, else master, else origin/master)
 //      node tools/check-commits.mjs --subjects <file>              (one subject per line; CI feeds it from the PR)
@@ -15,7 +17,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'build', 'ci', 'chore', 'revert'];
 const CONVENTIONAL = new RegExp(`^(?:${TYPES.join('|')})(?:\\(\\.?[a-z0-9][a-z0-9._/-]*\\))?!?: \\S`);
-const CARD_ID = '(?:[TA]\\d{2}[a-z]?|CR-\\d{3}|DF-\\d{3})';
+const CARD_ID = '(?:[TA]\\d{2}[a-z]?|C\\d|CR-\\d{3}|DF-\\d{3})';
 const CARD = new RegExp(`^${CARD_ID}(?:[,/+] ?${CARD_ID})*: \\S`);
 const REVERT = /^Revert "/;
 
@@ -91,6 +93,8 @@ function selfTest() {
     'A02: greybox arena',
     'CR-003: threat geometry request',
     'T11/T12: split hands, fire wall',
+    'C2: the slice story bible, script and cue sheet',
+    'C1: the mudra seal shape',
     'Revert "T08: wave 1 integration"',
   ];
   const bad = [
@@ -103,6 +107,9 @@ function selfTest() {
     'squash! T08: thing',
     't08: lower-case id',
     'T8: one digit',
+    'C12: two digits is not a C id',
+    'c2: lower-case C id',
+    'C: no digit',
     'fix(Arena): capital scope',
     'Merge master into ascent/runner',
   ];

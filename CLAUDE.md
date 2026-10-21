@@ -74,8 +74,9 @@ Commit in small atomic commits. Push verified work to `origin master` on GitHub 
 yourself, keeping both sides' intent, and ask the owner only when the two sides make incompatible design choices.
 Never force-push to `master`, rewrite pushed history or bypass hooks.
 
-Subjects take one of two forms: `<card id>: summary` for a task card, change request or design finding (`T08: `,
-`A02: `, `CR-003: `), else `type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
+Subjects take one of two forms: `<card id>: summary` for a task card, change request, design finding or a lane-B
+design deliverable (`T08: `, `A02: `, `CR-003: `, `DF-010: `, `C2: ` - C ids are single-digit, T ids two), else
+`type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
 chore or revert. `node tools/check-commits.mjs` checks the branch's commits; `.github/workflows/commits.yml` fails a
 pull request on any other subject.
 
