@@ -347,6 +347,24 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - Their known-red lists name three tests; `CLAUDE.md` names five (A5). Their PinDiff census is moot under the frozen
   baseline (A5); the re-scope is an owner ask (section g). None of them moves a K3 row. They are first in the cut order.
 
+### P12. Cards from the 2026-10-21 context sweep, and where each slots
+
+Written on Lynx by a `/perfect` sweep over 15 contexts (`docs/research/SWEEP-2026-10-21.md`; its S/M remainder is
+backlog, not phases). Nothing below was built or run in Unreal, so every one is **[verify on Wolf]** throughout.
+These do not get their own slot in the critical path - **they attach to the phases already there**, in this order:
+
+| Card | Slots | Why there |
+|---|---|---|
+| **T51** ue-arm64 host probe | section b, read-only, **any time Wolf is up** | 10 minutes, one grep of the UBT Windows source, no install. Settles whether hosting Unreal on Lynx is worth a time-boxed attempt. Blocks nothing. |
+| **T47** split design gates | **new, between P2 (T39) and P3 (T37)**, 0.5-1 day | **Hard precondition: P2 must land in full first** - T39 and T47 both rewrite `SessionTests.cpp`, and some invariants only go green after T39. Running them concurrently needs a hand-merge. One assertion stays red until DF-010 is ruled (section g). |
+| **T44** threat-family hard-fail | **before P11's T33, or rebased onto it** | Both touch `KernelData*.cpp`. Its constraint is that the 45 vectors stay byte-identical, so `check-pin.mjs` is the detector. |
+| **T46** budget scene parity | **with P3 (T37) or straight after** | T37 is lever B; T46 is the **instrument** that measures it. Without T46, a lever-B pass can be declared green on a proxy scene that is not the shipping one - and `plausibilityOk` cannot fail today. **Run T46 before T49**: both edit `BudgetStressDriver.cpp`. |
+| **T49** threat-colour single-source | **after T46, before P4 (T16)** | So the style-pick frames the owner judges use the corrected HP bar. Re-running `create-budget-fx.ps1 -Force` is one of its deliverables. |
+| **T45** capture evidence integrity | **before P4 (T16)**; its **audio half before P7 (T40)** | P4's checklist currently expects `capture-style-pick.ps1` to work as-is, and it does not: the driver writes no DONE/FAIL marker and the launcher substitutes the run's first frame for a missing one. The audio half gates T40's music evidence. |
+| **T43** ward aim side-channel | **before P9 (V1 device bring-up)**, after P2/P3 | The desktop arc gate cannot fail today and the VR path never sets facing, so it must be real before hands reach a headset. Its head/seat facing is the transform MOONSHOT **M2** will own - if no usable facing exists yet, the card says stop and report rather than half-build M2. |
+| **T50** seated-momentum guard | any time; **design half blocked** on the owner's Footing reading (section g) | Guard only. Harmless today because the player has no Air school. |
+| **T48** earth school | **not scheduled - see section f** | The card itself recommends cutting it past 18 Nov. |
+
 ## d. Gates before every merge on Wolf
 
 Run on the branch or worktree before merging to master. Record each result with the host name Wolf (section a, step 3):
@@ -427,6 +445,11 @@ Risks, highest first:
 Proposed cut order if time runs short (a proposal; **the owner decides**, and the owner declined the plan's cuts of bout 2
 and the second school on 2026-10-20, so those are not on this list):
 
+0. **T48, the Earth school — never started rather than cut.** It is above P11 because nothing depends on it and
+   its own card recommends not doing it before 18 Nov: there is no slot for Earth in the pinned Tiro tiers (two
+   mage waves, both bound), the owner already chose Air over Earth on 2026-10-07, the owner's own date for all
+   four schools playable is spring 2027 (`DECISIONS.md:289-292`), and a fourth `ChooseXSpell` would make
+   MOONSHOT M10 strictly worse. The card exists and is ready if the owner overrides.
 1. P11, the determinism package T33-T36 (moves no K3 row).
 2. P1, the overlay goldens (accept the A1 risk; T39 then relies on the design suite alone).
 3. T28 intermission scenes (the existing Bout 1 stone pick stays).
@@ -455,5 +478,15 @@ run, the submission package.
     and the "Competition" channel (R12).
 11. **P1 overlay goldens:** write the card (A1) or skip it. **T33 re-scope** (A5: the PinDiff census is moot).
 12. **The cut order** in section f, if time runs short.
+14. **DF-010, the Tiro day length** (`docs/design-findings/DF-010-tiro-day-length.md`, opened 2026-10-21). The day
+    measures **3.02 min** against the 7-10 min asserted at `Tests/SessionTests.cpp:792`, and that number has
+    **neither a document nor a ruling** behind it: the test's own comment cites "Games day 6-10 min" while the
+    constant enforces 7.0, and `docs/DECISIONS.md` carries no minute figure. The 3.02 min also came from a run
+    that **stopped on a loss**, and the four-bout figure ran Bouts 3-4 as water proxies - **a day that wins all
+    four real bouts has never been measured.** Options A-E in the finding; C (harder rivals) is costed as
+    arithmetically insufficient. **Blocks one assertion in P12's T47.**
+15. **Earth before 18 Nov** (`apps/vr/tasks/T48-earth-school.md`, written 2026-10-21 on the owner's instruction).
+    The card recommends cutting it; the owner asked for the card, not the decision. Note the 2026-10-07 ruling
+    (`DECISIONS.md:289-292`) already chose Air over Earth and dated all four schools playable to spring 2027.
 13. **Submission text:** the launch date (Q5), the entrant and sponsor-funding confirmations (`docs/submission/README.md`
     "Owner decisions this package waits on" 2-5).
