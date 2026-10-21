@@ -202,6 +202,15 @@ Settled or already-captured - never re-suggest as a new direction. **Check all t
 
 ## Skill improvement log
 
+- 2026-10-21: **grep DECISIONS.md for the SPECIFIC question, not just "read it newest first".** The sweep
+  reported Earth as absent against the owner's 2026-10-03 "all four schools" ruling, and the Director put that to
+  the owner as an oversight with four weeks to the deadline. It was mis-framed: `DECISIONS.md:289-292` records
+  that on 2026-10-07 the owner was asked "Earth, Air, or Corvo now?", chose **Air**, and dated all four schools
+  playable to **spring 2027**. Every scout was told DECISIONS outranks everything and to read it newest-first,
+  and they all did read it - but none grepped it for *earth*, and nor did the Director before gating. **A finding
+  of the form "X is missing against a ruling" must carry a targeted DECISIONS grep for X before it reaches the
+  owner's gate**, because the cost of being wrong is asking the owner to re-decide something they already
+  settled. The builder caught it, from the same instruction to re-verify references.
 - 2026-10-21 (sweep round 1, 12 scouts over 15 contexts, 7 builder lots): **brief the scouts on a prior
   campaign's UNTRIAGED remainder, not just its accepted items.** The briefs pointed every scout at
   `MOONSHOT-2026-10.md`'s decision table (M1-M12) to avoid re-deriving accepted work, and that worked - almost
