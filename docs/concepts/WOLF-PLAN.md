@@ -32,6 +32,20 @@ is a soft internal milestone (DECISIONS 2026-10-21, "Deadlines and Q9"). A misse
 
 ## b. Machine setup on Wolf
 
+### Step 0: register this app on Wolf (do this first)
+
+Wolf's tooling only sees a project that is registered. Before any other step:
+
+- [ ] **Fleet registry.** In Wolf's `kiro/ai-registry` checkout (clean tree, `git pull --rebase` first), run
+  `node scripts/register-project.mjs --slug mage-arena-vr --path <this checkout> --dry-run`, read it, then run it without
+  `--dry-run`. Commit `projects.json` with a `fleet:` subject and push to `origin main`. The script refuses when the
+  slug already points at a different checkout on Wolf; re-pointing is a decision, so ask the owner if it refuses. Wolf is already registered as `mage-arena-vr` at `kiro/mage-arena-vr`. If Wolf's checkout is now `kiro/mage-arena` (the GitHub name), the script refuses; ask the owner whether to re-point it.
+- [ ] **Personas.** If the Personas app runs on Wolf, register the checkout as a dev project (Dev Tools, or
+  `POST /dev-tools/projects` with name and root path) and run a context scan. The headless App Masters for this
+  project run on Lynx: Wolf does not run a second master for it. It reports back through commits on `origin/master`.
+- [ ] Proof: `projects.json` lists the Wolf checkout for `mage-arena-vr`, and the registry commit is on `origin/main`.
+
+
 Run each step from the repo root in PowerShell. The checkout path on Wolf is `kiro/mage-arena-vr` in the registry's
 `projects.json` (`ai-registry/projects.json:107-110`); on Lynx the same repo is `kiro/mage-arena`, remote
 `https://github.com/xkazm04/mage-arena`. **[verify on Wolf]** which path and remote Wolf has.
@@ -372,8 +386,8 @@ $up = "$PWD\apps\vr\Game\MageArenaVR.uproject"
 
 ## e. Hand-offs between Lynx and Wolf
 
-Git is the channel for everything that is text or LFS. Both machines commit to master; neither pushes unless the owner
-asks (`CLAUDE.md` "Git"). How commits travel between the machines is an owner decision (section g, item 1).
+Git is the channel for everything that is text or LFS. Both machines commit to master and push verified work to `origin master` on GitHub (owner, 2026-10-21; `CLAUDE.md` "Git"):
+gates green, `git fetch` and rebase (or merge) first, never force-push. GitHub is the transport between the machines.
 
 | # | What | Produced by | Lands at | Wolf picks it up by |
 |---|---|---|---|---|
@@ -426,8 +440,8 @@ run, the submission package.
 
 ## g. Owner decisions still open
 
-1. **How commits travel between Wolf and Lynx.** `CLAUDE.md` forbids pushing unless the owner asks. Options: a standing
-   permission for Wolf to push master after its gates pass, the owner pushing by hand, or another transport.
+1. ~~**How commits travel between Wolf and Lynx.**~~ Decided 2026-10-21: both machines push verified work to `origin master`
+   and merge when needed (`CLAUDE.md` "Git").
 2. **B3 Android in the Epic launcher** and **B2 launcher auto-update off** (both open since 2026-10-03 / 2026-10-13).
 3. **The UE 5.8.4 day** (F12, DECISIONS 2026-10-13): which day. Proposal: not before P5 has a 5.8.3 APK, so a failure is
    attributable. **[verify on Wolf]** whether 5.8.4 has been released.

@@ -65,7 +65,11 @@ and `DerivedDataCache/` are never committed.
 
 ## Git
 
-Commit locally, in small atomic commits. Never push, force-push or bypass hooks unless the owner asks.
+Commit in small atomic commits. Push verified work to `origin master` on GitHub (owner, 2026-10-21): the gates in
+`.ai/manifest.yaml` are green and the secret scan is clean. This is how Lynx and Wolf exchange work. Before pushing,
+`git fetch` and rebase onto `origin/master`, or merge it when a rebase would rewrite shared history. Resolve conflicts
+yourself, keeping both sides' intent, and ask the owner only when the two sides make incompatible design choices.
+Never force-push to `master`, rewrite pushed history or bypass hooks.
 
 Subjects take one of two forms: `<card id>: summary` for a task card, change request or design finding (`T08: `,
 `A02: `, `CR-003: `), else `type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
