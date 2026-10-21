@@ -4,8 +4,7 @@
   (linked from both the rules page and the overview page; whether it accepts new topics from entrants is [confirm]).
   Fallback: the Devpost contact page, `https://info.devpost.com/contact`. The pages show no mailto and no manager email.
 - **When it is due:** the 12 Oct 2026 target passed without a post. The owner ruled on 2026-10-21 to post a revised question.
-- **Status:** revised draft, ready to post (2026-10-21). The owner posts it; record the date and link here once posted.
-  (DECISIONS.md, 2026-10-07: the reuse is provisionally accepted meanwhile. 2026-10-20: VR first, which this revision follows.)
+- **Status:** not posted - owner ruling 2026-10-21: not needed (see DECISIONS 2026-10-21)
 
 ## Before you post
 
