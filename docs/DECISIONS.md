@@ -2,6 +2,26 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - Deadlines and Q9: 18 Nov is the only hard date; Q9 is not posted
+
+> Operator, 2026-10-21, relayed through the App Master: "No need to post anything, final deadline is Nov 18, 2026, other
+> ones were soft milestones."
+
+- **What binds, Q9:** the organizer question is not posted. Q9 is closed as not needed.
+  `docs/submission/ORGANIZER-QUESTION-Q9.md` records this in its status line and is otherwise unchanged. The provisional
+  acceptance of the reuse (2026-10-07, Q9 entry) is not changed by this entry.
+- **What binds, dates:** the only hard date is the competition final deadline, Wed 18 Nov 2026
+  (https://start-developer-competition-26.devpost.com/; 12:00 PT per `docs/PROJECT-PLAN.md` line 4). Every other dated
+  gate in the plan, the KPI readings and the cards is a soft internal milestone: among them 12 Oct (Q9), 18 Oct
+  (mechanics), 19 Oct (style pick), 23 Oct (R0), 25 Oct (content freeze), 31 Oct (desktop core gate), 4 Nov (V1),
+  8 Nov (V2), 11 and 13 Nov (beta, RC) and 16 Nov (store-upload freeze). A missed soft milestone is a re-plan, not a stop.
+- **Supersedes:** the Q9 line of the 2026-10-21 frozen-baseline entry below ("post a revised Q9; the operator posts it")
+  and the open Q9 line of the 2026-10-20 "VR first" entry (their bodies are not edited). PROJECT-PLAN section 10 R8 and
+  section 12 Q9 ("the owner posts ...") and the item 1 row of `docs/submission/README.md` are stale on this point; they
+  are not edited here, and where they conflict this entry wins.
+- **Where it is used:** `docs/concepts/WOLF-PLAN.md` dates every phase as a soft milestone against 18 Nov.
+- Lost: an organizer answer on the reuse question.
+
 ## 2026-10-21 - Combat data: the current pin is VR's frozen baseline
 
 > Operator, 2026-10-21, relayed through the App Master (answering the gate ask): "A, frozen baseline."
