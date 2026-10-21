@@ -2,6 +2,7 @@
 
 Status: open, blocked on an owner input: the source of the two loops (see "The owner input"). The import and the proof run on
 the build machine (Wolf, the x64 UE host: UE 5.8.3 editor). Written 2026-10-20 on the ARM64 laptop, where none of it runs.
+Owner input supplied 2026-10-21: the two loops are in `apps/vr/art/audio/music/` (ElevenLabs, 2 calls, see `SOURCE.md`); the Wolf import is next.
 Max turns: 120
 
 ## Goal
