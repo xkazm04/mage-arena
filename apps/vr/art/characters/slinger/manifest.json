@@ -1,0 +1,87 @@
+{
+  "card": "T15",
+  "generated": "2026-10-21",
+  "note": "Concept art for the Bout 2 Slinger, derived from model sheet 04-slinger-turnaround.jpg, with one flat colour per material. Every call is in leonardo-log.json (56 credits for this asset). The front view was the TRELLIS.2 input. Mesh, rig, clips and evidence are in git under apps/vr/art/characters/slinger/export/ (FBX and PNGs through Git LFS, owner 2026-10-21); the work/ folder stays in the archive C:/Users/kazda/kiro/mage-arena-archive/Slinger/work/ (see HANDOFF.md).",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/slinger/concept-front-s4201-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4201,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "768x1376",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (seed 42)"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/slinger/concept-turnaround-s4202-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4202,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front, side and back reference"
+    },
+    {
+      "asset": "SK_Slinger",
+      "path": "apps/vr/art/characters/slinger/export/SK_Slinger.fbx",
+      "sha256": "9bf509af30853fe96a4cd68ce5840f87f051e4539b047e918eb23a653acc1e2c",
+      "bytes": 1880124
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/slinger/export/SOURCE.md",
+      "sha256": "261494f6df531feb8766e050592db9be2be89e9549e87f84aaf7e82493f4ec00",
+      "bytes": 7842
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/slinger/export/metrics.json",
+      "sha256": "82dbbaaae6d0d9126bd5f9d2c92e250e4aa04b66dee48e93b371230a0173d290",
+      "bytes": 4460
+    },
+    {
+      "asset": "Slinger_turnaround",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_turnaround.png",
+      "sha256": "181d7c3542322b3fa34a92fde0963023cd496fe1f067e61212534a4e0c0fec3b",
+      "bytes": 1549889
+    },
+    {
+      "asset": "Slinger_game_640x480",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_game_640x480.png",
+      "sha256": "ebfb8046ff9ac1b79a6adf69bc2ab2c800727145ccebbccc8cffa4129a9f8760",
+      "bytes": 261183
+    },
+    {
+      "asset": "Slinger_clip_Idle",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Idle.png",
+      "sha256": "88e663f612125c2b363bcb09e85751a09dc40dc6bfecc95c030fb6881c29ac64",
+      "bytes": 434275
+    },
+    {
+      "asset": "Slinger_clip_Attack",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Attack.png",
+      "sha256": "3356d8db85ed0d36406be3ac030616975432b675e8629d8b40b5b145ca8d5d16",
+      "bytes": 840870
+    },
+    {
+      "asset": "Slinger_clip_Hit",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Hit.png",
+      "sha256": "dc36048636285b524710aef972fad34450b3cf705cb7d91bea2a2482267cb73e",
+      "bytes": 592946
+    },
+    {
+      "asset": "Slinger_clip_Death",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Death.png",
+      "sha256": "5b62d5510d068823ea4080b5d360e683ec827c78e2d30df09e0bb88abb2cdcba",
+      "bytes": 815454
+    }
+  ]
+}
