@@ -52,7 +52,10 @@ Before the full `MageArena` suite in a fresh checkout or worktree, regenerate th
 `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs`
 (verified 2026-10-07: they wrote 270 corpus, 5 noise and 180 impostor clips, then 90 mouse clips, and `git status` stayed
 clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Never run `generate.mjs` bare or with
-`--templates` for this: both rewrite tracked clips. As of 9f338f0, five suite failures are known on a clean tree:
+`--templates` for this: both rewrite tracked clips. Since f33bf18 that is **enforced, not just advised** - a bare
+`generate.mjs` prints usage and exits 2, and rewriting tracked clips needs an explicit `--canonical`. To verify the
+clips without writing anything, `node apps/vr/tools/clipgen/generate.mjs --check` regenerates into a temp directory
+and diffs against the tracked files (byte-identical on Windows ARM64 / Node 24, 2026-10-21). As of 9f338f0, five suite failures are known on a clean tree:
 `MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, `Session.Wave1Seated` and
 `Session.CreaturesSeated`. `Duel.AirSeated` and `Session.CreaturesSeated` were confirmed red on base 9f338f0 (owner ruling
 2026-10-16) and are not new regressions.

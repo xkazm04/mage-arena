@@ -86,7 +86,9 @@ gate; it is confirmation, not discovery.
 - Before the full suite in a fresh checkout (Wolf): regenerate the gitignored sigil corpus with
   `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000` then
   `node apps/vr/tools/clipgen/mousepaths.mjs`. Never run `generate.mjs` bare or with `--templates` - both rewrite
-  tracked clips.
+  tracked clips. **Enforced since f33bf18:** a bare run exits 2 and rewriting tracked clips needs `--canonical`.
+  The safe verification command is `node apps/vr/tools/clipgen/generate.mjs --check`, which regenerates into a
+  temp directory and diffs against the tracked clips; add it to the `when clips changed` gate.
 
 ## Class B
 

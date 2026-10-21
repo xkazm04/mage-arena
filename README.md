@@ -135,7 +135,8 @@ Requirements: Windows 11, Unreal Engine 5.8 (`C:\Program Files\Epic Games\UE_5.8
 ```powershell
 powershell -NoProfile -File apps/vr/tools/build.ps1                     # editor target, Win64 Development
 node apps/vr/tools/check-pin.mjs                                         # pinned combat data is intact
-node apps/vr/tools/clipgen/generate.mjs; node apps/vr/tools/clipgen/validate.mjs apps/vr/Game/Clips
+node apps/vr/tools/clipgen/generate.mjs --check                          # clips still regenerate byte-identically
+node apps/vr/tools/clipgen/validate.mjs                                  # format of every tracked clip
 & "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
   apps\vr\Game\MageArenaVR.uproject -ExecCmds="Automation RunTests MageArena;Quit" -unattended -nullrhi -nosplash -log
 ```
