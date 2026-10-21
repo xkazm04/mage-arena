@@ -4,7 +4,6 @@
 # libraries, which are not copied here; the checks below are the T38 card's, written out.
 #   blender -b -P metrics.py -- <in.fbx> <metrics.json>
 import bpy, sys, json, os, numpy as np
-from mathutils import Vector
 
 a = sys.argv[sys.argv.index('--') + 1:]; fbx, outp = a[:2]
 CLIPS = ['Idle', 'Cast', 'Hit', 'Death']
