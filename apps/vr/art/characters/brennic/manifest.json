@@ -1,0 +1,33 @@
+{
+  "card": "T38",
+  "generated": "2026-10-21",
+  "note": "Concept art for Brennic, the Fire mage opponent, derived from the A04 sheets 01 and 02 (bare-headed, bearded, no hood) with one flat colour per material. Every call is logged in leonardo-log.json (28 credits for this run). The front view was the TRELLIS.2 input. The mesh, rig, clips and evidence are outside git at C:/Users/kazda/kiro/mage-arena-archive/T38/Brennic/ (see HANDOFF.md).",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 3801,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "768x1376",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (seed 42)"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/brennic/concept-turnaround-s3802-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 3802,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front, side and back reference"
+    }
+  ]
+}
