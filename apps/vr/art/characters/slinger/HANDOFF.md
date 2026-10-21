@@ -10,7 +10,7 @@ copied byte for byte from the Lynx archive `C:\Users\kazda\kiro\mage-arena-archi
 
 | File | What |
 |---|---|
-| `SK_Slinger.fbx` | the rigged mesh with the four takes `Idle`, `Attack`, `Hit`, `Death` (FBX 7.4 binary, 1.8 MB) |
+| `SK_Slinger.fbx` | the rigged mesh, with a hand-authored sling on `hand_r`, and the four takes `Idle`, `Attack`, `Hit`, `Death` (FBX 7.4 binary, 1.8 MB) |
 | `SOURCE.md` | tool versions, prompts, seeds, date, Leonardo model, licence line, known limitations |
 | `metrics.json` | `apps/vr/tools/assets/metrics.py` run on the exported FBX (re-imported fresh), attack clip `Attack` |
 | `Slinger_turnaround.png` | EEVEE, 8 views, Idle frame 0 |
@@ -22,13 +22,19 @@ The FBX and the seven PNGs are LFS objects (`git lfs ls-files`); `SOURCE.md` and
 
 ## Metrics summary (`metrics.json`)
 
-- One skinned mesh `SM_Slinger`: 12,002 verts, 24,000 tris, 1 component, 0 floaters, watertight, winding consistent.
+- One skinned mesh `SM_Slinger`: 12,064 verts, 24,108 tris (body 24,000 + sling 108), 5 components (the body and the 4 weapon pieces, so metrics.json counts 4 floaters), watertight, winding consistent. The weapon is hand-authored in Blender (`weapon.py`), weighted 100% to `hand_r`.
 - One skeleton: 23 bones with UE5 mannequin names (no finger bones). The armature node is named `Armature`.
-- Height 1.80 m; min z 0.0003 m; bbox centre xy (-0.0002, -0.0002) m; object scale 1.
+- Height 1.80 m; min z 0.0003 m; bbox centre xy (-0.0002, -0.024) m; object scale 1.
 - Weights: 0 unweighted vertices, max |sum - 1| = 0, at most 4 influences per vertex.
 - Clips (30 fps): `Idle` 61 frames, `Attack` 47, `Hit` 25, `Death` 61 (last pose held).
 - Materials: `M_Slinger_Linen`, `M_Slinger_Jerkin`, `M_Slinger_Iron`, `M_Slinger_Leather`, `M_Slinger_Bag`, `M_Slinger_Skin`, `M_Slinger_Hair`; each one flat colour; 0 textures in the FBX.
 - Leonardo: 2 calls, 56 credits (`leonardo-log.json`). TRELLIS.2: 1 run (seed 42, 375 s).
+
+## Added after the first hand-off (2026-10-21)
+
+- Weapon: a hand-authored sling (`weapon.py`, rigid cords and pouch on `hand_r`; no cord bones). Attack keys 9, 17, 24, 32 re-solve the `hand_r` key so the cords follow the whirl and release.
+- Material clean-up (`fixmats.py`, material indices only): the pale blotches on the satchel are mostly gone. **Left**: small pale patches on the sandal soles.
+- The pouch stays loaded after release (a rigid prop cannot show the stone leave).
 
 ## T38 Wolf pre-import checks, as measured on Lynx
 
@@ -37,9 +43,9 @@ The FBX and the seven PNGs are LFS objects (`git lfs ls-files`); `SOURCE.md` and
 | 1 | one skeleton | pass | 1 armature, 1 skin deformer |
 | 2 | one skinned mesh | pass | 1 mesh, 1 skinned |
 | 3 | exactly the four clips, none empty | pass | stacks ['Idle', 'Attack', 'Hit', 'Death']; frames Idle 61, Attack 47, Hit 25, Death 61 |
-| 4 | LOD0 triangle count recorded | pass | 24000 tris (target 18000-30000, scene budget 350000) |
+| 4 | LOD0 triangle count recorded | pass | 24108 tris (target 18000-30000, scene budget 350000) |
 | 5 | one flat colour per material, no embedded textures | pass | 7 materials, 0 textures |
-| 6 | origin at the feet | pass | min z 0.0003 m, bbox centre xy [-0.0002, -0.0002] m |
+| 6 | origin at the feet | pass | min z 0.0003 m, bbox centre xy [-0.0002, -0.024] m |
 | 7 | +X forward | pass | hand_l y 0.454, hand_r y -0.454, toe dx 0.311 |
 | 8 | unit scale, height 1.62-1.98 m | pass | height 1.7994 m, object scale [1.0, 1.0, 1.0] |
 | 9 | Tool versions and prompts in `SOURCE.md` | pass | ComfyUI 0.42.1, TRELLIS.2 int8, Blender 5.2.2, Leonardo `openai/gpt-image-2.5-flare` |
@@ -56,6 +62,8 @@ node apps/vr/tools/assets/trellis.mjs run apps/vr/art/characters/slinger/concept
 node apps/vr/tools/assets/trellis.mjs free
 blender -b -P apps/vr/tools/assets/finish.py -- <archive>/work/slinger_s42.glb <archive>/work Slinger 0 4096 0.01 24000 Slinger
 blender -b -P apps/vr/tools/assets/rig_anim.py -- <archive>/work/Slinger_finish.blend <archive>/work Slinger <archive>/SK_Slinger.fbx Sling
+blender -b -P apps/vr/tools/assets/fixmats.py -- <archive>/work/Slinger_rigged.blend <archive>/work/Slinger_fixed.blend Slinger
+blender -b -P apps/vr/tools/assets/weapon.py -- <archive>/work/Slinger_fixed.blend <archive>/work Slinger <archive>/SK_Slinger.fbx sling
 blender -b -P apps/vr/tools/assets/metrics.py -- <archive>/SK_Slinger.fbx <archive>/metrics.json Attack
 blender -b -P apps/vr/tools/assets/render_evidence.py -- <archive>/SK_Slinger.fbx <archive> Slinger <archive>/work/Slinger_rig.json Attack
 ```

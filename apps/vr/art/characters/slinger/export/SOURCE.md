@@ -5,10 +5,10 @@ AI-assisted (Claude + owner, option 2); shippability pending the originality che
 - Date: 2026-10-21, made on Lynx (Windows ARM64). No Unreal Engine was run; nothing here is a UE result.
 - Subject: Roman auxiliary slinger (cap helmet, studded jerkin, short tunic, stone bag and net pouch, laced shin wraps), drawn to match `apps/vr/art/model-sheets/04-slinger-turnaround.jpg`.
 - File: `SK_Slinger.fbx` (FBX 7.4 binary, 1.8 MB). One skeleton (23 bones, UE5 mannequin names), one skinned mesh
-  `SM_Slinger` (24,000 tris, 12,002 verts), 7 flat-colour materials, no textures, four takes
+  `SM_Slinger` (24,108 tris, 12,064 verts: 24,000 body + 108 sling), 7 flat-colour materials, no textures, four takes
   `Idle` (61 frames), `Attack` (47), `Hit` (25), `Death` (61, last pose held) at 30 fps. +X forward, Z up, origin at the feet, 1.80 m.
 - Repo scripts (kiro/mage-arena, `apps/vr/tools/assets/`): `leonardo.mjs --asset slinger`, `trellis.mjs` + `trellis-api.json`,
-  `finish.py` (palette set `Slinger`), `rig_anim.py` (attack style `Sling`), `metrics.py`, `render_evidence.py`.
+  `finish.py` (palette set `Slinger`), `rig_anim.py` (attack style `Sling`), `fixmats.py`, `weapon.py` (`sling`), `metrics.py`, `render_evidence.py`.
 
 ## Tools and versions
 
@@ -54,10 +54,28 @@ The front view was the TRELLIS input.
    Each clip is an NLA strip, so each FBX take carries the clip's own name.
 3. `metrics.py` re-imports the FBX and writes `metrics.json`; `render_evidence.py` renders the evidence from the FBX.
 
+## Weapon (added 2026-10-21, after the first hand-off)
+
+The Director's review found the Attack clip empty-handed. `weapon.py` (`apps/vr/tools/assets/`, run on `work/Slinger_fixed.blend`) adds a sling:
+two linen cords from a knot in the fist to a leather pouch, 108 tris in 4 separate watertight pieces. **Hand-authored in Blender**: parametric
+bmesh geometry written for this project, no Leonardo, TRELLIS, ComfyUI or other generated or third-party source, no new image or texture.
+It uses the creature's own materials (`M_Slinger_Linen` cords, `M_Slinger_Leather` pouch), is joined into `SM_Slinger` and weighted 100 % to
+`hand_r`, so the FBX still holds one skeleton and one skinned mesh. The cords are rigid (no cord bones: the 23-bone UE5 skeleton is unchanged);
+they hang from the fist in Idle, Hit and Death, and at Attack keys 9, 17, 24 and 32 the `hand_r` key is re-solved so the cords point back, overhead,
+forward and down-forward, following the whirl and release (wrist turn 22 to 84 degrees). The pouch stays loaded after release; a rigid prop cannot show the stone leave.
+4 floaters in `metrics.json` are these weapon pieces.
+
+## Material clean-up (added 2026-10-21)
+
+`fixmats.py` relabels material indices only (no vertex, weight or bone change): every connected patch of at most 60 faces of one material,
+on the boots (below 0.40 m) or on the satchel (its Bag faces' bounding box), takes the material it shares most edges with (Iron, Jerkin and Hair patches are kept). 1,202 faces
+changed. The pale blotches on the satchel are mostly gone; small pale patches remain on the sandal soles.
+
 ## Known limitations
 
 - The face is a flat-colour read; there are no eye or mouth materials.
-- The sling itself is coiled at the belt in the concept and did not survive TRELLIS as a separate shape; no sling prop is modelled.
+- The sling itself did not survive TRELLIS as a separate shape; the sling in his hand is the hand-authored `weapon.py` prop above (rigid cords, no cord bones).
 - The bag, the net pouch and the strap are weighted like the body, so they follow the spine and thighs.
+- Small pale patches remain on the sandal soles after `fixmats.py`.
 - The net pouch of stones bakes grey and is re-labelled to the Bag material by a height rule in `finish.py`.
 - No finger bones, so the hands stay rigid. No LODs beyond LOD0.
