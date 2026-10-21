@@ -9,7 +9,8 @@
 # TRELLIS bakes them, RULES re-label parts that share a colour: by height (from, to, 'below' | 'above', fraction of height)
 # or by place (from, to, 'box', (xmin, xmax, zmin, zmax[, ymin, ymax]) in metres, character frame: left is +X, front is -Y). On a tie in REFERENCE the part listed first wins.
 # or by an ellipse on the front (from, to, 'inside' | 'outside', (x centre, z centre, x radius, z radius)).
-# Optional per set: HEIGHT (metres, default 1.8) and SLAB (drop a fused ground slab of that thickness, in import units).
+# Optional per set: HEIGHT (metres, default 1.8), SLAB (drop a fused ground slab of that thickness, in import units) and
+# FILL (fill a star-shaped body whose skin remeshes hollow, from a centre at that fraction of the height).
 # The k-means centres of the face colours go to <name>_finish.json ('face_kmeans') to tune a new set's REFERENCE.
 import bpy, sys, json, time, bmesh, math, numpy as np, mathutils
 
@@ -107,6 +108,7 @@ PALETTES = {
     'MireMaw': {
         'HEIGHT': 1.25,
         'SLAB': 0.006,  # TRELLIS units: the seed-42 mesh stands on a 1 m square slab about 5 mm thick
+        'FILL': 0.48,  # and its seed-42 skin remeshes hollow: fill it from the cavity centre at 0.48 x the height
         'PALETTE': {
             'Skin': (0.42, 0.40, 0.22),
             'Belly': (0.62, 0.55, 0.38),
@@ -173,6 +175,8 @@ if 'SLAB' in PALETTES[SET]:  # a ground slab TRELLIS fused under the feet: drop 
     bm = bmesh.new(); bm.from_mesh(hm); zlo = min(v.co.z for v in bm.verts) + PALETTES[SET]['SLAB']
     kill = [f for f in bm.faces if all(v.co.z < zlo for v in f.verts)]; R['slab_faces_removed'] = len(kill)
     bmesh.ops.delete(bm, geom=kill, context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+    # the cut opens the soles; close the holes it leaves
+    R['slab_holes_filled'] = len(bmesh.ops.holes_fill(bm, edges=bm.edges[:], sides=0)['faces'])
     bm.to_mesh(hm); bm.free(); hm.update()
 R['hi_floaters_removed'], R['hi_components'] = drop_small_components(hm, 0.005)
 co = np.empty(len(hm.vertices) * 3); hm.vertices.foreach_get('co', co); co = co.reshape(-1, 3); mn, mx = co.min(0), co.max(0)
@@ -184,6 +188,27 @@ lo = bpy.data.objects.new('LOW', bpy.data.meshes.new('LOW')); bpy.context.scene.
 lo.data.from_pydata([v.co[:] for v in hm.vertices], [], [tuple(p.vertices) for p in hm.polygons]); lo.data.update()
 bpy.ops.object.select_all(action='DESELECT'); lo.select_set(True); bpy.context.view_layer.objects.active = lo
 lo.data.remesh_voxel_size = VOX; lo.data.remesh_voxel_adaptivity = 0.0; bpy.ops.object.voxel_remesh()
+if PALETTES[SET].get('FILL'):
+    # TRELLIS can return a skin the voxel remesh turns into a hollow shell (here 1.5-5 cm thick). For a star-shaped body,
+    # cast rays from the cavity's centre (FILL x the height), put a sphere vertex midway between the inner and the outer
+    # wall in every direction, join that star to the shell and remesh again: the cavity is filled and the outer
+    # surface is untouched. Pockets the star misses (inside the legs) come out as small inner components, dropped below.
+    from mathutils.bvhtree import BVHTree
+    bvh = BVHTree.FromObject(lo, bpy.context.evaluated_depsgraph_get()); ctr = mathutils.Vector((0, 0, PALETTES[SET]['FILL'] * HEIGHT))
+    st = bpy.data.objects.new('STAR', bpy.data.meshes.new('STAR')); bpy.context.scene.collection.objects.link(st)
+    bm = bmesh.new(); bmesh.ops.create_uvsphere(bm, u_segments=96, v_segments=48, radius=1.0); misses = 0
+    for v in bm.verts:
+        d = v.co.normalized(); hits = []; o_ = ctr.copy()
+        while len(hits) < 2:
+            h = bvh.ray_cast(o_, d, 5.0)
+            if h[0] is None: break
+            hits.append((h[0] - ctr).length); o_ = h[0] + d * 1e-4
+        if not hits: misses += 1; hits = [0.05]
+        v.co = ctr + d * ((hits[0] + hits[1]) / 2 if len(hits) > 1 else hits[0])
+    bm.to_mesh(st.data); bm.free(); R['fill_star_misses'] = misses
+    # join, not a boolean (the shell touches itself): the voxel remesh unions the two volumes
+    bpy.ops.object.select_all(action='DESELECT'); st.select_set(True); lo.select_set(True); bpy.context.view_layer.objects.active = lo
+    bpy.ops.object.join(); lo.data.remesh_voxel_size = VOX; lo.data.remesh_voxel_adaptivity = 0.0; bpy.ops.object.voxel_remesh()
 R['voxel_m'] = VOX; R['voxel_tris'] = tris(lo)
 if tris(lo) > TARGET:
     md = lo.modifiers.new('d', 'DECIMATE'); md.decimate_type = 'COLLAPSE'; md.ratio = min(1.0, TARGET / tris(lo)); md.use_collapse_triangulate = True
