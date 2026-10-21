@@ -1,0 +1,230 @@
+{
+  "note": "sha256 of every tracked file under data/conformance/, raw bytes as committed. Verified by tools/check-pin.mjs.",
+  "files": [
+    {
+      "path": "bolt-hit.json",
+      "sha256": "b82956a11261e091948d113f6e35c39ae6b2f1f4d53d75e2de3eded615e013df",
+      "bytes": 14471
+    },
+    {
+      "path": "bot-duel.json",
+      "sha256": "d7825113c154ce57603ba90a05733480b50df204b82999e28596ea9fd006a824",
+      "bytes": 89124
+    },
+    {
+      "path": "creature-bout.json",
+      "sha256": "866dd5187830e88eeb5ad72b8ca0299849a5b91b00f3bed9222f937c789aed00",
+      "bytes": 178385
+    },
+    {
+      "path": "duel-competence-1-5.json",
+      "sha256": "e26b986d55ec3ea4aecf97cf5cae58d589a5c210038992b9cdb7f04f13b01da1",
+      "bytes": 149432
+    },
+    {
+      "path": "duel-competence-1.json",
+      "sha256": "325ec0b863ca93a5a7d40319334c45f37814724cb8e99b9047b149261b058a22",
+      "bytes": 106674
+    },
+    {
+      "path": "dummy-wave.json",
+      "sha256": "8ca2c651cef255d65261f42c0fd34148604dd5b3137ee20e7684455a42978a73",
+      "bytes": 161139
+    },
+    {
+      "path": "flow-crest.json",
+      "sha256": "7d625863bf329ba2bf25fb138baafcfc3b3afcf44a1e4c60e98a8f9870ee4ab9",
+      "bytes": 28244
+    },
+    {
+      "path": "held-ward.json",
+      "sha256": "e356a897aa8c1e3160a13ca5f803aca654c0632350428683737b536c8febd8a3",
+      "bytes": 48047
+    },
+    {
+      "path": "lash-1.json",
+      "sha256": "82c7d48a77587485ba3d373eaef07d8d0b8b7447aed1954a81b0dfc2d546f84c",
+      "bytes": 14480
+    },
+    {
+      "path": "lash-2a.json",
+      "sha256": "df789c090e3f6cf78216b03be3e48276371cd49078e5dc2e4864edb0d14ec893",
+      "bytes": 11031
+    },
+    {
+      "path": "lash-2b.json",
+      "sha256": "37ab2dd4c487f1ddbd802e824a234d599eec964e321ead4c04583bcc73be1b4e",
+      "bytes": 11028
+    },
+    {
+      "path": "lash-3.json",
+      "sha256": "e2ef6d948f2baf3c5f71914b3edce386c638f7b1fe256f11181754d0a40f7bf7",
+      "bytes": 15199
+    },
+    {
+      "path": "lash-4.json",
+      "sha256": "e20f2ea9bab240cf3a9c168a26838a72c705a098c2654c7b0a109190af7f662a",
+      "bytes": 22468
+    },
+    {
+      "path": "mage-react.json",
+      "sha256": "45d9eeb394fc9d64d8fc6e38f511fc44c30cdb6ed23d467d58dc90f655161486",
+      "bytes": 12031
+    },
+    {
+      "path": "mana-nerves.json",
+      "sha256": "73fa280e2cba58129dfb292e4e4797f324ec7d438284b803be84909dbd67f892",
+      "bytes": 21880
+    },
+    {
+      "path": "mend-1.json",
+      "sha256": "780f61ceab73820595059db3bbb45ebdaa8b231920350bf825281da65857e99f",
+      "bytes": 10552
+    },
+    {
+      "path": "mend-2.json",
+      "sha256": "8ce20831291cb031262b437bce4de5f5b21fd8cab3ad056155253c05bd69790c",
+      "bytes": 10917
+    },
+    {
+      "path": "mend-3.json",
+      "sha256": "4b01b5f1c5cfd8ca778d2376bbf56fc6be31742f8deb0d31cdff60235d816e89",
+      "bytes": 29794
+    },
+    {
+      "path": "mend-4.json",
+      "sha256": "1d3a75d3d4b6a892f93b33565005abeecf05395f2c4406b5c213b80dc8e01048",
+      "bytes": 14753
+    },
+    {
+      "path": "mire-1.json",
+      "sha256": "8db5ac6026d2b02160086a68b8cf3d751da7d60a69ce64013ae19044f09dd099",
+      "bytes": 11142
+    },
+    {
+      "path": "mire-2.json",
+      "sha256": "eb0c9a79c485f376de3165837cada4c4fd35ce6c0bfecd96f7d7250ec2e15745",
+      "bytes": 10795
+    },
+    {
+      "path": "mire-3.json",
+      "sha256": "3cf4d78b72f928df0604f67dec0ec2012d1d49884393ebea0f07c76f5ed88bb1",
+      "bytes": 18329
+    },
+    {
+      "path": "mire-4.json",
+      "sha256": "1aee83c5c87098cc33a1a226f20201964deaa6064f93cd6d2df556ed109e1684",
+      "bytes": 14739
+    },
+    {
+      "path": "mirror-1.json",
+      "sha256": "165d33a088e8c824ee861917edf9e4d76b55723803b7b52a883375314e2171fb",
+      "bytes": 12287
+    },
+    {
+      "path": "mirror-2a.json",
+      "sha256": "d81ecfc233b7c98aea0d5a33e2e0022611c9ca5ec4408a8861aa519936053fc2",
+      "bytes": 11669
+    },
+    {
+      "path": "mirror-2b.json",
+      "sha256": "8b1b6749b457722ba7f64bc54cd53d05dcf97f3fedb95381e276140c11546b5b",
+      "bytes": 11228
+    },
+    {
+      "path": "mirror-3.json",
+      "sha256": "4c6403a0f58ab61fe0be7876ec5c00acd4e43d5fc0d0c6843f005ad426a259eb",
+      "bytes": 37781
+    },
+    {
+      "path": "mirror-4.json",
+      "sha256": "6e2c61ac32f28561e110bc63dc9483148975df392c4b40fe60397bed679ffa55",
+      "bytes": 20864
+    },
+    {
+      "path": "perfect-advance.json",
+      "sha256": "89995a94684d1d1af9ed28789fa1abf68662d3e8234c262230ea83af555da2e5",
+      "bytes": 38213
+    },
+    {
+      "path": "perfect-inside.json",
+      "sha256": "dab8dc2cf315b799b432ef33a07fb91c986c3d74980c1e04f396018aa72f0eb1",
+      "bytes": 11111
+    },
+    {
+      "path": "perfect-outside.json",
+      "sha256": "3d288853093a902cf763241b376b6533acc832da8040c1f0d1a3f84e43643c11",
+      "bytes": 11007
+    },
+    {
+      "path": "physical-ward.json",
+      "sha256": "30d4e700f9d844b039503f9f9767f5304b48362ca6395ccefac5b6b18d7cb3dd",
+      "bytes": 30317
+    },
+    {
+      "path": "reset-waves.json",
+      "sha256": "21bcda2273bb838c1aff1ba69a0adbf97d991c37c8a5a933a598178481af0310",
+      "bytes": 12054
+    },
+    {
+      "path": "soldier-wave.json",
+      "sha256": "189e90fd1900fb03b96b5efdece078e326de19e7446250529433d90edf17e534",
+      "bytes": 14995
+    },
+    {
+      "path": "soldiers-bout.json",
+      "sha256": "4f1bd03a89017bbdeaff7c8f880bb3ff4e68e7b7e8411f893f60edcc3819be20",
+      "bytes": 246961
+    },
+    {
+      "path": "tide-orb-1.json",
+      "sha256": "28439882176349488945d31abdc2e346ea6160d31b2def7ce2c3c88520aa2fcf",
+      "bytes": 18835
+    },
+    {
+      "path": "tide-orb-2.json",
+      "sha256": "f32d6bd3d6437694ef8298e325ecc224957b420e82539cf9b37ebc732effec4b",
+      "bytes": 18861
+    },
+    {
+      "path": "tide-orb-3.json",
+      "sha256": "345a7bf36f37f744dd48c6ec305b8af585c2a1aabf62f3ceaeb98e30ce8147a3",
+      "bytes": 11721
+    },
+    {
+      "path": "tide-orb-4a.json",
+      "sha256": "7d36de9b69dbee0d82ccb436b2441de9ec0790158a59284e2fbed432e9228903",
+      "bytes": 26468
+    },
+    {
+      "path": "tide-orb-4b.json",
+      "sha256": "e62b819cbf537df74746040cd6f7994f1951ceff657f77546711c956aaa4a1a4",
+      "bytes": 13331
+    },
+    {
+      "path": "tier-clock.json",
+      "sha256": "a37f822043cd9b0441370c8421e666791dc614a8f3b11749d95a6ba880c62042",
+      "bytes": 21999
+    },
+    {
+      "path": "tiro-ladder.json",
+      "sha256": "7883de0c38df1215da464b4d580953660046c6fcaf57a96bf89918e7351fa23e",
+      "bytes": 141322
+    },
+    {
+      "path": "tiro-sequence.json",
+      "sha256": "c0ab2681dde5cecbc3730db4d818f3a9f2d8efff55773099b30b68dd6269739f",
+      "bytes": 506578
+    },
+    {
+      "path": "unblockable-ward.json",
+      "sha256": "5a1670e5b98552152755d52faaec9b95d2819c906f56f35bc7867ceb64680a56",
+      "bytes": 30150
+    },
+    {
+      "path": "wave-reset.json",
+      "sha256": "70e17786874187f7eb8978ffa7744efe5d84b92c6e6a780a924df0a78f574425",
+      "bytes": 75983
+    }
+  ]
+}
