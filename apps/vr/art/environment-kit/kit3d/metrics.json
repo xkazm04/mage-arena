@@ -1,0 +1,1057 @@
+{
+ "pieces": {
+  "WallStraight": {
+   "fbx": "export/SM_Arena_WallStraight.fbx",
+   "fbx_version": 7400,
+   "bytes": 16668,
+   "tris": 48,
+   "verts": 32,
+   "components": 4,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.5,
+     -1.5492,
+     -0.0
+    ],
+    "max": [
+     0.05,
+     1.5492,
+     3.0
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    },
+    {
+     "name": "M_Arena_StoneDark",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.22,
+      0.22,
+      0.24
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone', 'M_Arena_StoneDark']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "4 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.500..0.050, y -1.549..1.549"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "arena face at x max 0.050 m, body to x min -0.500 m, length along Y 3.098 m"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "z 3.000 (layout 3.000), body thickness 0.450 (layout 0.45), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "48 tris, 32 verts, sha256 matches"
+    }
+   ]
+  },
+  "WallCurved": {
+   "fbx": "export/SM_Arena_WallCurved.fbx",
+   "fbx_version": 7400,
+   "bytes": 19948,
+   "tris": 272,
+   "verts": 144,
+   "components": 4,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.5,
+     -1.1688,
+     -0.0
+    ],
+    "max": [
+     0.1255,
+     1.1688,
+     3.0
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    },
+    {
+     "name": "M_Arena_StoneDark",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.22,
+      0.22,
+      0.24
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone', 'M_Arena_StoneDark']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "4 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.500..0.126, y -1.169..1.169"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "arena face at x max 0.126 m, body to x min -0.500 m, length along Y 2.338 m"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "z 3.000 (layout 3.000), body thickness 0.450 (layout 0.45), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "272 tris, 144 verts, sha256 matches"
+    }
+   ]
+  },
+  "GateArch": {
+   "fbx": "export/SM_Arena_GateArch.fbx",
+   "fbx_version": 7400,
+   "bytes": 25372,
+   "tris": 536,
+   "verts": 316,
+   "components": 24,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.76,
+     -2.06,
+     -0.0
+    ],
+    "max": [
+     0.16,
+     2.06,
+     3.6
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark",
+    "M_Arena_Wood",
+    "M_Arena_Iron"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    },
+    {
+     "name": "M_Arena_StoneDark",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.22,
+      0.22,
+      0.24
+     ]
+    },
+    {
+     "name": "M_Arena_Wood",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.3,
+      0.24,
+      0.16
+     ]
+    },
+    {
+     "name": "M_Arena_Iron",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.18,
+      0.16,
+      0.15
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone', 'M_Arena_StoneDark', 'M_Arena_Wood', 'M_Arena_Iron']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "24 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.760..0.160, y -2.060..2.060"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "arena face at x max 0.160 m, body to x min -0.760 m, length along Y 4.120 m"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "y 4.120 (layout 4.120), z 3.600 (layout 3.600), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "536 tris, 316 verts, sha256 matches"
+    }
+   ]
+  },
+  "TierStraight": {
+   "fbx": "export/SM_Arena_TierStraight.fbx",
+   "fbx_version": 7400,
+   "bytes": 15324,
+   "tris": 28,
+   "verts": 16,
+   "components": 1,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -1.958,
+     -0.0
+    ],
+    "max": [
+     0.0,
+     1.958,
+     5.2
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "1 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -4.650..0.000, y -1.958..1.958"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "front edge at x 0 at its middle (x max 0.000 m at the curved ends), tread top 3.500 m at the front rising to 5.200 m at x -4.650 m (away from the arena)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "x 4.650 (layout 4.650), z 5.200 (layout 5.200), first tread 3.500 (layout 3.500), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "28 tris, 16 verts, sha256 matches"
+    }
+   ]
+  },
+  "TierCurved": {
+   "fbx": "export/SM_Arena_TierCurved.fbx",
+   "fbx_version": 7400,
+   "bytes": 16924,
+   "tris": 140,
+   "verts": 72,
+   "components": 1,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -1.8288,
+     -0.0
+    ],
+    "max": [
+     0.0822,
+     1.8288,
+     5.2
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "1 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -4.650..0.082, y -1.829..1.829"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "front edge at x 0 at its middle (x max 0.082 m at the curved ends), tread top 3.500 m at the front rising to 5.200 m at x -4.650 m (away from the arena)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "z 5.200 (layout 5.200), first tread 3.500 (layout 3.500), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "140 tris, 72 verts, sha256 matches"
+    }
+   ]
+  },
+  "TierStair": {
+   "fbx": "export/SM_Arena_TierStair.fbx",
+   "fbx_version": 7400,
+   "bytes": 15388,
+   "tris": 52,
+   "verts": 28,
+   "components": 1,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -0.6,
+     -0.0
+    ],
+    "max": [
+     0.0,
+     0.6,
+     5.2
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "1 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -4.650..0.000, y -0.600..0.600"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "front edge at x 0 at its middle (x max 0.000 m at the curved ends), tread top 3.075 m at the front rising to 5.200 m at x -4.650 m (away from the arena)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "x 4.650 (layout 4.650), y 1.200 (layout 1.200), z 5.200 (layout 5.200), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "52 tris, 28 verts, sha256 matches"
+    }
+   ]
+  },
+  "Dais": {
+   "fbx": "export/SM_Arena_Dais.fbx",
+   "fbx_version": 7400,
+   "bytes": 15164,
+   "tris": 36,
+   "verts": 24,
+   "components": 3,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -2.6,
+     -4.4,
+     -0.0
+    ],
+    "max": [
+     2.6,
+     4.4,
+     0.6
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_StoneDark"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_StoneDark",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.22,
+      0.22,
+      0.24
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_StoneDark']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "3 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -2.600..2.600, y -4.400..4.400"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "X extent 5.200 m (layout 5.2), Y extent 8.800 m (layout 8.8)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "x 5.200 (layout 5.200), y 8.800 (layout 8.800), z 0.600 (layout 0.600), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "36 tris, 24 verts, sha256 matches"
+    }
+   ]
+  },
+  "RunePad": {
+   "fbx": "export/SM_Arena_RunePad.fbx",
+   "fbx_version": 7400,
+   "bytes": 24188,
+   "tris": 576,
+   "verts": 290,
+   "components": 1,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.9,
+     -0.9,
+     -0.0
+    ],
+    "max": [
+     0.9,
+     0.9,
+     0.04
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone",
+    "M_Arena_Sand"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    },
+    {
+     "name": "M_Arena_Sand",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.58,
+      0.47,
+      0.31
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone', 'M_Arena_Sand']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "1 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.900..0.900, y -0.900..0.900"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "radially symmetric, no facing: bbox centred on the origin"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "x 1.800 (layout 1.800), y 1.800 (layout 1.800), z 0.040 (layout 0.040), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "576 tris, 290 verts, sha256 matches"
+    }
+   ]
+  },
+  "Seat": {
+   "fbx": "export/SM_Arena_Seat.fbx",
+   "fbx_version": 7400,
+   "bytes": 15180,
+   "tris": 36,
+   "verts": 24,
+   "components": 3,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.25,
+     -0.23,
+     -0.0
+    ],
+    "max": [
+     0.25,
+     0.23,
+     0.42
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Stone"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Stone",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.46,
+      0.45,
+      0.43
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Stone']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "3 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.250..0.250, y -0.230..0.230"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "X extent 0.500 m (layout 0.5), Y extent 0.460 m (layout 0.46)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "x 0.500 (layout 0.500), y 0.460 (layout 0.460), z 0.420 (layout 0.420), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "36 tris, 24 verts, sha256 matches"
+    }
+   ]
+  },
+  "Brazier": {
+   "fbx": "export/SM_Arena_Brazier.fbx",
+   "fbx_version": 7400,
+   "bytes": 21996,
+   "tris": 408,
+   "verts": 218,
+   "components": 7,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.42,
+     -0.42,
+     -0.0
+    ],
+    "max": [
+     0.44,
+     0.42,
+     0.74
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Iron"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Iron",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.18,
+      0.16,
+      0.15
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Iron']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "7 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.420..0.440, y -0.420..0.420"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "feet reach x 0.440 m on +X (one leg forward) and x -0.240 m behind"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "z 0.740 (layout 0.740), bowl radius 0.420 (layout 0.42), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "408 tris, 218 verts, sha256 matches"
+    }
+   ]
+  },
+  "Banner": {
+   "fbx": "export/SM_Arena_Banner.fbx",
+   "fbx_version": 7400,
+   "bytes": 18316,
+   "tris": 92,
+   "verts": 54,
+   "components": 4,
+   "floaters": 0,
+   "closed": true,
+   "winding_consistent": true,
+   "boundsM": {
+    "min": [
+     -0.07,
+     -0.575,
+     -0.0
+    ],
+    "max": [
+     0.09,
+     0.575,
+     3.3
+    ]
+   },
+   "fbx_materials": [
+    "M_Arena_Wood",
+    "M_Arena_Iron",
+    "M_Arena_Cloth"
+   ],
+   "materials": [
+    {
+     "name": "M_Arena_Wood",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.3,
+      0.24,
+      0.16
+     ]
+    },
+    {
+     "name": "M_Arena_Iron",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.18,
+      0.16,
+      0.15
+     ]
+    },
+    {
+     "name": "M_Arena_Cloth",
+     "image_nodes": 0,
+     "base_color_linear": [
+      0.64,
+      0.59,
+      0.5
+     ]
+    }
+   ],
+   "checks": [
+    {
+     "check": "S1 one static mesh",
+     "pass": true,
+     "value": "1 mesh, 0 armature, 0 animation stacks"
+    },
+    {
+     "check": "S2 kit materials only, flat colour, no textures",
+     "pass": true,
+     "value": "['M_Arena_Wood', 'M_Arena_Iron', 'M_Arena_Cloth']; 0 textures in the FBX"
+    },
+    {
+     "check": "S3 closed or intentionally open",
+     "pass": true,
+     "value": "closed, winding consistent"
+    },
+    {
+     "check": "S4 no floaters",
+     "pass": true,
+     "value": "4 closed part(s), 0 not resting on z = 0 or on a part that does"
+    },
+    {
+     "check": "S5 origin at the base",
+     "pass": true,
+     "value": "min z -0.0000 m; origin inside the footprint x -0.070..0.090, y -0.575..0.575"
+    },
+    {
+     "check": "S6 +X forward",
+     "pass": true,
+     "value": "cloth spans x 0.040..0.090 m, in front of the pole (+X)"
+    },
+    {
+     "check": "S7 unit scale, dimensions against the layout",
+     "pass": true,
+     "value": "y 1.150 (layout 1.150), z 3.300 (layout 3.300), object scale [1.0, 1.0, 1.0]"
+    },
+    {
+     "check": "S8 no degenerate triangles",
+     "pass": true,
+     "value": "0 degenerate"
+    },
+    {
+     "check": "S9 manifest matches the file",
+     "pass": true,
+     "value": "92 tris, 54 verts, sha256 matches"
+    }
+   ]
+  }
+ },
+ "kit": {
+  "assembledTris": 10620,
+  "triBudget": 60000,
+  "materials": [
+   "M_Arena_Cloth",
+   "M_Arena_Iron",
+   "M_Arena_Sand",
+   "M_Arena_Stone",
+   "M_Arena_StoneDark",
+   "M_Arena_Wood"
+  ],
+  "instanceCount": {
+   "WallCurved": 10,
+   "TierCurved": 10,
+   "WallStraight": 20,
+   "TierStraight": 24,
+   "TierStair": 4,
+   "GateArch": 1,
+   "Dais": 1,
+   "RunePad": 3,
+   "Seat": 3,
+   "Brazier": 4,
+   "Banner": 4
+  },
+  "checks": [
+   {
+    "check": "K1 at most 6 materials in the whole kit, all from the shared set",
+    "pass": true,
+    "value": "6: ['M_Arena_Cloth', 'M_Arena_Iron', 'M_Arena_Sand', 'M_Arena_Stone', 'M_Arena_StoneDark', 'M_Arena_Wood']"
+   },
+   {
+    "check": "K2 assembled arena within the triangle budget",
+    "pass": true,
+    "value": "10620 tris with every instance and the floor stand-in (10368 kit + 252 floor), budget 60000; manifest says 10620"
+   },
+   {
+    "check": "K3 every piece re-opened from its FBX",
+    "pass": true,
+    "value": "11 of 11"
+   },
+   {
+    "check": "K4 the assembly covers the layout",
+    "pass": true,
+    "value": "32 of 32 wall chords (gate = 2), stands behind 30 chords (not behind the gate), 3 pads, 3 seats, 1 dais, 4 braziers, 4 banners"
+   }
+  ]
+ },
+ "profile": "static environment kit (env_kit.py): S1-S9 per piece, K1-K4 for the kit",
+ "pass": true
+}
