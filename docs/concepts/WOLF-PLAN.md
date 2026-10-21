@@ -296,12 +296,20 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - [ ] **T24** `apps/vr/tasks/T24-mudra-seal-detector.md`. **OWNER (C1):** the seal shape, Claude + owner
   (`docs/design/V2-ROADMAP.md` lane B row 8). Start only when C1 is committed. Done when `MageArena.Mudra.*` green (red line
   quoted first; seal at 1.4 s casts, at 1.6 s does not), `MageArena.` green, no new design red.
-- [ ] **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2):** the story bible and cue sheet (roadmap row 12),
+- [ ] **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story
+  bible and cue sheet (roadmap row 12),
   and the owner's go for generation with the count stated on the card. Without committed WAVs, build the importer,
   wiring and tests against the manifest and report the wiring as unproven end to end. Done when `MageArena.Voice.*` and
   `MageArena.` green and `capture-colour-audio.ps1 -Run T27 -SkipStills` prints `MAGEVR_CAPTURE_DONE`.
-- [ ] **T28** `apps/vr/tasks/T28-intermission-scenes.md`. **OWNER (C2).** Done when `MageArena.Intermission.*` and
-  `MageArena.` green, and `MageArenaDesign.` shows no new red with the `Session.FullSeated` time reported against 7-10 min.
+- [ ] **T28** `apps/vr/tasks/T28-intermission-scenes.md`. **OWNER (C2) - now on the critical path, see H3.** Done when
+  `MageArena.Intermission.*` and `MageArena.` green, and `MageArenaDesign.` shows no new red with the
+  `Session.FullSeated` time **reported** against 7-10 min (after T47 it is a logged measurement, not a gate: DF-010
+  ruled E on 2026-10-21).
+- **T27 and T28 are together the only route to the 7-10 min day.** DF-010 was ruled **E + B** on 2026-10-21: the owner
+  keeps the target and buys the minutes with content, because the pinned bands cap four bouts at 2.4-3.9 min of
+  fighting (`docs/campaign/04-vr-campaign-design.md:137`) and those bands are a signed ruling
+  (`docs/DECISIONS.md:308-309`). With the prologue tableau (<= 60 s) and a victory card, these two cards carry every
+  minute the day is missing. If C2 does not land, the day stays at about 3 min and that is the submission.
 
 ### P8. T41 cold testers and the desktop core gate record (soft: Fri 30 - Sat 31 Oct; effort 0.5 day Wolf, plus owner hosting)
 
@@ -411,7 +419,7 @@ gates green, `git fetch` and rebase (or merge) first, never force-push. GitHub i
 |---|---|---|---|---|
 | H1 | T38 rigged mesh (FBX or GLB) with four clips `Idle`, `Cast`, `Hit`, `Death`, plus a `SOURCE.md` draft (tool versions, prompts, seed, date) | Lynx: TRELLIS and Blender rigging (PoF 3D rounds); Claude + owner author | `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\` on Lynx, outside git (T38 "Hand-off") | Copy to the same path on Wolf (shared drive or copy, operator's choice, not decided). Wolf runs the T38 checks, imports to `Content/Characters/Brennic/` and commits only the import (LFS) |
 | H2 | C1, the mudra seal shape | Claude + owner (on Lynx or anywhere) | a committed design doc (C1 states the path; roadmap lane B row 8) | `git pull`, then P7 T24. Its path is the first line of the T24 report |
-| H3 | C2, story bible and cue sheet | Claude + owner | a committed doc (C2 states the path; roadmap row 12) | `git pull`, then P7 T27 and T28 |
+| H3 | **C2, story bible and slice script with the cue sheet - the critical path for the day's length.** Does not exist in the repo as of 2026-10-21. DF-010 ruled E + B, so T27 and T28 are the only route to 7-10 min, and both are blocked on this. Owner's writing time comes before any Wolf time on either | Claude + owner | a committed doc (C2 states the path; roadmap row 12) | `git pull`, then P7 T27 and T28 |
 | H4 | Two music loops and their `SOURCE.md` | the owner, or the App Master on the owner's go (ElevenLabs, count 2) | `apps/vr/art/audio/music/` (LFS) | `git pull`, `git lfs pull`, then P7 T40 |
 | H5 | Voice WAVs, `manifest.json`, `SOURCE.md` | the owner or the App Master after the owner's go | `apps/vr/art/audio/voice/` (LFS) | `git pull`, `git lfs pull`, then P7 T27 |
 | H6 | Card amendments, new cards, DECISIONS entries, Node tooling | Lynx (App Master) | `apps/vr/tasks/`, `docs/`, `apps/vr/tools/*.mjs` | `git pull` before each phase; re-read the card and DECISIONS |
@@ -448,7 +456,7 @@ and the second school on 2026-10-20, so those are not on this list):
 0. **T48, the Earth school — never started rather than cut.** It is above P11 because nothing depends on it and
    its own card recommends not doing it before 18 Nov: there is no slot for Earth in the pinned Tiro tiers (two
    mage waves, both bound), the owner already chose Air over Earth on 2026-10-07, the owner's own date for all
-   four schools playable is spring 2027 (`DECISIONS.md:289-292`), and a fourth `ChooseXSpell` would make
+   four schools playable is spring 2027 (`DECISIONS.md:323-326`), and a fourth `ChooseXSpell` would make
    MOONSHOT M10 strictly worse. The card exists and is ready if the owner overrides.
 1. P11, the determinism package T33-T36 (moves no K3 row).
 2. P1, the overlay goldens (accept the A1 risk; T39 then relies on the design suite alone).
@@ -471,7 +479,10 @@ run, the submission package.
 4. **The style pick** after P4 (13, 25 or 30).
 5. **T38:** how the H1 file crosses to Wolf, when it lands, and the look (greybox flat colour or the picked skin).
 6. **The R0 checkpoint:** it was Fri 23 Oct and cannot be met with an animated opponent; when the owner judges it (after P6).
-7. **C1** (the seal shape) and **C2** (the story bible and cue sheet), Claude + owner.
+7. **C1** (the seal shape), Claude + owner. **C2** (the story bible and slice script with the cue sheet), Claude +
+   owner - **no longer just an input: it is the critical path.** DF-010 was ruled E + B on 2026-10-21, which makes T27
+   and T28 the only arithmetic route to the 7-10 min day the owner kept. It does not exist yet. The open part is the
+   owner's writing time and when it lands; Claude can draft it on Lynx for the owner to rule on.
 8. **T40's music source**, and the go for generation (count 2); **T27's** generation go and count.
 9. **Two cold desktop testers** for T41, and three cold device testers for V3 (plan section 12 Q6).
 10. **The device order** without a full gate pass (STATE-EVAL section 6 risk 4; plan section 12 Q2), and the dashboard app
@@ -487,6 +498,6 @@ run, the submission package.
     arithmetically insufficient. **Blocks one assertion in P12's T47.**
 15. **Earth before 18 Nov** (`apps/vr/tasks/T48-earth-school.md`, written 2026-10-21 on the owner's instruction).
     The card recommends cutting it; the owner asked for the card, not the decision. Note the 2026-10-07 ruling
-    (`DECISIONS.md:289-292`) already chose Air over Earth and dated all four schools playable to spring 2027.
+    (`DECISIONS.md:323-326`) already chose Air over Earth and dated all four schools playable to spring 2027.
 13. **Submission text:** the launch date (Q5), the entrant and sponsor-funding confirmations (`docs/submission/README.md`
     "Owner decisions this package waits on" 2-5).

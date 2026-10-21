@@ -1,8 +1,16 @@
 # DF-010 - The Tiro day is 3 minutes, the gate asserts 7-10, and no finding owns the number
 
+> **Ruled 2026-10-21: E + B.** The owner keeps the 7-10 min target and buys the minutes with content. **E:** the
+> day-length assertion leaves `bPass` and becomes a logged `INSIDE`/`OUTSIDE` measurement - `T47` carries that edit now,
+> unblocked. **B:** the prologue tableau, `T27` and `T28` and a victory card supply the missing minutes, which makes
+> **C2 (the story bible and slice script) the critical path** - it does not exist yet and both cards are blocked on it.
+> A, C, D and "keep the gate" are rejected; no pinned band, win rate or pacing window is touched. The plan's number is
+> restated only once T27/T28 land **and** a day is measured that wins all four real bouts - which has never happened.
+
 Found 2026-10-21 on Lynx (ARM64, no Unreal) from the committed measurements and the source. Nothing here was built or
-run; every figure is quoted from a recorded run. Status: **open, with the owner.** No card may act on it until it is
-ruled.
+run; every figure is quoted from a recorded run. Status: **RULED 2026-10-21 - option E + B**
+(`docs/DECISIONS.md`, the 2026-10-21 "DF-010 ruled" entry, newest first). The measurement below stands as recorded; the
+Options and Recommendation sections are kept as the reasoning the ruling was made on, not as live choices.
 
 Why this is a finding and not a patch: `.ai/memory/0003-design-tests-red-by-design.md` says never tune a number,
 loosen a threshold or skip a test to turn a `MageArenaDesign` test green, because the seated numbers are the owner's
@@ -61,7 +69,7 @@ What the bouts actually measure (medians, 20 seeds each, from the censuses):
 | 4, Lio (Air) | **23.27 s** at c1, 24.09 s at c1.5 | 20.92 / 21.17 s | `DF-008-lio-too-weak.md:8-11` |
 
 The scripted reference player wins a named-rival duel in roughly 21-42 s against a signed target median of 45-80 s
-(`docs/DECISIONS.md:274`). DF-006 and DF-008 already own that gap and the owner has already ruled on them
+(`docs/DECISIONS.md:308`). DF-006 and DF-008 already own that gap and the owner has already ruled on them
 (`docs/DECISIONS.md` 2026-10-20, "adopt every recommendation"); DF-006 B adds about 6 s per rival duel, so roughly
 **+12 s to the day**. T39 closing every accepted finding at its best case moves 3.02 min to something near 3.5 min.
 Nothing in flight can reach 7.
@@ -74,7 +82,7 @@ Nothing in flight can reach 7.
   `docs/campaign/04-vr-campaign-design.md:12`, `:27`, `:140` (as 6-10), and in two constants in a test. The owner may
   restate it. **Nobody else may**, and memory 0003 is why.
 - **The bout bands are a ruling and are not in scope here.** Median 45-80 s and win rate >= 70 % at competence 1 /
-  40-60 % at 1.5 are the owner's signed targets at `docs/DECISIONS.md:274-275`. This finding does not propose moving
+  40-60 % at 1.5 are the owner's signed targets at `docs/DECISIONS.md:308-309`. This finding does not propose moving
   them, and option C below is costed on the fact that it cannot be taken without touching them.
 - **The pinned pacing windows are not anyone's to move here.** Bout 2's 30-45 s window is
   `combat.json pacingTargets.creatureWaveS`, pinned, and the test says so in as many words: "Do not move the window to
@@ -102,7 +110,7 @@ day without touching a signed number.
 **C. Make the rivals harder so the bouts last longer.**
 *Cost: arithmetically insufficient on its own, and not free.* The pinned bands cap four bouts at 3.9 min
 (`campaign/04:137`), so even perfect compliance leaves the day under 5 min with the teach. Pushing past the bands means
-re-opening median 45-80 s and the win rates at `docs/DECISIONS.md:274-275`, which DF-006 and DF-008 were just ruled
+re-opening median 45-80 s and the win rates at `docs/DECISIONS.md:308-309`, which DF-006 and DF-008 were just ruled
 against doing (their adopted options aim *into* the band, not past it). Taking C means superseding a 2026-10-07 ruling.
 Recommended only as a component, never as the answer.
 

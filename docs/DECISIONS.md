@@ -2,6 +2,40 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - DF-010 ruled: the day-length assertion leaves the gate, and the day is lengthened with content (E + B)
+
+> Owner, 2026-10-21, on `docs/design-findings/DF-010-tiro-day-length.md`, asked which of five options: "E + B - buy the
+> longer day with scenes".
+
+- **DF-010 is ruled and closed.** Options A, C, D and "keep the gate" are rejected. The 7-10 min day stands as the
+  target; the plan text is **not** restated down to the measured 3 min.
+- **E binds now.** The day-length assertion (`SessionTests.cpp:792`, bounds `PlanLoS`/`PlanHiS` at `:671-672`) leaves
+  `bPass` and becomes a logged measurement, `INSIDE`/`OUTSIDE`, in the `FullSeated` report. This is the owner saying it
+  out loud, which is what `.ai/memory/0003-design-tests-red-by-design.md` requires: no worker could do it.
+  `apps/vr/tasks/T47-split-design-gates.md` carries the edit, and its "blocked on DF-010" condition is now satisfied.
+  The gate becomes **strictly stronger**: the four real invariants beside it (`SessionTests.cpp:788-791` - no infinite
+  loop, the script wins every bout, the day closes, four bouts won) then fail on their own instead of hiding behind a
+  number that cannot go green.
+- **B is the route to the number.** The minutes come from content the plan already cards and the measurement prices at
+  zero: the prologue tableau (<= 60 s, `docs/campaign/04-vr-campaign-design.md:26`), voiced ritual, taunts and aftermath
+  (`apps/vr/tasks/T27-voice-and-chorus.md`), the intermission scenes with their one optional choice
+  (`apps/vr/tasks/T28-intermission-scenes.md`), and a victory card. This is the only option that raises the day without
+  reopening a signed number.
+- **What is therefore NOT touched:** the pinned bout bands and win rates (`docs/DECISIONS.md:308-309`), the pinned
+  pacing windows, and DF-006's and DF-008's adopted options. The fighting stays capped at 2.4-3.9 min
+  (`docs/campaign/04-vr-campaign-design.md:137`) by the owner's own signature; the day grows around it, not through it.
+- **C2 is now the critical path, and it is the owner's and Claude's to write.** T27 and T28 are both blocked on it
+  (the story bible and slice script with the cue sheet; `docs/concepts/WOLF-PLAN.md` H3, roadmap lane B row 12), it does
+  not exist in the repo as of this ruling, and no Wolf time on either card can start before it lands. Choosing B means
+  choosing that writing time, ahead of the 18 Nov deadline.
+- **When the plan's number may be restated:** only once T27/T28 have landed **and** a day has been measured that wins
+  all four real bouts. No such day has ever been measured: the 3.02 min run stopped on a lost Bout 3, and the 105.35 s
+  four-bout figure ran Bouts 3-4 as water proxies (`apps/vr/tasks/T21-tiro-day-chain.md:82-84`). Until both hold,
+  `docs/PROJECT-PLAN.md:71` and the campaign docs keep 7-10 (6-10) and
+  `docs/submission/VIDEO-BEAT-SHEET.md:62` keeps flagging ten minutes as a target, not a measurement.
+- **Accepted cost:** a judge's hands-on time stays near 2 min - B buys non-interactive minutes. And there is no gate on
+  day length between this ruling and that re-measurement; the number is logged and watched, not enforced.
+
 ## 2026-10-21 - Asset originality: AI-made assets ship with a licence ledger (RULES-CHECKLIST row 6)
 
 > Owner, 2026-10-21 (11:49Z), on RULES-CHECKLIST row 6: "accept, with a licence ledger. Assets made with Leonardo, TRELLIS.2 and ElevenLabs may ship, on the reading that the entrant authors them by prompting, selecting and editing, and holds each service's licence. The owner knowingly accepts the risk that Meta reads "original" to exclude AI output."

@@ -37,8 +37,8 @@ kernel effect at session level.** This card delivers the first one.
   set, `-MageArenaCensusSeeds=` at `:397-399`) and `Tests/CensusTests.cpp` (`MageArenaDesign.Census.Sweep` at `:677`).
   **The census harness already exists**; this card reuses it and writes no new player model.
 - `docs/design-findings/DF-006-phases-shorten-the-duel.md`, `DF-007-...`, `DF-008-...` (the measured medians and win
-  rates), and **`docs/design-findings/DF-010-tiro-day-length.md`** (open, with the owner - it gates one line of this
-  card; see "The day-length assertion")
+  rates), and **`docs/design-findings/DF-010-tiro-day-length.md`** (**ruled 2026-10-21, E + B** - it settles one line of
+  this card; see "The day-length assertion")
 - `apps/vr/tasks/T39-adopt-df-recommendations-and-rerun-design.md`
 - `docs/concepts/WOLF-PLAN.md` sections c (P0-P2) and d (the gate commands and their expected output)
 - `docs/ORCHESTRATION.md` - "a claim with no command behind it is not accepted"
@@ -95,7 +95,7 @@ list of things to relax.
 | FullSeated | `:788` | did not stop in an infinite loop (`Guard < 72*1800`) | **Gate** |
 | FullSeated | `:789` | the script did not lose a bout | **Gate** |
 | FullSeated | `:790` `:791` | the day closes; all four bouts won | **Gate** |
-| FullSeated | `:792` | the day with the teach is in the plan's 7-10 min (`PlanLoS`/`PlanHiS`, `:671-672`) | **Blocked on DF-010** - see below |
+| FullSeated | `:792` | the day with the teach is in the plan's 7-10 min (`PlanLoS`/`PlanHiS`, `:671-672`) | **Measurement** - DF-010 ruled E; see below |
 
 Two conditions in the source are already measurement-only and stay that way: the collar tallies
 (`SessionTests.cpp:775-778`, "T22, measured, not asserted") and the windup/shot rows (`:477-478`). They are the house
@@ -126,24 +126,30 @@ in the outcome invariants test for their scenario, which may legitimately be red
 open - and then it is red for a stated, specific reason instead of a bundled one. Report which of the outcome
 invariants are green after T39 and which are not, per scenario.
 
-### The day-length assertion (`FullSeated:792`) is blocked on DF-010
+### The day-length assertion (`FullSeated:792`): DF-010 is ruled, move it
 
-`docs/design-findings/DF-010-tiro-day-length.md` is **open, with the owner**. The measured day is 3.02 min
-(`apps/vr/tasks/T21-tiro-day-chain.md:84`) against the asserted 7.0-10.0 min, and the finding shows the gap cannot be
-closed by anything carded. Its recommended option E would move this line out of `bPass`.
+`docs/design-findings/DF-010-tiro-day-length.md` was **ruled on 2026-10-21, option E + B** (`docs/DECISIONS.md`, the
+2026-10-21 "DF-010 ruled" entry). The measured day is 3.02 min (`apps/vr/tasks/T21-tiro-day-chain.md:84`) against the
+asserted 7.0-10.0 min, and the finding shows the gap cannot be closed by anything carded.
 
-- **If DF-010 has been ruled** when this card runs (check `docs/DECISIONS.md`), apply what the ruling says, citing it
-  in the commit message.
-- **If DF-010 is still open, leave `:792` exactly where it is**, in `bPass`, and say so in the report. A worker must
-  not move it: memory 0003 forbids loosening a gate unilaterally, and that is precisely why DF-010 exists. The other
-  four `FullSeated` invariants (`:788-791`) still get their own green test, which is the whole point - they stop being
-  masked by `:792`.
+**Do this:** move `:792` out of `bPass`. Day length becomes a logged measurement in the `FullSeated` report - the log
+line at `SessionTests.cpp:783-785` already prints it with `INSIDE` / `OUTSIDE`, so keep that line and keep the
+`PlanLoS`/`PlanHiS` constants at `:671-672` as the reported target, unchanged. **Cite the ruling in the commit
+message.** The other four `FullSeated` invariants (`:788-791`) then fail on their own, which is the whole point: they
+stop being masked by a number that cannot go green.
 
-This card does **not** argue for or against a shorter day, and must not change any plan text about the day's length.
+You have this licence **only because the owner ruled**; memory 0003 forbids a worker loosening a design gate
+unilaterally, and that is precisely why DF-010 existed. Nothing else in the suite gains the same licence from it.
+
+What the ruling does **not** give you: the 7-10 min target stands. Do not change any plan text about the day's length
+(`docs/PROJECT-PLAN.md:71`, `docs/campaign/02-vr-run-as-campaign.md:101`, `docs/campaign/04-vr-campaign-design.md:12`,
+`:27`, `:140`) or the beat sheet. Under option B the number is reached with content (the prologue tableau, `T27`,
+`T28`, a victory card) and is restated only once those land **and** a day has been measured that wins all four real
+bouts. This card neither argues for a shorter day nor delivers the longer one.
 
 ## Populations, not single seeds
 
-`docs/DECISIONS.md:274-275` signed **statistics**: "median 45-80 s" and "win rate >= 70 % at competence 1 and 40-60 %
+`docs/DECISIONS.md:308-309` signed **statistics**: "median 45-80 s" and "win rate >= 70 % at competence 1 and 40-60 %
 at 1.5". `FireSeated` asserts both on one scripted seed (`:344`, `:350`, run twice at `:355-356`), where a win is
 probability 0 or 1 - and at competence 1.5 a 40-60 % win rate means a single-seed assertion is **designed to fail
 about half the time**. `AirSeated`'s own comment says as much: "Measured, not tuned: this test may be red, and the
@@ -277,7 +283,8 @@ Write `runs/T47/REPORT.md`:
   every condition you left as a gate **including any you decided is a gate against this card's table, with the reason**.
 - The fixed advance window you chose for the gesture invariants and the recorded chain you chose it from.
 - Which outcome invariants are green after T39 and which are not, per scenario, with the DF that owns each red.
-- The state of DF-010 when you ran, and what you therefore did with `FullSeated:792`.
+- That you moved `FullSeated:792` out of `bPass` per the DF-010 ruling, the commit that did it, and the report line
+  showing the day's measured length with `INSIDE` / `OUTSIDE`.
 - The one-line `CLAUDE.md` Build-section change the new test names need (do not apply it).
 - Which reported numbers MOONSHOT M9 should later re-measure per skill band.
 - Anything you could not do and the exact error.
