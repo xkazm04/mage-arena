@@ -2,6 +2,26 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-21 - Asset originality: AI-made assets ship with a licence ledger (RULES-CHECKLIST row 6)
+
+> Owner, 2026-10-21 (11:49Z), on RULES-CHECKLIST row 6: "accept, with a licence ledger. Assets made with Leonardo, TRELLIS.2 and ElevenLabs may ship, on the reading that the entrant authors them by prompting, selecting and editing, and holds each service's licence. The owner knowingly accepts the risk that Meta reads "original" to exclude AI output."
+
+- **What binds:** assets made with Leonardo, TRELLIS.2 and ElevenLabs may ship. The reading is that the entrant authors
+  them by prompting, selecting and editing, and holds each service's licence. Row 6 of `docs/submission/RULES-CHECKLIST.md`
+  is closed on this entry. Other AI tools (the Grok and Antigravity image tools behind the A01-A09 studies, sheets and
+  storyboards) are not named by the ruling and are not covered by it.
+- **Accepted risk:** the rules (Official Rules section 4, "Originality") say the Project "must be ORIGINAL to each
+  Entrant" and never mention AI output. Meta may read "original" to exclude AI-made assets, and the Sponsor "may at any
+  time request written proof of ownership or proper license". A reading against the entrant can mean disqualification.
+  The owner accepts this knowingly. It is not removed by the ledger.
+- **Condition: the licence ledger.** `docs/submission/ASSET-LEDGER.md` carries, for every shipped asset, a source line
+  (tool, model, the log that records the call, the human edits) and a licence line (the terms that grant it and any
+  condition). An asset with no ledger row does not ship. A row whose terms were not read, or whose plan condition is not
+  confirmed, is open and its class does not ship until it closes. As written on 2026-10-21, the ElevenLabs conditions
+  (a paid plan, and the music "Studio Games" carve-out) and the Leonardo terms (not read) are open in the ledger.
+- **Where it is used:** a hand-modelled Blender part (no AI) is the entrant's own work and takes its own ledger row.
+- Lost: certainty on the originality rule. Nothing in the repo can settle how Meta reads it.
+
 ## 2026-10-21 - Asset transport and ElevenLabs as the audio source
 
 > Owner, 2026-10-21: "through git LFS; same for creatures and props; push to origin master"
