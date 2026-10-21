@@ -1,0 +1,93 @@
+{
+  "title": "Mage Arena VR key art and gallery stills",
+  "label": "concept key art, not a gameplay capture",
+  "model": "openai/gpt-image-2.5-flare",
+  "note": "Leonardo concept images for the competition entry. None is an in-engine screenshot or a gameplay capture; gameplay captures are still owed from Wolf. Licence status: docs/submission/ASSET-LEDGER.md.",
+  "log": "apps/vr/art/key-art/leonardo-log.json",
+  "images": [
+    {
+      "path": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. The seated mage's two raised open palms fill the lower third, a translucent turquoise water ward arc glowing between them. Across the sand, Brennic, a broad, stocky, middle-aged fire mage: bare-headed with short dark curly hair, a full dark beard, a strong brow, a knee-length muted brick red tunic, a dark charcoal brown cloak over both shoulders, leather forearm wraps and a plain iron collar, hurls a blazing vermilion fireball straight toward the player; flames curl around his raised hands. The ward meets the fireball in a bright ring of droplets and sparks. Crowd on its feet in the stands, golden dusk sky. Cinematic wide hero composition. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5101,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "hero key art for the competition entry (submission items 2 and 7)",
+      "storyboardBeat": null,
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 140406
+    },
+    {
+      "path": "apps/vr/art/key-art/still-06-soldiers-s5102-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Roman conscripts in a brimmed iron helmet, dark steel grey mail shirt, linen trousers and a large curved rectangular wood brown shield with a bronze boss, and lean slingers in cap helmets, undyed linen tunics and dark brown leather jerkins, a leather stone bag at the hip, advance across the sand; a steel-grey spear is in flight toward the player. The player's raised hand holds a small turquoise water ward. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5102,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: Bout 1, the soldiers",
+      "storyboardBeat": "06-bout-soldiers",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 114127
+    },
+    {
+      "path": "apps/vr/art/key-art/still-08-creatures-s5103-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Three lean hounds made of glowing embers charge across the sand, one bursting into sparks against the player's raised turquoise water shield; a squat mud beast with a huge mouth lurks behind them. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5103,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: Bout 2, the creatures",
+      "storyboardBeat": "08-bout-creatures",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 127457
+    },
+    {
+      "path": "apps/vr/art/key-art/still-09-entrance-s5104-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Through a gate under the stands, Brennic, a broad, stocky, middle-aged fire mage: bare-headed with short dark curly hair, a full dark beard, a strong brow, a knee-length muted brick red tunic, a dark charcoal brown cloak over both shoulders, leather forearm wraps and a plain iron collar, walks into the arena, flames curling around his hands, the crowd on its feet. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5104,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: the Fire mage enters",
+      "storyboardBeat": "09-fire-mage-entrance",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 113003
+    },
+    {
+      "path": "apps/vr/art/key-art/still-10-sunfall-s5105-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Brennic, a broad, stocky, middle-aged fire mage: bare-headed with short dark curly hair, a full dark beard, a strong brow, a knee-length muted brick red tunic, a dark charcoal brown cloak over both shoulders, leather forearm wraps and a plain iron collar, hurls a huge black sphere with a jagged red rim high into the sky above the player; a red ring marks the player's pad on the sand; the player's hand flicks to blink to a side pad. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5105,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: the duel, the unstoppable spell",
+      "storyboardBeat": "10-duel-sunfall",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 94355
+    },
+    {
+      "path": "apps/vr/art/key-art/still-11-finisher-s5106-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Both hands press together in a seal; a vast orb of turquoise water surges forward toward Brennic, a broad, stocky, middle-aged fire mage: bare-headed with short dark curly hair, a full dark beard, a strong brow, a knee-length muted brick red tunic, a dark charcoal brown cloak over both shoulders, leather forearm wraps and a plain iron collar, in a frozen slow-motion moment, the crowd blurred and roaring. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5106,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: the finisher",
+      "storyboardBeat": "11-finisher",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 118716
+    },
+    {
+      "path": "apps/vr/art/key-art/still-12-victory-s5107-medium.jpg",
+      "prompt": "First-person view from a seated player on a raised stone dais at one end of an oval Roman-era sand arena, the player's own bare hands with five fingers each in the lower foreground, stone stands and torches behind. Brennic, a broad, stocky, middle-aged fire mage: bare-headed with short dark curly hair, a full dark beard, a strong brow, a knee-length muted brick red tunic, a dark charcoal brown cloak over both shoulders, leather forearm wraps and a plain iron collar, kneels defeated on the steaming sand, the bronze cuff on the player's wrist glowing with four runes, the arena quiet and golden in the last light. Stylised game concept art in the look of a simple 3D model: large readable shapes, chunky proportions, matte surfaces, one flat colour per material with no pattern and no fine texture detail, soft warm dusk light. Threat colour language: spell colour means absorb it, grey steel means dodge it, a black core with a red rim means leave. No text, no letters, no numbers, no logos, no watermark, no user interface, no VR headset, no controllers.",
+      "seed": 5107,
+      "quality": "MEDIUM",
+      "credits": 14,
+      "creditsForId": 14,
+      "purpose": "gallery still: victory",
+      "storyboardBeat": "12-victory",
+      "label": "concept key art, not a gameplay capture",
+      "bytes": 114414
+    }
+  ]
+}
