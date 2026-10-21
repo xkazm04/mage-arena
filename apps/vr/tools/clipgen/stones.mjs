@@ -1,11 +1,11 @@
 // The three stone reaches (T20): one hand moves from rest to hover over a stone beside the seat, holds, and returns.
 // The session reads a palm or index tip within 6 cm of a stone centre (ArenaSession.cpp StonesTouched). Comfort settings
 // toggle on the touch in cold; the stone pick in an intermission needs the hold (teach.json offerHoldS, 0.40 s).
-// Opt in with `node apps/vr/tools/clipgen/stones.mjs`. It writes Game/Clips/stones/stone-{left,centre,right}.normal.jsonl
+// Opt in with `node apps/vr/tools/clipgen/stones.mjs --canonical` (without the flag it refuses; importing it is inert). It writes Game/Clips/stones/stone-{left,centre,right}.normal.jsonl
 // and nothing else, so it can never rewrite a tracked action clip. Same bytes every run.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   CURLS, HZ, v3, lerp, ease, normalize, restPose, slerpAxes, lerpCurls,
   seedFor, renderClip, headerLine, frameLine,
@@ -74,14 +74,29 @@ function build(stone) {
   return `${lines.join('\n')}\n`;
 }
 
-function main() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const dir = path.resolve(here, '..', '..', 'Game', 'Clips', 'stones');
+const REPO_GAME = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'Game');
+
+// Writes the stone clips under <gameRoot>/Clips/stones. Pure of side effects at import time; the repo's Game tree is
+// only touched when the caller passes it (or nothing) on purpose.
+export function writeStones(gameRoot = REPO_GAME, log = (text) => process.stdout.write(text)) {
+  const dir = path.join(gameRoot, 'Clips', 'stones');
   fs.mkdirSync(dir, { recursive: true });
   for (const stone of STONES) {
     fs.writeFileSync(path.join(dir, `${stone.action}.${VARIANT}.jsonl`), build(stone), { encoding: 'utf8' });
   }
-  process.stdout.write(`wrote ${STONES.length} clips to Game/Clips/stones (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
+  log(`wrote ${STONES.length} clips to Game/Clips/stones (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
 }
 
-main();
+function isDirectInvocation() {
+  return !!process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+}
+
+if (isDirectInvocation()) {
+  if (process.argv.slice(2).join(' ') === '--canonical') {
+    writeStones();
+  } else {
+    process.stderr.write('stones.mjs rewrites tracked clips; pass --canonical to do that on purpose.\n'
+      + 'To verify without writing: node apps/vr/tools/clipgen/generate.mjs --check\n');
+    process.exitCode = 2;
+  }
+}

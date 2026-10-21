@@ -1,9 +1,9 @@
 // The one @2 clip: the system gesture (an open palm toward the head, then a thumb-index pinch).
-// Opt in with `node apps/vr/tools/clipgen/system-gesture.mjs`. It writes Game/TestData/Clips/system/system-gesture.normal.jsonl
+// Opt in with `node apps/vr/tools/clipgen/system-gesture.mjs --canonical` (without the flag it refuses; importing it is inert). It writes Game/TestData/Clips/system/system-gesture.normal.jsonl
 // and nothing else, so it can never rewrite a tracked @1 clip. Same bytes every run. See docs/CLIP-SCHEMA.md, Schema @2.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   CURLS, HZ, v3, lerp, ease, clamp01, normalize, restPose, slerpAxes, lerpCurls,
   seedFor, renderClip, headerLine, frameLine, num,
@@ -65,13 +65,28 @@ function build() {
   return `${lines.join('\n')}\n`;
 }
 
-function main() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const dir = path.resolve(here, '..', '..', 'Game', 'TestData', 'Clips', 'system');
+const REPO_GAME = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'Game');
+
+// Writes the clip under <gameRoot>/TestData/Clips/system. Inert at import time; the repo's Game tree is only
+// touched when the caller passes it (or nothing) on purpose.
+export function writeSystemGesture(gameRoot = REPO_GAME, log = (text) => process.stdout.write(text)) {
+  const dir = path.join(gameRoot, 'TestData', 'Clips', 'system');
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${ACTION}.${VARIANT}.jsonl`);
   fs.writeFileSync(file, build(), { encoding: 'utf8' });
-  process.stdout.write(`wrote 1 clip to Game/TestData/Clips/system (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
+  log(`wrote 1 clip to Game/TestData/Clips/system (${HZ} Hz, ${DURATION_S.toFixed(2)} s)\n`);
 }
 
-main();
+function isDirectInvocation() {
+  return !!process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+}
+
+if (isDirectInvocation()) {
+  if (process.argv.slice(2).join(' ') === '--canonical') {
+    writeSystemGesture();
+  } else {
+    process.stderr.write('system-gesture.mjs rewrites a tracked clip; pass --canonical to do that on purpose.\n'
+      + 'To verify without writing: node apps/vr/tools/clipgen/generate.mjs --check\n');
+    process.exitCode = 2;
+  }
+}
