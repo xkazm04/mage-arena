@@ -1,0 +1,101 @@
+{
+  "card": "T15",
+  "generated": "2026-10-21",
+  "model_sheet": "apps/vr/art/model-sheets/05-cinder-hound-turnaround.jpg (and 07 for the poses)",
+  "note": "Concept art for the Bout 2 cinder hound, derived from model sheets 05 (silhouette) and 07 (poses), with one flat colour per material. Every call is in leonardo-log.json (28 credits for this asset; 56 for the hound and maw cap group of 112). The side panel of the turnaround was the TRELLIS.2 input (seed 7; seed 42 was rejected). Mesh, rig, clips and evidence are in git under export/ (FBX and PNGs through Git LFS, owner 2026-10-21); work/ stays in the archive C:/Users/kazda/kiro/mage-arena-archive/T15/cinder-hound/work/ (see HANDOFF.md). The mouth slit is hand-authored Blender geometry (apps/vr/tools/assets/beast_parts.py), not generated.",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/cinder-hound/concept-front-s4301-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4301,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "768x1376",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front reference"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/cinder-hound/concept-turnaround-s4302-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4302,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (side panel, columns 0-821, seed 7) and side, front and back reference"
+    },
+    {
+      "asset": "SK_CinderHound",
+      "path": "apps/vr/art/characters/cinder-hound/export/SK_CinderHound.fbx",
+      "sha256": "59c049446680338f0c17e3a696ea3c180162f4adda9cffd67f96d425b54b624e",
+      "bytes": 1452172,
+      "tris": 11784,
+      "bones": 26,
+      "clips": [
+        "Idle",
+        "Attack",
+        "Hit",
+        "Death"
+      ],
+      "hand_authored_parts": {
+        "kind": "mouth slit lined with the Ember material",
+        "source": "hand-authored in Blender (apps/vr/tools/assets/beast_parts.py, parametric bmesh geometry, EXACT boolean); no Leonardo, TRELLIS, ComfyUI or third-party source",
+        "tris_added": 284
+      }
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/cinder-hound/export/SOURCE.md",
+      "sha256": "64210136201b7f6f42288f72200824cf7c55e6a9e763455984b966b06afb8857",
+      "bytes": 7757
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/cinder-hound/export/metrics.json",
+      "sha256": "761b7fa2cb0c01de2c7d6ecbb88b3d7733d9b16f0c2060fab8441487071a5c8a",
+      "bytes": 4109
+    },
+    {
+      "asset": "CinderHound_turnaround",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_turnaround.png",
+      "sha256": "d2c0eedce86dc3b719f410244bed8d59db4d769ccc4b4c785b5fb072e625d5b2",
+      "bytes": 1111759
+    },
+    {
+      "asset": "CinderHound_game_640x480",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_game_640x480.png",
+      "sha256": "11fc542d5662f332fb06d6a3cd94c9caab9692b50750efd8f33ce01f29422d61",
+      "bytes": 256726
+    },
+    {
+      "asset": "CinderHound_clip_Idle",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_clip_Idle.png",
+      "sha256": "04327909edfcdac8ae7fed94f65f8bcb3e9567979a44832f3ec13b96aa6fd064",
+      "bytes": 356038
+    },
+    {
+      "asset": "CinderHound_clip_Attack",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_clip_Attack.png",
+      "sha256": "4e736e075043336a00fe7111f1892495e51d156a407a61cc3606c9c2095faa22",
+      "bytes": 589452
+    },
+    {
+      "asset": "CinderHound_clip_Hit",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_clip_Hit.png",
+      "sha256": "5eef580744ae39a884cfaac1f1ffd158d7abed4d24fa6739e4c842c6da3ce79c",
+      "bytes": 496838
+    },
+    {
+      "asset": "CinderHound_clip_Death",
+      "path": "apps/vr/art/characters/cinder-hound/export/CinderHound_clip_Death.png",
+      "sha256": "414833dd59060312d93c5d254b29ce44611f03d9f17d196c77d701f4cb06d6fc",
+      "bytes": 680399
+    }
+  ]
+}
