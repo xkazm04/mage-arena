@@ -62,3 +62,4 @@ controls:
 # .claude/skills/<name> a local, gitignored link to each one.
 skills:
   - scan-sweep
+  - perfect

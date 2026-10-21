@@ -38,9 +38,13 @@ apps/vr/Game/Clips/impostors/
 # BEGIN ai-registry linked skills (managed by ai-registry/scripts/link-registry.mjs)
 # Links are machine state; the declarations live in .ai/manifest.yaml (`skills:` and `knowledge.domains`).
 /.claude/skills/scan-sweep
+/.claude/skills/perfect
 /.claude/rules/ai-registry-access.md
 /.ai/skill-runs.local.jsonl
 # END ai-registry linked skills
+
+# Claude Code per-machine session settings (skill listing tiers); never shared.
+/.claude/settings.local.json
 
 # secrets: API keys (ElevenLabs etc.) belong in .env, never in git
 .env
@@ -49,3 +53,6 @@ apps/vr/Game/Clips/impostors/
 # Python tool caches
 __pycache__/
 .venv/
+
+# /perfect loop state (vault; not version-controlled - the checkout hosts concurrent agent sessions)
+/.perfect/
