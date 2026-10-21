@@ -4,31 +4,87 @@
 # -> collapse to TARGET tris -> smart UV -> Cycles CPU high-to-low bake of base colour (kept as a separate PNG, record only)
 # -> every face takes the nearest palette colour of its baked texels, smoothed over neighbours -> one material per palette
 # entry with a flat colour, no image nodes.
-#   blender -b -P finish.py -- <hi.glb> <outdir> <name> <rot_z_deg> <bake_res> <voxel_m> <target_tris>
+#   blender -b -P finish.py -- <hi.glb> <outdir> <name> <rot_z_deg> <bake_res> <voxel_m> <target_tris> [<palette set, default Brennic>]
+# Palette sets (PALETTES): PALETTE are the display colours of the concept's palette blocks, REFERENCE the same parts as
+# TRELLIS bakes them, RULES re-label parts that share a colour: by height (from, to, 'below' | 'above', fraction of height)
+# or by place (from, to, 'box', (xmin, xmax, zmin, zmax) in metres, character frame: left is +X). On a tie in REFERENCE the part listed first wins.
+# The k-means centres of the face colours go to <name>_finish.json ('face_kmeans') to tune a new set's REFERENCE.
 import bpy, sys, json, time, bmesh, math, numpy as np, mathutils
 
 a = sys.argv[sys.argv.index('--') + 1:]
 hi_glb, out, name = a[:3]; ROT = float(a[3]); RES = int(a[4]); VOX = float(a[5]); TARGET = int(a[6])
 HEIGHT = 1.8
-# Display colours: the palette blocks of the Leonardo concept (concept-front-s3801-medium.jpg), sRGB.
-PALETTE = {
-    'Tunic': (0.56, 0.24, 0.20),
-    'Cloak': (0.25, 0.21, 0.18),
-    'Leather': (0.42, 0.28, 0.19),
-    'Iron': (0.40, 0.41, 0.42),
-    'Skin': (0.76, 0.54, 0.40),
-    'Hair': (0.20, 0.14, 0.11),
+SET = a[7] if len(a) > 7 else 'Brennic'
+PALETTES = {
+    'Brennic': {
+        # Display colours: the palette blocks of the Leonardo concept (concept-front-s3801-medium.jpg), sRGB.
+        'PALETTE': {
+            'Tunic': (0.56, 0.24, 0.20),
+            'Cloak': (0.25, 0.21, 0.18),
+            'Leather': (0.42, 0.28, 0.19),
+            'Iron': (0.40, 0.41, 0.42),
+            'Skin': (0.76, 0.54, 0.40),
+            'Hair': (0.20, 0.14, 0.11),
+        },
+        # Classification colours: the same parts as TRELLIS bakes them (darker than the concept), sRGB, measured by k-means
+        # on the seed-42 bake of 2026-10-21. A face takes the part whose reference is nearest in CIE Lab.
+        'REFERENCE': {
+            'Tunic': (0.34, 0.11, 0.11),
+            'Cloak': (0.16, 0.125, 0.10),
+            'Leather': (0.22, 0.13, 0.09),
+            'Iron': (0.26, 0.22, 0.22),
+            'Skin': (0.50, 0.33, 0.25),
+            'Hair': (0.11, 0.075, 0.055),
+        },
+        # hair and cloak are both dark: above the collar it is hair, below it is cloak
+        'RULES': [('Hair', 'Cloak', 'below', 0.80), ('Cloak', 'Hair', 'above', 0.86)],
+    },
+    # concept-front-s4101-medium.jpg (sheet 03); REFERENCE from the k-means of the seed-42 bake of 2026-10-21. The shield is the
+    # same brown as the leather: it is told apart by its place (left of the body, hip to chest height).
+    'Conscript': {
+        'PALETTE': {
+            'Mail': (0.28, 0.29, 0.33),
+            'Iron': (0.55, 0.56, 0.58),
+            'Linen': (0.72, 0.65, 0.52),
+            'Leather': (0.38, 0.24, 0.15),
+            'Wood': (0.45, 0.27, 0.17),
+            'Skin': (0.76, 0.54, 0.40),
+        },
+        'REFERENCE': {
+            'Mail': (0.25, 0.24, 0.235),
+            'Iron': (0.50, 0.48, 0.46),
+            'Linen': (0.58, 0.53, 0.48),
+            'Leather': (0.25, 0.14, 0.085),
+            'Wood': (0.25, 0.14, 0.085),
+            'Skin': (0.64, 0.43, 0.36),
+        },
+        'RULES': [('Iron', 'Mail', 'below', 0.86), ('Leather', 'Wood', 'box', (0.17, 0.45, 0.50, 1.22)),
+                  ('Mail', 'Wood', 'box', (0.25, 0.50, 0.45, 1.15)), ('Linen', 'Wood', 'box', (0.25, 0.50, 0.45, 1.15))],
+    },
+    # concept-front-s4201-medium.jpg (sheet 04)
+    'Slinger': {
+        'PALETTE': {
+            'Linen': (0.78, 0.70, 0.56),
+            'Jerkin': (0.27, 0.17, 0.12),
+            'Iron': (0.45, 0.45, 0.46),
+            'Leather': (0.45, 0.27, 0.16),
+            'Bag': (0.68, 0.46, 0.25),
+            'Skin': (0.76, 0.54, 0.40),
+            'Hair': (0.30, 0.20, 0.14),
+        },
+        'REFERENCE': {
+            'Linen': (0.56, 0.50, 0.40),
+            'Jerkin': (0.18, 0.11, 0.08),
+            'Iron': (0.32, 0.32, 0.33),
+            'Leather': (0.30, 0.17, 0.10),
+            'Bag': (0.48, 0.32, 0.17),
+            'Skin': (0.50, 0.33, 0.25),
+            'Hair': (0.20, 0.13, 0.09),
+        },
+        'RULES': [('Iron', 'Bag', 'below', 0.86)],  # the net pouch of stones bakes grey
+    },
 }
-# Classification colours: the same parts as TRELLIS bakes them (darker than the concept), sRGB, measured by k-means
-# on the seed-42 bake of 2026-10-21. A face takes the part whose reference is nearest in CIE Lab.
-REFERENCE = {
-    'Tunic': (0.34, 0.11, 0.11),
-    'Cloak': (0.16, 0.125, 0.10),
-    'Leather': (0.22, 0.13, 0.09),
-    'Iron': (0.26, 0.22, 0.22),
-    'Skin': (0.50, 0.33, 0.25),
-    'Hair': (0.11, 0.075, 0.055),
-}
+PALETTE, REFERENCE, RULES = (PALETTES[SET][k] for k in ('PALETTE', 'REFERENCE', 'RULES'))
 R = {}; T = {}; t0 = time.time()
 
 
@@ -137,11 +193,20 @@ def to_lab(c):
 
 names = list(PALETTE); P = to_lab([REFERENCE[n] for n in names])
 d = ((to_lab(srgb)[:, None, :] - P[None, :, :]) ** 2).sum(2); lab = d.argmin(1)
-# hair and cloak are both dark: above the collar it is hair, below it is cloak
+# parts that share a colour are told apart by height (RULES)
 cz = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cz); cz = cz.reshape(-1, 3)[:, 2]
-hair, cloak = names.index('Hair'), names.index('Cloak')
-lab[(lab == hair) & (cz < 0.80 * HEIGHT)] = cloak
-lab[(lab == cloak) & (cz > 0.86 * HEIGHT)] = hair
+cx = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cx); cx = cx.reshape(-1, 3)[:, 0]
+for p_from, p_to, where, frac in RULES:
+    if where == 'box': hit = (cx >= frac[0]) & (cx <= frac[1]) & (cz >= frac[2]) & (cz <= frac[3])
+    else: hit = (cz < frac * HEIGHT) if where == 'below' else (cz > frac * HEIGHT)
+    sel = (lab == names.index(p_from)) & hit
+    lab[sel] = names.index(p_to)
+# k-means centres of the face colours (tunes REFERENCE for a new palette set)
+rng = np.random.default_rng(1); kc = srgb[rng.choice(len(srgb), len(names) + 2, replace=False)]
+for _ in range(25):
+    asg = ((srgb[:, None, :] - kc[None]) ** 2).sum(2).argmin(1)
+    kc = np.array([srgb[asg == k].mean(0) if (asg == k).any() else kc[k] for k in range(len(kc))])
+R['face_kmeans'] = [{'srgb': [round(float(x), 3) for x in kc[k]], 'faces': int((asg == k).sum())} for k in np.argsort(-np.bincount(asg, minlength=len(kc)))]
 # majority smoothing over edge neighbours removes speckle
 bm = bmesh.new(); bm.from_mesh(me); bm.faces.ensure_lookup_table()
 nbr = [[y.index for e in f.edges for y in e.link_faces if y.index != f.index] for f in bm.faces]; bm.free()

@@ -5,11 +5,13 @@
 # The mesh comes from finish.py facing -Y. Everything here is authored in that character frame and mapped through C
 # (+90 degrees about Z) so the export faces +X with Z up, origin at the feet, metres (FBX_SCALE_ALL -> UE centimetres).
 # Clips sit on NLA strips named exactly Idle, Cast, Hit, Death; the FBX exporter names each take after its strip.
-#   blender -b -P rig_anim.py -- <finish.blend> <outdir> <name> <fbx path>
+#   blender -b -P rig_anim.py -- <finish.blend> <outdir> <name> <fbx path> [<attack style>]
+# Attack style: Cast (default, Brennic: clips Idle, Cast, Hit, Death) | Thrust | Sling (the Bout 2 soldiers: clips Idle, Attack, Hit, Death).
 import bpy, sys, json, time, math, numpy as np
 from mathutils import Vector, Quaternion, Matrix, kdtree
 
 a = sys.argv[sys.argv.index('--') + 1:]; blend, out, name, fbx = a[:4]
+STYLE = a[4] if len(a) > 4 else 'Cast'; ATTACK = 'Cast' if STYLE == 'Cast' else 'Attack'
 t0 = time.time(); R = {}
 FPS = 30
 C = Matrix.Rotation(math.radians(90), 4, 'Z'); C3 = C.to_3x3(); Ci3 = C3.inverted()
@@ -176,7 +178,7 @@ CLIPS = {}
 CLIPS['Idle'] = [(0, *idle_pose(0)), (30, *idle_pose(1)), (60, *idle_pose(0))]
 # Cast: sheet 02 - stand, crouch and draw back, peak wind-up, release with the right arm extended, follow-through, recover
 crouch_legs = {'thigh_l': [('X', -16)], 'thigh_r': [('X', -16)], 'calf_l': [('X', 30)], 'calf_r': [('X', 30)], 'foot_l': [('X', -14)], 'foot_r': [('X', -14)]}
-CLIPS['Cast'] = [
+CLIPS[ATTACK] = [
     (0, IDLE, IDLE_D),
     (9, merged(crouch_legs, {'spine_01': [('X', 10)], 'spine_02': [('Z', -14)], 'spine_03': [('Z', -10)],
                              'upperarm_r': [('Y', -R_DOWN + 20), ('Z', -45)], 'lowerarm_r': [('Z', 35)],
@@ -195,6 +197,42 @@ CLIPS['Cast'] = [
                  'upperarm_l': [('Y', L_DOWN - 5), ('Z', 35)], 'lowerarm_l': [('Z', -15)]}), Vector((0, -0.08, -0.05))),
     (46, IDLE, IDLE_D),
 ]
+if STYLE == 'Thrust':  # conscript: shield arm forward, draw the sword hand back, lunge and thrust, hold, recover
+    guard = {'upperarm_l': [('Y', L_DOWN - 28), ('Z', -45)], 'lowerarm_l': [('Z', -50)]}
+    CLIPS[ATTACK] = [
+        (0, IDLE, IDLE_D),
+        (7, merged(guard, {'thigh_l': [('X', -10)], 'thigh_r': [('X', 8)], 'calf_l': [('X', 14)], 'calf_r': [('X', 8)],
+                           'spine_01': [('X', 4)], 'spine_02': [('Z', -18)], 'spine_03': [('Z', -12)], 'neck_01': [('Z', 14)],
+                           'upperarm_r': [('Y', -R_DOWN + 22), ('Z', -40)], 'lowerarm_r': [('Z', 40)]}), Vector((0, 0.03, -0.03))),
+        (12, merged(guard, {'thigh_l': [('X', -30)], 'calf_l': [('X', 26)], 'thigh_r': [('X', 16)], 'calf_r': [('X', 10)], 'foot_r': [('X', -8)],
+                            'spine_01': [('X', 12)], 'spine_02': [('Z', 24)], 'spine_03': [('Z', 14)], 'neck_01': [('Z', -14)],
+                            'upperarm_r': [('Y', arm_down[-1] - 12), ('Z', 88)], 'lowerarm_r': [('Z', 14)]}), Vector((0, -0.14, -0.08))),
+        (18, merged(guard, {'thigh_l': [('X', -30)], 'calf_l': [('X', 26)], 'thigh_r': [('X', 16)], 'calf_r': [('X', 10)],
+                            'spine_01': [('X', 12)], 'spine_02': [('Z', 22)], 'spine_03': [('Z', 12)], 'neck_01': [('Z', -12)],
+                            'upperarm_r': [('Y', arm_down[-1] - 12), ('Z', 84)], 'lowerarm_r': [('Z', 10)]}), Vector((0, -0.14, -0.08))),
+        (35, IDLE, IDLE_D),
+    ]
+elif STYLE == 'Sling':  # slinger: right arm winds up high behind the head, whirls over, releases forward and down
+    CLIPS[ATTACK] = [
+        (0, IDLE, IDLE_D),
+        (9, {'thigh_l': [('X', -10)], 'thigh_r': [('X', 6)], 'calf_l': [('X', 12)], 'calf_r': [('X', 6)],
+             'spine_01': [('X', -4)], 'spine_02': [('Z', -22), ('X', -4)], 'spine_03': [('Z', -14)], 'neck_01': [('Z', 12)],
+             'upperarm_r': [('Y', arm_down[-1] + 80), ('Z', -30)], 'lowerarm_r': [('Z', 50)],
+             'upperarm_l': [('Y', L_DOWN - 35), ('Z', -50)], 'lowerarm_l': [('Z', -25)]}, Vector((0, 0.03, -0.02))),
+        (17, {'thigh_l': [('X', -14)], 'thigh_r': [('X', 8)], 'calf_l': [('X', 12)], 'calf_r': [('X', 6)],
+              'spine_01': [('X', -2)], 'spine_02': [('Z', -6)], 'spine_03': [('Z', -4)], 'neck_01': [('Z', 4)],
+              'upperarm_r': [('Y', arm_down[-1] + 92), ('Z', 25)], 'lowerarm_r': [('Z', 40)],
+              'upperarm_l': [('Y', L_DOWN - 35), ('Z', -50)], 'lowerarm_l': [('Z', -25)]}, Vector((0, 0.0, -0.02))),
+        (24, {'thigh_l': [('X', -26)], 'calf_l': [('X', 20)], 'thigh_r': [('X', 14)], 'calf_r': [('X', 8)],
+              'spine_01': [('X', 14)], 'spine_02': [('Z', 24)], 'spine_03': [('Z', 14)], 'neck_01': [('Z', -12)],
+              'upperarm_r': [('Y', arm_down[-1] + 8), ('Z', 88)], 'lowerarm_r': [('Z', 6)],
+              'upperarm_l': [('Y', L_DOWN - 10), ('Z', 20)], 'lowerarm_l': [('Z', -20)]}, Vector((0, -0.1, -0.05))),
+        (32, {'thigh_l': [('X', -26)], 'calf_l': [('X', 20)], 'thigh_r': [('X', 14)], 'calf_r': [('X', 8)],
+              'spine_01': [('X', 18)], 'spine_02': [('Z', 28)], 'spine_03': [('Z', 16)], 'neck_01': [('Z', -14)],
+              'upperarm_r': [('Y', arm_down[-1] - 28), ('Z', 70)], 'lowerarm_r': [('Z', 8)],
+              'upperarm_l': [('Y', L_DOWN - 5), ('Z', 30)], 'lowerarm_l': [('Z', -15)]}, Vector((0, -0.1, -0.06))),
+        (46, IDLE, IDLE_D),
+    ]
 # Hit: torso twisted back, the left arm raised to shield the face, recover
 CLIPS['Hit'] = [
     (0, IDLE, IDLE_D),

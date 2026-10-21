@@ -2,13 +2,13 @@
 #  <name>_turnaround.png      8 views every 45 degrees, Idle frame 0, orthographic
 #  <name>_game_640x480.png    seated player's view: eye 1.2 m, rival 6 m away, 90 degree horizontal FOV, 640x480
 #  <name>_clip_<Clip>.png     a still strip per clip: its key frames (at most 6), front three-quarter view
-#   blender -b -P render_evidence.py -- <in.fbx> <outdir> <name> [<name>_rig.json from rig_anim.py]
+#   blender -b -P render_evidence.py -- <in.fbx> <outdir> <name> [<name>_rig.json from rig_anim.py] [<attack clip name, default Cast>]
 import bpy, sys, os, json, math, numpy as np
 from mathutils import Vector
 
 a = sys.argv[sys.argv.index('--') + 1:]; fbx, out, name = a[:3]
 RIG = json.load(open(a[3])) if len(a) > 3 else None
-CLIPS = ['Idle', 'Cast', 'Hit', 'Death']
+CLIPS = ['Idle', a[4] if len(a) > 4 else 'Cast', 'Hit', 'Death']
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.fbx(filepath=fbx)
 s = bpy.context.scene; s.render.engine = 'BLENDER_EEVEE'; s.view_settings.view_transform = 'Standard'

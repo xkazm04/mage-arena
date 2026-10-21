@@ -2,11 +2,11 @@
 # Mesh metrics adapted from lynx-bench pof3d/round2/characters/work/pofmetrics2.py + met.py (vertices welded by exact
 # position, components by shared edges, watertight / winding). The gate checks of gate.cjs come from pof's compiled
 # libraries, which are not copied here; the checks below are the T38 card's, written out.
-#   blender -b -P metrics.py -- <in.fbx> <metrics.json>
+#   blender -b -P metrics.py -- <in.fbx> <metrics.json> [<attack clip name, default Cast>]
 import bpy, sys, json, os, numpy as np
 
 a = sys.argv[sys.argv.index('--') + 1:]; fbx, outp = a[:2]
-CLIPS = ['Idle', 'Cast', 'Hit', 'Death']
+CLIPS = ['Idle', a[2] if len(a) > 2 else 'Cast', 'Hit', 'Death']
 TRI_BUDGET_LOD0 = (18000, 30000)
 
 
