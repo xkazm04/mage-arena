@@ -20,10 +20,10 @@ The evidence, all of it checkable:
    or Lio, or it ships as a school nothing spawns. Neither is value.
 2. **The owner already chose against Earth for that slot, with Earth on the table.** DECISIONS 2026-10-07:
    "**Second school for the Tiro final: Air** (owner, 2026-10-07, asked "Earth, Air, or Corvo now?": "Air")"
-   (`docs/DECISIONS.md:289-290`). Nothing since has reopened it.
+   (`docs/DECISIONS.md:323-324`). Nothing since has reopened it.
 3. **The owner's own horizon for playable Earth is spring 2027, not November.** Same entry, last line: "Four routes,
    one per member of the Four (Cassia, Brennic, Garran, Iskar); Cassia's (Water) is the slice. **All four schools
-   playable at launch (spring 2027)**" (`docs/DECISIONS.md:291-292`).
+   playable at launch (spring 2027)**" (`docs/DECISIONS.md:325-326`).
 4. **It is not on the critical path and there is no slack on that path.** `docs/concepts/WOLF-PLAN.md` section c:
    "Critical path to 18 Nov: **P0 baseline -> P2 T39 -> P3 T37 -> P4 T16 -> P6 T38 -> P8 T41 and the gate record ->
    P9 device -> P10 submission**, with **P5 (first APK)** in parallel". Those phases already fill 22 Oct to 18 Nov at

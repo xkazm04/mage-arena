@@ -204,7 +204,7 @@ Settled or already-captured - never re-suggest as a new direction. **Check all t
 
 - 2026-10-21: **grep DECISIONS.md for the SPECIFIC question, not just "read it newest first".** The sweep
   reported Earth as absent against the owner's 2026-10-03 "all four schools" ruling, and the Director put that to
-  the owner as an oversight with four weeks to the deadline. It was mis-framed: `DECISIONS.md:289-292` records
+  the owner as an oversight with four weeks to the deadline. It was mis-framed: `DECISIONS.md:323-326` records
   that on 2026-10-07 the owner was asked "Earth, Air, or Corvo now?", chose **Air**, and dated all four schools
   playable to **spring 2027**. Every scout was told DECISIONS outranks everything and to read it newest-first,
   and they all did read it - but none grepped it for *earth*, and nor did the Director before gating. **A finding
