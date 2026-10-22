@@ -56,7 +56,7 @@ const IMG = 'https://cdn.leonardo.ai/users/u/generations/g1/' + (CASE === 'badex
 const reply = (status, doc) => new Response(typeof doc === 'string' || doc instanceof Uint8Array ? doc : JSON.stringify(doc), { status });
 // A real PNG signature and header start: the 'ok' case's image.
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
-const IMG_BODY = { cdn404: [404, 'Not Found'], badext: [200, '<script>alert(1)</script>'], ok: [200, PNG] };
+const IMG_BODY = { cdn404: [404, 'Not Found'], badext: [200, '<script>alert(1)</script>'], html200: [200, '<html>AccessDenied</html>'], ok: [200, PNG] };
 // The header spelled as JSON \\u escapes: the raw body holds no copy of the key, only what JSON.parse returns does.
 const esc = (t) => [...t].map((c) => '\\\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')).join('');
 globalThis.fetch = async (url, init = {}) => {
@@ -178,7 +178,7 @@ for (const [rel, args] of CLIENTS) {
 }
 
 for (const [rel, args] of CLIENTS) {
-  for (const kase of ['cdn404', 'badext']) {
+  for (const kase of ['cdn404', 'badext', 'html200']) {
     test(`${path.basename(rel)}: a ${kase} image download writes no file and fails the run (P1)`, () => {
       const { out, logs, files, status } = runClient(rel, args, kase);
       assert.deepEqual(files, [], 'nothing but the log is written');

@@ -94,10 +94,17 @@ export function settleCredits({ reported, before, after, generationId, expected 
 
 const IMAGE_EXT = ['.png', '.jpg', '.jpeg', '.webp'];
 
+/** True when `buf` starts like a PNG, a JPEG or a WebP file: the formats IMAGE_EXT admits. */
+export const isImage = (buf) =>
+  buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) ||
+  buf.subarray(0, 3).equals(Buffer.from([0xff, 0xd8, 0xff])) ||
+  (buf.subarray(0, 4).toString('latin1') === 'RIFF' && buf.subarray(8, 12).toString('latin1') === 'WEBP');
+
 /**
  * Downloads a finished image to `dir`/`name` plus the URL's extension; returns { dest, bytes }. The URL comes from the API
- * response, so it must be https with an image extension, and an HTTP error is thrown, never saved as the image. No
- * credentials are sent, and the URL (which may be signed) is never put in an error.
+ * response, so it must be https with an image extension, and an HTTP error or a body that is not a PNG, JPEG or WebP (a
+ * 200 error page, say) is thrown, never saved as the image. No credentials are sent, and the URL (which may be signed)
+ * is never put in an error.
  */
 export async function saveImage(url, dir, name) {
   const u = new URL(url);
@@ -107,6 +114,7 @@ export async function saveImage(url, dir, name) {
   const res = await fetch(u);
   if (!res.ok) throw new Error(`image download -> HTTP ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
+  if (!isImage(buf)) throw new Error(`image download is not a PNG, JPEG or WebP (${buf.length} bytes)`);
   const dest = path.join(dir, name + ext);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(dest, buf);
