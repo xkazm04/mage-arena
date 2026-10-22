@@ -27,7 +27,7 @@ The write set of the deck section, plus `runs/T36/REPORT.md` (uncommitted).
 - **Test first.** Every acceptance case is written as a test (or a counted lint) and seen RED on the unchanged code
   before the change; the report quotes the red line. A case that never failed proves nothing.
 - Baseline the full `MageArena.` and `MageArenaDesign.` suites before the change and compare per test after. Known red
-  on a clean tree: `MageArenaDesign.Duel.FireSeated`, `Session.FullSeated`, `Session.Wave1Seated`. Any other change
+  on a clean tree: five suite failures are known (as of 9f338f0, per `CLAUDE.md`): `MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, `Session.Wave1Seated` and `Session.CreaturesSeated`. `Duel.AirSeated` and `Session.CreaturesSeated` were confirmed red on base 9f338f0 (owner ruling 2026-10-16) and are not new regressions. Any other change
   is a regression unless this card names it.
 - Fresh checkout: regenerate the sigil corpus first (`CLAUDE.md`, Build). One Unreal build at a time
   (`-WaitMutex`); one `Automation RunTests` filter per editor process; read verdicts from `-ReportExportPath`.
