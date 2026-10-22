@@ -36,6 +36,8 @@ export async function call(key, method, url, body) {
   const text = redact(await res.text(), key);
   let json;
   try { json = JSON.parse(text); } catch { json = { raw: text.slice(0, 500) }; }
+  // JSON.parse decodes \u escapes, so a key the body spelled escaped only appears now: redact the parsed value too.
+  if (key && JSON.stringify(json).includes(key)) json = JSON.parse(redact(JSON.stringify(json), key));
   if (!res.ok) throw new Error(`${method} ${url} -> HTTP ${res.status}: ${JSON.stringify(json).slice(0, 500)}`);
   return json;
 }

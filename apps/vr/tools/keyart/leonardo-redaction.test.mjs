@@ -3,7 +3,8 @@
 // place of bp's .env, hides every real leonardo-log.json, and replaces fetch with a stub that echoes the Authorization
 // header into its response across a truncation boundary. No network call is made and the real .env is never read.
 // The nogen case (a 200 without a generationId, its body cut at 300 characters) leaked a key fragment before the fix;
-// the json and raw cases (HTTP errors) guard the paths that were already safe.
+// the json and raw cases (HTTP errors) guard the paths that were already safe. The two -escaped cases spell the key as
+// JSON \u escapes, which JSON.parse decodes only after the raw body was redacted (security scan 2026-10-22-b, S3).
 //
 //   node --test apps/vr/tools/keyart/leonardo-redaction.test.mjs
 import test from 'node:test';
@@ -32,6 +33,8 @@ fs.readFileSync = function (p, ...rest) {
   if (f.endsWith('leonardo-log.json') && !f.startsWith(TMP)) throw new Error('outside the test tree');
   return read.call(this, p, ...rest);
 };
+// The header spelled as JSON \\u escapes: the raw body holds no copy of the key, only what JSON.parse returns does.
+const esc = (t) => [...t].map((c) => '\\\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')).join('');
 globalThis.fetch = async (url, init = {}) => {
   if (!String(url).startsWith('https://cloud.leonardo.ai/')) throw new Error('unexpected url');
   const auth = init.headers?.authorization ?? '';
@@ -39,6 +42,8 @@ globalThis.fetch = async (url, init = {}) => {
   let body;
   if (CASE === 'json') body = JSON.stringify({ error: 'x'.repeat(463) + auth });
   else if (CASE === 'raw') body = '<html>' + 'x'.repeat(457) + auth + '</html>';
+  else if (CASE === 'json-escaped') body = '{"error":"' + 'x'.repeat(463) + esc(auth) + '"}';
+  else if (CASE === 'nogen-escaped') { status = 200; body = '{"note":"' + 'x'.repeat(264) + esc(auth) + '"}'; }
   else { status = 200; body = JSON.stringify({ note: 'x'.repeat(264) + auth }); }
   if (!String(url).endsWith('/v2/generations')) status = 401;
   return new Response(body, { status, headers: { 'content-type': 'application/json' } });
@@ -84,7 +89,7 @@ const CLIENTS = [
 ];
 
 for (const [rel, args] of CLIENTS) {
-  for (const kase of ['json', 'raw', 'nogen']) {
+  for (const kase of ['json', 'raw', 'nogen', 'json-escaped', 'nogen-escaped']) {
     test(`${path.basename(rel)}: a key echoed in a ${kase} response never reaches output or the log`, () => {
       const { out, logs, status } = runClient(rel, args, kase);
       assert.equal(status, 1, `the failed call exits 1:\n${out.replaceAll(KEY, '<KEY>')}`);
