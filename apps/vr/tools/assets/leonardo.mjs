@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, saveImage, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
+import { API, COST, MODEL, NIGHT_CAP, balance, call, pollGeneration, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, saveImage, settleCredits, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const CHARS = path.join(ROOT, 'apps/vr/art/characters');
@@ -231,15 +231,9 @@ async function gen() {
     entry.generationId = created.generate?.generationId ?? created.generationId ?? null;
     reported = reportedCost(created);
     if (!entry.generationId) throw new Error(`no generationId in response: ${JSON.stringify(created).slice(0, 300)}`);
-    const t0 = Date.now();
-    let g;
-    for (;;) {
-      await sleep(POLL_MS);
-      g = (await call(key, 'GET', `${API}/v1/generations/${entry.generationId}`)).generations_by_pk;
-      entry.status = g?.status ?? 'UNKNOWN';
-      if (entry.status === 'COMPLETE' || entry.status === 'FAILED') break;
-      if (Date.now() - t0 > POLL_LIMIT_MS) { entry.status = 'TIMEOUT'; break; }
-    }
+    const { status, generation: g } = await pollGeneration(
+      async (gid) => (await call(key, 'GET', `${API}/v1/generations/${gid}`)).generations_by_pk, entry.generationId);
+    entry.status = status;
     reported ??= reportedCost(g);
     const url = (g?.generated_images ?? [])[0]?.url;
     if (entry.status === 'COMPLETE' && url) {
@@ -251,10 +245,7 @@ async function gen() {
     entry.error = redact(e.message ?? e, key).slice(0, 500);
   }
   const after = await balance(key);
-  if (reported != null) { entry.credits = reported; entry.creditsSource = 'api'; }
-  else if (before != null && after != null && before - after > 0) { entry.credits = before - after; entry.creditsSource = 'balance'; }
-  else if (entry.generationId) { entry.credits = COST[quality]; entry.creditsSource = 'fallback'; }
-  else { entry.credits = 0; entry.creditsSource = 'no-generation'; }
+  Object.assign(entry, settleCredits({ reported, before, after, generationId: entry.generationId, expected: COST[quality] }));
   writeLog([...log, entry]);
   console.log(`${entry.status} ${viewId} s${seed} ${quality} credits=${entry.credits} (${entry.creditsSource}) total=${runTotal()} file=${entry.file ?? '-'}${entry.error ? ` error=${entry.error}` : ''}`);
   if (entry.status !== 'COMPLETE' || !entry.file) process.exit(1);

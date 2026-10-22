@@ -69,6 +69,29 @@ export function reportedCost(obj, depth = 0) {
   return null;
 }
 
+/**
+ * Polls `fetchGen(id)` (which returns the generations_by_pk object) every `pollMs` until it is COMPLETE or FAILED, or `limitMs`
+ * has passed (status TIMEOUT). Returns { status, generation }.
+ */
+export async function pollGeneration(fetchGen, id, { pollMs = POLL_MS, limitMs = POLL_LIMIT_MS } = {}) {
+  const t0 = Date.now();
+  for (;;) {
+    await sleep(pollMs);
+    const generation = await fetchGen(id);
+    const status = generation?.status ?? 'UNKNOWN';
+    if (status === 'COMPLETE' || status === 'FAILED') return { status, generation };
+    if (Date.now() - t0 > limitMs) return { status: 'TIMEOUT', generation };
+  }
+}
+
+/** The credits a finished call is logged at and where the number came from: API report, balance difference, expected cost. */
+export function settleCredits({ reported, before, after, generationId, expected }) {
+  if (reported != null) return { credits: reported, creditsSource: 'api' };
+  if (before != null && after != null && before - after > 0) return { credits: before - after, creditsSource: 'balance' };
+  if (generationId) return { credits: expected, creditsSource: 'fallback' };
+  return { credits: 0, creditsSource: 'no-generation' };
+}
+
 const IMAGE_EXT = ['.png', '.jpg', '.jpeg', '.webp'];
 
 /**
