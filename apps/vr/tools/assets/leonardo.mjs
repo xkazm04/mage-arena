@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // T38 concept art: one Leonardo generation per call, logged. Dependency-free (Node's fetch and fs only).
-// Adapted from kiro/bp scripts/lookdev/leonardo.mjs (read, not imported).
+// Adapted from kiro/bp scripts/lookdev/leonardo.mjs (its call recipe lives in leonardo-client.mjs).
 //
 //   node apps/vr/tools/assets/leonardo.mjs gen [--asset conscript] --view front --seed 101 --quality MEDIUM [--out name.png]
 //   node apps/vr/tools/assets/leonardo.mjs total [--asset conscript]    the credit total of the asset's cap group from the logs
@@ -19,16 +19,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const CHARS = path.join(ROOT, 'apps/vr/art/characters');
-const ENV_FILE = 'C:/Users/kazda/kiro/bp/.env';
-const API = 'https://cloud.leonardo.ai/api/rest';
-const MODEL = 'openai/gpt-image-2.5-flare';
-const COST = { LOW: 6, MEDIUM: 14, HIGH: 60 }; // LOW and MEDIUM measured by bp on 2026-10-20 (1376x768); HIGH a high guess
-const POLL_MS = 5000;
-const POLL_LIMIT_MS = 240000;
-const NIGHT_CAP = 400; // operator: 400 credits per night for this project, every asset and tool together
 // Other checkouts of this repo whose logs count against the night (read only, never written).
 const NIGHT_ROOTS = ['C:/Users/kazda/kiro/mage-arena', 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena'];
 
@@ -182,42 +176,20 @@ const readLogOf = (id) => {
   return fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')).calls : [];
 };
 const readLog = () => readLogOf(assetId);
-const sumCredits = (log) => log.reduce((n, e) => n + (Number(e.credits) || 0), 0);
 /** The credits logged so far by every asset of this asset's cap group; `log` stands in for this asset's own log. */
 const runTotal = (log = readLog()) => sumCredits(log) + sumCredits(ASSET.group.filter((id) => id !== assetId).flatMap(readLogOf));
-/** Every leonardo-log.json under dir (node_modules and .git are never entered). */
-function findLogs(dir, out = []) {
-  let ents = [];
-  try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return out; }
-  for (const e of ents) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory() && e.name !== 'node_modules' && e.name !== '.git') findLogs(p, out);
-    else if (e.isFile() && e.name === 'leonardo-log.json') out.push(p);
-  }
-  return out;
-}
 /** The project's credits for the UTC day `day` (YYYY-MM-DD): every checkout's apps/vr/art logs, each generation once. */
-function nightTotal(day = new Date().toISOString().slice(0, 10)) {
+function nightTotal(day) {
   const arts = [path.join(ROOT, 'apps/vr/art'), path.join(NIGHT_ROOTS[0], 'apps/vr/art')];
   try {
     for (const e of fs.readdirSync(NIGHT_ROOTS[1], { withFileTypes: true })) {
       if (e.isDirectory()) arts.push(path.join(NIGHT_ROOTS[1], e.name, 'apps/vr/art'));
     }
   } catch { /* no sibling worktrees */ }
-  const seen = new Map();
-  for (const f of new Set(arts.flatMap((d) => findLogs(d)).map((f) => path.resolve(f)))) {
-    let calls = [];
-    try { calls = JSON.parse(fs.readFileSync(f, 'utf8')).calls ?? []; } catch { continue; }
-    for (const c of calls) {
-      if (!String(c.date).startsWith(day)) continue;
-      seen.set(c.generationId ?? `${f}|${c.date}|${c.seed}|${c.view}`, Number(c.credits) || 0);
-    }
-  }
-  return [...seen.values()].reduce((n, x) => n + x, 0);
+  return nightTotalOf(arts, day);
 }
 function writeLog(calls) {
-  fs.mkdirSync(DIR, { recursive: true });
-  const doc = {
+  writeLogTo(LOG, {
     card: ASSET.card,
     asset: ASSET.title,
     model: MODEL,
@@ -225,61 +197,8 @@ function writeLog(calls) {
     totalCredits: runTotal(calls),
     note: 'One entry per Leonardo call, failed calls included. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).',
     calls,
-  };
-  fs.writeFileSync(LOG, JSON.stringify(doc, null, 2) + '\n');
-}
-
-/** `text` with every copy of the key replaced: whatever goes to the log or stdout passes through here. */
-const redact = (text, key) => (key ? String(text).replaceAll(key, '[redacted]') : String(text));
-
-function readKey() {
-  const m = fs.readFileSync(ENV_FILE, 'utf8').match(/^\s*LEONARDO_API_KEY\s*=\s*(.+?)\s*$/m);
-  if (!m) throw new Error(`LEONARDO_API_KEY not found in ${ENV_FILE}`);
-  return m[1].replace(/^['"]|['"]$/g, '');
-}
-
-async function call(key, method, url, body) {
-  const res = await fetch(url, {
-    method,
-    headers: { accept: 'application/json', authorization: `Bearer ${key}`, ...(body ? { 'content-type': 'application/json' } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
   });
-  // Redacted before it is parsed or cut: a key echoed in the body and then cut in half would slip past redact.
-  const text = redact(await res.text(), key);
-  let json;
-  try { json = JSON.parse(text); } catch { json = { raw: text.slice(0, 500) }; }
-  if (!res.ok) throw new Error(`${method} ${url} -> HTTP ${res.status}: ${JSON.stringify(json).slice(0, 500)}`);
-  return json;
 }
-
-/** Sum of every numeric token pool on the account; the difference across a call is what it cost. */
-async function balance(key) {
-  try {
-    const me = await call(key, 'GET', `${API}/v1/me`);
-    const u = me.user_details?.[0] ?? {};
-    return Object.entries(u).filter(([k, v]) => /tokens$/i.test(k) && typeof v === 'number').reduce((n, [, v]) => n + v, 0);
-  } catch {
-    return null;
-  }
-}
-
-/** A cost the API reports itself, if it does: any numeric field named like cost or credit. */
-function reportedCost(obj, depth = 0) {
-  if (!obj || typeof obj !== 'object' || depth > 4) return null;
-  for (const [k, v] of Object.entries(obj)) {
-    if (/cost|credit/i.test(k)) {
-      if (typeof v === 'number') return v;
-      if (v && typeof v === 'object' && typeof v.amount === 'number') return v.amount;
-    }
-  }
-  for (const v of Object.values(obj)) {
-    const c = reportedCost(v, depth + 1);
-    if (c != null) return c;
-  }
-  return null;
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function gen() {
   const viewId = opt('view', 'front');

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Competition key art and gallery stills: one Leonardo generation per call, logged. Dependency-free (Node's fetch and fs only).
-// The call recipe is apps/vr/tools/assets/leonardo.mjs (read, not imported).
+// The call recipe is apps/vr/tools/assets/leonardo.mjs (its call recipe lives in ../assets/leonardo-client.mjs, shared with it).
 //
 //   node apps/vr/tools/keyart/leonardo-keyart.mjs list                       the image ids, their purpose and size
 //   node apps/vr/tools/keyart/leonardo-keyart.mjs prompt --id key-art        print the composed prompt, no call
@@ -15,19 +15,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits as sum, writeLog as writeLogTo } from '../assets/leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const ART = path.join(ROOT, 'apps/vr/art');
 const DIR = path.join(ART, 'key-art');
 const LOG = path.join(DIR, 'leonardo-log.json');
-const ENV_FILE = 'C:/Users/kazda/kiro/bp/.env';
-const API = 'https://cloud.leonardo.ai/api/rest';
-const MODEL = 'openai/gpt-image-2.5-flare';
-const COST = { LOW: 6, MEDIUM: 14, HIGH: 60 };
 const RUN_CAP = 140;
-const NIGHT_CAP = 400;
-const POLL_MS = 5000;
-const POLL_LIMIT_MS = 240000;
 const LABEL = 'concept key art, not a gameplay capture';
 
 const LOOK =
@@ -97,26 +91,14 @@ const opt = (name, dflt) => {
   return i > 0 && i + 1 < args.length ? args[i + 1] : dflt;
 };
 
-const sum = (calls) => calls.reduce((n, e) => n + (Number(e.credits) || 0), 0);
 const readLog = () => (fs.existsSync(LOG) ? JSON.parse(fs.readFileSync(LOG, 'utf8')).calls : []);
 const today = () => new Date().toISOString().slice(0, 10);
 
-/** Every leonardo-log.json under apps/vr/art/, found by walking the tree. */
-function allLogs(dir = ART, out = []) {
-  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) allLogs(p, out);
-    else if (e.name === 'leonardo-log.json') out.push(p);
-  }
-  return out;
-}
 /** Credits logged today by every log under apps/vr/art/ (this run's included). */
-const nightTotal = () =>
-  allLogs().reduce((n, f) => n + sum((JSON.parse(fs.readFileSync(f, 'utf8')).calls ?? []).filter((c) => String(c.date).startsWith(today()))), 0);
+const nightTotal = () => nightTotalOf([ART], today());
 
 function writeLog(calls) {
-  fs.mkdirSync(DIR, { recursive: true });
-  const doc = {
+  writeLogTo(LOG, {
     asset: 'Competition key art and gallery stills',
     model: MODEL,
     runCap: RUN_CAP,
@@ -124,61 +106,8 @@ function writeLog(calls) {
     totalCredits: sum(calls),
     note: 'One entry per Leonardo call, failed calls included. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).',
     calls,
-  };
-  fs.writeFileSync(LOG, JSON.stringify(doc, null, 2) + '\n');
-}
-
-/** `text` with every copy of the key replaced: whatever goes to the log or stdout passes through here. */
-const redact = (text, key) => (key ? String(text).replaceAll(key, '[redacted]') : String(text));
-
-function readKey() {
-  const m = fs.readFileSync(ENV_FILE, 'utf8').match(/^\s*LEONARDO_API_KEY\s*=\s*(.+?)\s*$/m);
-  if (!m) throw new Error(`LEONARDO_API_KEY not found in ${ENV_FILE}`);
-  return m[1].replace(/^['"]|['"]$/g, '');
-}
-
-async function call(key, method, url, body) {
-  const res = await fetch(url, {
-    method,
-    headers: { accept: 'application/json', authorization: `Bearer ${key}`, ...(body ? { 'content-type': 'application/json' } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
   });
-  // Redacted before it is parsed or cut: a key echoed in the body and then cut in half would slip past redact.
-  const text = redact(await res.text(), key);
-  let json;
-  try { json = JSON.parse(text); } catch { json = { raw: text.slice(0, 500) }; }
-  if (!res.ok) throw new Error(`${method} ${url} -> HTTP ${res.status}: ${JSON.stringify(json).slice(0, 500)}`);
-  return json;
 }
-
-/** Sum of every numeric token pool on the account; the difference across a call is what it cost. */
-async function balance(key) {
-  try {
-    const me = await call(key, 'GET', `${API}/v1/me`);
-    const u = me.user_details?.[0] ?? {};
-    return Object.entries(u).filter(([k, v]) => /tokens$/i.test(k) && typeof v === 'number').reduce((n, [, v]) => n + v, 0);
-  } catch {
-    return null;
-  }
-}
-
-/** A cost the API reports itself, if it does: any numeric field named like cost or credit. */
-function reportedCost(obj, depth = 0) {
-  if (!obj || typeof obj !== 'object' || depth > 4) return null;
-  for (const [k, v] of Object.entries(obj)) {
-    if (/cost|credit/i.test(k)) {
-      if (typeof v === 'number') return v;
-      if (v && typeof v === 'object' && typeof v.amount === 'number') return v.amount;
-    }
-  }
-  for (const v of Object.values(obj)) {
-    const c = reportedCost(v, depth + 1);
-    if (c != null) return c;
-  }
-  return null;
-}
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function gen() {
   const id = opt('id', '');

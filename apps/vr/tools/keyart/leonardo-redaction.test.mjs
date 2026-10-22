@@ -1,5 +1,5 @@
 // Proof that neither Leonardo client leaks its key when the API echoes it back in an error (security scan 2026-10-22, L1).
-// Dependency-free and offline: each client is copied into a temp tree and run with a preload that serves a fake key in
+// Dependency-free and offline: each client and the shared leonardo-client.mjs are copied into a temp tree and run with a preload that serves a fake key in
 // place of bp's .env, hides every real leonardo-log.json, and replaces fetch with a stub that echoes the Authorization
 // header into its response across a truncation boundary. No network call is made and the real .env is never read.
 // The nogen case (a 200 without a generationId, its body cut at 300 characters) leaked a key fragment before the fix;
@@ -15,6 +15,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
+// The call recipe both clients import; it is copied beside them so the temp tree runs the real shared code.
+const SHARED = 'apps/vr/tools/assets/leonardo-client.mjs';
 const KEY = 'fakekey0-0000-4000-8000-redactproof1';
 
 const PRELOAD = `
@@ -51,7 +53,10 @@ function runClient(rel, args, kase) {
   try {
     const script = path.join(tmp, rel);
     fs.mkdirSync(path.dirname(script), { recursive: true });
-    fs.copyFileSync(path.join(REPO, rel), script);
+    for (const f of [rel, SHARED]) {
+      fs.mkdirSync(path.dirname(path.join(tmp, f)), { recursive: true });
+      fs.copyFileSync(path.join(REPO, f), path.join(tmp, f));
+    }
     fs.mkdirSync(path.join(tmp, 'apps/vr/art'), { recursive: true });
     const preload = path.join(tmp, 'preload.mjs');
     fs.writeFileSync(preload, PRELOAD);
