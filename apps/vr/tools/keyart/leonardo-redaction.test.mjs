@@ -1,6 +1,7 @@
 // Proof that neither Leonardo client leaks its key when the API echoes it back in an error (security scan 2026-10-22, L1),
 // and (scan 2026-10-22-b, at the end) that both enforce the night cap over every checkout, log a call before it is
-// billed, and never save a failed or non-image download.
+// billed, and never save a failed or non-image download; and (scan 2026-10-22-c) that a sibling worktree's spend counts and
+// a finished call saves its image and settles its credits through the shared pollGeneration and settleCredits.
 // Dependency-free and offline: each client and the shared leonardo-client.mjs are copied into a temp tree and run with a preload that serves a fake key in
 // place of bp's .env, hides every real leonardo-log.json, and replaces fetch with a stub that echoes the Authorization
 // header into its response across a truncation boundary. No network call is made and the real .env is never read.
@@ -28,12 +29,16 @@ import path from 'node:path';
 const TMP = path.resolve(process.env.REDACT_TMP);
 const KEY = process.env.REDACT_KEY;
 const CASE = process.env.REDACT_CASE;
-// The main checkout's path is served from TMP/main, so a case can plant a log there; nothing in the real checkout is read.
+// The main checkout's path is served from TMP/main and the sibling worktrees' folder from TMP/worktrees, so a case can
+// plant a log in either; nothing in the real checkout or a real worktree is read.
 const MAIN = path.resolve('C:/Users/kazda/kiro/mage-arena').toLowerCase();
+const TREES = path.resolve('C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena').toLowerCase();
 const map = (p) => {
   if (typeof p !== 'string' || p.startsWith('file:')) return p; // the module loader's URLs and fds pass through
   const f = path.resolve(p);
-  return f.toLowerCase().startsWith(MAIN) ? path.join(TMP, 'main', f.slice(MAIN.length)) : f;
+  if (f.toLowerCase().startsWith(MAIN)) return path.join(TMP, 'main', f.slice(MAIN.length));
+  if (f.toLowerCase().startsWith(TREES)) return path.join(TMP, 'worktrees', f.slice(TREES.length));
+  return f;
 };
 const read = fs.readFileSync;
 fs.readFileSync = function (p, ...rest) {
@@ -48,13 +53,16 @@ fs.readdirSync = function (p, ...rest) { return readdir.call(this, map(p), ...re
 const wait = globalThis.setTimeout;
 globalThis.setTimeout = (f, ms, ...a) => wait(f, 0, ...a);
 const IMG = 'https://cdn.leonardo.ai/users/u/generations/g1/' + (CASE === 'badext' ? 'img.html' : 'img.jpg');
-const reply = (status, doc) => new Response(typeof doc === 'string' ? doc : JSON.stringify(doc), { status });
+const reply = (status, doc) => new Response(typeof doc === 'string' || doc instanceof Uint8Array ? doc : JSON.stringify(doc), { status });
+// A real PNG signature and header start: the 'ok' case's image.
+const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
+const IMG_BODY = { cdn404: [404, 'Not Found'], badext: [200, '<script>alert(1)</script>'], ok: [200, PNG] };
 // The header spelled as JSON \\u escapes: the raw body holds no copy of the key, only what JSON.parse returns does.
 const esc = (t) => [...t].map((c) => '\\\\u' + c.charCodeAt(0).toString(16).padStart(4, '0')).join('');
 globalThis.fetch = async (url, init = {}) => {
   if (CASE === 'crash' && String(url).endsWith('/v2/generations')) process.exit(9); // killed while the generation is billed
-  if (CASE === 'cdn404' || CASE === 'badext') {
-    if (String(url) === IMG) return CASE === 'cdn404' ? reply(404, 'Not Found') : reply(200, '<script>alert(1)</script>');
+  if (IMG_BODY[CASE]) {
+    if (String(url) === IMG) return reply(...IMG_BODY[CASE]);
     if (String(url).endsWith('/v2/generations')) return reply(200, { generate: { generationId: 'g1' } });
     if (String(url).endsWith('/v1/generations/g1')) return reply(200, { generations_by_pk: { status: 'COMPLETE', generated_images: [{ url: IMG }] } });
   }
@@ -143,6 +151,20 @@ for (const [rel, args] of CLIENTS) {
   });
 }
 
+// Headless builders run in sibling worktrees: their logs count too (scan 2026-10-22-c, N2).
+for (const [rel, args] of CLIENTS) {
+  test(`${path.basename(rel)}: credits a sibling worktree logged tonight count against the night cap (S1, N2)`, () => {
+    const { out, status } = runClient(rel, args, 'night', (tmp) => {
+      const dir = path.join(tmp, 'worktrees/other-builder/apps/vr/art/characters/brennic');
+      fs.mkdirSync(dir, { recursive: true });
+      const calls = [{ date: new Date().toISOString(), generationId: 'sib-1', credits: 398 }];
+      fs.writeFileSync(path.join(dir, 'leonardo-log.json'), JSON.stringify({ calls }));
+    });
+    assert.equal(status, 2, `a call past the night cap is refused before any request:\n${out}`);
+    assert.match(out, /REFUSED/);
+  });
+}
+
 for (const [rel, args] of CLIENTS) {
   test(`${path.basename(rel)}: a run killed while the generation is billed still leaves its ledger row (S2)`, () => {
     const { out, logs, status } = runClient(rel, args, 'crash');
@@ -166,4 +188,20 @@ for (const [rel, args] of CLIENTS) {
       assert.match(call.error ?? '', /image/);
     });
   }
+}
+
+// The finished call through the shared pollGeneration, saveImage and settleCredits (scan 2026-10-22-c, N3): the image is
+// saved, and the row is settled (here at the expected cost, as neither the API nor the balance reports one), not left at 0.
+for (const [rel, args] of CLIENTS) {
+  test(`${path.basename(rel)}: a finished call saves its image and settles its credits (N3)`, () => {
+    const { out, logs, files, status } = runClient(rel, args, 'ok');
+    assert.equal(status, 0, `the run succeeds:\n${out}`);
+    assert.equal(files.length, 1, 'the image is written');
+    assert.match(files[0], /-s7-low\.jpg$/);
+    const [call] = JSON.parse(logs[0]).calls;
+    assert.equal(call.status, 'COMPLETE');
+    assert.equal(call.bytes, 16);
+    assert.equal(call.credits, 6);
+    assert.equal(call.creditsSource, 'fallback');
+  });
 }
