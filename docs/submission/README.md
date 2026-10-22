@@ -3,12 +3,14 @@ Status: draft, for the owner
 # Submission package: index of the 10 items
 
 The ten items are the K6 list in `docs/research/KPI-2026-10-20.md` (from `docs/PROJECT-PLAN.md` sections 2 and 11).
-K6 counts an item only when a file here records it as final, or done with a date. **Today that count is 0 of 10**: six
-items have a draft the owner has not finalised (1, 2, 3, 5, 6, 9), two wait on an owner decision (4, 10), and two have not
-started (7, 8).
+K6 counts an item only when a file here records it as final, or done with a date. **Today that count is 1 of 10**: one
+item is closed as not needed (1), five have a draft the owner has not finalised (2, 3, 5, 6, 9), two wait on an owner
+decision (4, 10), and two have not started (7, 8). Item 1 counts as done under the App Master's K6 reading: it is
+withdrawn with a reason and a date, which is the plan's own measure for it (`docs/DECISIONS.md` 2026-10-21, "Deadlines
+and Q9", supersedes the earlier "0 of 10").
 This index was written 2026-10-20 on Lynx. The owner finalises.
 
-Target: 10 of 10 by Tue 17 Nov; the text items (2-6, 9) by Sun 8 Nov (K6 target). The deadline is Wed 18 Nov 2026, 12:00
+Target: 10 of 10 by Tue 17 Nov; the text items (2-6, 9) by Sun 8 Nov (K6 target: 7 of 10, item 1 already done plus those six). The deadline is Wed 18 Nov 2026, 12:00
 PT, which is 21:00 in Prague (`docs/PROJECT-PLAN.md` section 2).
 
 | # | Item | File | Status | What is left |
