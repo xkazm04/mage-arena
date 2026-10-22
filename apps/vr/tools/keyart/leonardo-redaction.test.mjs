@@ -75,6 +75,7 @@ function runClient(rel, args, kase) {
 
 const CLIENTS = [
   ['apps/vr/tools/assets/leonardo.mjs', ['gen', '--asset', 'brennic', '--view', 'front', '--seed', '7', '--quality', 'LOW']],
+  ['apps/vr/tools/keyart/leonardo-keyart.mjs', ['gen', '--id', 'key-art', '--seed', '7', '--quality', 'LOW']],
 ];
 
 for (const [rel, args] of CLIENTS) {
