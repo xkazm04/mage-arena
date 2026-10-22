@@ -244,7 +244,8 @@ async function call(key, method, url, body) {
     headers: { accept: 'application/json', authorization: `Bearer ${key}`, ...(body ? { 'content-type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
-  const text = await res.text();
+  // Redacted before it is parsed or cut: a key echoed in the body and then cut in half would slip past redact.
+  const text = redact(await res.text(), key);
   let json;
   try { json = JSON.parse(text); } catch { json = { raw: text.slice(0, 500) }; }
   if (!res.ok) throw new Error(`${method} ${url} -> HTTP ${res.status}: ${JSON.stringify(json).slice(0, 500)}`);
