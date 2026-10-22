@@ -13,7 +13,7 @@ PT, which is 21:00 in Prague (`docs/PROJECT-PLAN.md` section 2).
 
 | # | Item | File | Status | What is left |
 |---|---|---|---|---|
-| 1 | Q9 posted and answered | `ORGANIZER-QUESTION-Q9.md` | draft, not sent; due before 12 Oct, so overdue | The owner posts it and records the reply. Five [confirm] items in its "Before you post" list |
+| 1 | Q9 posted and answered | `ORGANIZER-QUESTION-Q9.md` | **closed, not needed.** Withdrawn, not posted (`docs/DECISIONS.md` 2026-10-21, "Deadlines and Q9") | Nothing. No organizer answer exists; the draft is kept as asked |
 | 2 | Description (about 500 words) | `DESCRIPTION.md` | draft, for the owner | The launch date, the entrant, the assets line, and a rewrite of "Where it stands" on the submission day |
 | 3 | Tagline (140 characters or fewer) | `DESCRIPTION.md`, "Tagline" | draft, 110 characters | The owner approves the wording |
 | 4 | Target launch date (Q5) | `DESCRIPTION.md`, "Launch date" | **open, for the owner** | The owner decides. The plan's proposed default is spring 2027 (`docs/PROJECT-PLAN.md` section 11). Written as [confirm] |
@@ -34,7 +34,7 @@ PT, which is 21:00 in Prague (`docs/PROJECT-PLAN.md` section 2).
 
 ## Owner decisions this package waits on
 
-1. Post Q9 and record the answer (item 1).
+1. Nothing on item 1: Q9 is closed as not needed (`docs/DECISIONS.md` 2026-10-21, "Deadlines and Q9").
 2. Choose the launch date, Q5 (item 4).
 3. Confirm the entrant's identity, that the sibling TV channel is not released or entered, and the sponsor-funding line
    (`RULES-CHECKLIST.md`, items 7 and the "Further rules" table; `ORGANIZER-QUESTION-Q9.md`, "Before you post").
