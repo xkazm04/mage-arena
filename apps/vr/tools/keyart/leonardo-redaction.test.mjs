@@ -1,4 +1,6 @@
-// Proof that neither Leonardo client leaks its key when the API echoes it back in an error (security scan 2026-10-22, L1).
+// Proof that neither Leonardo client leaks its key when the API echoes it back in an error (security scan 2026-10-22, L1),
+// and (scan 2026-10-22-b, at the end) that both enforce the night cap over every checkout, log a call before it is
+// billed, and never save a failed or non-image download.
 // Dependency-free and offline: each client and the shared leonardo-client.mjs are copied into a temp tree and run with a preload that serves a fake key in
 // place of bp's .env, hides every real leonardo-log.json, and replaces fetch with a stub that echoes the Authorization
 // header into its response across a truncation boundary. No network call is made and the real .env is never read.
@@ -151,4 +153,17 @@ for (const [rel, args] of CLIENTS) {
     assert.equal(calls[0].status, 'PENDING');
     assert.equal(calls[0].credits, 6, 'the reservation holds the expected LOW cost, so the caps count it');
   });
+}
+
+for (const [rel, args] of CLIENTS) {
+  for (const kase of ['cdn404', 'badext']) {
+    test(`${path.basename(rel)}: a ${kase} image download writes no file and fails the run (P1)`, () => {
+      const { out, logs, files, status } = runClient(rel, args, kase);
+      assert.deepEqual(files, [], 'nothing but the log is written');
+      assert.equal(status, 1, `the run fails:\n${out}`);
+      const [call] = JSON.parse(logs[0]).calls;
+      assert.equal(call.file, null);
+      assert.match(call.error ?? '', /image/);
+    });
+  }
 }

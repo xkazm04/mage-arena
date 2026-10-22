@@ -69,6 +69,27 @@ export function reportedCost(obj, depth = 0) {
   return null;
 }
 
+const IMAGE_EXT = ['.png', '.jpg', '.jpeg', '.webp'];
+
+/**
+ * Downloads a finished image to `dir`/`name` plus the URL's extension; returns { dest, bytes }. The URL comes from the API
+ * response, so it must be https with an image extension, and an HTTP error is thrown, never saved as the image. No
+ * credentials are sent, and the URL (which may be signed) is never put in an error.
+ */
+export async function saveImage(url, dir, name) {
+  const u = new URL(url);
+  if (u.protocol !== 'https:') throw new Error(`image url is not https (${u.protocol})`);
+  const ext = (path.extname(u.pathname) || '.png').toLowerCase();
+  if (!IMAGE_EXT.includes(ext)) throw new Error(`image url has no image extension (${ext.slice(0, 16)})`);
+  const res = await fetch(u);
+  if (!res.ok) throw new Error(`image download -> HTTP ${res.status}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  const dest = path.join(dir, name + ext);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(dest, buf);
+  return { dest, bytes: buf.length };
+}
+
 /** Writes a log document to `file`, creating its folder. */
 export function writeLog(file, doc) {
   fs.mkdirSync(path.dirname(file), { recursive: true });

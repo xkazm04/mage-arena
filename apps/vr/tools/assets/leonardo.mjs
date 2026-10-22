@@ -20,7 +20,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
+import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, saveImage, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const CHARS = path.join(ROOT, 'apps/vr/art/characters');
@@ -243,13 +243,9 @@ async function gen() {
     reported ??= reportedCost(g);
     const url = (g?.generated_images ?? [])[0]?.url;
     if (entry.status === 'COMPLETE' && url) {
-      const ext = (path.extname(new URL(url).pathname) || '.png').toLowerCase();
-      const buf = Buffer.from(await (await fetch(url)).arrayBuffer());
-      const dest = path.join(DIR, outName + ext);
-      fs.mkdirSync(DIR, { recursive: true });
-      fs.writeFileSync(dest, buf);
+      const { dest, bytes } = await saveImage(url, DIR, outName);
       entry.file = path.relative(ROOT, dest).replaceAll('\\', '/');
-      entry.bytes = buf.length;
+      entry.bytes = bytes;
     }
   } catch (e) {
     entry.error = redact(e.message ?? e, key).slice(0, 500);
@@ -261,7 +257,7 @@ async function gen() {
   else { entry.credits = 0; entry.creditsSource = 'no-generation'; }
   writeLog([...log, entry]);
   console.log(`${entry.status} ${viewId} s${seed} ${quality} credits=${entry.credits} (${entry.creditsSource}) total=${runTotal()} file=${entry.file ?? '-'}${entry.error ? ` error=${entry.error}` : ''}`);
-  if (entry.status !== 'COMPLETE') process.exit(1);
+  if (entry.status !== 'COMPLETE' || !entry.file) process.exit(1);
 }
 
 if (cmd === 'gen') await gen();
