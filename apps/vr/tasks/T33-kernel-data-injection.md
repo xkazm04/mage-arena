@@ -6,6 +6,8 @@ Max turns: 320
 ## Goal
 The kernel steps whatever data the arena carries instead of the process-wide `KernelData()` singleton, and the loader takes an explicit source instead of the `GTextOverrides` global. On that seam, `MageArenaDesign.Census.PinDiff` runs the same seeded bouts against two pinned data sets in one process and reports the per-metric delta, and every census output records the pin and Air-sheet hashes it ran on. Every TV re-pin (how CR-004 to CR-008 come home) then gets a measured behaviour diff instead of a byte check.
 
+Scope status (review A5, 2026-10-22): the PinDiff census half (`MageArenaDesign.Census.PinDiff`) is a **pending owner scope question** under DECISIONS 2026-10-21 ("nobody re-pins"); it is not marked moot and not dropped. Until the owner rules, this card is only re-sequenced (T39 first). The injection seam and the "census records the pin and Air-sheet hashes" half stay in scope (A3b partly delivers them).
+
 Determinism package, accepted by the owner 2026-10-09 (`docs/research/MOONSHOT-2026-10.md`, item M6).
 Run order: **T16, then T39 before T33, then (T33 -> T34) and (T35 -> T36)**. Why T39 first: ARCHITECTURE-REVIEW-2026-10-21 A5; T33's codemod touches the `Kernel/` files T39 edits (`Enemies.cpp`, `Games.cpp`, `VrRules`), and running them together forces a hand rebase through the kernel in the gate week. T33 has no code dependency on T16, but it starts only after T39.
 
