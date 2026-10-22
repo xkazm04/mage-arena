@@ -47,6 +47,7 @@ copied from a contest folder is stale - do not use it.
 
 The engine has been UE 5.8.3 (CL 58210709) since 2026-10-03. A fresh worktree without the MetaXR plugins (marked
 Optional in the `.uproject`) builds the editor target cold in about 393 s (2026-10-07).
+An ARM64 host needs build.ps1's dotnet-arch fallback (the engine ships only `DotNet\10.0\win-x64`); `-ResolveOnly` shows it.
 
 Before the full `MageArena` suite in a fresh checkout or worktree, regenerate the gitignored sigil test corpus:
 `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs`
