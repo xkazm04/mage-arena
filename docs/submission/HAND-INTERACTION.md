@@ -77,9 +77,9 @@ Which defence the player uses in the slice: Water gets split hands and the plant
 
 | Figure | Value on record | Source | Limit |
 |---|---|---|---|
-| Sigil accuracy on the recorded corpus | 256 of 270 correct (94% floor) | `docs/research/BASELINE-2026-10-07.md:841` (read) | Synthetic clips, not real hands. The plan's gate is at least 95% top-1 on the owner's mouse draws (`docs/PROJECT-PLAN.md` section 4, D-G2); no run against that gate is quoted here |
-| Impostor casts | 0 of 180 | same line | Same |
-| Noise casts | 0 of 5 | same line | Five noise clips is a small sample |
+| Sigil accuracy on the generated corpus | 256 of 270 correct on generated clips (94% floor) | `docs/research/BASELINE-2026-10-07.md:841` (read) | Synthetic clips, not real hands. The plan's gate is at least 95% top-1 on the owner's mouse draws (`docs/PROJECT-PLAN.md` section 4, D-G2); no run against that gate is quoted here |
+| Impostor casts | 0 of 180 generated impostor clips | same line | Same |
+| Noise casts | 0 of 5 generated noise clips | same line | Five noise clips is a small sample. Basis of every figure here: `docs/PROXY-LEDGER.md` |
 | Line templates distinct | Each template is nearest to itself, margins 5138, 4016, 3027 | `docs/research/STATE-EVAL-2026-10-20.md` section 3 (measured 2026-10-20) | Template geometry only |
 | Cross-user accuracy | **pending** | gate: at least 85% for a second person (`docs/PROJECT-PLAN.md` section 4) | Needs a second person (section 12, question 6) |
 | Real-hand accuracy and ward latency | **pending** | VR phase, Quest 3 profile, then a device | Needs the Android build: K5 reads 1/5 (`docs/research/KPI-2026-10-20.md`) |
