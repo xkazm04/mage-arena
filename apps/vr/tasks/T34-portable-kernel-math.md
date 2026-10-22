@@ -7,7 +7,7 @@ Max turns: 320
 Every transcendental the kernel uses goes through one portable `SimMath` (fdlibm-lineage sin/cos/atan2 and V8's hypot algorithm) with floating-point contraction off, matched bit for bit against node's `Math.*`. A non-shipping `-MageArenaKernelSelfTest` boot path prints `MAGEVR_KERNEL_HASH`, so the V1 device lane can prove the Quest kernel is the Win64 kernel. The device comparison itself is a V1 checklist row, not this card.
 
 Determinism package, accepted by the owner 2026-10-09 (`docs/research/MOONSHOT-2026-10.md`, item M7).
-Run order: **T16, then (T33 -> T34) and (T35 -> T36)**. T34 follows T33.
+Run order: **T16, then T39 before T33, then (T33 -> T34) and (T35 -> T36)**. Why T39 first: ARCHITECTURE-REVIEW-2026-10-21 A5; T33's codemod touches the `Kernel/` files T39 edits (`Enemies.cpp`, `Games.cpp`, `VrRules`), and running them together forces a hand rebase through the kernel in the gate week. T34 follows T33.
 
 ## Read first
 - `CLAUDE.md`, `docs/DECISIONS.md` (they outrank this card if they conflict)

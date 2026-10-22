@@ -7,7 +7,7 @@ Max turns: 320
 `UHandInputSubsystem` owns input time: every hand source (ward lane, action lane, mouse, later the live headset) emits on one monotonic 72 Hz clock with explicit epochs. The four detectors stop inferring gesture boundaries from clock rewinds, and ward intents carry their motion-onset stamp into the kernel through a declared input delay D (a VR overlay field; D = 0 reproduces today byte for byte). Gesture outcomes stop depending on the desktop's frame rate, and the headset stream (which never rewinds) plugs into a contract that already exists.
 
 Determinism package, accepted by the owner 2026-10-09 (`docs/research/MOONSHOT-2026-10.md`, item M3).
-Run order: **T16, then (T33 -> T34) and (T35 -> T36)**. T35 waits for T16.
+Run order: **T16, then T39 before T33, then (T33 -> T34) and (T35 -> T36)**. Why T39 first: ARCHITECTURE-REVIEW-2026-10-21 A5; T33's codemod touches the `Kernel/` files T39 edits (`Enemies.cpp`, `Games.cpp`, `VrRules`), and running them together forces a hand rebase through the kernel in the gate week. T35 waits for T16.
 
 ## Read first
 - `CLAUDE.md`, `docs/DECISIONS.md` (they outrank this card if they conflict)

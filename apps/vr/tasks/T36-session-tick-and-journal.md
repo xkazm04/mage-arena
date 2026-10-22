@@ -7,7 +7,7 @@ Max turns: 400
 All session logic (the reference script, the teach, day clocks, holds, tracking loss, the resume count) runs once per 60 Hz sim tick, and a session is recorded as a tick-stamped journal of what entered the gesture pipeline (hand frames, mouse samples, view aim, platform notices). A journal replays a whole day headless and bit-identically at any render rate through the same detectors, so a device session can be reproduced on the desktop and the census measures the game, not the frame rate.
 
 Determinism package, accepted by the owner 2026-10-09 (`docs/research/MOONSHOT-2026-10.md`, item M4).
-Run order: **T16, then (T33 -> T34) and (T35 -> T36)**. T36 follows T35.
+Run order: **T16, then T39 before T33, then (T33 -> T34) and (T35 -> T36)**. Why T39 first: ARCHITECTURE-REVIEW-2026-10-21 A5; T33's codemod touches the `Kernel/` files T39 edits (`Enemies.cpp`, `Games.cpp`, `VrRules`), and running them together forces a hand rebase through the kernel in the gate week. T36 follows T35.
 
 ## Read first
 - `CLAUDE.md`, `docs/DECISIONS.md` (they outrank this card if they conflict)
