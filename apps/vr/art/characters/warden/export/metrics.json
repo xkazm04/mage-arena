@@ -1,0 +1,267 @@
+{
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/A07-warden/export/SK_Warden.fbx",
+ "fbx_file": {
+  "version": 7400,
+  "bytes": 1974540,
+  "limb_nodes": 23,
+  "mesh_models": [
+   "SM_Warden"
+  ],
+  "skin_deformers": 1,
+  "materials": [
+   "M_Warden_Robe",
+   "M_Warden_Sash",
+   "M_Warden_Trim",
+   "M_Warden_Skin",
+   "M_Warden_Sandal"
+  ],
+  "textures": 0,
+  "anim_stacks": [
+   {
+    "name": "Idle",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   },
+   {
+    "name": "Cast",
+    "start_s": 0.0,
+    "stop_s": 1.5333333333333334
+   },
+   {
+    "name": "Hit",
+    "start_s": 0.0,
+    "stop_s": 0.8
+   },
+   {
+    "name": "Death",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   }
+  ]
+ },
+ "mesh": {
+  "verts": 12078,
+  "tris": 24148,
+  "watertight": true,
+  "windingConsistent": true,
+  "components": 5,
+  "floaters": 4,
+  "componentFaces": [
+   24000,
+   46,
+   44,
+   30,
+   28
+  ],
+  "degenerateFaces": 0,
+  "euler": 4,
+  "height_m": 1.7442,
+  "bbox_m": [
+   0.4147,
+   1.3098,
+   1.7442
+  ],
+  "min_z_m": 0.0004,
+  "centre_xy_m": [
+   0.001,
+   -0.1937
+  ],
+  "floaters_excluding_staff": 0,
+  "staff": {
+   "verts": 82,
+   "weighted_100_to_hand_r": 82
+  },
+  "body_centre_xy_m": [
+   0.0005,
+   -0.0001
+  ],
+  "body_bbox_m": [
+   0.4136,
+   0.9225,
+   1.7442
+  ]
+ },
+ "skeleton": {
+  "bones": 23,
+  "names": [
+   "root",
+   "pelvis",
+   "spine_01",
+   "spine_02",
+   "spine_03",
+   "neck_01",
+   "head",
+   "clavicle_l",
+   "upperarm_l",
+   "lowerarm_l",
+   "hand_l",
+   "clavicle_r",
+   "upperarm_r",
+   "lowerarm_r",
+   "hand_r",
+   "thigh_l",
+   "calf_l",
+   "foot_l",
+   "ball_l",
+   "thigh_r",
+   "calf_r",
+   "foot_r",
+   "ball_r"
+  ],
+  "hand_l_y": 0.421,
+  "hand_r_y": -0.421,
+  "toe_dx_l": 0.228,
+  "root_head": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "weights": {
+  "unweighted_verts": 0,
+  "max_abs_sum_error": 0.0,
+  "max_influences": 4,
+  "normalised": true
+ },
+ "clips": {
+  "Cast": {
+   "action": "Armature|Cast",
+   "frames": 47,
+   "fcurves": 239,
+   "max_channel_range": 0.9273
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.7187
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25,
+   "fcurves": 239,
+   "max_channel_range": 0.7373
+  },
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.0175
+  }
+ },
+ "fps": 30.0,
+ "materials": [
+  {
+   "name": "M_Warden_Robe",
+   "base_color_linear": [
+    0.1473,
+    0.1549,
+    0.1706
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Warden_Sash",
+   "base_color_linear": [
+    0.0331,
+    0.0331,
+    0.0363
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Warden_Trim",
+   "base_color_linear": [
+    0.3424,
+    0.1789,
+    0.0397
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Warden_Skin",
+   "base_color_linear": [
+    0.5382,
+    0.2957,
+    0.1706
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Warden_Sandal",
+   "base_color_linear": [
+    0.0397,
+    0.0174,
+    0.01
+   ],
+   "image_nodes": 0
+  }
+ ],
+ "checks": [
+  {
+   "check": "1 one skeleton",
+   "pass": true,
+   "value": "1 armature, 1 skin deformer"
+  },
+  {
+   "check": "2 one skinned mesh",
+   "pass": true,
+   "value": "1 mesh, 1 skinned"
+  },
+  {
+   "check": "3 exactly the four clips, none empty",
+   "pass": true,
+   "value": "stacks ['Idle', 'Cast', 'Hit', 'Death']; frames Idle 61, Cast 47, Hit 25, Death 61"
+  },
+  {
+   "check": "4 LOD0 triangle count within budget",
+   "pass": true,
+   "value": "24148 tris (budget 25000, one warden on screen)"
+  },
+  {
+   "check": "5 one flat colour per material, no embedded textures",
+   "pass": true,
+   "value": "5 materials, 0 textures"
+  },
+  {
+   "check": "6 origin at the feet (body, staff aside)",
+   "pass": true,
+   "value": "min z 0.0004 m, body bbox centre xy [0.0005, -0.0001] m"
+  },
+  {
+   "check": "7 +X forward",
+   "pass": true,
+   "value": "hand_l y 0.421, hand_r y -0.421, toe dx 0.228"
+  },
+  {
+   "check": "8 unit scale, height 1.745 m +-10 % (1.571-1.920 m)",
+   "pass": true,
+   "value": "height 1.7442 m (-0.0 %), object scale [1.0, 1.0, 1.0]"
+  },
+  {
+   "check": "9 weights normalised",
+   "pass": true,
+   "value": "max |sum-1| 0.0, unweighted 0, max influences 4"
+  },
+  {
+   "check": "10 no floaters (the hand-authored staff, 100 % on hand_r, aside)",
+   "pass": true,
+   "value": "5 components, 4 small, of which 82 of 82 staff verts on hand_r only; 0 floaters"
+  },
+  {
+   "check": "11 at most 4 influences per vertex",
+   "pass": true,
+   "value": "max influences 4"
+  },
+  {
+   "check": "12 min z at 0 within 1 cm",
+   "pass": true,
+   "value": "min z 0.0004 m"
+  },
+  {
+   "check": "13 watertight, winding consistent",
+   "pass": true,
+   "value": "watertight True, winding True"
+  }
+ ]
+}

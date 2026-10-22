@@ -1,0 +1,79 @@
+{
+  "card": "A07",
+  "generated": "2026-10-22",
+  "model_sheet": "apps/vr/art/environment-kit/05-warden-turnaround.jpg",
+  "note": "Rigged arcane warden for the dais rail. One Leonardo front concept (seed 5101, 14 credits) was the TRELLIS.2 input (seed 42, the only run). Mesh, rig, clips and evidence are in git under export/ (FBX and PNGs through Git LFS); work/ stays in the archive C:/Users/kazda/kiro/mage-arena-archive/A07-warden/work/ (see HANDOFF.md). The bronze staff is hand-authored Blender geometry (148 tris), not generated. No Unreal Engine was run. Text files (md, json) are hashed as LF, the form git commits; a CRLF checkout hashes differently.",
+  "hand_authored_parts": {
+    "kind": "bronze staff in the right hand, 100% on hand_r",
+    "source": "hand-authored in Blender (weapon_staff.py in the archive, parametric bmesh geometry); no Leonardo, TRELLIS, ComfyUI or third-party source",
+    "tris_added": 148
+  },
+  "mesh": {
+    "tris": 24148,
+    "verts": 12078,
+    "bones": 23,
+    "clips": [
+      "Idle",
+      "Cast",
+      "Hit",
+      "Death"
+    ]
+  },
+  "items": [
+    {
+      "file": "apps/vr/art/characters/warden/concept-front-s5101-medium.jpg",
+      "sha256": "2f0f60c57948f27f9e51db7100fcc5a866323bd8d87c5ba2ea369e857cd4e269",
+      "bytes": 66133
+    },
+    {
+      "file": "apps/vr/art/characters/warden/leonardo-log.json",
+      "sha256": "b81c1d1fadc6ea20f3fa3f42a0f5ef19e9efd47654934a9e2d223d72b897dbb8",
+      "bytes": 2270
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/SK_Warden.fbx",
+      "sha256": "3bd2cecc5ae238030cc68dbba383b4edee8ff5017686b977e61f27bab3732e6b",
+      "bytes": 1974540
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/SOURCE.md",
+      "sha256": "709a485b09852abeadde08829e72982efa9f042a61017a000f5661262ad5334d",
+      "bytes": 7727
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/metrics.json",
+      "sha256": "f13f26031e4fa2b01c01fad2c3709fb314cbe55f4de454c011eb7f7c30fff9b2",
+      "bytes": 4712
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_turnaround.png",
+      "sha256": "e663f78dbcbaa363c8f35043d84b960bdcebefdbfd43dca1d89e6bc900880c3b",
+      "bytes": 1484034
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_game_640x480.png",
+      "sha256": "f6cea63ad49ce96a653a727702df15137926554daceba06b1ad28bc5de795bf2",
+      "bytes": 265415
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_clip_Idle.png",
+      "sha256": "2bf61904bf954ce1195ee86fdbb5abef85bf5ab6e8af72328ce8d24b7f46e84e",
+      "bytes": 423406
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_clip_Cast.png",
+      "sha256": "255a39848d793c2b91c368914243d793fc51c3c1dc2636f05dc1fc902bfdcb61",
+      "bytes": 800362
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_clip_Hit.png",
+      "sha256": "7120997bbea9299ed2f7ac492167833fc44ef0100bbca063aee23aaeeb1410b3",
+      "bytes": 571812
+    },
+    {
+      "file": "apps/vr/art/characters/warden/export/Warden_clip_Death.png",
+      "sha256": "197f259e05d95ff9a278592fab574c16cf436b27dbee84d4c4ee688f29390746",
+      "bytes": 791464
+    }
+  ]
+}
