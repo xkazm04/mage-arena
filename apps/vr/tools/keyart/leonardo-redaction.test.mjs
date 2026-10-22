@@ -140,3 +140,15 @@ for (const [rel, args] of CLIENTS) {
     assert.match(out, /REFUSED/);
   });
 }
+
+for (const [rel, args] of CLIENTS) {
+  test(`${path.basename(rel)}: a run killed while the generation is billed still leaves its ledger row (S2)`, () => {
+    const { out, logs, status } = runClient(rel, args, 'crash');
+    assert.equal(status, 9, `the stub kills the run at the POST:\n${out}`);
+    assert.equal(logs.length, 1, 'the call was logged before the request');
+    const calls = JSON.parse(logs[0]).calls;
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].status, 'PENDING');
+    assert.equal(calls[0].credits, 6, 'the reservation holds the expected LOW cost, so the caps count it');
+  });
+}

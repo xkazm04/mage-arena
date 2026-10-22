@@ -10,6 +10,7 @@
 //
 // The key is LEONARDO_API_KEY, read at run time from bp's untracked .env; it is never printed, logged or written.
 // Every call is "public": false. Every call, failed ones included, is appended to apps/vr/art/key-art/leonardo-log.json.
+// The row is written as PENDING at the expected cost before the request is sent and replaced when the call ends.
 // Before every call the credits of every leonardo-log.json dated today under apps/vr/art/ of this tree, the main checkout
 // and the sibling worktrees are summed (each generation once): a call that would
 // take this run past RUN_CAP or the project's night past NIGHT_CAP is refused.
@@ -105,7 +106,7 @@ function writeLog(calls) {
     runCap: RUN_CAP,
     nightCap: NIGHT_CAP,
     totalCredits: sum(calls),
-    note: 'One entry per Leonardo call, failed calls included. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).',
+    note: 'One entry per Leonardo call, failed calls included. A PENDING entry (creditsSource reserved) is a call whose run ended before the call did; it counts at the expected cost. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).',
     calls,
   });
 }
@@ -135,7 +136,6 @@ async function gen() {
 
   const prompt = promptOf(id);
   const key = readKey();
-  const before = await balance(key);
   const body = {
     model: MODEL,
     public: false,
@@ -145,6 +145,9 @@ async function gen() {
     date: new Date().toISOString(), id, model: MODEL, public: false, prompt, seed, quality,
     width: img.width, height: img.height, generationId: null, status: 'ERROR', credits: 0, creditsSource: null, file: null,
   };
+  // Logged before the first billed request: a run killed mid-call, or one started meanwhile, still counts these credits.
+  writeLog([...log, { ...entry, status: 'PENDING', credits: COST[quality], creditsSource: 'reserved' }]);
+  const before = await balance(key);
   let reported = null;
   try {
     const created = await call(key, 'POST', `${API}/v2/generations`, body);
