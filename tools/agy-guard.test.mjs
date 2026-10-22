@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 const guard = fileURLToPath(new URL('./agy-guard.mjs', import.meta.url));
 
 function decide(command, env = {}) {
-  const input = JSON.stringify({ toolCall: { name: 'run_command', args: { CommandLine: command } } });
+  return decideCall({ name: 'run_command', args: { CommandLine: command } }, env);
+}
+
+function decideCall(toolCall, env = {}) {
+  const input = JSON.stringify({ toolCall });
   const run = spawnSync(process.execPath, [guard], { input, encoding: 'utf8', env: { ...process.env, AGY_READONLY: '', ...env } });
   assert.equal(run.status, 0, `guard exited ${run.status}: ${run.stderr}`);
   return JSON.parse(run.stdout).decision;
@@ -38,6 +42,9 @@ const deny = [
   'echo $ELEVEN_LABS_API_KEY',
   'echo $ELEVENLABS_API_KEY',
   'echo $LEONARDO_API_KEY',
+  String.raw`type C:\Users\kazda\kiro\bp\.e*`,
+  'Get-ChildItem env:',
+  'printenv',
 ];
 
 const allow = [
@@ -52,6 +59,7 @@ const allow = [
   'del notes.txt',
   'node tools/check.mjs',
   'echo $HOME',
+  'node tools/check-pin.mjs --self-test',
 ];
 
 for (const command of deny) {
@@ -60,6 +68,16 @@ for (const command of deny) {
 for (const command of allow) {
   test(`allows: ${command}`, () => assert.equal(decide(command), 'allow'));
 }
+
+test('denies: a file-read tool call on the bp .env', () => {
+  const call = { name: 'view_file', args: { AbsolutePath: 'C:/Users/kazda/kiro/bp/.env' } };
+  assert.equal(decideCall(call), 'deny');
+});
+
+test('allows: a benign file-read tool call', () => {
+  const call = { name: 'view_file', args: { AbsolutePath: 'C:/Users/kazda/kiro/mage-arena/apps/vr/README.md' } };
+  assert.equal(decideCall(call), 'allow');
+});
 
 test('read-only mode still denies a write command', () => {
   assert.equal(decide('Remove-Item runs -r', { AGY_READONLY: '1' }), 'deny');
