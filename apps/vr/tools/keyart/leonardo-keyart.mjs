@@ -10,12 +10,13 @@
 //
 // The key is LEONARDO_API_KEY, read at run time from bp's untracked .env; it is never printed, logged or written.
 // Every call is "public": false. Every call, failed ones included, is appended to apps/vr/art/key-art/leonardo-log.json.
-// Before every call the credits of every leonardo-log.json under apps/vr/art/ dated today are summed: a call that would
+// Before every call the credits of every leonardo-log.json dated today under apps/vr/art/ of this tree, the main checkout
+// and the sibling worktrees are summed (each generation once): a call that would
 // take this run past RUN_CAP or the project's night past NIGHT_CAP is refused.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits as sum, writeLog as writeLogTo } from '../assets/leonardo-client.mjs';
+import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits as sum, writeLog as writeLogTo } from '../assets/leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const ART = path.join(ROOT, 'apps/vr/art');
@@ -94,8 +95,8 @@ const opt = (name, dflt) => {
 const readLog = () => (fs.existsSync(LOG) ? JSON.parse(fs.readFileSync(LOG, 'utf8')).calls : []);
 const today = () => new Date().toISOString().slice(0, 10);
 
-/** Credits logged today by every log under apps/vr/art/ (this run's included). */
-const nightTotal = () => nightTotalOf([ART], today());
+/** Credits logged today by every checkout's apps/vr/art logs (this run's included), each generation once. */
+const nightTotal = () => nightTotalOf(nightArts(ROOT), today());
 
 function writeLog(calls) {
   writeLogTo(LOG, {

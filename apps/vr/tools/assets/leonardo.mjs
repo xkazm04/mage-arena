@@ -19,12 +19,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
+import { API, COST, MODEL, NIGHT_CAP, POLL_LIMIT_MS, POLL_MS, balance, call, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, sleep, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const CHARS = path.join(ROOT, 'apps/vr/art/characters');
-// Other checkouts of this repo whose logs count against the night (read only, never written).
-const NIGHT_ROOTS = ['C:/Users/kazda/kiro/mage-arena', 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena'];
 
 // Brennic as the A04 Fire mage sheets draw him (model-sheets 01 and 02), with greybox flat colour per material.
 const SUBJECT =
@@ -179,15 +177,7 @@ const readLog = () => readLogOf(assetId);
 /** The credits logged so far by every asset of this asset's cap group; `log` stands in for this asset's own log. */
 const runTotal = (log = readLog()) => sumCredits(log) + sumCredits(ASSET.group.filter((id) => id !== assetId).flatMap(readLogOf));
 /** The project's credits for the UTC day `day` (YYYY-MM-DD): every checkout's apps/vr/art logs, each generation once. */
-function nightTotal(day) {
-  const arts = [path.join(ROOT, 'apps/vr/art'), path.join(NIGHT_ROOTS[0], 'apps/vr/art')];
-  try {
-    for (const e of fs.readdirSync(NIGHT_ROOTS[1], { withFileTypes: true })) {
-      if (e.isDirectory()) arts.push(path.join(NIGHT_ROOTS[1], e.name, 'apps/vr/art'));
-    }
-  } catch { /* no sibling worktrees */ }
-  return nightTotalOf(arts, day);
-}
+const nightTotal = (day) => nightTotalOf(nightArts(ROOT), day);
 function writeLog(calls) {
   writeLogTo(LOG, {
     card: ASSET.card,

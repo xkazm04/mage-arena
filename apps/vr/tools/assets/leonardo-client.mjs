@@ -87,6 +87,20 @@ export function findLogs(dir, out = []) {
   return out;
 }
 
+// Other checkouts of this repo whose logs count against the night (read only, never written).
+const NIGHT_ROOTS = ['C:/Users/kazda/kiro/mage-arena', 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena'];
+
+/** The apps/vr/art folders the night cap counts: `root`'s, the main checkout's and every sibling worktree's. */
+export function nightArts(root) {
+  const arts = [path.join(root, 'apps/vr/art'), path.join(NIGHT_ROOTS[0], 'apps/vr/art')];
+  try {
+    for (const e of fs.readdirSync(NIGHT_ROOTS[1], { withFileTypes: true })) {
+      if (e.isDirectory()) arts.push(path.join(NIGHT_ROOTS[1], e.name, 'apps/vr/art'));
+    }
+  } catch { /* no sibling worktrees */ }
+  return arts;
+}
+
 /** The credits for the UTC day `day` (YYYY-MM-DD) in every leonardo-log.json under the `arts` folders, each generation once. */
 export function nightTotal(arts, day = new Date().toISOString().slice(0, 10)) {
   const seen = new Map();
