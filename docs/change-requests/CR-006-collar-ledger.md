@@ -111,7 +111,7 @@ sources were never exercised in play.
 4. The Breaking: the lifetime Cracks needed, which bout, and what lifts the tier IV cap to tier V for it.
 5. The tier V spell per school (rows, mana, damage, telegraph) and whether the clock gains a fifth step.
 6. Conformance: no ledger vectors were found under `apps/vr/data/conformance` [unverified]; say whether TV wants VR
-   vectors recorded before it re-pins.
+   vectors recorded before it re-pins. **Moot:** nobody re-pins from TV (`docs/DECISIONS.md` 2026-10-21, "Combat data: the current pin is VR's frozen baseline").
 
 ## Out of scope
 
