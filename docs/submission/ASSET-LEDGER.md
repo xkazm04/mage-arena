@@ -24,6 +24,7 @@ tool returned it.
 - Open: ownership of output, commercial use, the plan needed, and what Leonardo says about the upstream model
   `openai/gpt-image-2.5-flare`. The owner reads the page in a browser and records the quote here, or a later run uses
   another route. Until then every Leonardo-derived row is open.
+- Re-tried 2026-10-22 (one `curl` with a browser user agent on the terms URL): "HTTP/1.1 403 Forbidden" again. Still not read; the condition stays open.
 - The plan the key belongs to is not recorded in the repo.
 
 ### TRELLIS.2 - read

@@ -4,7 +4,9 @@
   (linked from both the rules page and the overview page; whether it accepts new topics from entrants is [confirm]).
   Fallback: the Devpost contact page, `https://info.devpost.com/contact`. The pages show no mailto and no manager email.
 - **When it is due:** the 12 Oct 2026 target passed without a post. The owner ruled on 2026-10-21 to post a revised question.
-- **Status:** not posted - owner ruling 2026-10-21: not needed (see DECISIONS 2026-10-21)
+- **Status:** withdrawn, not posted. The owner ruled on 2026-10-21 that no post is needed; Q9 is closed as not needed
+  (`docs/DECISIONS.md`, "2026-10-21 - Deadlines and Q9: 18 Nov is the only hard date; Q9 is not posted"). No organizer answer exists.
+  The question below is kept as asked.
 
 ## Before you post
 
