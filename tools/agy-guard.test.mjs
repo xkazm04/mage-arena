@@ -35,6 +35,9 @@ const deny = [
   'del /s /q *.cs',
   'cmd /c "rmdir /s /q runs"',
   'type .env',
+  'echo $ELEVEN_LABS_API_KEY',
+  'echo $ELEVENLABS_API_KEY',
+  'echo $LEONARDO_API_KEY',
 ];
 
 const allow = [
@@ -48,6 +51,7 @@ const allow = [
   'rmdir emptydir',
   'del notes.txt',
   'node tools/check.mjs',
+  'echo $HOME',
 ];
 
 for (const command of deny) {
