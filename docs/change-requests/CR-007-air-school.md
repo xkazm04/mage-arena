@@ -13,7 +13,8 @@ data was not edited. No combat number was retuned.
 `docs/DECISIONS.md`, 2026-10-07: "Second school for the Tiro final: Air" (owner, asked "Earth, Air, or Corvo now?":
 "Air"). The Gale Tent entrant as an AI opponent with defence D (air form); card T23; Corvo stays the 23 Oct fallback.
 Behind it sit the 2026-10-03 ruling that every channel's kernel implements all four schools, with the VR C++ kernel the
-reference for a new school until the TV channel ports it, and the school-defences direction (Air gets D, air form;
+reference for a new school (TV is obsolete as a product and nobody re-pins from TV, so no TV port is expected:
+`docs/DECISIONS.md` 2026-10-21, "Combat data: the current pin is VR's frozen baseline"), and the school-defences direction (Air gets D, air form;
 `docs/design/SCHOOL-DEFENCES.md` section D, as cited by `docs/schools/AIR.md`). The roadmap row is
 `docs/design/V2-ROADMAP.md` CR-007 "The second school", card T23.
 

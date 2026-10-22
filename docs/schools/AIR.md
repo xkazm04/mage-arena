@@ -1,6 +1,6 @@
 # Air school - Momentum and ten spells (PROPOSAL, owner sign-off pending)
 
-Date: 2026-10-07. Status: **proposal**, VR-owned until the TV channel accepts it (CR-007). Owner decision the same day:
+Date: 2026-10-07. Status: **proposal**, VR-owned; TV acceptance no longer happens, since CR-007 is a VR design record and nobody re-pins from TV (`docs/DECISIONS.md` 2026-10-21, "Combat data: the current pin is VR's frozen baseline"). Owner decision the same day:
 Air is the second school for the Tiro final (`DECISIONS.md`). Unlike Fire, no pinned Air spell table exists in either
 repository, so this sheet is new design, drafted by the orchestrator. The numbers are starting values for the census
 (card T23), not tuned.
