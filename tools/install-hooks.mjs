@@ -10,13 +10,15 @@
 //   1. the `test` capability from .ai/manifest.yaml  (agy guard + the pinned-data sha256 gate + its self-test)
 //   2. node tools/check-repo-law.mjs                (the laws no other gate enforces)
 //   3. node tools/check-commits.mjs                 (commit subjects; CLAUDE.md "Git")
+//   4. apps/vr/tools/conformance/verify.mjs         (--self-test always; the full 45-vector comparison only when the
+//      TV clone and tsx are reachable via MAGE_ARENA_ARENA / TSX_CLI, else it prints why it was skipped and does not block)
 // and then delegates to the Git LFS pre-push hook, which is preserved verbatim, not reimplemented: the
 // original is moved to .git/hooks/pre-push.lfs and exec'd last, so `git lfs pre-push` still runs and large
 // files still upload. Removing this hook is `git checkout`-proof in the other direction too: --uninstall
 // puts the LFS hook back exactly as it was.
 //
-// Both steps together are under the 10 s budget the `always` gate set keeps, so the hook does not
-// discourage pushing. A push that must go out regardless: `git push --no-verify`.
+// The groups run concurrently and stay under the 10 s budget the `always` gate set keeps (the skipped full
+// comparison costs one sub-second self-test), so the hook does not discourage pushing. A push that must go out regardless: `git push --no-verify`.
 //
 // Usage: node tools/install-hooks.mjs [--check] [--uninstall] [--root <repo>]
 //   (no flags)   install or refresh the hook; idempotent, prints exactly what it did
@@ -30,7 +32,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const MARKER = 'mage-arena pre-push gate';
-const VERSION = 3;
+const VERSION = 4;
 const VERSION_LINE = `# ${MARKER} v${VERSION} - installed by tools/install-hooks.mjs; re-run it to refresh.`;
 
 function fail(message) {
@@ -118,11 +120,16 @@ pid_law=$!
 # @{upstream} (else master, else origin/master), which is the branch being pushed - the right range here.
 node tools/check-commits.mjs >"$tmp/subjects" 2>&1 &
 pid_subjects=$!
+# Conformance vectors: the verifier's self-test always; the full byte comparison only when the TV clone and tsx
+# are reachable (--if-available prints the skip reason and exits 0 when they are not).
+{ node apps/vr/tools/conformance/verify.mjs --self-test && node apps/vr/tools/conformance/verify.mjs --if-available; } >"$tmp/conformance" 2>&1 &
+pid_conformance=$!
 wait $pid_guard;    rc_guard=$?
 wait $pid_pin;      rc_pin=$?
 wait $pid_overlay;  rc_overlay=$?
 wait $pid_law;      rc_law=$?
 wait $pid_subjects; rc_subjects=$?
+wait $pid_conformance; rc_conformance=$?
 set -e
 
 failed=0
@@ -141,6 +148,10 @@ report "test: pinned-data hash gate" "$rc_pin" "$tmp/pin"
 report "test: overlay check" "$rc_overlay" "$tmp/overlay"
 report "repo law" "$rc_law" "$tmp/law"
 report "commit subjects" "$rc_subjects" "$tmp/subjects"
+report "conformance vectors" "$rc_conformance" "$tmp/conformance"
+if [ "$rc_conformance" -eq 0 ] && grep -q SKIPPED "$tmp/conformance"; then
+  grep -A3 SKIPPED "$tmp/conformance" | sed 's/^/    /'
+fi
 
 if [ "$failed" -ne 0 ]; then
   printf >&2 '%s\\n' "pre-push: BLOCKED. Fix the above, or push with --no-verify and say in the report that you bypassed the gate."
@@ -236,7 +247,7 @@ function install(root) {
 
   for (const line of done) console.log(`install-hooks: ${line}`);
   console.log(
-    `install-hooks: on push it runs the \`test\` capability, tools/check-repo-law.mjs and tools/check-commits.mjs, then Git LFS. Bypass: git push --no-verify.`,
+    `install-hooks: on push it runs the \`test\` capability, tools/check-repo-law.mjs and tools/check-commits.mjs, the conformance verifier, then Git LFS. Bypass: git push --no-verify.`,
   );
   console.log(`install-hooks: hooks directory ${state.viaConfig ? 'from core.hooksPath' : 'is the default <git-dir>/hooks'}; core.hooksPath was not changed.`);
   console.log('install-hooks: .git/hooks is not tracked, so every clone and worktree runs this once for itself.');
