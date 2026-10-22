@@ -11,6 +11,8 @@ const dir = join(root, 'crowd');
 const problems = [];
 const check = (ok, msg) => { if (!ok) problems.push(msg); };
 const sha = (p) => createHash('sha256').update(readFileSync(p)).digest('hex');
+// the JSON files are text: a Windows checkout may have turned LF into CRLF, so hash them as LF
+const shaText = (p) => createHash('sha256').update(readFileSync(p, 'utf8').split('\r\n').join('\n')).digest('hex');
 const isPow2 = (n) => n > 0 && (n & (n - 1)) === 0;
 
 const man = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));
@@ -36,7 +38,7 @@ for (const [name, v] of Object.entries(man.variants)) {
   check(v.boundsM.min[2] === 0, `${name}: pivot is not at the feet`);
 }
 const pl = join(dir, man.placement.file);
-check(sha(pl) === man.placement.sha256, 'placement.json sha256 differs from manifest');
+check(shaText(pl) === man.placement.sha256, 'placement.json sha256 differs from manifest');
 const cards = JSON.parse(readFileSync(pl, 'utf8')).cards;
 check(cards.length === man.placement.cardCount, `placement has ${cards.length} cards, manifest says ${man.placement.cardCount}`);
 for (const c of cards) tris += man.variants[c.variant].tris;
