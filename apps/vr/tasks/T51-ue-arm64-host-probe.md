@@ -63,3 +63,16 @@ The grep output quoted verbatim (command, then output, with file and line), and 
 
 ## Report
 Write `runs/T51/REPORT.md`: the commands, the verbatim output, the verdict, and anything you could not check and why.
+
+## Probe result (Lynx, 2026-10-22)
+Measured by the App Master on Lynx against an installed UE 5.8.4, not from Wolf's engine source; the status line above is
+left for the App Master to change once the owner rules on the scope ask. Full record:
+`docs/research/UE-ON-LYNX-2026-10-22.md` section 8.
+- (a) **No, not as shipped.** UBT selects its MSVC host directory from its own process architecture. UBT runs as an x64
+  process on Lynx (it logs `Running x64 binary on arm64 system. Use arm binaries instead`), so it uses the x64 host;
+  `...\bin\Hostarm64\x64\cl.exe` is installed and unused. UBT cannot simply run as arm64 either:
+  `Engine/Binaries/DotNET/UnrealBuildTool/runtimes/` has `browser-wasm`, `linux-*`, `win`, `win-arm`, `win-x64` and
+  `win-x86` but no `win-arm64` (the `blake3_dotnet` chain).
+- (b) Moot for the default: the emulated x64 UBT built `MageArenaVREditor Win64 Development` (no `-Architecture`) as x64,
+  cold, in 193.75 s against Wolf's ~393 s. Every compile is emulated.
+- Not answered: the source-level file and symbol the Deliverables asked for were not grepped.
