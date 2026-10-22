@@ -30,7 +30,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const MARKER = 'mage-arena pre-push gate';
-const VERSION = 2;
+const VERSION = 3;
 const VERSION_LINE = `# ${MARKER} v${VERSION} - installed by tools/install-hooks.mjs; re-run it to refresh.`;
 
 function fail(message) {
@@ -110,6 +110,8 @@ node --test tools/agy-guard.test.mjs >"$tmp/guard" 2>&1 &
 pid_guard=$!
 { node apps/vr/tools/check-pin.mjs && node apps/vr/tools/check-pin.mjs --self-test; } >"$tmp/pin" 2>&1 &
 pid_pin=$!
+{ node apps/vr/tools/check-overlay.mjs && node apps/vr/tools/check-overlay.mjs --self-test; } >"$tmp/overlay" 2>&1 &
+pid_overlay=$!
 node tools/check-repo-law.mjs >"$tmp/law" 2>&1 &
 pid_law=$!
 # Commit subjects: the same gate .github/workflows/commits.yml runs. Bare, it resolves its own base from
@@ -118,6 +120,7 @@ node tools/check-commits.mjs >"$tmp/subjects" 2>&1 &
 pid_subjects=$!
 wait $pid_guard;    rc_guard=$?
 wait $pid_pin;      rc_pin=$?
+wait $pid_overlay;  rc_overlay=$?
 wait $pid_law;      rc_law=$?
 wait $pid_subjects; rc_subjects=$?
 set -e
@@ -135,6 +138,7 @@ report() {
 }
 report "test: agy worker guard" "$rc_guard" "$tmp/guard"
 report "test: pinned-data hash gate" "$rc_pin" "$tmp/pin"
+report "test: overlay check" "$rc_overlay" "$tmp/overlay"
 report "repo law" "$rc_law" "$tmp/law"
 report "commit subjects" "$rc_subjects" "$tmp/subjects"
 

@@ -23,8 +23,8 @@ jobs:
         run: node apps/vr/tools/lint/unused-members.mjs && node apps/vr/tools/lint/unused-members.mjs --self-test
       - name: supply chain (actions pinned to commit SHAs)
         run: node tools/check-action-pins.mjs && node tools/check-action-pins.mjs --self-test
-      - name: test (agy guard, pinned-data hash gate)
-        run: node --test tools/agy-guard.test.mjs && node apps/vr/tools/check-pin.mjs && node apps/vr/tools/check-pin.mjs --self-test
+      - name: test (agy guard, pinned-data hash gate, overlay check)
+        run: node --test tools/agy-guard.test.mjs && node apps/vr/tools/check-pin.mjs && node apps/vr/tools/check-pin.mjs --self-test && node apps/vr/tools/check-overlay.mjs && node apps/vr/tools/check-overlay.mjs --self-test
       - name: repo law (Build.cs editor blocks, LFS binaries, never-committed dirs, zero-dependency Node)
         run: node tools/check-repo-law.mjs && node tools/check-repo-law.mjs --self-test
   format:
