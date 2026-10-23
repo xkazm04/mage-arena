@@ -1,0 +1,253 @@
+{
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/_armed/Slinger/SK_Slinger.fbx",
+ "fbx_file": {
+  "version": 7400,
+  "bytes": 1979356,
+  "limb_nodes": 23,
+  "mesh_models": [
+   "SM_Slinger"
+  ],
+  "skin_deformers": 1,
+  "materials": [
+   "M_Slinger_Linen",
+   "M_Slinger_Jerkin",
+   "M_Slinger_Iron",
+   "M_Slinger_Leather",
+   "M_Slinger_Bag",
+   "M_Slinger_Skin",
+   "M_Slinger_Hair"
+  ],
+  "textures": 0,
+  "anim_stacks": [
+   {
+    "name": "Idle",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   },
+   {
+    "name": "Attack",
+    "start_s": 0.0,
+    "stop_s": 1.5333333333333334
+   },
+   {
+    "name": "Hit",
+    "start_s": 0.0,
+    "stop_s": 0.8
+   },
+   {
+    "name": "Death",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   }
+  ]
+ },
+ "mesh": {
+  "verts": 12064,
+  "tris": 24108,
+  "watertight": true,
+  "windingConsistent": true,
+  "components": 5,
+  "floaters": 4,
+  "componentFaces": [
+   24000,
+   48,
+   20,
+   20,
+   20
+  ],
+  "degenerateFaces": 0,
+  "euler": 10,
+  "height_m": 1.7994,
+  "bbox_m": [
+   0.373,
+   1.0475,
+   1.7994
+  ],
+  "min_z_m": 0.0003,
+  "centre_xy_m": [
+   -0.0002,
+   -0.024
+  ]
+ },
+ "skeleton": {
+  "bones": 23,
+  "names": [
+   "root",
+   "pelvis",
+   "spine_01",
+   "spine_02",
+   "spine_03",
+   "neck_01",
+   "head",
+   "clavicle_l",
+   "upperarm_l",
+   "lowerarm_l",
+   "hand_l",
+   "clavicle_r",
+   "upperarm_r",
+   "lowerarm_r",
+   "hand_r",
+   "thigh_l",
+   "calf_l",
+   "foot_l",
+   "ball_l",
+   "thigh_r",
+   "calf_r",
+   "foot_r",
+   "ball_r"
+  ],
+  "hand_l_y": 0.454,
+  "hand_r_y": -0.454,
+  "toe_dx_l": 0.311,
+  "root_head": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "weights": {
+  "unweighted_verts": 0,
+  "max_abs_sum_error": 0.0,
+  "max_influences": 4,
+  "normalised": true
+ },
+ "clips": {
+  "Attack": {
+   "action": "Armature|Attack",
+   "frames": 47,
+   "fcurves": 239,
+   "max_channel_range": 1.0911
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.7173
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25,
+   "fcurves": 239,
+   "max_channel_range": 0.7373
+  },
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.0175
+  }
+ },
+ "fps": 30.0,
+ "materials": [
+  {
+   "name": "M_Slinger_Linen",
+   "base_color_linear": [
+    0.5705,
+    0.448,
+    0.2738
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Jerkin",
+   "base_color_linear": [
+    0.0593,
+    0.0245,
+    0.0134
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Iron",
+   "base_color_linear": [
+    0.1706,
+    0.1706,
+    0.1789
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Leather",
+   "base_color_linear": [
+    0.1706,
+    0.0593,
+    0.022
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Bag",
+   "base_color_linear": [
+    0.42,
+    0.1789,
+    0.0509
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Skin",
+   "base_color_linear": [
+    0.5382,
+    0.253,
+    0.1329
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Slinger_Hair",
+   "base_color_linear": [
+    0.0732,
+    0.0331,
+    0.0174
+   ],
+   "image_nodes": 0
+  }
+ ],
+ "checks": [
+  {
+   "check": "1 one skeleton",
+   "pass": true,
+   "value": "1 armature, 1 skin deformer"
+  },
+  {
+   "check": "2 one skinned mesh",
+   "pass": true,
+   "value": "1 mesh, 1 skinned"
+  },
+  {
+   "check": "3 exactly the four clips, none empty",
+   "pass": true,
+   "value": "stacks ['Idle', 'Attack', 'Hit', 'Death']; frames Idle 61, Attack 47, Hit 25, Death 61"
+  },
+  {
+   "check": "4 LOD0 triangle count recorded",
+   "pass": true,
+   "value": "24108 tris (target 18000-30000, scene budget 350000)"
+  },
+  {
+   "check": "5 one flat colour per material, no embedded textures",
+   "pass": true,
+   "value": "7 materials, 0 textures"
+  },
+  {
+   "check": "6 origin at the feet",
+   "pass": true,
+   "value": "min z 0.0003 m, bbox centre xy [-0.0002, -0.024] m"
+  },
+  {
+   "check": "7 +X forward",
+   "pass": true,
+   "value": "hand_l y 0.454, hand_r y -0.454, toe dx 0.311"
+  },
+  {
+   "check": "8 unit scale, height 1.62-1.98 m",
+   "pass": true,
+   "value": "height 1.7994 m, object scale [1.0, 1.0, 1.0]"
+  },
+  {
+   "check": "9 weights normalised",
+   "pass": true,
+   "value": "max |sum-1| 0.0, unweighted 0, max influences 4"
+  }
+ ]
+}

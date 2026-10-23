@@ -510,24 +510,6 @@ const NOISE_PLAN = [
   { action: 'noise-partial', hands: ['R'], seed: NOISE_BASE + 5, sampleAt: chainPartial },
 ];
 
-export function buildNoiseClips() {
-  const seconds = 36;
-  const quiet = { jitter: 0, dips: false, phases: [0, 0, 0, 0, 0] };
-  return NOISE_PLAN.map((spec) => {
-    const built = renderClip({
-      action: spec.action,
-      variant: 'normal',
-      hands: spec.hands,
-      seed: spec.seed,
-      source: 'synthetic',
-      params: quiet,
-      duration: seconds,
-      sampleAt: spec.sampleAt,
-    });
-    return { action: spec.action, frames: built.frames, duration: built.duration };
-  });
-}
-
 function writeNoise(used) {
   const dir = path.join(testClipsRoot(), 'noise');
   wipeJsonl(dir);

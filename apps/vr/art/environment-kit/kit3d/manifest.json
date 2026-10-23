@@ -1,0 +1,1535 @@
+{
+ "card": "A07 / T42",
+ "generated": "2026-10-21",
+ "tool": "Blender 5.2.2 LTS (Windows ARM64), apps/vr/tools/assets/env_kit.py; hand-authored parametric geometry, no AI step, 0 credits",
+ "layout": "apps/vr/data/vr/arena-layout.json (read only)",
+ "units": "metres, unit scale; origin at the base; +X forward; Z up",
+ "materials": {
+  "M_Arena_Sand": {
+   "base_color_linear": [
+    0.58,
+    0.47,
+    0.31
+   ]
+  },
+  "M_Arena_Stone": {
+   "base_color_linear": [
+    0.46,
+    0.45,
+    0.43
+   ]
+  },
+  "M_Arena_StoneDark": {
+   "base_color_linear": [
+    0.22,
+    0.22,
+    0.24
+   ]
+  },
+  "M_Arena_Wood": {
+   "base_color_linear": [
+    0.3,
+    0.24,
+    0.16
+   ]
+  },
+  "M_Arena_Iron": {
+   "base_color_linear": [
+    0.18,
+    0.16,
+    0.15
+   ]
+  },
+  "M_Arena_Cloth": {
+   "base_color_linear": [
+    0.64,
+    0.59,
+    0.5
+   ]
+  }
+ },
+ "pieces": {
+  "WallStraight": {
+   "file": "export/SM_Arena_WallStraight.fbx",
+   "tris": 48,
+   "verts": 32,
+   "components": 4,
+   "boundsM": {
+    "min": [
+     -0.5,
+     -1.5492,
+     0.0
+    ],
+    "max": [
+     0.05,
+     1.5492,
+     3.0
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark"
+   ],
+   "pivot": "base, middle of the arena-facing face",
+   "replaces": "wall: one ring-wall chord box (side chords)",
+   "sha256": "96287aa77e1964e8abd3a31119676d1b819e227656dc63dc14473484f88e13ee",
+   "bytes": 16668
+  },
+  "WallCurved": {
+   "file": "export/SM_Arena_WallCurved.fbx",
+   "tris": 272,
+   "verts": 144,
+   "components": 4,
+   "boundsM": {
+    "min": [
+     -0.5,
+     -1.1688,
+     0.0
+    ],
+    "max": [
+     0.1255,
+     1.1688,
+     3.0
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark"
+   ],
+   "pivot": "base, middle of the arena-facing face",
+   "replaces": "wall: one ring-wall chord box (end chords, radius of curvature under 12 m)",
+   "sha256": "71238665bae2641ebc64b664bb4e29747e80d47ddc5808060256c8698993c92b",
+   "bytes": 19948
+  },
+  "GateArch": {
+   "file": "export/SM_Arena_GateArch.fbx",
+   "tris": 536,
+   "verts": 316,
+   "components": 24,
+   "boundsM": {
+    "min": [
+     -0.76,
+     -2.06,
+     0.0
+    ],
+    "max": [
+     0.16,
+     2.06,
+     3.6
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone",
+    "M_Arena_StoneDark",
+    "M_Arena_Wood",
+    "M_Arena_Iron"
+   ],
+   "pivot": "base, middle of the arena-facing face",
+   "replaces": "wall: the two chord boxes at the far (+X) end, theta = -11.25..11.25 degrees",
+   "sha256": "e31043874a7252b64dcb63d04fcedaf0cfb1e1021e6a4fc5205d6791731e73d0",
+   "bytes": 25372
+  },
+  "TierStraight": {
+   "file": "export/SM_Arena_TierStraight.fbx",
+   "tris": 28,
+   "verts": 16,
+   "components": 1,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -1.958,
+     0.0
+    ],
+    "max": [
+     0.0,
+     1.958,
+     5.2
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone"
+   ],
+   "pivot": "base, middle of the front (arena-facing) edge",
+   "replaces": "stands: the three tier boxes behind one side chord",
+   "sha256": "4430c5a8045d4891019998383c9ec5857c79676418f3708ddd39325f6e0dfa67",
+   "bytes": 15324
+  },
+  "TierCurved": {
+   "file": "export/SM_Arena_TierCurved.fbx",
+   "tris": 140,
+   "verts": 72,
+   "components": 1,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -1.8288,
+     0.0
+    ],
+    "max": [
+     0.0822,
+     1.8288,
+     5.2
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone"
+   ],
+   "pivot": "base, middle of the front edge",
+   "replaces": "stands: the three tier boxes behind one end chord",
+   "sha256": "467e18ef13dd4d0f5db34135aad7d8155cee85ee73aab18c515ec7fe4a277cb0",
+   "bytes": 16924
+  },
+  "TierStair": {
+   "file": "export/SM_Arena_TierStair.fbx",
+   "tris": 52,
+   "verts": 28,
+   "components": 1,
+   "boundsM": {
+    "min": [
+     -4.65,
+     -0.6,
+     0.0
+    ],
+    "max": [
+     0.0,
+     0.6,
+     5.2
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone"
+   ],
+   "pivot": "base, middle of the front edge",
+   "replaces": "stands: an aisle in four side chords (with two shortened TierStraight)",
+   "sha256": "6cb932aecd397c4eaacaa03c84d037dd12799da569edf0af845c90e6f8f3c1c4",
+   "bytes": 15388
+  },
+  "Dais": {
+   "file": "export/SM_Arena_Dais.fbx",
+   "tris": 36,
+   "verts": 24,
+   "components": 3,
+   "boundsM": {
+    "min": [
+     -2.6,
+     -4.4,
+     0.0
+    ],
+    "max": [
+     2.6,
+     4.4,
+     0.6
+    ]
+   },
+   "materials": [
+    "M_Arena_StoneDark"
+   ],
+   "pivot": "base centre",
+   "replaces": "dais box",
+   "sha256": "6b97ec35829eabfbde1ff3c2dab3a72fddc7675b0008aba6e6c604f92050b695",
+   "bytes": 15164
+  },
+  "RunePad": {
+   "file": "export/SM_Arena_RunePad.fbx",
+   "tris": 576,
+   "verts": 290,
+   "components": 1,
+   "boundsM": {
+    "min": [
+     -0.9,
+     -0.9,
+     0.0
+    ],
+    "max": [
+     0.9,
+     0.9,
+     0.04
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone",
+    "M_Arena_Sand"
+   ],
+   "pivot": "base centre (sits on the dais top)",
+   "replaces": "pads: disc cylinder and the 16 ring boxes, per pad",
+   "sha256": "f6763fa0fcb444a2823e9a486de586aa5facea5f115932a76fb9d03242790518",
+   "bytes": 24188
+  },
+  "Seat": {
+   "file": "export/SM_Arena_Seat.fbx",
+   "tris": 36,
+   "verts": 24,
+   "components": 3,
+   "boundsM": {
+    "min": [
+     -0.25,
+     -0.23,
+     0.0
+    ],
+    "max": [
+     0.25,
+     0.23,
+     0.42
+    ]
+   },
+   "materials": [
+    "M_Arena_Stone"
+   ],
+   "pivot": "base centre (sits on the pad)",
+   "replaces": "seat box, per pad",
+   "sha256": "25fa74de8c2b8bc05cf9201ab15bccffad3983c77154553845632908eb4cfffe",
+   "bytes": 15180
+  },
+  "Brazier": {
+   "file": "export/SM_Arena_Brazier.fbx",
+   "tris": 408,
+   "verts": 218,
+   "components": 7,
+   "boundsM": {
+    "min": [
+     -0.42,
+     -0.42,
+     0.0
+    ],
+    "max": [
+     0.44,
+     0.42,
+     0.74
+    ]
+   },
+   "materials": [
+    "M_Arena_Iron"
+   ],
+   "pivot": "base centre",
+   "replaces": "braziers: stand and bowl (the flame cone stays a greybox or VFX part)",
+   "sha256": "17e77a83aa4a7199179c54cb6939b5f225f863cfe5d0a5d6991927e4de73e6d3",
+   "bytes": 21996
+  },
+  "Banner": {
+   "file": "export/SM_Arena_Banner.fbx",
+   "tris": 92,
+   "verts": 54,
+   "components": 4,
+   "boundsM": {
+    "min": [
+     -0.07,
+     -0.575,
+     0.0
+    ],
+    "max": [
+     0.09,
+     0.575,
+     3.3
+    ]
+   },
+   "materials": [
+    "M_Arena_Wood",
+    "M_Arena_Iron",
+    "M_Arena_Cloth"
+   ],
+   "pivot": "base of the pole",
+   "replaces": "banners: pole, crossbar and cloth",
+   "sha256": "c78201b13a0c267744051e49832a3b162b066dbf7e70540b331040b3fac4cf83",
+   "bytes": 18316
+  }
+ },
+ "assembly": {
+  "axes": "Unreal axes as in arena-layout.json (+X dais to centre, +Y the seated player's right, Z up); yawDeg about +Z, Unreal sense (+X toward +Y); scale is the instance scale, Y = length along the chord",
+  "instanceCount": {
+   "WallCurved": 10,
+   "TierCurved": 10,
+   "WallStraight": 20,
+   "TierStraight": 24,
+   "TierStair": 4,
+   "GateArch": 1,
+   "Dais": 1,
+   "RunePad": 3,
+   "Seat": 3,
+   "Brazier": 4,
+   "Banner": 4
+  },
+  "floorStandInTris": 252,
+  "trisKitInstances": 10368,
+  "trisTotalWithFloor": 10620,
+  "triBudget": 60000,
+  "note": "every wall, gate, tier, stair, dais, pad, seat, brazier and banner instance is counted; the floor is the greybox sand ellipse (not a kit piece), counted as a 64-segment stand-in; flames, markers, threats and hands are not part of the kit",
+  "instances": [
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     15.2373,
+     2.8889,
+     0.0
+    ],
+    "yawDeg": -154.11,
+    "scale": [
+     1.0,
+     0.9857,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     15.8221,
+     3.1727,
+     0.0
+    ],
+    "yawDeg": -154.11,
+    "scale": [
+     1.0,
+     0.9486,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     14.0428,
+     4.6913,
+     0.0
+    ],
+    "yawDeg": -139.462,
+    "scale": [
+     1.0,
+     1.0754,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     14.5368,
+     5.1137,
+     0.0
+    ],
+    "yawDeg": -139.462,
+    "scale": [
+     1.0,
+     1.0352,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     12.3086,
+     6.3134,
+     0.0
+    ],
+    "yawDeg": -127.292,
+    "scale": [
+     1.0,
+     0.8671,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     12.7024,
+     6.8305,
+     0.0
+    ],
+    "yawDeg": -127.292,
+    "scale": [
+     1.0,
+     0.904,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     10.1014,
+     7.6929,
+     0.0
+    ],
+    "yawDeg": -117.154,
+    "scale": [
+     1.0,
+     0.9446,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     10.3981,
+     8.2712,
+     0.0
+    ],
+    "yawDeg": -117.154,
+    "scale": [
+     1.0,
+     0.9885,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     7.506,
+     8.7767,
+     0.0
+    ],
+    "yawDeg": -108.473,
+    "scale": [
+     1.0,
+     1.011,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     7.712,
+     9.3933,
+     0.0
+    ],
+    "yawDeg": -108.473,
+    "scale": [
+     1.0,
+     1.064,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     4.6222,
+     9.5233,
+     0.0
+    ],
+    "yawDeg": -100.735,
+    "scale": [
+     1.0,
+     1.0591,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStair",
+    "locationM": [
+     4.7433,
+     10.1619,
+     0.0
+    ],
+    "yawDeg": -100.735,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     5.8648,
+     9.9493,
+     0.0
+    ],
+    "yawDeg": -100.735,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     3.6218,
+     10.3746,
+     0.0
+    ],
+    "yawDeg": -100.735,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     1.5607,
+     9.9039,
+     0.0
+    ],
+    "yawDeg": -93.523,
+    "scale": [
+     1.0,
+     1.0841,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     1.6007,
+     10.5527,
+     0.0
+    ],
+    "yawDeg": -93.523,
+    "scale": [
+     1.0,
+     1.1541,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -1.5607,
+     9.9039,
+     0.0
+    ],
+    "yawDeg": -86.477,
+    "scale": [
+     1.0,
+     1.0841,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -1.6007,
+     10.5527,
+     0.0
+    ],
+    "yawDeg": -86.477,
+    "scale": [
+     1.0,
+     1.1541,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -4.6222,
+     9.5233,
+     0.0
+    ],
+    "yawDeg": -79.265,
+    "scale": [
+     1.0,
+     1.0591,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStair",
+    "locationM": [
+     -4.7433,
+     10.1619,
+     0.0
+    ],
+    "yawDeg": -79.265,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -3.6218,
+     10.3746,
+     0.0
+    ],
+    "yawDeg": -79.265,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -5.8648,
+     9.9493,
+     0.0
+    ],
+    "yawDeg": -79.265,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -7.506,
+     8.7767,
+     0.0
+    ],
+    "yawDeg": -71.527,
+    "scale": [
+     1.0,
+     1.011,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -7.712,
+     9.3933,
+     0.0
+    ],
+    "yawDeg": -71.527,
+    "scale": [
+     1.0,
+     1.064,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -10.1014,
+     7.6929,
+     0.0
+    ],
+    "yawDeg": -62.846,
+    "scale": [
+     1.0,
+     0.9446,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -10.3981,
+     8.2712,
+     0.0
+    ],
+    "yawDeg": -62.846,
+    "scale": [
+     1.0,
+     0.9885,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -12.3086,
+     6.3134,
+     0.0
+    ],
+    "yawDeg": -52.708,
+    "scale": [
+     1.0,
+     0.8671,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -12.7024,
+     6.8305,
+     0.0
+    ],
+    "yawDeg": -52.708,
+    "scale": [
+     1.0,
+     0.904,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -14.0428,
+     4.6913,
+     0.0
+    ],
+    "yawDeg": -40.538,
+    "scale": [
+     1.0,
+     1.0754,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -14.5368,
+     5.1137,
+     0.0
+    ],
+    "yawDeg": -40.538,
+    "scale": [
+     1.0,
+     1.0352,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -15.2373,
+     2.8889,
+     0.0
+    ],
+    "yawDeg": -25.89,
+    "scale": [
+     1.0,
+     0.9857,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -15.8221,
+     3.1727,
+     0.0
+    ],
+    "yawDeg": -25.89,
+    "scale": [
+     1.0,
+     0.9486,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -15.8463,
+     0.9755,
+     0.0
+    ],
+    "yawDeg": -8.955,
+    "scale": [
+     1.0,
+     0.9336,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -16.4884,
+     1.0766,
+     0.0
+    ],
+    "yawDeg": -8.955,
+    "scale": [
+     1.0,
+     0.8987,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -15.8463,
+     -0.9755,
+     0.0
+    ],
+    "yawDeg": 8.955,
+    "scale": [
+     1.0,
+     0.9336,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -16.4884,
+     -1.0766,
+     0.0
+    ],
+    "yawDeg": 8.955,
+    "scale": [
+     1.0,
+     0.8987,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -15.2373,
+     -2.8889,
+     0.0
+    ],
+    "yawDeg": 25.89,
+    "scale": [
+     1.0,
+     0.9857,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -15.8221,
+     -3.1727,
+     0.0
+    ],
+    "yawDeg": 25.89,
+    "scale": [
+     1.0,
+     0.9486,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     -14.0428,
+     -4.6913,
+     0.0
+    ],
+    "yawDeg": 40.538,
+    "scale": [
+     1.0,
+     1.0754,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     -14.5368,
+     -5.1137,
+     0.0
+    ],
+    "yawDeg": 40.538,
+    "scale": [
+     1.0,
+     1.0352,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -12.3086,
+     -6.3134,
+     0.0
+    ],
+    "yawDeg": 52.708,
+    "scale": [
+     1.0,
+     0.8671,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -12.7024,
+     -6.8305,
+     0.0
+    ],
+    "yawDeg": 52.708,
+    "scale": [
+     1.0,
+     0.904,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -10.1014,
+     -7.6929,
+     0.0
+    ],
+    "yawDeg": 62.846,
+    "scale": [
+     1.0,
+     0.9446,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -10.3981,
+     -8.2712,
+     0.0
+    ],
+    "yawDeg": 62.846,
+    "scale": [
+     1.0,
+     0.9885,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -7.506,
+     -8.7767,
+     0.0
+    ],
+    "yawDeg": 71.527,
+    "scale": [
+     1.0,
+     1.011,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -7.712,
+     -9.3933,
+     0.0
+    ],
+    "yawDeg": 71.527,
+    "scale": [
+     1.0,
+     1.064,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -4.6222,
+     -9.5233,
+     0.0
+    ],
+    "yawDeg": 79.265,
+    "scale": [
+     1.0,
+     1.0591,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStair",
+    "locationM": [
+     -4.7433,
+     -10.1619,
+     0.0
+    ],
+    "yawDeg": 79.265,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -5.8648,
+     -9.9493,
+     0.0
+    ],
+    "yawDeg": 79.265,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -3.6218,
+     -10.3746,
+     0.0
+    ],
+    "yawDeg": 79.265,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     -1.5607,
+     -9.9039,
+     0.0
+    ],
+    "yawDeg": 86.477,
+    "scale": [
+     1.0,
+     1.0841,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     -1.6007,
+     -10.5527,
+     0.0
+    ],
+    "yawDeg": 86.477,
+    "scale": [
+     1.0,
+     1.1541,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     1.5607,
+     -9.9039,
+     0.0
+    ],
+    "yawDeg": 93.523,
+    "scale": [
+     1.0,
+     1.0841,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     1.6007,
+     -10.5527,
+     0.0
+    ],
+    "yawDeg": 93.523,
+    "scale": [
+     1.0,
+     1.1541,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     4.6222,
+     -9.5233,
+     0.0
+    ],
+    "yawDeg": 100.735,
+    "scale": [
+     1.0,
+     1.0591,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStair",
+    "locationM": [
+     4.7433,
+     -10.1619,
+     0.0
+    ],
+    "yawDeg": 100.735,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     3.6218,
+     -10.3746,
+     0.0
+    ],
+    "yawDeg": 100.735,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     5.8648,
+     -9.9493,
+     0.0
+    ],
+    "yawDeg": 100.735,
+    "scale": [
+     1.0,
+     0.361,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     7.506,
+     -8.7767,
+     0.0
+    ],
+    "yawDeg": 108.473,
+    "scale": [
+     1.0,
+     1.011,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     7.712,
+     -9.3933,
+     0.0
+    ],
+    "yawDeg": 108.473,
+    "scale": [
+     1.0,
+     1.064,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     10.1014,
+     -7.6929,
+     0.0
+    ],
+    "yawDeg": 117.154,
+    "scale": [
+     1.0,
+     0.9446,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     10.3981,
+     -8.2712,
+     0.0
+    ],
+    "yawDeg": 117.154,
+    "scale": [
+     1.0,
+     0.9885,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallStraight",
+    "locationM": [
+     12.3086,
+     -6.3134,
+     0.0
+    ],
+    "yawDeg": 127.292,
+    "scale": [
+     1.0,
+     0.8671,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierStraight",
+    "locationM": [
+     12.7024,
+     -6.8305,
+     0.0
+    ],
+    "yawDeg": 127.292,
+    "scale": [
+     1.0,
+     0.904,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     14.0428,
+     -4.6913,
+     0.0
+    ],
+    "yawDeg": 139.462,
+    "scale": [
+     1.0,
+     1.0754,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     14.5368,
+     -5.1137,
+     0.0
+    ],
+    "yawDeg": 139.462,
+    "scale": [
+     1.0,
+     1.0352,
+     1.0
+    ]
+   },
+   {
+    "piece": "WallCurved",
+    "locationM": [
+     15.2373,
+     -2.8889,
+     0.0
+    ],
+    "yawDeg": 154.11,
+    "scale": [
+     1.0,
+     0.9857,
+     1.0
+    ]
+   },
+   {
+    "piece": "TierCurved",
+    "locationM": [
+     15.8221,
+     -3.1727,
+     0.0
+    ],
+    "yawDeg": 154.11,
+    "scale": [
+     1.0,
+     0.9486,
+     1.0
+    ]
+   },
+   {
+    "piece": "GateArch",
+    "locationM": [
+     15.6926,
+     0.0,
+     0.0
+    ],
+    "yawDeg": 180.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Dais",
+    "locationM": [
+     -11.7,
+     0.0,
+     0.0
+    ],
+    "yawDeg": 0.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "RunePad",
+    "locationM": [
+     -11.625,
+     -2.9765,
+     0.6
+    ],
+    "yawDeg": 14.362,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Seat",
+    "locationM": [
+     -11.625,
+     -2.9765,
+     0.64
+    ],
+    "yawDeg": 14.362,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "RunePad",
+    "locationM": [
+     -12.0,
+     0.0,
+     0.6
+    ],
+    "yawDeg": -0.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Seat",
+    "locationM": [
+     -12.0,
+     0.0,
+     0.64
+    ],
+    "yawDeg": -0.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "RunePad",
+    "locationM": [
+     -11.625,
+     2.9765,
+     0.6
+    ],
+    "yawDeg": -14.362,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Seat",
+    "locationM": [
+     -11.625,
+     2.9765,
+     0.64
+    ],
+    "yawDeg": -14.362,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Brazier",
+    "locationM": [
+     6.0,
+     6.0,
+     0.0
+    ],
+    "yawDeg": -135.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Brazier",
+    "locationM": [
+     6.0,
+     -6.0,
+     0.0
+    ],
+    "yawDeg": 135.0,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Brazier",
+    "locationM": [
+     -2.0,
+     7.2,
+     0.0
+    ],
+    "yawDeg": -74.476,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Brazier",
+    "locationM": [
+     -2.0,
+     -7.2,
+     0.0
+    ],
+    "yawDeg": 74.476,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Banner",
+    "locationM": [
+     -9.4,
+     4.6,
+     0.0
+    ],
+    "yawDeg": -26.075,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Banner",
+    "locationM": [
+     -9.4,
+     -4.6,
+     0.0
+    ],
+    "yawDeg": 26.075,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Banner",
+    "locationM": [
+     9.5,
+     4.2,
+     0.0
+    ],
+    "yawDeg": -156.15,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   {
+    "piece": "Banner",
+    "locationM": [
+     9.5,
+     -4.2,
+     0.0
+    ],
+    "yawDeg": 156.15,
+    "scale": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   }
+  ]
+ }
+}

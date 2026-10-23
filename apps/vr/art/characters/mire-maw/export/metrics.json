@@ -1,0 +1,242 @@
+{
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/T15/mire-maw/export/SK_MireMaw.fbx",
+ "fbx_file": {
+  "version": 7400,
+  "bytes": 1339852,
+  "limb_nodes": 11,
+  "mesh_models": [
+   "SM_MireMaw"
+  ],
+  "skin_deformers": 1,
+  "materials": [
+   "M_MireMaw_Skin",
+   "M_MireMaw_Belly",
+   "M_MireMaw_Moss",
+   "M_MireMaw_Mouth",
+   "M_MireMaw_Tongue",
+   "M_MireMaw_Eye",
+   "M_MireMaw_Pupil"
+  ],
+  "textures": 0,
+  "anim_stacks": [
+   {
+    "name": "Idle",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   },
+   {
+    "name": "Attack",
+    "start_s": 0.0,
+    "stop_s": 2.2
+   },
+   {
+    "name": "Hit",
+    "start_s": 0.0,
+    "stop_s": 0.8
+   },
+   {
+    "name": "Death",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   }
+  ]
+ },
+ "mesh": {
+  "verts": 9883,
+  "tris": 19786,
+  "watertight": true,
+  "windingConsistent": true,
+  "components": 1,
+  "floaters": 0,
+  "componentFaces": [
+   19786
+  ],
+  "degenerateFaces": 0,
+  "euler": -10,
+  "height_m": 1.2488,
+  "bbox_m": [
+   1.2808,
+   1.2781,
+   1.2488
+  ],
+  "min_z_m": 0.0014,
+  "centre_xy_m": [
+   -0.0003,
+   -0.0
+  ]
+ },
+ "skeleton": {
+  "bones": 11,
+  "names": [
+   "root",
+   "foot_l",
+   "foot_r",
+   "body",
+   "body_upper",
+   "head",
+   "jaw",
+   "tongue_01",
+   "tongue_02",
+   "tongue_03",
+   "tongue_04"
+  ],
+  "left_y": 0.3,
+  "right_y": -0.29,
+  "forward_dx": 0.018,
+  "root_head": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "weights": {
+  "unweighted_verts": 0,
+  "max_abs_sum_error": 0.0,
+  "max_influences": 4,
+  "normalised": true
+ },
+ "clips": {
+  "Attack": {
+   "action": "Armature|Attack",
+   "frames": 67,
+   "fcurves": 119,
+   "max_channel_range": 5.0
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61,
+   "fcurves": 119,
+   "max_channel_range": 1.4
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25,
+   "fcurves": 119,
+   "max_channel_range": 0.1214
+  },
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61,
+   "fcurves": 119,
+   "max_channel_range": 0.0261
+  }
+ },
+ "fps": 30.0,
+ "materials": [
+  {
+   "name": "M_MireMaw_Skin",
+   "base_color_linear": [
+    0.1473,
+    0.1329,
+    0.0397
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Belly",
+   "base_color_linear": [
+    0.3424,
+    0.2633,
+    0.1193
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Moss",
+   "base_color_linear": [
+    0.0509,
+    0.089,
+    0.0134
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Mouth",
+   "base_color_linear": [
+    0.047,
+    0.022,
+    0.0134
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Tongue",
+   "base_color_linear": [
+    0.2633,
+    0.047,
+    0.047
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Eye",
+   "base_color_linear": [
+    0.7106,
+    0.6038,
+    0.1473
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_MireMaw_Pupil",
+   "base_color_linear": [
+    0.0039,
+    0.0039,
+    0.0039
+   ],
+   "image_nodes": 0
+  }
+ ],
+ "checks": [
+  {
+   "check": "1 one skeleton",
+   "pass": true,
+   "value": "1 armature, 1 skin deformer"
+  },
+  {
+   "check": "2 one skinned mesh",
+   "pass": true,
+   "value": "1 mesh, 1 skinned"
+  },
+  {
+   "check": "3 exactly the four clips, none empty",
+   "pass": true,
+   "value": "stacks ['Idle', 'Attack', 'Hit', 'Death']; frames Idle 61, Attack 67, Hit 25, Death 61"
+  },
+  {
+   "check": "4 LOD0 triangle count within budget",
+   "pass": true,
+   "value": "19786 tris (budget 20000, one maw)"
+  },
+  {
+   "check": "5 one flat colour per material, no embedded textures",
+   "pass": true,
+   "value": "7 materials, 0 textures"
+  },
+  {
+   "check": "6 origin at the feet",
+   "pass": true,
+   "value": "min z 0.0014 m, bbox centre xy [-0.0003, -0.0] m"
+  },
+  {
+   "check": "7 +X forward",
+   "pass": true,
+   "value": "foot_l y 0.3, foot_r y -0.29, jaw dx 0.018"
+  },
+  {
+   "check": "8 unit scale, height 1.25 m +-10 % (1.125-1.375 m)",
+   "pass": true,
+   "value": "height 1.2488 m (-0.1 %), object scale [1.0, 1.0, 1.0]"
+  },
+  {
+   "check": "9 weights normalised",
+   "pass": true,
+   "value": "max |sum-1| 0.0, unweighted 0, max influences 4"
+  },
+  {
+   "check": "10 no floaters",
+   "pass": true,
+   "value": "1 component(s), 0 floaters"
+  }
+ ]
+}

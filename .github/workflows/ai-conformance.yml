@@ -5,9 +5,13 @@
 # which blocks the merge (pull_request job only; a scheduled run must not fail the merge queue).
 # Add --run to also execute capability commands (heavier; the repo's own test/build CI usually
 # already does that).
+# ALSO ON PUSH TO MASTER: CLAUDE.md "Git" has agents push verified work straight to origin master, so a
+# pull-request-only trigger left the repo's own path ungated. The scheduled job below stays report-only.
 name: ai-conformance
 on:
   pull_request:
+  push:
+    branches: [master]
   schedule:
     # Weekly, off-peak UTC. Re-reports conformance even when the repo has no open PRs, so a
     # dashboard viewer never sees a score that's silently weeks stale.
@@ -21,11 +25,13 @@ permissions:
   contents: read
 jobs:
   conformance:
-    if: github.event_name == 'pull_request'
+    # The hard gate: a pull request, and a direct push to master. A scheduled run must not fail the merge
+    # queue, so it stays out and is handled by scheduled-report below.
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - name: .ai conformance gate
@@ -45,8 +51,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - name: .ai conformance report (continuous)

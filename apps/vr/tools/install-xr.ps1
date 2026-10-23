@@ -227,6 +227,11 @@ function Get-MetaPackage([string]$PageUrl, [string]$FilePattern) {
         throw "The official page did not publish a downloadable $FilePattern package. Owner: open $PageUrl and download the UE 5.8 v207 zip by hand if Meta now requires a login."
     }
     $fileName = $match.Groups['file'].Value
+    # The name comes from the web page and becomes the download path, so it must be a pinned name before curl writes
+    # anything; the SHA-256 check below runs only after the download.
+    if (-not $script:PinnedSha256.ContainsKey($fileName)) {
+        throw "The official page names $fileName, which is not a pinned archive. Verify the new release and add it to PinnedSha256 deliberately."
+    }
     $uri = ($match.Groups['uri'].Value -replace '\\/', '/')
     $licensePath = $match.Groups['licpath'].Value
     $licenseId = $match.Groups['licid'].Value

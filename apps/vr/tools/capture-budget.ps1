@@ -7,7 +7,8 @@
 # Per-pass GPU-culled triangle counts come from r.MeshDrawCommands.DumpStats frames the driver requests every 10 s.
 param(
 	[int]$Runs = 3,
-	[string]$Prefix = "run",
+	# A run folder name under runs/DG4, which each run deletes with -Recurse: no path separators or dots.
+	[ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Prefix = "run",
 	[string[]]$ExtraArgs = @()
 )
 $ErrorActionPreference = "Stop"

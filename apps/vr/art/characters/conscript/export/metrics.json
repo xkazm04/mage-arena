@@ -1,0 +1,243 @@
+{
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/_armed/Conscript/SK_Conscript.fbx",
+ "fbx_file": {
+  "version": 7400,
+  "bytes": 1991772,
+  "limb_nodes": 23,
+  "mesh_models": [
+   "SM_Conscript"
+  ],
+  "skin_deformers": 1,
+  "materials": [
+   "M_Conscript_Mail",
+   "M_Conscript_Iron",
+   "M_Conscript_Linen",
+   "M_Conscript_Leather",
+   "M_Conscript_Wood",
+   "M_Conscript_Skin"
+  ],
+  "textures": 0,
+  "anim_stacks": [
+   {
+    "name": "Idle",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   },
+   {
+    "name": "Attack",
+    "start_s": 0.0,
+    "stop_s": 1.1666666666666667
+   },
+   {
+    "name": "Hit",
+    "start_s": 0.0,
+    "stop_s": 0.8
+   },
+   {
+    "name": "Death",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   }
+  ]
+ },
+ "mesh": {
+  "verts": 12051,
+  "tris": 24086,
+  "watertight": true,
+  "windingConsistent": true,
+  "components": 5,
+  "floaters": 4,
+  "componentFaces": [
+   23978,
+   30,
+   28,
+   28,
+   22
+  ],
+  "degenerateFaces": 0,
+  "euler": 8,
+  "height_m": 1.8003,
+  "bbox_m": [
+   0.6399,
+   1.0273,
+   1.8003
+  ],
+  "min_z_m": -0.0,
+  "centre_xy_m": [
+   0.1018,
+   -0.0004
+  ]
+ },
+ "skeleton": {
+  "bones": 23,
+  "names": [
+   "root",
+   "pelvis",
+   "spine_01",
+   "spine_02",
+   "spine_03",
+   "neck_01",
+   "head",
+   "clavicle_l",
+   "upperarm_l",
+   "lowerarm_l",
+   "hand_l",
+   "clavicle_r",
+   "upperarm_r",
+   "lowerarm_r",
+   "hand_r",
+   "thigh_l",
+   "calf_l",
+   "foot_l",
+   "ball_l",
+   "thigh_r",
+   "calf_r",
+   "foot_r",
+   "ball_r"
+  ],
+  "hand_l_y": 0.465,
+  "hand_r_y": -0.466,
+  "toe_dx_l": 0.289,
+  "root_head": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "weights": {
+  "unweighted_verts": 0,
+  "max_abs_sum_error": 0.0,
+  "max_influences": 4,
+  "normalised": true
+ },
+ "clips": {
+  "Attack": {
+   "action": "Armature|Attack",
+   "frames": 36,
+   "fcurves": 239,
+   "max_channel_range": 1.0377
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.7174
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25,
+   "fcurves": 239,
+   "max_channel_range": 0.7373
+  },
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61,
+   "fcurves": 239,
+   "max_channel_range": 0.0175
+  }
+ },
+ "fps": 30.0,
+ "materials": [
+  {
+   "name": "M_Conscript_Mail",
+   "base_color_linear": [
+    0.0637,
+    0.0684,
+    0.089
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Conscript_Iron",
+   "base_color_linear": [
+    0.2633,
+    0.2738,
+    0.2957
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Conscript_Linen",
+   "base_color_linear": [
+    0.477,
+    0.3801,
+    0.233
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Conscript_Leather",
+   "base_color_linear": [
+    0.1193,
+    0.047,
+    0.0196
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Conscript_Wood",
+   "base_color_linear": [
+    0.1706,
+    0.0593,
+    0.0245
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_Conscript_Skin",
+   "base_color_linear": [
+    0.5382,
+    0.253,
+    0.1329
+   ],
+   "image_nodes": 0
+  }
+ ],
+ "checks": [
+  {
+   "check": "1 one skeleton",
+   "pass": true,
+   "value": "1 armature, 1 skin deformer"
+  },
+  {
+   "check": "2 one skinned mesh",
+   "pass": true,
+   "value": "1 mesh, 1 skinned"
+  },
+  {
+   "check": "3 exactly the four clips, none empty",
+   "pass": true,
+   "value": "stacks ['Idle', 'Attack', 'Hit', 'Death']; frames Idle 61, Attack 36, Hit 25, Death 61"
+  },
+  {
+   "check": "4 LOD0 triangle count recorded",
+   "pass": true,
+   "value": "24086 tris (target 18000-30000, scene budget 350000)"
+  },
+  {
+   "check": "5 one flat colour per material, no embedded textures",
+   "pass": true,
+   "value": "6 materials, 0 textures"
+  },
+  {
+   "check": "6 origin at the feet",
+   "pass": true,
+   "value": "min z -0.0 m, bbox centre xy [0.1018, -0.0004] m"
+  },
+  {
+   "check": "7 +X forward",
+   "pass": true,
+   "value": "hand_l y 0.465, hand_r y -0.466, toe dx 0.289"
+  },
+  {
+   "check": "8 unit scale, height 1.62-1.98 m",
+   "pass": true,
+   "value": "height 1.8003 m, object scale [1.0, 1.0, 1.0]"
+  },
+  {
+   "check": "9 weights normalised",
+   "pass": true,
+   "value": "max |sum-1| 0.0, unweighted 0, max influences 4"
+  }
+ ]
+}

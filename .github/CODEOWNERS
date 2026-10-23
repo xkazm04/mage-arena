@@ -4,7 +4,8 @@
 #
 # CODEOWNERS routes review; it cannot block a commit made under the owner's own identity. The machine
 # guard for the pinned combat data is the sha256 gate `node apps/vr/tools/check-pin.mjs`, which runs as
-# the `test` capability on pre-push (lefthook.yml) and in CI (.github/workflows/quality.yml).
+# the `test` capability on pre-push (installed by tools/install-hooks.mjs) and in CI
+# (.github/workflows/quality.yml, which also runs on a direct push to master).
 *                                   @xkazm04
 
 # Combat data pinned from kiro/mage-arena: never edited in place; a change is a change request, then a re-pin.
@@ -18,5 +19,8 @@
 /docs/DECISIONS.md                  @xkazm04
 # The agent contract and its gates.
 /.ai/                               @xkazm04
-/lefthook.yml                       @xkazm04
+# The local pre-push gate and the repo-law checks it runs. There is no lefthook.yml: the hook is plain git
+# plumbing installed by tools/install-hooks.mjs into .git/hooks, which is not tracked.
+/tools/install-hooks.mjs            @xkazm04
+/tools/check-repo-law.mjs           @xkazm04
 /.github/                           @xkazm04

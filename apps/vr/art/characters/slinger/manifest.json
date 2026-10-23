@@ -1,0 +1,93 @@
+{
+  "card": "T15",
+  "generated": "2026-10-21",
+  "note": "Concept art for the Bout 2 Slinger, derived from model sheet 04-slinger-turnaround.jpg, with one flat colour per material. Every call is in leonardo-log.json (56 credits for this asset). The front view was the TRELLIS.2 input. Mesh, rig, clips and evidence are in git under apps/vr/art/characters/slinger/export/ (FBX and PNGs through Git LFS, owner 2026-10-21); the work/ folder stays in the archive C:/Users/kazda/kiro/mage-arena-archive/Slinger/work/ (see HANDOFF.md). 2026-10-21: a hand-authored weapon (sling) was added by apps/vr/tools/assets/weapon.py; it is original Blender geometry, not generated, so the licence ledger can cite it as hand-authored.",
+  "items": [
+    {
+      "asset": "concept-front",
+      "path": "apps/vr/art/characters/slinger/concept-front-s4201-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4201,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "768x1376",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "TRELLIS.2 input (seed 42)"
+    },
+    {
+      "asset": "concept-turnaround",
+      "path": "apps/vr/art/characters/slinger/concept-turnaround-s4202-medium.jpg",
+      "tool": "leonardo",
+      "model": "openai/gpt-image-2.5-flare",
+      "seed": 4202,
+      "quality": "MEDIUM",
+      "attempts": 1,
+      "size_requested": "1376x768",
+      "credits": 14,
+      "regen_reasons": [],
+      "use": "front, side and back reference"
+    },
+    {
+      "asset": "SK_Slinger",
+      "path": "apps/vr/art/characters/slinger/export/SK_Slinger.fbx",
+      "sha256": "d6c71f73d05e5ad77dad767f81799cef3e6afc685c494db70d07aa8ceafd97d8",
+      "bytes": 1979356,
+      "weapon": {
+        "kind": "sling",
+        "source": "hand-authored in Blender (apps/vr/tools/assets/weapon.py, parametric bmesh geometry); no Leonardo, TRELLIS, ComfyUI or third-party source",
+        "tris": 108,
+        "weighting": "100% hand_r"
+      }
+    },
+    {
+      "asset": "SOURCE",
+      "path": "apps/vr/art/characters/slinger/export/SOURCE.md",
+      "sha256": "a9cafe8254acea36afde547b7a47b52467746e8ff2f58c52c8a824d08919240a",
+      "bytes": 9684
+    },
+    {
+      "asset": "metrics",
+      "path": "apps/vr/art/characters/slinger/export/metrics.json",
+      "sha256": "0d61ccca08d9e92dae14057d88f4158d17c5073dd61f8949987c83db443d8a22",
+      "bytes": 4498
+    },
+    {
+      "asset": "Slinger_turnaround",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_turnaround.png",
+      "sha256": "81c4adaf34fd96e869f13e5cc7bd3cf2e3d42fbf9a7ea94ac04336c800426086",
+      "bytes": 1586037
+    },
+    {
+      "asset": "Slinger_game_640x480",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_game_640x480.png",
+      "sha256": "f156c45921112fa4960d8df27b178a3ff33519e7759032f83a8087891537a333",
+      "bytes": 261499
+    },
+    {
+      "asset": "Slinger_clip_Idle",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Idle.png",
+      "sha256": "b28a4f5c16879459252c8ac102a59d444b67b85f0ee2e8866b833b6ef9749d93",
+      "bytes": 437540
+    },
+    {
+      "asset": "Slinger_clip_Attack",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Attack.png",
+      "sha256": "3eade111bfc222e98ecbbd29ae8189f4435fb0a1abf6d6bbe0f3f1db2d27f90b",
+      "bytes": 865416
+    },
+    {
+      "asset": "Slinger_clip_Hit",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Hit.png",
+      "sha256": "ff8e88f14fe05eaa82d855854a03cafa0fc758fe7e71530496cb010b21578f7d",
+      "bytes": 598475
+    },
+    {
+      "asset": "Slinger_clip_Death",
+      "path": "apps/vr/art/characters/slinger/export/Slinger_clip_Death.png",
+      "sha256": "76bd67d54e8af99d39458ed710c10fee4a542c656d33d6c0281fe7c6d08d3641",
+      "bytes": 825845
+    }
+  ]
+}

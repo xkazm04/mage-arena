@@ -1,7 +1,10 @@
 // Validate hand clips against docs/CLIP-SCHEMA.md. Node built-ins only.
-// Usage: node tools/clipgen/validate.mjs [dir]
+// Usage: node apps/vr/tools/clipgen/validate.mjs [dir...] | --self-test
+//   no dir: apps/vr/Game/Clips and apps/vr/Game/TestData/Clips, from any working directory. Zero clips found fails.
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const SCHEMA_V1 = 'mage-arena/hand-clip@1';
 const SCHEMA_V2 = 'mage-arena/hand-clip@2';
@@ -244,27 +247,87 @@ function collectJsonl(dir, out) {
   }
 }
 
-function main() {
-  const dir = path.resolve(process.cwd(), process.argv[2] || path.join('Game', 'Clips'));
-  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
-    process.stdout.write(`FAIL ${dir} is not a directory\n`);
-    process.stdout.write('0 clips, 1 violations\n');
-    process.exit(1);
-  }
+// Scans every root named on the command line, or by default both clip trees under Game (Clips and TestData/Clips),
+// so a clip filed under TestData is never skipped. A scan that finds no clip is a failure: an empty or mistyped
+// directory must not read as "0 violations".
+function defaultRoots() {
+  const game = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'Game');
+  return [path.join(game, 'Clips'), path.join(game, 'TestData', 'Clips')];
+}
+
+function scan(roots, out) {
   const files = [];
-  collectJsonl(dir, files);
-  files.sort((a, b) => a.localeCompare(b));
   let violations = 0;
-  for (const file of files) {
+  for (const root of roots) {
+    if (!fs.existsSync(root) || !fs.statSync(root).isDirectory()) {
+      out(`FAIL ${root} is not a directory
+`);
+      violations++;
+      continue;
+    }
+    const found = [];
+    collectJsonl(root, found);
+    for (const file of found) {
+      files.push({ file, root });
+    }
+  }
+  files.sort((a, b) => a.file.localeCompare(b.file));
+  for (const { file, root } of files) {
     const errors = validateFile(file);
     const text = fs.readFileSync(file, 'utf8');
-    if (errors.length > 0) {
-      violations += errors.length;
-    }
-    const shown = summarise(file, errors, text).replace(path.basename(file), path.relative(dir, file).split(path.sep).join('/'));
-    process.stdout.write(`${shown}\n`);
+    violations += errors.length;
+    const shown = summarise(file, errors, text).replace(path.basename(file), path.relative(root, file).split(path.sep).join('/'));
+    out(`${shown}
+`);
   }
-  process.stdout.write(`${files.length} clips, ${violations} violations\n`);
+  if (files.length === 0) {
+    out('FAIL no clips found: refusing to pass an empty scan\n');
+    violations++;
+  }
+  out(`${files.length} clips, ${violations} violations
+`);
+  return { clips: files.length, violations };
+}
+
+function selfTest() {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'validate-selftest-'));
+  try {
+    const lines = [];
+    const out = (text) => lines.push(text);
+    const empty = path.join(base, 'empty');
+    fs.mkdirSync(empty);
+    let r = scan([empty], out);
+    if (r.clips !== 0 || r.violations === 0) {
+      throw new Error('an empty directory must fail');
+    }
+    r = scan([path.join(base, 'missing')], out);
+    if (r.violations === 0) {
+      throw new Error('a missing directory must fail');
+    }
+    const bad = path.join(base, 'bad');
+    fs.mkdirSync(bad);
+    fs.writeFileSync(path.join(bad, 'x.normal.jsonl'), '{}\n');
+    r = scan([bad], out);
+    if (r.clips !== 1 || r.violations === 0) {
+      throw new Error('a malformed clip must fail');
+    }
+    if (defaultRoots().length !== 2) {
+      throw new Error('the default must cover both clip trees');
+    }
+  } finally {
+    fs.rmSync(base, { recursive: true, force: true });
+  }
+  process.stdout.write('validate --self-test: OK\n');
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  if (args.includes('--self-test')) {
+    selfTest();
+    return;
+  }
+  const roots = args.length > 0 ? args.map((arg) => path.resolve(process.cwd(), arg)) : defaultRoots();
+  const { violations } = scan(roots, (text) => process.stdout.write(text));
   process.exit(violations === 0 ? 0 : 1);
 }
 

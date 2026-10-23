@@ -4,7 +4,8 @@
 // The style is apps/vr/Game/Source/.clang-format. A missing clang-format is a failure, never a skip.
 //
 // Usage: node apps/vr/tools/lint/format-check.mjs [--base <ref>] [--self-test]   (FORMAT_BASE=<ref> also works)
-// clang-format is found in CLANG_FORMAT, on PATH, or in a Visual Studio install (VC\Tools\Llvm\x64\bin).
+// clang-format is found in CLANG_FORMAT, on PATH, or in a Visual Studio install (VC\Tools\Llvm\x64\bin, or
+// VC\Tools\Llvm\ARM64\bin on a Windows ARM64 host), or Program Files\LLVM.
 // Runs on every pull request in .github/workflows/quality.yml; run it yourself before proposing a C++ change.
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -59,7 +60,10 @@ function findClangFormat() {
           continue;
         }
         for (const edition of editions) {
-          candidates.push(join(vsRoot, version, edition, 'VC', 'Tools', 'Llvm', 'x64', 'bin', 'clang-format.exe'));
+          // A Visual Studio on a Windows ARM64 host puts its native clang tools under Llvm\ARM64, not Llvm\x64.
+          for (const host of process.arch === 'arm64' ? ['ARM64', 'x64'] : ['x64']) {
+            candidates.push(join(vsRoot, version, edition, 'VC', 'Tools', 'Llvm', host, 'bin', 'clang-format.exe'));
+          }
         }
       }
     }

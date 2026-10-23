@@ -1,0 +1,1115 @@
+{
+ "schema": "mage-arena/clip-manifest@1",
+ "clips": {
+  "blink-back.normal.jsonl": {
+   "sha256": "b6fdb2c8e83c60e3271292849a77964f8995ef568e9638f6a8bd78fe66e89f0c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3179381970,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "blink-back.sloppy.jsonl": {
+   "sha256": "754f2952880a073b9a22a9aedd624a14e7a7f345808670f63d2ccee101869ab0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 4024477642,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "blink-back.slow.jsonl": {
+   "sha256": "1451e9ff02db660aece4ef1a91c45aa914d02138eeff28dc7f26d2fcb85ff8f3",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 912906040,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "blink-left.normal.jsonl": {
+   "sha256": "8ee2138d59a15669420cf117a754b88985b66ec4ae3357e7ef09353a0fbdd02c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 483313904,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "blink-left.sloppy.jsonl": {
+   "sha256": "b8d0efb5405ad7fe2dd71b9d5d480ff0f4ff3d9ad473a90461be5c0afa6242ac",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2444316452,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "blink-left.slow.jsonl": {
+   "sha256": "0af07ff1d10dcce1a98b4d1ced99984f0cde565cf21f1edd590fb2ca9f7f6522",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 4238236462,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "blink-right.normal.jsonl": {
+   "sha256": "93cd166a7b209968e805a50b12051ad0f1193b4ca3cc9b643901166a501e3d0a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 70587473,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "blink-right.sloppy.jsonl": {
+   "sha256": "9acfdf43502ea5e21f14150383f225b2a1c1f9bdc44fd270efc72fdefecb79c4",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1304151565,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "blink-right.slow.jsonl": {
+   "sha256": "3f5b2d9ad9ac7b121e0eb50137b1c27e2986ab7a338ebb8a2ae0ebc2eb821f4e",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 724091923,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "bolt.normal.jsonl": {
+   "sha256": "d979def31c4a3a35bf8b67125086cb9bad615ddd51878f07f84110dd1d49a4bc",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 10868193,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "bolt.sloppy.jsonl": {
+   "sha256": "814b3d0ccaa6224fc4790e8f40d83875a9e43c74e21f3015c753a1b044648e8c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 514239677,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "bolt.slow.jsonl": {
+   "sha256": "aa9e50369ebe18c164520960e27cc5f41dde524b8380cfee9ea3a385d425b3f7",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1119365955,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "both-palms.normal.jsonl": {
+   "sha256": "dab32c2dbdac0f53ef08d1a51696e3dd626fa1ee9546ce11c972a2c15a8f73ce",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2461494325,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "both-palms.sloppy.jsonl": {
+   "sha256": "60f06363945dfa36d733f3d1c0e0aa105794007258abfa13a890655e23d0fefb",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 528696017,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "both-palms.slow.jsonl": {
+   "sha256": "6c17e6e1421afac10a08ed64320b9d93683837a410a025369244724b56efa9c0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3603629999,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "mirror/blink-back.normal.jsonl": {
+   "sha256": "ccf51d0f9ed1749c6eb74f9b4974acc67b8eff66ef6407e6c8591a4ff90cc92a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3179381970,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "mirror/blink-back.sloppy.jsonl": {
+   "sha256": "8a9a5d9684b78d3824d720e463b58662ada53465eff923d6c6cd6c3fa854c295",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 4024477642,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "mirror/blink-back.slow.jsonl": {
+   "sha256": "6198243b80d37f74e28879ace014be7e8cbcb335a823c7ca47e15b72422f308c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 912906040,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-back"
+  },
+  "mirror/blink-left.normal.jsonl": {
+   "sha256": "076d352b51fe34acc7aa86dd446606b74e58cd9fb0ed284683c7d61d6e9e96d8",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 483313904,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "mirror/blink-left.sloppy.jsonl": {
+   "sha256": "734cf0e61e3695791a9c03259740a1c944863a46f6384387145fcff684e4c33a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2444316452,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "mirror/blink-left.slow.jsonl": {
+   "sha256": "c24db04009f677de822cce39435ac5123214aa1734aa874bb4b71bacba67330d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 4238236462,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-left"
+  },
+  "mirror/blink-right.normal.jsonl": {
+   "sha256": "0cf71bacd67fc3528550e00e63b4f4ddea16134c870833aadef7057b0da5cef6",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 70587473,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "mirror/blink-right.sloppy.jsonl": {
+   "sha256": "01ebbaaa66031c81cd3eb18fbb22cfd5a48a81a9ac60addaa6c1e0dbe447fa3d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1304151565,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "mirror/blink-right.slow.jsonl": {
+   "sha256": "adb124272f1af7b7ff7dd3d0aacce49a8dd5d888f1942129f82c3a322e73f501",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 724091923,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "blink-right"
+  },
+  "mirror/bolt.normal.jsonl": {
+   "sha256": "146195bfce78f2c093ea59c5d09a0424f149db2d5953d6fe024edecbf864f10b",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 10868193,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "mirror/bolt.sloppy.jsonl": {
+   "sha256": "fb7f41b1d98429222d0b0a3661136318435929db3be40c8545207545c96f8fc5",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 514239677,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "mirror/bolt.slow.jsonl": {
+   "sha256": "3791c5c7e351070e0544e014281765ef2c96c714759b4d88994a3b8b60c5c82d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1119365955,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "bolt"
+  },
+  "mirror/both-palms.normal.jsonl": {
+   "sha256": "599912478677ea7bc688400ed481128dac109c957faa4413cf719bdf60580160",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2461494325,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "mirror/both-palms.sloppy.jsonl": {
+   "sha256": "bae7fa73644e983ff0ecc0ce6d35e3989c7aeab57f6338a3b0c029916956db2b",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 528696017,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "mirror/both-palms.slow.jsonl": {
+   "sha256": "743364804600282e51d38993f0ec8658189b4a318da4f64c942c5eb933405a20",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3603629999,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "both-palms"
+  },
+  "mirror/mudra.normal.jsonl": {
+   "sha256": "aff481c8c2fbbfd33dfff3daeb79fb2edad51c90372df2c9f7cba47ae9261d75",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1657713763,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "mirror/mudra.sloppy.jsonl": {
+   "sha256": "084ef96606bafa4881ffb29dbee02a52f4161ff42a83c48713685b36775d9987",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2542462763,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "mirror/mudra.slow.jsonl": {
+   "sha256": "f29e7939b128cbd5565194431a2eb6c6ee048e60e4deabf4bcf45d9ded9190e0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 880607141,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "mirror/sigil-line1.normal.jsonl": {
+   "sha256": "9dc13c7be511af7b7c70b8f8ca299c921339adad188cc5d554af0e2dab5d4efd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1868654362,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "mirror/sigil-line1.sloppy.jsonl": {
+   "sha256": "2bc523cdcc66d6c1fc30f0f68dc8904b25e873cfcee36d244a16f79116774ca0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3260472514,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "mirror/sigil-line1.slow.jsonl": {
+   "sha256": "e48c97a5ba7167da390ae09db8ff104c3ddaff02b0ce59ef3ee4d426fcfc45d5",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3605701984,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "mirror/sigil-line2.normal.jsonl": {
+   "sha256": "6db6223f65ca7897154298f24b966bbb950242d59e5dea42e5dd05faa00fb9bf",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2840846373,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "mirror/sigil-line2.sloppy.jsonl": {
+   "sha256": "3b7eed148590a67b097257d6d6365420c9d6d69177c599f1f8274d9a90b401a4",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 909999777,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "mirror/sigil-line2.slow.jsonl": {
+   "sha256": "d25dadbd03eb0eff860dc62d2b5f3511b1ebabe0aed4c2c718d227e4f08486e5",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3092628223,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "mirror/sigil-line3.normal.jsonl": {
+   "sha256": "200bce46d2d3c7a302407827232ee0a91cb70495cac321854be0ce3e294fa459",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3927818440,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "mirror/sigil-line3.sloppy.jsonl": {
+   "sha256": "8e4566903d2eaddbabc37ae1b5a7dd56759ef4615a8fb9344292e111225659a0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3503742924,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "mirror/sigil-line3.slow.jsonl": {
+   "sha256": "dfe53b7d04c45f3d7073fe3d412d02a3794eba43e753083a6b3de1a8ebc8ba8f",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 322132134,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "mirror/staff-lift.normal.jsonl": {
+   "sha256": "de016c94289ade2baf54a468e39ea071aa6660b0385e4f92dc399ef2a6071afa",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2549874172,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "mirror/staff-lift.sloppy.jsonl": {
+   "sha256": "db92fb3d9271618d27c018506ef1abcd21b30cb83ad7fb00aeb9f3afcebf82cc",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 583648288,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "mirror/staff-lift.slow.jsonl": {
+   "sha256": "3ba3abe5e84d70e3ab114d1755039c1ad373fd8856653fb19ccdcc451c10bc5b",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2627395634,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "mirror/staff-plant.normal.jsonl": {
+   "sha256": "888171faac44b056c98b5d8259871d0766b6107bd9b8283ee103489557c90f67",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 24950100,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "mirror/staff-plant.sloppy.jsonl": {
+   "sha256": "77e7853384a732538eb5ec6f5b275991069bc5ce326b3c084039788b8bbcc6d3",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 963426408,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "mirror/staff-plant.slow.jsonl": {
+   "sha256": "97defcfa0cd4083fc2bb3efa36277cf0f22deaee22e59cbb6bc767686b19e26f",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3136683082,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "mirror/ward-raise.normal.jsonl": {
+   "sha256": "20d7220095f9720fd2534355180698e38831b68221cdd2c925483c1bf8ed0298",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3036920249,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  },
+  "mirror/ward-raise.sloppy.jsonl": {
+   "sha256": "c9ab46e57cde33f9dcb72d6964acdbf98e4f30be10e97c2ebffcb22743036bc4",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3984997093,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  },
+  "mirror/ward-raise.slow.jsonl": {
+   "sha256": "6d7513b0a5f43a6c1335ff34eb445726fd47c0f314a5fcf2d8f98db0557ee334",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1966115387,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  },
+  "mudra.normal.jsonl": {
+   "sha256": "aff481c8c2fbbfd33dfff3daeb79fb2edad51c90372df2c9f7cba47ae9261d75",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1657713763,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "mudra.sloppy.jsonl": {
+   "sha256": "746e3854aa95bbba7a2bf00c9144c48a928e486f26f1a2ddde0de487a07d015c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2542462763,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "mudra.slow.jsonl": {
+   "sha256": "f29e7939b128cbd5565194431a2eb6c6ee048e60e4deabf4bcf45d9ded9190e0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 880607141,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "mudra"
+  },
+  "sigil-line1.normal.jsonl": {
+   "sha256": "cd79dfa156886b95f95cc2452ad65f80b2450fc984fbf68d9780c4f050cf1ffd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1868654362,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "sigil-line1.sloppy.jsonl": {
+   "sha256": "8946cc03ab8507f548e9e9101b128b8ee49eee8050bc3a9ddf572e8b79f02dd2",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3260472514,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "sigil-line1.slow.jsonl": {
+   "sha256": "7ac2956fcd1abee1b37a19257e1e2b0e01a0a041d9de07470186e058981e08cf",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3605701984,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "sigil-line2.normal.jsonl": {
+   "sha256": "46b3570593ea2663312e4d2c49aee1a552a91119e755c638a41fe752ecef111d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2840846373,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "sigil-line2.sloppy.jsonl": {
+   "sha256": "2698d85dbe351ed365b62756fcff89285600d5a4c8b752ff76f043e316c98331",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 909999777,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "sigil-line2.slow.jsonl": {
+   "sha256": "b6fe93d5ea09efa9dddf675e4b66f3892a8ad58276bd3aca9d1ccdb2516ac6d0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3092628223,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "sigil-line3.normal.jsonl": {
+   "sha256": "d4d61de655ffb31ae8d238a4f7db6a7762826998695bb3d454e1b53752e79bae",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3927818440,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "sigil-line3.sloppy.jsonl": {
+   "sha256": "83330210f2e388818a48e8dc425edd309cf6d2ef77eb23069d59f5cc1971e2cd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3503742924,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "sigil-line3.slow.jsonl": {
+   "sha256": "190f1473482bcd9f3eecf51b3c9a0802f132f8777a2988d28f71a08ddf06e4dd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 322132134,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "staff-lift.normal.jsonl": {
+   "sha256": "0a42a4b50e96ab037ad7cc53846ae68982ed71a1f82ddd0edfab14aac8f1e471",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2549874172,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "staff-lift.sloppy.jsonl": {
+   "sha256": "5f5fc86b72cc9211207958465f7b121e559cb8cd05fefec81843c48de86341cd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 583648288,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "staff-lift.slow.jsonl": {
+   "sha256": "03b9aef1aa37a81ec2de10078cb966c38b46d3df44d4e6e37b12d74338aa4772",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 2627395634,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-lift"
+  },
+  "staff-plant.normal.jsonl": {
+   "sha256": "b7636a6aec75283dcc79c6d7b193a8cf1500957650976d65c408689c19ac0d2e",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 24950100,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "staff-plant.sloppy.jsonl": {
+   "sha256": "3b5e98c27144004fc2123b0b222148200e03911942523da093134fe1c9f4936d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 963426408,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "staff-plant.slow.jsonl": {
+   "sha256": "63b817125c347c61345142300148bc249fef7c2af9ff6c6a164a0336571f2aa0",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3136683082,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "staff-plant"
+  },
+  "stones/stone-centre.normal.jsonl": {
+   "sha256": "cc78affc435a9f695dac6dddc80b6b9ae2e5fd0387533a02ce3d38924daee8cd",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1680909585,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "stone-centre"
+  },
+  "stones/stone-left.normal.jsonl": {
+   "sha256": "3ffc6e9099fd6e649490f1c1c271a53e3260b2d75c93bdd57cd5afc0b9348610",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 4037023683,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "stone-left"
+  },
+  "stones/stone-right.normal.jsonl": {
+   "sha256": "74266b4bc208e3e59396f04730831235faee89bc4cb2eb89eed045e48ae06b33",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 490977144,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "stone-right"
+  },
+  "templates/sigil-line1.normal.t800000000.jsonl": {
+   "sha256": "a785c37c28e951720a11a4d5335533e20410404f2c0e773e169b4abb70dbff69",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000000,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000001.jsonl": {
+   "sha256": "d83eb47586e2dbc221c73c99cf88faaf6d7c660cfd7a6c9b8dc7f6966d58abd5",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000001,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000002.jsonl": {
+   "sha256": "bbff22f7b291e0495871af8b1d863e2aa7abc93f04264a7323cbddeaffc96c3a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000002,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000003.jsonl": {
+   "sha256": "183eda055528e431029babe8129d2ceaa98ebf70a8ab85ef75c4731bdc7bb172",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000003,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000004.jsonl": {
+   "sha256": "745c55ebee44690c5fc25093d52242210608e9fdd778b38be2538f2967022af9",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000004,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000005.jsonl": {
+   "sha256": "11d62ef96b890939ad5cd5395f469cdb9f14608ed5c5d10bbdda1d621731bc96",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000005,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000006.jsonl": {
+   "sha256": "b5613752945feaf851ed4c01c85b3e027f4e4ad771089934b676442249141483",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000006,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.normal.t800000007.jsonl": {
+   "sha256": "8c679d61c8f2ea5f836f068e94b04b92e2c3713883f3ab24db3f05be2364a189",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000007,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.sloppy.t800000008.jsonl": {
+   "sha256": "ccdc7137ec8585b3c8dc9357b8afc43aa081cef76eda2396046ccf1c00b2b8db",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000008,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.sloppy.t800000009.jsonl": {
+   "sha256": "4c520cd7dfea17a1b667f3a5e3ed128feb555e7669d55d7328ef38b9ee3bc769",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000009,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.sloppy.t800000010.jsonl": {
+   "sha256": "f42c2f2d2ded9a791e64939cb33e186da4e4c73791d09bb2e23f6438f31762c5",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000010,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line1.sloppy.t800000011.jsonl": {
+   "sha256": "fd66e8e7b63609bd12ccf28e6b6d0f7c6c1a97c53177e2bd4d6d06656ae75c85",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800000011,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line1"
+  },
+  "templates/sigil-line2.normal.t800001000.jsonl": {
+   "sha256": "abbe04c9ffb254956e0f13ec7407e1db2c9ab3e6ae85dda6a5497ccd8261397a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001000,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001001.jsonl": {
+   "sha256": "eb64cf19f1a7ce5876dee5b009a8d94b9faae125db88887d3a561734ee679107",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001001,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001002.jsonl": {
+   "sha256": "e8257e0235ad08d7e3ed699253d7509c4bb4ca7bd87fef5370baea9048586a30",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001002,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001003.jsonl": {
+   "sha256": "1d582a8937e485094bff56823cf5ec8e98921bc0134c54b3d80fa960b71098f3",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001003,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001004.jsonl": {
+   "sha256": "5f1ab81d3afb00ca14895ea2fdade1d207f92adb0d75b81ad45f8e3a9b4c2f89",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001004,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001005.jsonl": {
+   "sha256": "e09f9c94422c86d95baebbfbc9ebf7f63bcd288549e2879cb6f692b63c6b8308",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001005,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001006.jsonl": {
+   "sha256": "0f6262784f14759564c124525bf341dbcbf39f43df1446af255efad9aae6062c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001006,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.normal.t800001007.jsonl": {
+   "sha256": "95f0436321522df4b11deedd53c3172c2f26daa9652ed4644141bbd04baacb8d",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001007,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.sloppy.t800001008.jsonl": {
+   "sha256": "b9ab341aef815784973fdab9c51ace0c9b02e92dcfd3c92a492ceb7d74c9f6c2",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001008,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.sloppy.t800001009.jsonl": {
+   "sha256": "4423fb2e86fb1d7039798457c58de2c2fdc1f0624d0afe0cd720136d59857ac1",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001009,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.sloppy.t800001010.jsonl": {
+   "sha256": "dd5b88c2a69486e17841d1260343dab6c65d206fa9b4225968ebcd918d9f5463",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001010,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line2.sloppy.t800001011.jsonl": {
+   "sha256": "d9eb8b4ab88e0049ee14c7a702a67d2a0b3eb585e1bdc85546a55d28c7b24c5a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800001011,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line2"
+  },
+  "templates/sigil-line3.normal.t800002000.jsonl": {
+   "sha256": "ad8103103e82d589c83d6d8df059c4ee93b36ae09b3a5148a4b38b85dcb2deb7",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002000,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002001.jsonl": {
+   "sha256": "8d1100512c893072d8c5b3bf76c858dbff5b888fd1e8382ad7455002a7744ef8",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002001,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002002.jsonl": {
+   "sha256": "3d9af431c6a17ffd4e43d9e828bff5eb4002e9ff5d5138d4a7c6efe9c0c599eb",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002002,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002003.jsonl": {
+   "sha256": "94ee27bf5cdeeae86e73a7e9bd80cfddf1353212fdc2a514c5b34a5c705312f7",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002003,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002004.jsonl": {
+   "sha256": "5b494356d01fa26b879ea51847da24a31d2f63638af808c66d0447736440d22c",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002004,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002005.jsonl": {
+   "sha256": "e14eefafdfa44c3bbbea043cd90942c8ba743449da010fe5ce90049f9196111a",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002005,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002006.jsonl": {
+   "sha256": "1b50beba019393db1dd75bdc5ecfde32e1e0373d1af8d9c60d0a221bb0a33737",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002006,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.normal.t800002007.jsonl": {
+   "sha256": "c50b61027ad510aab0277f20da2ff870cafddc918dfbc873f50dce2be0f261c4",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002007,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.sloppy.t800002008.jsonl": {
+   "sha256": "1bc24bd67506c1a52288e8edcb8072c878de60aad2e1673190c974c2675b1728",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002008,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.sloppy.t800002009.jsonl": {
+   "sha256": "ac052df427e56f133fba6d248aeb8d4183ebec8cffbba7858f072abd0e35f59f",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002009,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.sloppy.t800002010.jsonl": {
+   "sha256": "f8a6693034fdfdc0531bfa3302d896ab0cd7fe387f284448b41fbe4cd0a52713",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002010,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "templates/sigil-line3.sloppy.t800002011.jsonl": {
+   "sha256": "4756c4805b7c83183a009a92c6cbb5f9ad63d95b9c725611b6495daef46cc339",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 800002011,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "sigil-line3"
+  },
+  "ward-raise.normal.jsonl": {
+   "sha256": "7f345c5587537632734555918169174425e9140e3ec7fa30ed2d2585bca46c55",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3036920249,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  },
+  "ward-raise.sloppy.jsonl": {
+   "sha256": "cecb0de04a03194e5ab2e3540c1ee50a119b1ed26f2318110e30c9ad1e3eb229",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 3984997093,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  },
+  "ward-raise.slow.jsonl": {
+   "sha256": "6ab6cc8d68b1d3866ccbf963710a0d5c29b07fc2277a14fb9f21126dac8155ee",
+   "schema": "mage-arena/hand-clip@1",
+   "source": "synthetic",
+   "seed": 1966115387,
+   "performer": "clipgen",
+   "runtime": "none",
+   "device": "none",
+   "intent": "ward-raise"
+  }
+ }
+}

@@ -2,6 +2,7 @@
 // Same seed, same bytes. See docs/CLIP-SCHEMA.md.
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HZ = 72;
@@ -1434,6 +1435,9 @@ function chooseOnsetTail(settleFrames, normalFrames) {
   };
 }
 
+// Check mode regenerates into a scratch tree and must not chatter; the canonical writers log through this.
+let LOG = (text) => process.stdout.write(text);
+
 function writeSettleClip(outDir) {
   const params = variantParams('ward-raise', 'normal');
   const rendered = renderClip({
@@ -1459,7 +1463,7 @@ function writeSettleClip(outDir) {
   if (chosenFrames !== 29) {
     throw new Error(`settle tail moved to ${tail.chosen.toFixed(6)} s (${chosenFrames}/72); update WardDetector.h OnsetTailS`);
   }
-  process.stdout.write(
+  LOG(
     `settle clip still=${SETTLE_STILL_S.toFixed(2)}s confirm=${tail.confirm.toFixed(4)} onset=${tail.geo.toFixed(4)} neededTail=${tail.needed.toFixed(4)} chosenTail=${tail.chosen.toFixed(4)} gapAt60=${tail.gapAt60.toFixed(4)}\n`,
   );
   return tail;
@@ -1659,12 +1663,15 @@ function writeMirrors(outDir) {
       fs.writeFileSync(path.join(dir, `${action}.${variant}.jsonl`), `${lines.join('\n')}\n`, { encoding: 'utf8' });
     }
   }
-  process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} mirrored clips to Game/Clips/mirror\n`);
+  LOG(`wrote ${ACTIONS.length * VARIANTS.length} mirrored clips to Game/Clips/mirror\n`);
 }
 
-function writeCanonical() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const outDir = path.resolve(here, '..', '..', 'Game', 'Clips');
+const REPO_GAME = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'Game');
+
+// gameRoot is the tree to write into: the repo's apps/vr/Game for --canonical, a scratch tree for --check.
+// The settle clip lands in <gameRoot>/TestData/Clips/ward (derived from outDir), so one root covers everything.
+function writeCanonical(gameRoot = REPO_GAME) {
+  const outDir = path.join(gameRoot, 'Clips');
   fs.mkdirSync(outDir, { recursive: true });
   const normals = new Map();
   for (const variant of VARIANTS) {
@@ -1702,17 +1709,32 @@ function writeCanonical() {
   }
   writeSettleClip(outDir);
   writeMirrors(outDir);
-  process.stdout.write(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
+  LOG(`wrote ${ACTIONS.length * VARIANTS.length} clips to Game/Clips\n`);
 }
 
 function parseArgs(argv) {
   let templates = false;
   let corpus = null;
   let seed = null;
+  let canonical = false;
+  let check = false;
+  let selfTest = false;
+  let out = null;
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--templates') {
       templates = true;
+    } else if (arg === '--canonical') {
+      canonical = true;
+    } else if (arg === '--check') {
+      check = true;
+    } else if (arg === '--self-test') {
+      selfTest = true;
+    } else if (arg === '--out') {
+      out = argv[++i];
+      if (!out) {
+        throw new Error('--out needs a directory');
+      }
     } else if (arg === '--corpus') {
       corpus = Number(argv[++i]);
       if (!Number.isInteger(corpus) || corpus < 1) {
@@ -1733,16 +1755,164 @@ function parseArgs(argv) {
   if (corpus != null && seed == null) {
     throw new Error('--corpus requires --seed');
   }
-  return { templates, corpus, seed };
+  if (out != null) {
+    check = true;
+  }
+  const modes = [templates, corpus != null, canonical, check, selfTest].filter(Boolean).length;
+  if (modes > 1) {
+    throw new Error('pass exactly one of --canonical, --check [--out dir], --self-test, --templates, --corpus');
+  }
+  return { templates, corpus, seed, canonical, check, selfTest, out };
 }
 
 function isDirectInvocation() {
   return !!process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 }
 
+const USAGE = `generate.mjs needs a mode: its old default rewrote every tracked clip.
+  --check [--out dir]       regenerate into a scratch dir (default: a temp dir) and diff against the tracked clips; writes nothing in the repo
+  --canonical               REWRITE the tracked canonical clips (Game/Clips, Game/Clips/mirror, Game/TestData/Clips/ward)
+  --corpus N --seed S       write the gitignored sigil test corpus (see CLAUDE.md)
+  --templates               REWRITE the tracked sigil templates
+  --self-test               check the comparison logic on a throwaway tree`;
+
+// Directories a canonical regeneration owns, relative to Game/ (this module, stones.mjs, system-gesture.mjs).
+// Anything else under Game/Clips (templates, recordings) belongs to other writers and is not compared.
+const OWNED_DIRS = ['Clips', 'Clips/mirror', 'Clips/stones', 'TestData/Clips/ward', 'TestData/Clips/system'];
+
+function listOwned(root) {
+  const files = new Map();
+  for (const dir of OWNED_DIRS) {
+    const full = path.join(root, ...dir.split('/'));
+    if (!fs.existsSync(full)) {
+      continue;
+    }
+    for (const entry of fs.readdirSync(full, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith('.jsonl')) {
+        files.set(`${dir}/${entry.name}`, path.join(full, entry.name));
+      }
+    }
+  }
+  return files;
+}
+
+// Pure comparison of a regenerated Game tree against the tracked one.
+// extra = generated but not tracked, missing = tracked but not generated.
+function compareTrees(genRoot, trackedRoot) {
+  const gen = listOwned(genRoot);
+  const tracked = listOwned(trackedRoot);
+  const drift = [];
+  const missing = [];
+  const extra = [];
+  for (const [rel, file] of [...gen].sort()) {
+    if (!tracked.has(rel)) {
+      extra.push(rel);
+    } else if (!fs.readFileSync(file).equals(fs.readFileSync(tracked.get(rel)))) {
+      drift.push(rel);
+    }
+  }
+  for (const rel of [...tracked.keys()].sort()) {
+    if (!gen.has(rel)) {
+      missing.push(rel);
+    }
+  }
+  return { compared: gen.size, drift, missing, extra };
+}
+
+function isInside(child, parent) {
+  const rel = path.relative(parent, child);
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
+async function runCheck(outArg) {
+  const base = outArg == null ? fs.mkdtempSync(path.join(os.tmpdir(), 'clipgen-check-')) : path.resolve(outArg);
+  if (isInside(base, REPO_GAME)) {
+    throw new Error(`--out ${base} is inside the tracked Game tree; refusing`);
+  }
+  const genRoot = path.join(base, 'Game');
+  fs.mkdirSync(genRoot, { recursive: true });
+  const loud = LOG;
+  LOG = () => {};
+  try {
+    writeCanonical(genRoot);
+    (await import('./stones.mjs')).writeStones(genRoot, () => {});
+    (await import('./system-gesture.mjs')).writeSystemGesture(genRoot, () => {});
+  } finally {
+    LOG = loud;
+  }
+  const result = compareTrees(genRoot, REPO_GAME);
+  for (const rel of result.drift) {
+    process.stdout.write(`DRIFT   ${rel}\n`);
+  }
+  for (const rel of result.extra) {
+    process.stdout.write(`EXTRA   ${rel} (generated, not tracked)\n`);
+  }
+  for (const rel of result.missing) {
+    process.stdout.write(`MISSING ${rel} (tracked, not generated)\n`);
+  }
+  const bad = result.drift.length + result.extra.length + result.missing.length;
+  process.stdout.write(`regenerated into ${genRoot}\n`);
+  if (result.compared === 0) {
+    process.stdout.write('clipgen-check: FAIL, nothing was generated\n');
+    return 1;
+  }
+  process.stdout.write(
+    bad === 0
+      ? `clipgen-check: OK, ${result.compared} clips byte-identical to the tracked files\n`
+      : `clipgen-check: ${bad} difference(s) across ${result.compared} generated clips\n`,
+  );
+  return bad === 0 ? 0 : 1;
+}
+
+function selfTestCompare() {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'clipgen-selftest-'));
+  const put = (root, rel, text) => {
+    const file = path.join(root, 'Game', ...rel.split('/'));
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, text);
+  };
+  try {
+    for (const root of ['gen', 'tracked']) {
+      put(path.join(base, root), 'Clips/a.normal.jsonl', 'same\n');
+      put(path.join(base, root), 'Clips/templates/t.jsonl', root);
+    }
+    const g = path.join(base, 'gen', 'Game');
+    const t = path.join(base, 'tracked', 'Game');
+    let r = compareTrees(g, t);
+    if (r.compared !== 1 || r.drift.length + r.missing.length + r.extra.length !== 0) {
+      throw new Error(`identical trees reported ${JSON.stringify(r)}`);
+    }
+    put(path.join(base, 'gen'), 'Clips/a.normal.jsonl', 'changed\n');
+    put(path.join(base, 'gen'), 'Clips/mirror/new.normal.jsonl', 'x\n');
+    put(path.join(base, 'tracked'), 'Clips/stones/gone.normal.jsonl', 'x\n');
+    r = compareTrees(g, t);
+    if (r.drift.join() !== 'Clips/a.normal.jsonl' || r.extra.join() !== 'Clips/mirror/new.normal.jsonl'
+      || r.missing.join() !== 'Clips/stones/gone.normal.jsonl') {
+      throw new Error(`differing trees reported ${JSON.stringify(r)}`);
+    }
+    if (compareTrees(path.join(base, 'empty', 'Game'), t).compared !== 0) {
+      throw new Error('an empty tree must compare zero clips');
+    }
+    if (!isInside(path.join(REPO_GAME, 'Clips'), REPO_GAME) || isInside(base, REPO_GAME)) {
+      throw new Error('isInside is wrong');
+    }
+  } finally {
+    fs.rmSync(base, { recursive: true, force: true });
+  }
+  process.stdout.write('clipgen --self-test: OK\n');
+}
+
 async function main() {
   selfTestMath();
   const args = parseArgs(process.argv);
+  if (args.selfTest) {
+    selfTestCompare();
+    return;
+  }
+  if (args.check) {
+    process.exitCode = await runCheck(args.out);
+    return;
+  }
   if (args.templates || args.corpus != null) {
     const corpus = await import('./corpus.mjs');
     if (args.templates) {
@@ -1750,6 +1920,11 @@ async function main() {
     } else {
       corpus.writeCorpus(args.corpus, args.seed);
     }
+    return;
+  }
+  if (!args.canonical) {
+    process.stderr.write(`${USAGE}\n`);
+    process.exitCode = 2;
     return;
   }
   writeCanonical();
@@ -1765,6 +1940,8 @@ if (isDirectInvocation()) {
 }
 
 export {
+  writeCanonical,
+  compareTrees,
   HZ,
   SPACE,
   KEYPOINTS,

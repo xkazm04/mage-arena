@@ -1,6 +1,6 @@
 # DF-008 - Lio (Air) loses every duel in about 20-24 s
 
-Found 2026-10-07 by T23. Status: open, owner decision needed. Census: `DF-008-census/` (20 seeds per set, Tiro final,
+Found 2026-10-07 by T23. Status: Owner ruling 2026-10-20: recommended option adopted (A, AI first); see docs/DECISIONS.md 2026-10-20. Implementation and re-run carded for the UE host. Census: `DF-008-census/` (20 seeds per set, Tiro final,
 seated reference script, phases on).
 
 | Set | Comp. | Median s | Win | Tempest at last phase | Tempest blinked / hit / missed |

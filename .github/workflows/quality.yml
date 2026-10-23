@@ -3,9 +3,14 @@
 # No Unreal build here: the engine is not on hosted runners (build stays a local capability).
 # SUPPLY CHAIN: every action is pinned to a commit SHA with a version comment (tools/check-action-pins.mjs checks it
 # below); .github/dependabot.yml bumps the SHA and the comment together.
+# ALSO ON PUSH TO MASTER: CLAUDE.md "Git" has agents push verified work straight to origin master, so a
+# pull-request-only trigger meant no gate ran on the path the repo actually uses. The local pre-push hook
+# (tools/install-hooks.mjs) is the primary control; this is the backstop that cannot be skipped per clone.
 name: quality
 on:
   pull_request:
+  push:
+    branches: [master]
   workflow_dispatch: {}
 permissions:
   contents: read
@@ -13,19 +18,22 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: lint (unused private and protected members)
         run: node apps/vr/tools/lint/unused-members.mjs && node apps/vr/tools/lint/unused-members.mjs --self-test
       - name: supply chain (actions pinned to commit SHAs)
         run: node tools/check-action-pins.mjs && node tools/check-action-pins.mjs --self-test
       - name: test (agy guard, pinned-data hash gate)
         run: node --test tools/agy-guard.test.mjs && node apps/vr/tools/check-pin.mjs && node apps/vr/tools/check-pin.mjs --self-test
+      - name: repo law (Build.cs editor blocks, LFS binaries, never-committed dirs, zero-dependency Node)
+        run: node tools/check-repo-law.mjs && node tools/check-repo-law.mjs --self-test
   format:
-    # Changed lines only, against the PR's base branch. The runner image ships clang-format.
+    # Changed lines only, against the PR's base branch, so it stays pull-request-only: a push has no base
+    # ref to diff against. The runner image ships clang-format.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: format (clang-format on changed C++ lines)

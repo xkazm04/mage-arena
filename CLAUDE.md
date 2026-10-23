@@ -4,6 +4,7 @@ A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** 
 the Meta VR Start Developer Competition 2026 (Gaming track; deadline **2026-11-18**). One of three channels of one game:
 TV (`kiro/mage-arena-tv`, the canon owner), VR (this repo), PC (future, joins the TV repo).
 Repository layout and what is shared: `docs/REPO-LAYOUT.md`.
+**Wolf sessions (the x64 UE host): read `docs/concepts/WOLF-PLAN.md` first and follow its phases in order.**
 
 ## Read first
 
@@ -23,11 +24,14 @@ Repository layout and what is shared: `docs/REPO-LAYOUT.md`.
 - Forward shading is on from day one (it is what the Quest renderer uses).
 - Simulator target when VR starts: the **Meta Quest 3** profile.
 
-## Combat data has one owner
+## Combat data: the pin is VR's frozen baseline
 
-The tuned combat numbers (spells, enemies, tier clock, Flow) live in the TV/TS project `kiro/mage-arena-tv` and its
-calibrated simulator. This repo consumes a **pinned commit** of that data (see `apps/vr/data/README.md`) and never edits it in
-place; changes go back as change requests. A `combat.json` copied from a contest folder is stale - do not use it.
+The tuned combat numbers (spells, enemies, tier clock, Flow) were calibrated in the TV/TS project `kiro/mage-arena-tv`. TV is
+obsolete as a product; its pinned commit (see `apps/vr/data/README.md`, `apps/vr/data/PINNED.json`) is VR's frozen baseline
+(DECISIONS 2026-10-21). Never edit `apps/vr/data/pinned/**` in place, and nobody re-pins from TV. Every VR combat-data change
+goes into the VR overlay (`apps/vr/data/vr/`). `docs/change-requests/CR-*` are VR design records for overlay changes, not
+requests to TV. `check-pin.mjs` and the 45 conformance vectors stay a merge gate against the baseline. A `combat.json`
+copied from a contest folder is stale - do not use it.
 
 ## Tooling
 
@@ -48,7 +52,10 @@ Before the full `MageArena` suite in a fresh checkout or worktree, regenerate th
 `node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000`, then `node apps/vr/tools/clipgen/mousepaths.mjs`
 (verified 2026-10-07: they wrote 270 corpus, 5 noise and 180 impostor clips, then 90 mouse clips, and `git status` stayed
 clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Never run `generate.mjs` bare or with
-`--templates` for this: both rewrite tracked clips. As of 9f338f0, five suite failures are known on a clean tree:
+`--templates` for this: both rewrite tracked clips. Since f33bf18 that is **enforced, not just advised** - a bare
+`generate.mjs` prints usage and exits 2, and rewriting tracked clips needs an explicit `--canonical`. To verify the
+clips without writing anything, `node apps/vr/tools/clipgen/generate.mjs --check` regenerates into a temp directory
+and diffs against the tracked files (byte-identical on Windows ARM64 / Node 24, 2026-10-21). As of 9f338f0, five suite failures are known on a clean tree:
 `MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, `Session.Wave1Seated` and
 `Session.CreaturesSeated`. `Duel.AirSeated` and `Session.CreaturesSeated` were confirmed red on base 9f338f0 (owner ruling
 2026-10-16) and are not new regressions.
@@ -61,17 +68,22 @@ and `DerivedDataCache/` are never committed.
 
 ## Git
 
-Commit locally, in small atomic commits. Never push, force-push or bypass hooks unless the owner asks.
+Commit in small atomic commits. Push verified work to `origin master` on GitHub (owner, 2026-10-21): the gates in
+`.ai/manifest.yaml` are green and the secret scan is clean. This is how Lynx and Wolf exchange work. Before pushing,
+`git fetch` and rebase onto `origin/master`, or merge it when a rebase would rewrite shared history. Resolve conflicts
+yourself, keeping both sides' intent, and ask the owner only when the two sides make incompatible design choices.
+Never force-push to `master`, rewrite pushed history or bypass hooks.
 
-Subjects take one of two forms: `<card id>: summary` for a task card, change request or design finding (`T08: `,
-`A02: `, `CR-003: `), else `type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
+Subjects take one of two forms: `<card id>: summary` for a task card, change request, design finding or a lane-B
+design deliverable (`T08: `, `A02: `, `CR-003: `, `DF-010: `, `C2: ` - C ids are single-digit, T ids two), else
+`type(scope): summary` with type feat, fix, docs, style, refactor, perf, test, build, ci,
 chore or revert. `node tools/check-commits.mjs` checks the branch's commits; `.github/workflows/commits.yml` fails a
 pull request on any other subject.
 
 <!-- personas:context-map:start -->
 ## Project Context Map
 
-This project is organized into **8 contexts** across **7 groups**. The full machine-readable map lives in `context-map.json` at the project root — read it at task start to scope your edits to the relevant context's files.
+This project is organized into **19 contexts** across **10 groups**. The full machine-readable map lives in `context-map.json` at the project root — read it at task start to scope your edits to the relevant context's files.
 
 Taxonomy: each context has a `category` (ui · api · lib · data · test · config); each group has a `domain` (feature · infrastructure · shared · integration · data).
 
@@ -79,11 +91,14 @@ Taxonomy: each context has a `category` (ui · api · lib · data · test · con
 
 - **Spell Casting** _(domain: feature · 1 contexts)_
 - **Combat Simulation** _(domain: feature · 2 contexts)_
+- **Combat Data** _(domain: data · 2 contexts)_
 - **Hand Input & Player** _(domain: shared · 1 contexts)_
-- **Arena Presentation** _(domain: feature · 1 contexts)_
-- **Duel Session** _(domain: feature · 1 contexts)_
-- **Test Suite** _(domain: infrastructure · 1 contexts)_
-- **Build & Tools** _(domain: infrastructure · 1 contexts)_
+- **Duel Session** _(domain: feature · 2 contexts)_
+- **Arena Presentation** _(domain: feature · 2 contexts)_
+- **Art & Audio Assets** _(domain: feature · 5 contexts)_
+- **Test Suite** _(domain: infrastructure · 2 contexts)_
+- **Build & Tools** _(domain: infrastructure · 2 contexts)_
+- **Design Docs & Task Cards** _(domain: infrastructure · 0 contexts)_
 
 > Auto-generated by Personas on each context scan. Edits between the markers are overwritten on the next scan; edit `context-map.json` or rescan instead.
 <!-- personas:context-map:end -->

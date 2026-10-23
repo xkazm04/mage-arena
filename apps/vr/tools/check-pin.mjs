@@ -1,4 +1,4 @@
-// Hash gate for data/PINNED.json. Node built-ins only.
+// Hash gate for data/PINNED.json and data/CONFORMANCE.json. Node built-ins only.
 // git show is captured as a Buffer. A shell redirect would rewrite line endings.
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -19,6 +19,8 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifestPath = join(repoRoot, 'data', 'PINNED.json');
 const defaultPinnedDir = join(repoRoot, 'data', 'pinned');
+const conformanceManifestPath = join(repoRoot, 'data', 'CONFORMANCE.json');
+const defaultConformanceDir = join(repoRoot, 'data', 'conformance');
 
 function fail(message) {
   console.error(message);
@@ -150,6 +152,71 @@ function checkTree(manifest, pinnedDir, source) {
   return { ok: true, count: manifest.files.length };
 }
 
+function checkConformance(manifest, conformanceDir) {
+  const errors = [];
+  const listed = new Set();
+  if (!existsSync(conformanceDir) || !statSync(conformanceDir).isDirectory()) {
+    return { ok: false, errors: [`missing directory: ${conformanceDir}`] };
+  }
+  for (const entry of manifest.files) {
+    const rel = entry && entry.path;
+    if (listed.has(rel)) errors.push(`duplicate manifest path: ${rel}`);
+    listed.add(rel);
+    const full = insidePath(conformanceDir, rel);
+    if (!full) {
+      errors.push(`invalid manifest path: ${rel}`);
+      continue;
+    }
+    if (!existsSync(full) || !statSync(full).isFile()) {
+      errors.push(`missing file: ${rel}`);
+      continue;
+    }
+    const buf = readFileSync(full);
+    if (sha256(buf) !== entry.sha256) errors.push(`sha256 mismatch: ${rel}`);
+    if (typeof entry.bytes === 'number' && buf.length !== entry.bytes) {
+      errors.push(`size mismatch: ${rel} (${buf.length} bytes, manifest ${entry.bytes})`);
+    }
+  }
+  for (const path of listFiles(conformanceDir)) {
+    if (!listed.has(path)) errors.push(`unlisted file: ${path}`);
+  }
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, count: manifest.files.length };
+}
+
+function conformanceSelfTest() {
+  const tmp = mkdtempSync(join(tmpdir(), 'mage-arena-conf-'));
+  try {
+    cpSync(defaultConformanceDir, tmp, { recursive: true });
+    const manifest = loadConformanceManifest();
+    const clean = checkConformance(manifest, tmp);
+    if (!clean.ok) return { ok: false, line: `self-test: clean conformance copy failed\n${clean.errors.join('\n')}` };
+    const rel = manifest.files[0].path;
+    const full = insidePath(tmp, rel);
+    const buf = readFileSync(full);
+    buf[0] ^= 0x01;
+    writeFileSync(full, buf);
+    const dirty = checkConformance(manifest, tmp);
+    if (!dirty.ok && dirty.errors.some((err) => err === `sha256 mismatch: ${rel}`)) {
+      return { ok: true, line: `conformance corruption detected: ${rel}` };
+    }
+    return { ok: false, line: 'self-test: conformance vector corruption was not detected' };
+  } finally {
+    rmSync(tmp, { recursive: true, force: true });
+  }
+}
+
+function loadConformanceManifest() {
+  let manifest;
+  try {
+    manifest = JSON.parse(readFileSync(conformanceManifestPath, 'utf8'));
+  } catch (err) {
+    fail(`cannot read ${conformanceManifestPath}: ${err.message}`);
+  }
+  if (!manifest || !Array.isArray(manifest.files)) fail('CONFORMANCE.json has no files array');
+  return manifest;
+}
+
 function selfTest(manifest) {
   const tmp = mkdtempSync(join(tmpdir(), 'mage-arena-pin-'));
   let exitCode = 1;
@@ -173,8 +240,9 @@ function selfTest(manifest) {
         const dirty = checkTree(manifest, tmp, null);
         const detected = !dirty.ok && dirty.errors.some((err) => err === `sha256 mismatch: ${rel}`);
         if (detected) {
-          exitCode = 0;
-          line = `corruption detected: ${rel}`;
+          const conf = conformanceSelfTest();
+          exitCode = conf.ok ? 0 : 1;
+          line = conf.ok ? `corruption detected: ${rel}\n${conf.line}` : conf.line;
         } else if (dirty.ok) {
           line = 'self-test: corruption was not detected';
         } else {
@@ -205,6 +273,12 @@ function main() {
   const short = manifest.commit.slice(0, 7);
   console.log(`pin OK: ${result.count} files @ ${short}`);
   if (source) console.log(`pin OK, source match for ${result.count} files`);
+  const conformance = checkConformance(loadConformanceManifest(), defaultConformanceDir);
+  if (!conformance.ok) {
+    console.error(conformance.errors.join('\n'));
+    process.exit(1);
+  }
+  console.log(`conformance OK: ${conformance.count} vectors`);
 }
 
 main();

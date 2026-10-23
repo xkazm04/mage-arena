@@ -3,17 +3,17 @@
 - **Where to post it:** the competition's Discussions page, `https://start-developer-competition-26.devpost.com/forum_topics`
   (linked from both the rules page and the overview page; whether it accepts new topics from entrants is [confirm]).
   Fallback: the Devpost contact page, `https://info.devpost.com/contact`. The pages show no mailto and no manager email.
-- **When it is due:** before 12 Oct 2026.
-- **Status:** draft, not sent. The owner posts it. (DECISIONS.md, 2026-10-07: the reuse is provisionally accepted meanwhile.)
+- **When it is due:** the 12 Oct 2026 target passed without a post. The owner ruled on 2026-10-21 to post a revised question.
+- **Status:** not posted - owner ruling 2026-10-21: not needed (see DECISIONS 2026-10-21)
 
 ## Before you post
 
 Facts only the owner can confirm. The body below does not assert any of them.
 
-- [confirm] The sibling TV channel has not been released, and has not been shown publicly as a shipped title.
+- [confirm] The sibling TV project has not been released, has not been shown publicly as a shipped title, and is now obsolete as a product (obsolete is the owner's ruling of 2026-10-20). The body says only that it is no longer developed as a product; add "has not shipped" to the body only once the first two points are confirmed.
 - [confirm] The same individual is the entrant for both the TV and the VR project.
 - [confirm] The TV git dates are real. 5 of 116 TV commits have an author date that differs from the committer date by seconds to minutes (history rewrite, 2026-10-07); the three commits cited below have equal dates.
-- [confirm] Whether the second question (tooling) stays in or is cut.
+- [confirm] Whether the second question (tooling) stays in or is cut. This is an explicit owner choice; if cut, delete question 2 and keep question 1.
 - 2026-10-08: Devpost update 46826 (https://start-developer-competition-26.devpost.com/updates/46826-give-yourself-a-schedule-save-the-date-live-build-session-october-13), posted about 2026-10-05 (the page shows "3 days ago"; unconfirmed), says "New Experience means starting from a blank slate on or after September 24, 2026" and "define your track and division" by "Friday, October 9". The shared design, kernel and data were first committed on 1 Oct 2026, after 24 Sep, which is what question 1 asks about, and "blank slate" may bear on question 2 (tooling from before the window).
 
 ## Subject
@@ -26,9 +26,9 @@ Hello,
 
 The New Experience rule says: "conceived of and built within the competition window (starting September 24, 2026). No pre-existing codebases, no shipped titles, no early access builds repurposed".
 
-Our VR entry shares a game design, a rules kernel and combat data with a sibling project of the same game. The window opened on 24 Sep 2026. The shared design, kernel and data were first committed on 1 Oct 2026 at 23:46 CEST. The VR project was first committed on 2 Oct 2026.
+This VR project is our entry and the main product of the game. It builds on a game design, a rules kernel and combat data that are our own work, made in a sibling project of the same game. That sibling project is no longer developed as a product. The window opened on 24 Sep 2026. The design, kernel and data were first committed on 1 Oct 2026 at 23:46 CEST, after the window opened. The VR project was first committed on 2 Oct 2026.
 
-1. Does reusing our own design, kernel and data, created after the window opened in a sibling project of the same game, keep the VR entry eligible for the New Experience division? (yes/no)
+1. Does building the VR entry on our own design, kernel and data, created after the window opened in a sibling project of the same game, keep it eligible for the New Experience division? (yes/no)
 2. May we use our own development tooling from before the window? It runs only in the editor and is not shipped in the APK. (yes/no)
 
 Thank you.

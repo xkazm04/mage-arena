@@ -1,0 +1,44 @@
+{
+  "card": "T15",
+  "asset": "Mire maw concept",
+  "model": "openai/gpt-image-2.5-flare",
+  "runCap": 112,
+  "totalCredits": 56,
+  "note": "One entry per Leonardo call, failed calls included. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).",
+  "calls": [
+    {
+      "date": "2026-10-21T12:26:27.597Z",
+      "view": "front",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "prompt": "Full-body orthographic front view of a mire maw, a big squat toad-like bog creature shaped like a mound: a huge round body as wide as it is tall with the head merged into it, a very wide closed mouth slot running across the whole front from side to side with thick muddy lips, two small eyes on low bulges on top, two nostril holes, short thick bowed legs with wide flat webbed feet, and two small stubby arms resting on the round belly. A thick ragged mat of moss covers its back and the top of its head, with a few small pebbles in it. It squats on its short legs in a neutral pose: the mouth closed, the small arms resting on the belly, the feet flat and apart. No reeds, no thin spikes, no water, no splashes, no effects. It faces the camera directly, symmetrical, the whole creature from the top of the head to the feet visible with empty margin around it, centred on a plain flat light grey background, no scenery, no ground, a single creature. Game-ready 3D creature model reference for a modeller: simple large readable shapes, chunky forms, matte surfaces, one flat colour per material with no pattern and no texture detail. Palette blocks: skin bog olive green-brown, belly lighter muddy tan, moss mat dark mossy green, lips and mouth slot dark mud brown, eyes pale yellow, pebbles grey. Soft even studio light, no cast shadows, no text, no labels, no grid, no watermark.",
+      "seed": 4401,
+      "quality": "MEDIUM",
+      "width": 1376,
+      "height": 768,
+      "generationId": "1f1cd4aa-3686-6d80-a7e8-adabb8a55c2c",
+      "status": "COMPLETE",
+      "credits": 14,
+      "creditsSource": "api",
+      "file": "apps/vr/art/characters/mire-maw/concept-front-s4401-medium.jpg",
+      "bytes": 68267
+    },
+    {
+      "date": "2026-10-21T12:26:42.523Z",
+      "view": "turnaround",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "prompt": "Creature turnaround sheet of a mire maw, a big squat toad-like bog creature shaped like a mound: a huge round body as wide as it is tall with the head merged into it, a very wide closed mouth slot running across the whole front from side to side with thick muddy lips, two small eyes on low bulges on top, two nostril holes, short thick bowed legs with wide flat webbed feet, and two small stubby arms resting on the round belly. A thick ragged mat of moss covers its back and the top of its head, with a few small pebbles in it. Three full-body orthographic views of the same creature side by side at the same scale and height: front view, right side view, back view. It squats on its short legs in a neutral pose: the mouth closed, the small arms resting on the belly, the feet flat and apart. No reeds, no thin spikes, no water, no splashes, no effects. Plain flat light grey background, no scenery, no ground. Game-ready 3D creature model reference for a modeller: simple large readable shapes, chunky forms, matte surfaces, one flat colour per material with no pattern and no texture detail. Palette blocks: skin bog olive green-brown, belly lighter muddy tan, moss mat dark mossy green, lips and mouth slot dark mud brown, eyes pale yellow, pebbles grey. Soft even studio light, no cast shadows, no text, no labels, no grid, no watermark.",
+      "seed": 4402,
+      "quality": "MEDIUM",
+      "width": 1376,
+      "height": 768,
+      "generationId": "1f1cd4aa-c54a-6b20-a551-f417cd7008e3",
+      "status": "COMPLETE",
+      "credits": 14,
+      "creditsSource": "api",
+      "file": "apps/vr/art/characters/mire-maw/concept-turnaround-s4402-medium.jpg",
+      "bytes": 76886
+    }
+  ]
+}

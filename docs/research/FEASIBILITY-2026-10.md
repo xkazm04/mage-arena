@@ -442,7 +442,7 @@ Ranked by how likely each one is to sink the entry.
      fast hand.
 3. **Quest 3S is declared but may never be tried.**
    - **The evidence:** the owner chose Quest 3 and 3S (DECISIONS 2026-10-07). The device named is a Quest 3
-     (`docs/DECISIONS.md:122`). The 3S has a lower-resolution panel, and its lens, FOV and hand-tracking quality are
+     (`docs/DECISIONS.md:156`). The 3S has a lower-resolution panel, and its lens, FOV and hand-tracking quality are
      unconfirmed first-party.
    - **Owner choice (2026-10-07):** ship 3S untested; the risk is accepted (DECISIONS 2026-10-07, Quest 3S ships untested).
    - **What retires it:** one 3S session in V3: sigil legibility, peripheral threat cues, the `Camera FPS` line, and a

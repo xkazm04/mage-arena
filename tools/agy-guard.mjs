@@ -20,7 +20,7 @@ const rules = [
   [gitMutation, 'workers never change git history or the worktree state; the orchestrator commits'],
   [/--no-verify|--force\b|\s-f\s.*push/i, 'no hook bypass or force operations'],
   [recursiveDelete, 'no recursive deletes; ask the orchestrator'],
-  [/ELEVENLABS_API_KEY|\.env\b/i, 'secrets are read only by tools the card names, never echoed'],
+  [/ELEVEN_?LABS_API_KEY|LEONARDO_API_KEY|\.env\b/i, 'secrets are read only by tools the card names, never echoed'],
 ];
 // Review mode: `--mode plan` does NOT stop agy from editing files or building (observed 2026-10-03, T10 review), so a
 // read-only review is enforced here. With AGY_READONLY=1 only reading, listing and searching are allowed.

@@ -1,0 +1,217 @@
+{
+ "fbx": "C:/Users/kazda/kiro/mage-arena-archive/T15/cinder-hound/export/SK_CinderHound.fbx",
+ "fbx_file": {
+  "version": 7400,
+  "bytes": 1452172,
+  "limb_nodes": 26,
+  "mesh_models": [
+   "SM_CinderHound"
+  ],
+  "skin_deformers": 1,
+  "materials": [
+   "M_CinderHound_Cinder",
+   "M_CinderHound_Ember",
+   "M_CinderHound_Paw"
+  ],
+  "textures": 0,
+  "anim_stacks": [
+   {
+    "name": "Idle",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   },
+   {
+    "name": "Attack",
+    "start_s": 0.0,
+    "stop_s": 1.1666666666666667
+   },
+   {
+    "name": "Hit",
+    "start_s": 0.0,
+    "stop_s": 0.8
+   },
+   {
+    "name": "Death",
+    "start_s": 0.0,
+    "stop_s": 2.0
+   }
+  ]
+ },
+ "mesh": {
+  "verts": 5894,
+  "tris": 11784,
+  "watertight": true,
+  "windingConsistent": true,
+  "components": 1,
+  "floaters": 0,
+  "componentFaces": [
+   11784
+  ],
+  "degenerateFaces": 0,
+  "euler": 2,
+  "height_m": 1.359,
+  "bbox_m": [
+   1.9257,
+   0.3027,
+   1.359
+  ],
+  "min_z_m": 0.0001,
+  "centre_xy_m": [
+   0.001,
+   0.0
+  ]
+ },
+ "skeleton": {
+  "bones": 26,
+  "names": [
+   "root",
+   "pelvis",
+   "spine_01",
+   "spine_02",
+   "spine_03",
+   "neck_01",
+   "neck_02",
+   "head",
+   "jaw",
+   "front_upper_l",
+   "front_lower_l",
+   "front_paw_l",
+   "front_upper_r",
+   "front_lower_r",
+   "front_paw_r",
+   "tail_01",
+   "tail_02",
+   "tail_03",
+   "back_thigh_l",
+   "back_shin_l",
+   "back_hock_l",
+   "back_paw_l",
+   "back_thigh_r",
+   "back_shin_r",
+   "back_hock_r",
+   "back_paw_r"
+  ],
+  "left_y": 0.085,
+  "right_y": -0.085,
+  "forward_dx": 0.067,
+  "root_head": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "weights": {
+  "unweighted_verts": 0,
+  "max_abs_sum_error": 0.0,
+  "max_influences": 4,
+  "normalised": true
+ },
+ "clips": {
+  "Attack": {
+   "action": "Armature|Attack",
+   "frames": 36,
+   "fcurves": 269,
+   "max_channel_range": 0.3419
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61,
+   "fcurves": 269,
+   "max_channel_range": 0.6977
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25,
+   "fcurves": 269,
+   "max_channel_range": 0.2954
+  },
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61,
+   "fcurves": 269,
+   "max_channel_range": 0.0695
+  }
+ },
+ "fps": 30.0,
+ "materials": [
+  {
+   "name": "M_CinderHound_Cinder",
+   "base_color_linear": [
+    0.0331,
+    0.0331,
+    0.0363
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_CinderHound_Ember",
+   "base_color_linear": [
+    0.9114,
+    0.1706,
+    0.01
+   ],
+   "image_nodes": 0
+  },
+  {
+   "name": "M_CinderHound_Paw",
+   "base_color_linear": [
+    0.0049,
+    0.0049,
+    0.006
+   ],
+   "image_nodes": 0
+  }
+ ],
+ "checks": [
+  {
+   "check": "1 one skeleton",
+   "pass": true,
+   "value": "1 armature, 1 skin deformer"
+  },
+  {
+   "check": "2 one skinned mesh",
+   "pass": true,
+   "value": "1 mesh, 1 skinned"
+  },
+  {
+   "check": "3 exactly the four clips, none empty",
+   "pass": true,
+   "value": "stacks ['Idle', 'Attack', 'Hit', 'Death']; frames Idle 61, Attack 36, Hit 25, Death 61"
+  },
+  {
+   "check": "4 LOD0 triangle count within budget",
+   "pass": true,
+   "value": "11784 tris (budget 12000, three hounds on screen at once)"
+  },
+  {
+   "check": "5 one flat colour per material, no embedded textures",
+   "pass": true,
+   "value": "3 materials, 0 textures"
+  },
+  {
+   "check": "6 origin at the feet",
+   "pass": true,
+   "value": "min z 0.0001 m, bbox centre xy [0.001, 0.0] m"
+  },
+  {
+   "check": "7 +X forward",
+   "pass": true,
+   "value": "front_paw_l y 0.085, front_paw_r y -0.085, head dx 0.067"
+  },
+  {
+   "check": "8 unit scale, height 1.36 m +-10 % (1.224-1.496 m)",
+   "pass": true,
+   "value": "height 1.359 m (-0.1 %), object scale [1.0, 1.0, 1.0]"
+  },
+  {
+   "check": "9 weights normalised",
+   "pass": true,
+   "value": "max |sum-1| 0.0, unweighted 0, max influences 4"
+  },
+  {
+   "check": "10 no floaters",
+   "pass": true,
+   "value": "1 component(s), 0 floaters"
+  }
+ ]
+}

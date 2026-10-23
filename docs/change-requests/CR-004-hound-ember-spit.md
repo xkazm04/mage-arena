@@ -1,6 +1,6 @@
 # CR-004 - Cinder hounds spit embers; a dying hound throws one last ember
 
-Status: open. Filed for the desktop/TV kernel channel. Not merged. Pacing is not settled (DF-007).
+Status: open. VR design record for the overlay, per DECISIONS 2026-10-21. Not merged. Pacing is not settled (DF-007).
 
 Date: 2026-10-07. Owner decision the same day (`docs/DECISIONS.md`, "v2 vision accepted", DF-004 option A): hound
 death bursts (radius 1.5 m) cannot reach a seated player held off the dais (CR-003), so the creature bout taught no

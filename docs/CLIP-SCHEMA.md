@@ -156,3 +156,22 @@ A device recording is this schema with `source: "recorded"` and `seed: 0`.
 - `mouse` is reserved for a clip whose index tip follows a mouse stroke and whose other joints are a hand posed around that tip. Same header and frame rules.
 
 The desktop player samples by `t` and interpolates (lerp positions, pinch, and confidence; slerp rotations). A recording that obeys the spacing rule plays without a special case.
+
+## Field layers
+
+A clip replays one layer of the input stack, and nothing below that layer runs on playback. The frame mixes two kinds of field. `joints` are tracked poses, already extrapolated to display time on the device. `pinch`, `conf` and `sys` are values the runtime has already decided. A rule that reads a decided field is tested on its use of that verdict, never on the verdict itself. A runtime update can move the verdict without moving a joint, and every old clip stays green.
+
+| Field | Layer | Read by | What a replay of an old clip cannot see |
+|---|---|---|---|
+| `joints` | tracked pose (extrapolated on device) | blink, ward, staff palm spacing, sigil stroke points | a tracker change that moves the joints |
+| `pinch` | runtime decision | sigil pen state in style A (`PinchDown` 0.7, `PinchUp` 0.5), staff grip (`GripPinch` 0.70) | a change in how the runtime scores contact |
+| `sys` | runtime decision | `SystemGestureGate` | when the runtime raises the bit |
+| `conf` | runtime decision | `SessionFlow` confidence checks | a change in how the runtime scores confidence |
+
+Style B synthesizes its pen state from fingertip motion (`FSigilStrokeBuilder::SynthesizePinch`). That value sits above the clip, and a replay tests it fully.
+
+**The synthetic corpus cannot disagree with itself.** `clipgen` writes `pinch` first and places the thumb from it (`placeThumb` in `tools/clipgen/generate.mjs`). Measured over the 113 committed clips (`Game/Clips` and `Game/TestData`, all `synthetic`) on 2026-10-21: in all 8,995 frames with `pinch >= 0.7`, the thumb-tip to index-tip distance is at most 3.39 cm. In all 4,947 frames with `pinch < 0.5`, it is at least 3.97 cm. Not one frame has the two layers disagree. A control clip with five pen-down frames whose thumb was moved 8 cm read 5 of 5. A device recording does not agree by construction. When V2 clips land, report each clip's count of frames where `pinch` says contact and the tips are apart, and the reverse. That count is the first measure of the runtime's pinch layer. Record it as the proxy's miss for pinch.
+
+**Open, and V2 as specified cannot close it.** It is unknown whether the runtime extrapolates pinch strength. The extrapolation model in `Tests/HeldSampleTests.cpp` holds it, and with pinch extrapolated too the extrap30 corpus gave 30 impostor casts instead of 9. A 72 Hz recording without `captureTime` cannot tell an extrapolated pinch from a sampled one. Until the reserved field ships (G2), the sigil and staff verdicts on real hands carry that question.
+
+What produced each kind of stand-in clip, which figures rest on them, and the claims that wait for real hands: `docs/PROXY-LEDGER.md`.

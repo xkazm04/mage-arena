@@ -1,0 +1,4887 @@
+{
+ "card": "A07 crowd",
+ "axes": "Unreal axes as in arena-layout.json (+X dais to centre, +Y the seated player's right, Z up); yawDeg about +Z, Unreal sense (+X toward +Y); scale is the instance scale, Y = length along the chord. A card faces its local +X (toward the arena centre); locationM is the pivot at the feet on the tread top.",
+ "seed": 20261022,
+ "pitchM": 0.55,
+ "edgeMarginM": 0.3,
+ "treadTopsM": [
+  3.5,
+  4.35,
+  5.2
+ ],
+ "tiersFilled": 34,
+ "perTier": [
+  {
+   "piece": "TierCurved",
+   "instance": 1,
+   "cards": 14
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 3,
+   "cards": 15
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 5,
+   "cards": 16
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 7,
+   "cards": 17
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 9,
+   "cards": 19
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 12,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 13,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 15,
+   "cards": 20
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 17,
+   "cards": 20
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 20,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 21,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 23,
+   "cards": 19
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 25,
+   "cards": 17
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 27,
+   "cards": 16
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 29,
+   "cards": 15
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 31,
+   "cards": 14
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 33,
+   "cards": 13
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 35,
+   "cards": 13
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 37,
+   "cards": 14
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 39,
+   "cards": 15
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 41,
+   "cards": 16
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 43,
+   "cards": 17
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 45,
+   "cards": 19
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 48,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 49,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 51,
+   "cards": 20
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 53,
+   "cards": 20
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 56,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 57,
+   "cards": 5
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 59,
+   "cards": 19
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 61,
+   "cards": 17
+  },
+  {
+   "piece": "TierStraight",
+   "instance": 63,
+   "cards": 16
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 65,
+   "cards": 15
+  },
+  {
+   "piece": "TierCurved",
+   "instance": 67,
+   "cards": 14
+  }
+ ],
+ "cards": [
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.1308,
+    4.2288,
+    3.5
+   ],
+   "yawDeg": -148.393,
+   "scale": 0.979
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.4492,
+    3.7838,
+    3.5
+   ],
+   "yawDeg": -155.529,
+   "scale": 1.038
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.6225,
+    3.2893,
+    3.5
+   ],
+   "yawDeg": -152.89,
+   "scale": 0.995
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.8766,
+    2.8297,
+    3.5
+   ],
+   "yawDeg": -162.302,
+   "scale": 0.937
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    17.3865,
+    5.1481,
+    4.35
+   ],
+   "yawDeg": -151.54,
+   "scale": 1.068
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    17.7419,
+    4.6479,
+    4.35
+   ],
+   "yawDeg": -153.285,
+   "scale": 1.035
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    17.9245,
+    4.1658,
+    4.35
+   ],
+   "yawDeg": -151.566,
+   "scale": 0.948
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    18.1865,
+    3.7318,
+    4.35
+   ],
+   "yawDeg": -152.379,
+   "scale": 0.961
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    18.3379,
+    3.188,
+    4.35
+   ],
+   "yawDeg": -161.599,
+   "scale": 0.951
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.8026,
+    5.7958,
+    5.2
+   ],
+   "yawDeg": -150.578,
+   "scale": 1.012
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    19.125,
+    5.3519,
+    5.2
+   ],
+   "yawDeg": -149.841,
+   "scale": 1.039
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    19.2875,
+    4.9073,
+    5.2
+   ],
+   "yawDeg": -148.937,
+   "scale": 1.018
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    19.5902,
+    4.3935,
+    5.2
+   ],
+   "yawDeg": -157.314,
+   "scale": 1.057
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    19.6992,
+    3.9485,
+    5.2
+   ],
+   "yawDeg": -162.495,
+   "scale": 0.974
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.5431,
+    6.2433,
+    3.5
+   ],
+   "yawDeg": -134.721,
+   "scale": 1.002
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.9979,
+    5.853,
+    3.5
+   ],
+   "yawDeg": -136.765,
+   "scale": 1.017
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    15.3453,
+    5.3546,
+    3.5
+   ],
+   "yawDeg": -141.869,
+   "scale": 0.935
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    15.7185,
+    4.9611,
+    3.5
+   ],
+   "yawDeg": -144.919,
+   "scale": 0.971
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    15.5499,
+    7.4215,
+    4.35
+   ],
+   "yawDeg": -131.185,
+   "scale": 1.011
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    15.931,
+    7.1318,
+    4.35
+   ],
+   "yawDeg": -133.426,
+   "scale": 1.054
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.2791,
+    6.6537,
+    4.35
+   ],
+   "yawDeg": -143.531,
+   "scale": 1.013
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.7386,
+    6.1875,
+    4.35
+   ],
+   "yawDeg": -138.923,
+   "scale": 1.036
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    17.0281,
+    5.6931,
+    4.35
+   ],
+   "yawDeg": -143.135,
+   "scale": 0.983
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    16.4968,
+    8.6679,
+    5.2
+   ],
+   "yawDeg": -132.323,
+   "scale": 1.076
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    16.9355,
+    8.3214,
+    5.2
+   ],
+   "yawDeg": -131.398,
+   "scale": 1.005
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    17.2765,
+    7.8676,
+    5.2
+   ],
+   "yawDeg": -142.512,
+   "scale": 0.969
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    17.6898,
+    7.4766,
+    5.2
+   ],
+   "yawDeg": -142.363,
+   "scale": 0.956
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.0506,
+    6.9253,
+    5.2
+   ],
+   "yawDeg": -144.914,
+   "scale": 1.057
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    18.4126,
+    6.5201,
+    5.2
+   ],
+   "yawDeg": -145.846,
+   "scale": 1.002
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    12.335,
+    8.0844,
+    3.5
+   ],
+   "yawDeg": -130.236,
+   "scale": 1.07
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    12.789,
+    7.8141,
+    3.5
+   ],
+   "yawDeg": -125.53,
+   "scale": 0.98
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    13.1604,
+    7.4559,
+    3.5
+   ],
+   "yawDeg": -132.346,
+   "scale": 0.978
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    13.6685,
+    7.1443,
+    3.5
+   ],
+   "yawDeg": -125.117,
+   "scale": 0.953
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.0501,
+    6.7783,
+    3.5
+   ],
+   "yawDeg": -124.877,
+   "scale": 0.963
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.2096,
+    9.3667,
+    4.35
+   ],
+   "yawDeg": -123.834,
+   "scale": 0.943
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    13.6773,
+    9.0859,
+    4.35
+   ],
+   "yawDeg": -126.048,
+   "scale": 1.0
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    14.1097,
+    8.6812,
+    4.35
+   ],
+   "yawDeg": -131.701,
+   "scale": 1.015
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    14.6206,
+    8.3675,
+    4.35
+   ],
+   "yawDeg": -131.952,
+   "scale": 1.047
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    14.9467,
+    8.0438,
+    4.35
+   ],
+   "yawDeg": -124.905,
+   "scale": 1.044
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.9721,
+    10.7344,
+    5.2
+   ],
+   "yawDeg": -132.746,
+   "scale": 1.054
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.445,
+    10.4496,
+    5.2
+   ],
+   "yawDeg": -128.081,
+   "scale": 1.076
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    14.8006,
+    10.1033,
+    5.2
+   ],
+   "yawDeg": -126.173,
+   "scale": 1.009
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    15.2695,
+    9.8217,
+    5.2
+   ],
+   "yawDeg": -127.934,
+   "scale": 1.024
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    15.7307,
+    9.395,
+    5.2
+   ],
+   "yawDeg": -124.668,
+   "scale": 0.94
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.2058,
+    9.1086,
+    5.2
+   ],
+   "yawDeg": -124.247,
+   "scale": 0.984
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    9.7232,
+    9.4883,
+    3.5
+   ],
+   "yawDeg": -122.892,
+   "scale": 0.921
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    10.2994,
+    9.2602,
+    3.5
+   ],
+   "yawDeg": -119.98,
+   "scale": 1.067
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    10.7027,
+    8.986,
+    3.5
+   ],
+   "yawDeg": -117.362,
+   "scale": 1.07
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    11.3018,
+    8.7461,
+    3.5
+   ],
+   "yawDeg": -118.625,
+   "scale": 0.959
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    11.7632,
+    8.442,
+    3.5
+   ],
+   "yawDeg": -114.617,
+   "scale": 1.042
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    10.2286,
+    10.9711,
+    4.35
+   ],
+   "yawDeg": -113.606,
+   "scale": 0.938
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    10.7291,
+    10.7818,
+    4.35
+   ],
+   "yawDeg": -119.312,
+   "scale": 1.056
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    11.1786,
+    10.4838,
+    4.35
+   ],
+   "yawDeg": -122.873,
+   "scale": 1.007
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    11.7079,
+    10.2798,
+    4.35
+   ],
+   "yawDeg": -115.639,
+   "scale": 1.054
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    12.2219,
+    9.9488,
+    4.35
+   ],
+   "yawDeg": -119.957,
+   "scale": 0.96
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    12.7231,
+    9.7591,
+    4.35
+   ],
+   "yawDeg": -120.595,
+   "scale": 1.035
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    10.9361,
+    12.3503,
+    5.2
+   ],
+   "yawDeg": -116.803,
+   "scale": 0.959
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    11.4319,
+    12.1634,
+    5.2
+   ],
+   "yawDeg": -118.844,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    11.9268,
+    11.8421,
+    5.2
+   ],
+   "yawDeg": -111.225,
+   "scale": 0.987
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    12.4543,
+    11.639,
+    5.2
+   ],
+   "yawDeg": -119.432,
+   "scale": 1.004
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    12.8763,
+    11.3551,
+    5.2
+   ],
+   "yawDeg": -120.105,
+   "scale": 1.054
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    13.4061,
+    11.1508,
+    5.2
+   ],
+   "yawDeg": -111.47,
+   "scale": 0.956
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    6.6999,
+    10.5485,
+    3.5
+   ],
+   "yawDeg": -104.883,
+   "scale": 1.071
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    7.2162,
+    10.4393,
+    3.5
+   ],
+   "yawDeg": -111.236,
+   "scale": 1.076
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    7.7089,
+    10.2115,
+    3.5
+   ],
+   "yawDeg": -112.715,
+   "scale": 1.046
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    8.2822,
+    10.0832,
+    3.5
+   ],
+   "yawDeg": -110.381,
+   "scale": 1.05
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    8.7899,
+    9.8503,
+    3.5
+   ],
+   "yawDeg": -108.909,
+   "scale": 0.948
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    9.2239,
+    9.7686,
+    3.5
+   ],
+   "yawDeg": -106.761,
+   "scale": 1.046
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    7.1325,
+    12.0382,
+    4.35
+   ],
+   "yawDeg": -105.415,
+   "scale": 1.021
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    7.7359,
+    11.8999,
+    4.35
+   ],
+   "yawDeg": -104.707,
+   "scale": 0.96
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    8.2201,
+    11.6749,
+    4.35
+   ],
+   "yawDeg": -110.901,
+   "scale": 1.025
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    8.743,
+    11.5634,
+    4.35
+   ],
+   "yawDeg": -109.618,
+   "scale": 1.015
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    9.241,
+    11.3338,
+    4.35
+   ],
+   "yawDeg": -104.56,
+   "scale": 0.968
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    9.7274,
+    11.2346,
+    4.35
+   ],
+   "yawDeg": -113.876,
+   "scale": 1.012
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    7.3806,
+    13.5895,
+    5.2
+   ],
+   "yawDeg": -105.485,
+   "scale": 0.966
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    7.9437,
+    13.4647,
+    5.2
+   ],
+   "yawDeg": -108.882,
+   "scale": 1.019
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    8.4238,
+    13.241,
+    5.2
+   ],
+   "yawDeg": -114.441,
+   "scale": 1.014
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    8.9167,
+    13.1396,
+    5.2
+   ],
+   "yawDeg": -106.214,
+   "scale": 0.924
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    9.4541,
+    12.8968,
+    5.2
+   ],
+   "yawDeg": -108.709,
+   "scale": 1.033
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    10.0432,
+    12.7633,
+    5.2
+   ],
+   "yawDeg": -103.743,
+   "scale": 1.015
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    10.4786,
+    12.5546,
+    5.2
+   ],
+   "yawDeg": -111.445,
+   "scale": 0.926
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    6.0291,
+    10.707,
+    3.5
+   ],
+   "yawDeg": -96.983,
+   "scale": 0.943
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    5.9935,
+    12.2913,
+    4.35
+   ],
+   "yawDeg": -103.883,
+   "scale": 0.989
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    6.5849,
+    12.2403,
+    4.35
+   ],
+   "yawDeg": -97.059,
+   "scale": 1.05
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    6.3123,
+    13.8085,
+    5.2
+   ],
+   "yawDeg": -106.328,
+   "scale": 0.993
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    6.8548,
+    13.7667,
+    5.2
+   ],
+   "yawDeg": -106.427,
+   "scale": 1.059
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    3.819,
+    11.126,
+    3.5
+   ],
+   "yawDeg": -104.716,
+   "scale": 0.946
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    3.7542,
+    12.7159,
+    4.35
+   ],
+   "yawDeg": -101.334,
+   "scale": 1.01
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    4.3631,
+    12.6615,
+    4.35
+   ],
+   "yawDeg": -105.972,
+   "scale": 1.04
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    4.0764,
+    14.2324,
+    5.2
+   ],
+   "yawDeg": -100.043,
+   "scale": 0.973
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    4.6032,
+    14.1936,
+    5.2
+   ],
+   "yawDeg": -100.723,
+   "scale": 0.992
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    0.2684,
+    11.4112,
+    3.5
+   ],
+   "yawDeg": -98.807,
+   "scale": 1.073
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    0.7915,
+    11.4391,
+    3.5
+   ],
+   "yawDeg": -90.606,
+   "scale": 0.94
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    1.357,
+    11.3442,
+    3.5
+   ],
+   "yawDeg": -88.832,
+   "scale": 0.992
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    1.8747,
+    11.3724,
+    3.5
+   ],
+   "yawDeg": -96.008,
+   "scale": 1.042
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    2.4342,
+    11.2779,
+    3.5
+   ],
+   "yawDeg": -93.546,
+   "scale": 0.972
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    3.059,
+    11.2995,
+    3.5
+   ],
+   "yawDeg": -94.543,
+   "scale": 1.031
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    0.1017,
+    12.9744,
+    4.35
+   ],
+   "yawDeg": -97.591,
+   "scale": 0.944
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    0.648,
+    13.0009,
+    4.35
+   ],
+   "yawDeg": -92.005,
+   "scale": 1.054
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    1.2505,
+    12.9037,
+    4.35
+   ],
+   "yawDeg": -90.571,
+   "scale": 1.027
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    1.6954,
+    12.9364,
+    4.35
+   ],
+   "yawDeg": -88.403,
+   "scale": 1.044
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    2.2724,
+    12.8407,
+    4.35
+   ],
+   "yawDeg": -94.921,
+   "scale": 1.018
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    2.7927,
+    12.8688,
+    4.35
+   ],
+   "yawDeg": -91.164,
+   "scale": 0.987
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    3.3805,
+    12.7725,
+    4.35
+   ],
+   "yawDeg": -91.168,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    0.191,
+    14.5218,
+    5.2
+   ],
+   "yawDeg": -94.73,
+   "scale": 0.956
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    0.7045,
+    14.5503,
+    5.2
+   ],
+   "yawDeg": -93.194,
+   "scale": 1.065
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    1.3357,
+    14.4514,
+    5.2
+   ],
+   "yawDeg": -88.651,
+   "scale": 0.986
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    1.8967,
+    14.4769,
+    5.2
+   ],
+   "yawDeg": -93.988,
+   "scale": 0.943
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    2.4316,
+    14.3839,
+    5.2
+   ],
+   "yawDeg": -94.99,
+   "scale": 1.069
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    2.9983,
+    14.4091,
+    5.2
+   ],
+   "yawDeg": -94.322,
+   "scale": 1.019
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    3.4856,
+    14.319,
+    5.2
+   ],
+   "yawDeg": -93.883,
+   "scale": 0.948
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.9933,
+    11.2434,
+    3.5
+   ],
+   "yawDeg": -83.726,
+   "scale": 1.041
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -2.4372,
+    11.3378,
+    3.5
+   ],
+   "yawDeg": -81.301,
+   "scale": 1.074
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -1.9371,
+    11.3085,
+    3.5
+   ],
+   "yawDeg": -91.59,
+   "scale": 1.053
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -1.3344,
+    11.4057,
+    3.5
+   ],
+   "yawDeg": -89.657,
+   "scale": 0.957
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -0.863,
+    11.3746,
+    3.5
+   ],
+   "yawDeg": -90.532,
+   "scale": 0.976
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -0.2531,
+    11.4722,
+    3.5
+   ],
+   "yawDeg": -82.82,
+   "scale": 0.991
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -3.3388,
+    12.7751,
+    4.35
+   ],
+   "yawDeg": -82.358,
+   "scale": 1.048
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -2.838,
+    12.866,
+    4.35
+   ],
+   "yawDeg": -87.444,
+   "scale": 1.061
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.3519,
+    12.8359,
+    4.35
+   ],
+   "yawDeg": -84.455,
+   "scale": 1.003
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -1.7362,
+    12.9339,
+    4.35
+   ],
+   "yawDeg": -87.639,
+   "scale": 1.024
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -1.1919,
+    12.9073,
+    4.35
+   ],
+   "yawDeg": -88.2,
+   "scale": 1.023
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -0.6927,
+    12.9981,
+    4.35
+   ],
+   "yawDeg": -81.699,
+   "scale": 0.937
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -0.0681,
+    12.9765,
+    4.35
+   ],
+   "yawDeg": -90.356,
+   "scale": 1.063
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -3.486,
+    14.319,
+    5.2
+   ],
+   "yawDeg": -87.064,
+   "scale": 0.927
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -2.8887,
+    14.4159,
+    5.2
+   ],
+   "yawDeg": -89.144,
+   "scale": 0.987
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -2.4181,
+    14.3847,
+    5.2
+   ],
+   "yawDeg": -88.055,
+   "scale": 0.965
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -1.8271,
+    14.4812,
+    5.2
+   ],
+   "yawDeg": -84.458,
+   "scale": 0.992
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -1.342,
+    14.451,
+    5.2
+   ],
+   "yawDeg": -82.696,
+   "scale": 0.957
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -0.7928,
+    14.5449,
+    5.2
+   ],
+   "yawDeg": -86.0,
+   "scale": 1.056
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -0.2041,
+    14.521,
+    5.2
+   ],
+   "yawDeg": -83.481,
+   "scale": 0.943
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -3.7411,
+    11.1408,
+    3.5
+   ],
+   "yawDeg": -82.046,
+   "scale": 0.962
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -4.3158,
+    12.6094,
+    4.35
+   ],
+   "yawDeg": -76.961,
+   "scale": 1.062
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -3.797,
+    12.7689,
+    4.35
+   ],
+   "yawDeg": -78.588,
+   "scale": 1.05
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -4.6165,
+    14.1301,
+    5.2
+   ],
+   "yawDeg": -76.503,
+   "scale": 0.959
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -4.0333,
+    14.3017,
+    5.2
+   ],
+   "yawDeg": -81.859,
+   "scale": 0.968
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -6.0171,
+    10.7092,
+    3.5
+   ],
+   "yawDeg": -73.862,
+   "scale": 1.002
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -6.5318,
+    12.1893,
+    4.35
+   ],
+   "yawDeg": -74.966,
+   "scale": 1.021
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -6.0006,
+    12.351,
+    4.35
+   ],
+   "yawDeg": -83.706,
+   "scale": 0.935
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -6.8185,
+    13.7125,
+    5.2
+   ],
+   "yawDeg": -76.267,
+   "scale": 1.046
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -6.2938,
+    13.8731,
+    5.2
+   ],
+   "yawDeg": -78.619,
+   "scale": 1.017
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -9.2585,
+    9.6938,
+    3.5
+   ],
+   "yawDeg": -65.575,
+   "scale": 1.065
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.7926,
+    9.9127,
+    3.5
+   ],
+   "yawDeg": -71.142,
+   "scale": 0.976
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -8.1625,
+    10.0599,
+    3.5
+   ],
+   "yawDeg": -68.617,
+   "scale": 1.053
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -7.6608,
+    10.2908,
+    3.5
+   ],
+   "yawDeg": -68.099,
+   "scale": 1.05
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -7.156,
+    10.3961,
+    3.5
+   ],
+   "yawDeg": -73.529,
+   "scale": 0.959
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -6.6694,
+    10.622,
+    3.5
+   ],
+   "yawDeg": -68.066,
+   "scale": 0.95
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -9.7279,
+    11.1712,
+    4.35
+   ],
+   "yawDeg": -67.029,
+   "scale": 1.063
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -9.2258,
+    11.4021,
+    4.35
+   ],
+   "yawDeg": -70.238,
+   "scale": 0.968
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -8.7176,
+    11.5087,
+    4.35
+   ],
+   "yawDeg": -69.309,
+   "scale": 0.971
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -8.214,
+    11.7402,
+    4.35
+   ],
+   "yawDeg": -69.038,
+   "scale": 1.023
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -7.641,
+    11.8683,
+    4.35
+   ],
+   "yawDeg": -67.159,
+   "scale": 0.956
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -7.1193,
+    12.1059,
+    4.35
+   ],
+   "yawDeg": -71.628,
+   "scale": 1.028
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -10.4816,
+    12.5536,
+    5.2
+   ],
+   "yawDeg": -74.401,
+   "scale": 1.013
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -9.9613,
+    12.7906,
+    5.2
+   ],
+   "yawDeg": -67.998,
+   "scale": 0.923
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -9.4162,
+    12.9095,
+    5.2
+   ],
+   "yawDeg": -68.149,
+   "scale": 1.05
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.9354,
+    13.1334,
+    5.2
+   ],
+   "yawDeg": -68.697,
+   "scale": 1.031
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -8.4003,
+    13.2489,
+    5.2
+   ],
+   "yawDeg": -76.187,
+   "scale": 0.975
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -7.9046,
+    13.4777,
+    5.2
+   ],
+   "yawDeg": -71.339,
+   "scale": 1.04
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -7.3864,
+    13.5876,
+    5.2
+   ],
+   "yawDeg": -65.653,
+   "scale": 0.983
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -11.7424,
+    8.4527,
+    3.5
+   ],
+   "yawDeg": -59.712,
+   "scale": 1.02
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -11.3036,
+    8.7452,
+    3.5
+   ],
+   "yawDeg": -61.087,
+   "scale": 0.99
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -10.7234,
+    8.9753,
+    3.5
+   ],
+   "yawDeg": -63.207,
+   "scale": 1.005
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.2531,
+    9.284,
+    3.5
+   ],
+   "yawDeg": -65.418,
+   "scale": 0.995
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -9.8232,
+    9.4371,
+    3.5
+   ],
+   "yawDeg": -64.255,
+   "scale": 1.059
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -12.6629,
+    9.7226,
+    4.35
+   ],
+   "yawDeg": -67.326,
+   "scale": 1.029
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -12.2396,
+    10.0071,
+    4.35
+   ],
+   "yawDeg": -64.217,
+   "scale": 1.025
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -11.6712,
+    10.2312,
+    4.35
+   ],
+   "yawDeg": -59.856,
+   "scale": 0.938
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -11.2919,
+    10.4932,
+    4.35
+   ],
+   "yawDeg": -64.884,
+   "scale": 1.014
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.7667,
+    10.6951,
+    4.35
+   ],
+   "yawDeg": -58.415,
+   "scale": 0.961
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.2352,
+    11.0352,
+    4.35
+   ],
+   "yawDeg": -61.884,
+   "scale": 0.936
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -13.3562,
+    11.1089,
+    5.2
+   ],
+   "yawDeg": -61.176,
+   "scale": 0.924
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -12.8873,
+    11.4169,
+    5.2
+   ],
+   "yawDeg": -66.935,
+   "scale": 0.933
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -12.3598,
+    11.62,
+    5.2
+   ],
+   "yawDeg": -58.006,
+   "scale": 0.941
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -11.9288,
+    11.9085,
+    5.2
+   ],
+   "yawDeg": -58.896,
+   "scale": 1.018
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -11.4382,
+    12.0927,
+    5.2
+   ],
+   "yawDeg": -64.218,
+   "scale": 1.009
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -10.98,
+    12.3952,
+    5.2
+   ],
+   "yawDeg": -66.345,
+   "scale": 0.973
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -14.04,
+    6.786,
+    3.5
+   ],
+   "yawDeg": -55.517,
+   "scale": 0.99
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -13.6839,
+    7.1326,
+    3.5
+   ],
+   "yawDeg": -53.264,
+   "scale": 1.048
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -13.1349,
+    7.4753,
+    3.5
+   ],
+   "yawDeg": -51.864,
+   "scale": 0.943
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -12.7324,
+    7.8573,
+    3.5
+   ],
+   "yawDeg": -58.183,
+   "scale": 0.93
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -12.2868,
+    8.1212,
+    3.5
+   ],
+   "yawDeg": -49.283,
+   "scale": 1.06
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -15.0316,
+    7.9791,
+    4.35
+   ],
+   "yawDeg": -51.258,
+   "scale": 0.989
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -14.6179,
+    8.3696,
+    4.35
+   ],
+   "yawDeg": -56.296,
+   "scale": 0.96
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -14.1484,
+    8.6517,
+    4.35
+   ],
+   "yawDeg": -55.44,
+   "scale": 1.031
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -13.7513,
+    9.0296,
+    4.35
+   ],
+   "yawDeg": -57.7,
+   "scale": 0.924
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -13.2368,
+    9.346,
+    4.35
+   ],
+   "yawDeg": -50.917,
+   "scale": 0.928
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.1819,
+    9.0514,
+    5.2
+   ],
+   "yawDeg": -52.297,
+   "scale": 0.953
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -15.7733,
+    9.438,
+    5.2
+   ],
+   "yawDeg": -53.309,
+   "scale": 0.953
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -15.2346,
+    9.7728,
+    5.2
+   ],
+   "yawDeg": -54.448,
+   "scale": 0.999
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -14.9126,
+    10.0935,
+    5.2
+   ],
+   "yawDeg": -48.586,
+   "scale": 0.95
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -14.3538,
+    10.4436,
+    5.2
+   ],
+   "yawDeg": -54.447,
+   "scale": 0.985
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -13.9899,
+    10.7962,
+    5.2
+   ],
+   "yawDeg": -50.119,
+   "scale": 1.072
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -15.6164,
+    4.9882,
+    3.5
+   ],
+   "yawDeg": -30.013,
+   "scale": 1.018
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -15.3529,
+    5.438,
+    3.5
+   ],
+   "yawDeg": -33.547,
+   "scale": 0.962
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -14.9695,
+    5.794,
+    3.5
+   ],
+   "yawDeg": -38.997,
+   "scale": 0.954
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -14.5794,
+    6.2931,
+    3.5
+   ],
+   "yawDeg": -49.572,
+   "scale": 0.954
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -17.002,
+    5.7237,
+    4.35
+   ],
+   "yawDeg": -30.674,
+   "scale": 0.982
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.7434,
+    6.1819,
+    4.35
+   ],
+   "yawDeg": -43.215,
+   "scale": 0.925
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -16.3024,
+    6.6265,
+    4.35
+   ],
+   "yawDeg": -39.229,
+   "scale": 1.074
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -15.9802,
+    7.0743,
+    4.35
+   ],
+   "yawDeg": -39.379,
+   "scale": 1.079
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -15.5607,
+    7.4089,
+    4.35
+   ],
+   "yawDeg": -50.657,
+   "scale": 1.071
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.3489,
+    6.5023,
+    5.2
+   ],
+   "yawDeg": -39.007,
+   "scale": 1.0
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.0734,
+    6.991,
+    5.2
+   ],
+   "yawDeg": -35.952,
+   "scale": 0.959
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.6267,
+    7.4581,
+    5.2
+   ],
+   "yawDeg": -39.603,
+   "scale": 0.996
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -17.3235,
+    7.9049,
+    5.2
+   ],
+   "yawDeg": -41.49,
+   "scale": 0.939
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -16.9213,
+    8.2457,
+    5.2
+   ],
+   "yawDeg": -46.933,
+   "scale": 0.973
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -16.5361,
+    8.7143,
+    5.2
+   ],
+   "yawDeg": -49.155,
+   "scale": 0.947
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -16.8369,
+    2.7742,
+    3.5
+   ],
+   "yawDeg": -19.756,
+   "scale": 0.996
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -16.7008,
+    3.2653,
+    3.5
+   ],
+   "yawDeg": -26.447,
+   "scale": 0.972
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.3855,
+    3.7776,
+    3.5
+   ],
+   "yawDeg": -31.705,
+   "scale": 0.964
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.2021,
+    4.2195,
+    3.5
+   ],
+   "yawDeg": -36.883,
+   "scale": 1.047
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.3269,
+    3.2104,
+    4.35
+   ],
+   "yawDeg": -23.145,
+   "scale": 1.003
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.1927,
+    3.719,
+    4.35
+   ],
+   "yawDeg": -19.236,
+   "scale": 0.924
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -17.9169,
+    4.1815,
+    4.35
+   ],
+   "yawDeg": -23.85,
+   "scale": 0.934
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -17.705,
+    4.7238,
+    4.35
+   ],
+   "yawDeg": -27.869,
+   "scale": 0.955
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -17.4268,
+    5.0651,
+    4.35
+   ],
+   "yawDeg": -31.967,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -19.7329,
+    3.8792,
+    5.2
+   ],
+   "yawDeg": -17.232,
+   "scale": 0.935
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -19.5857,
+    4.4027,
+    5.2
+   ],
+   "yawDeg": -24.249,
+   "scale": 0.998
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -19.298,
+    4.8858,
+    5.2
+   ],
+   "yawDeg": -22.851,
+   "scale": 1.054
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -19.1448,
+    5.3111,
+    5.2
+   ],
+   "yawDeg": -32.377,
+   "scale": 1.008
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.8272,
+    5.7452,
+    5.2
+   ],
+   "yawDeg": -28.717,
+   "scale": 1.067
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.3385,
+    0.4287,
+    3.5
+   ],
+   "yawDeg": -9.223,
+   "scale": 1.052
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -17.3543,
+    0.9199,
+    3.5
+   ],
+   "yawDeg": -3.869,
+   "scale": 1.026
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -17.2091,
+    1.4563,
+    3.5
+   ],
+   "yawDeg": -7.781,
+   "scale": 1.058
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -17.1675,
+    1.8998,
+    3.5
+   ],
+   "yawDeg": -15.699,
+   "scale": 1.065
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -18.8729,
+    0.6822,
+    4.35
+   ],
+   "yawDeg": -10.275,
+   "scale": 1.072
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.8873,
+    1.153,
+    4.35
+   ],
+   "yawDeg": -5.562,
+   "scale": 1.034
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -18.7409,
+    1.6966,
+    4.35
+   ],
+   "yawDeg": -13.415,
+   "scale": 1.013
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.6922,
+    2.2143,
+    4.35
+   ],
+   "yawDeg": -9.943,
+   "scale": 0.998
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -20.4179,
+    0.7242,
+    5.2
+   ],
+   "yawDeg": -4.03,
+   "scale": 0.935
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -20.4373,
+    1.2191,
+    5.2
+   ],
+   "yawDeg": -7.872,
+   "scale": 1.02
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -20.3236,
+    1.6323,
+    5.2
+   ],
+   "yawDeg": -5.014,
+   "scale": 1.015
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -20.2787,
+    2.2253,
+    5.2
+   ],
+   "yawDeg": -13.678,
+   "scale": 1.03
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -20.1157,
+    2.6416,
+    5.2
+   ],
+   "yawDeg": -8.958,
+   "scale": 1.032
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -17.1104,
+    -1.8767,
+    3.5
+   ],
+   "yawDeg": 18.146,
+   "scale": 1.02
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -17.2643,
+    -1.4915,
+    3.5
+   ],
+   "yawDeg": 8.514,
+   "scale": 1.033
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.2854,
+    -0.9716,
+    3.5
+   ],
+   "yawDeg": 2.279,
+   "scale": 1.066
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -17.3944,
+    -0.4593,
+    3.5
+   ],
+   "yawDeg": 5.866,
+   "scale": 0.925
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.6381,
+    -2.1722,
+    4.35
+   ],
+   "yawDeg": 7.657,
+   "scale": 1.061
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.8118,
+    -1.6323,
+    4.35
+   ],
+   "yawDeg": 10.844,
+   "scale": 0.969
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -18.8236,
+    -1.1718,
+    4.35
+   ],
+   "yawDeg": 7.11,
+   "scale": 1.026
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.9348,
+    -0.6747,
+    4.35
+   ],
+   "yawDeg": 6.822,
+   "scale": 1.014
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -20.1079,
+    -2.691,
+    5.2
+   ],
+   "yawDeg": 10.975,
+   "scale": 1.022
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -20.2871,
+    -2.1719,
+    5.2
+   ],
+   "yawDeg": 6.171,
+   "scale": 0.997
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -20.3192,
+    -1.6603,
+    5.2
+   ],
+   "yawDeg": 10.057,
+   "scale": 1.07
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -20.4327,
+    -1.2482,
+    5.2
+   ],
+   "yawDeg": 4.391,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -20.4228,
+    -0.6927,
+    5.2
+   ],
+   "yawDeg": -1.327,
+   "scale": 0.959
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -16.1571,
+    -4.1747,
+    3.5
+   ],
+   "yawDeg": 36.871,
+   "scale": 0.927
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -16.47,
+    -3.7409,
+    3.5
+   ],
+   "yawDeg": 22.69,
+   "scale": 0.973
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -16.6368,
+    -3.2598,
+    3.5
+   ],
+   "yawDeg": 20.076,
+   "scale": 1.027
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.8858,
+    -2.8108,
+    3.5
+   ],
+   "yawDeg": 25.364,
+   "scale": 0.927
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.4279,
+    -5.0627,
+    4.35
+   ],
+   "yawDeg": 28.416,
+   "scale": 1.041
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -17.7332,
+    -4.6657,
+    4.35
+   ],
+   "yawDeg": 24.676,
+   "scale": 1.029
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.9277,
+    -4.1591,
+    4.35
+   ],
+   "yawDeg": 26.365,
+   "scale": 0.992
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.1697,
+    -3.7665,
+    4.35
+   ],
+   "yawDeg": 22.273,
+   "scale": 0.968
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -18.3429,
+    -3.1777,
+    4.35
+   ],
+   "yawDeg": 18.976,
+   "scale": 1.035
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -18.7868,
+    -5.8284,
+    5.2
+   ],
+   "yawDeg": 27.177,
+   "scale": 1.036
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -19.1211,
+    -5.3599,
+    5.2
+   ],
+   "yawDeg": 22.845,
+   "scale": 0.944
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -19.3201,
+    -4.8402,
+    5.2
+   ],
+   "yawDeg": 29.06,
+   "scale": 0.928
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -19.5995,
+    -4.3743,
+    5.2
+   ],
+   "yawDeg": 26.891,
+   "scale": 1.064
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -19.7105,
+    -3.9252,
+    5.2
+   ],
+   "yawDeg": 20.422,
+   "scale": 0.932
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -14.5286,
+    -6.2601,
+    3.5
+   ],
+   "yawDeg": 39.705,
+   "scale": 1.056
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -14.9962,
+    -5.8551,
+    3.5
+   ],
+   "yawDeg": 48.05,
+   "scale": 0.967
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -15.3372,
+    -5.364,
+    3.5
+   ],
+   "yawDeg": 34.583,
+   "scale": 1.039
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -15.7165,
+    -4.9635,
+    3.5
+   ],
+   "yawDeg": 30.297,
+   "scale": 0.946
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -15.5112,
+    -7.4667,
+    4.35
+   ],
+   "yawDeg": 43.986,
+   "scale": 1.022
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -15.9428,
+    -7.1179,
+    4.35
+   ],
+   "yawDeg": 41.764,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -16.2984,
+    -6.6311,
+    4.35
+   ],
+   "yawDeg": 45.304,
+   "scale": 0.97
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.7406,
+    -6.1852,
+    4.35
+   ],
+   "yawDeg": 34.93,
+   "scale": 0.941
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -16.9774,
+    -5.7523,
+    4.35
+   ],
+   "yawDeg": 33.461,
+   "scale": 0.979
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -16.505,
+    -8.6583,
+    5.2
+   ],
+   "yawDeg": 43.323,
+   "scale": 0.941
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -16.9234,
+    -8.3356,
+    5.2
+   ],
+   "yawDeg": 48.364,
+   "scale": 1.043
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -17.2781,
+    -7.8657,
+    5.2
+   ],
+   "yawDeg": 47.715,
+   "scale": 0.925
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -17.7009,
+    -7.4636,
+    5.2
+   ],
+   "yawDeg": 39.943,
+   "scale": 0.944
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -18.0355,
+    -6.9429,
+    5.2
+   ],
+   "yawDeg": 37.305,
+   "scale": 0.998
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -18.3604,
+    -6.5811,
+    5.2
+   ],
+   "yawDeg": 31.823,
+   "scale": 1.025
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -12.3262,
+    -8.0912,
+    3.5
+   ],
+   "yawDeg": 52.908,
+   "scale": 0.959
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -12.7476,
+    -7.8457,
+    3.5
+   ],
+   "yawDeg": 51.244,
+   "scale": 0.981
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -13.1323,
+    -7.4773,
+    3.5
+   ],
+   "yawDeg": 48.685,
+   "scale": 0.968
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -13.6045,
+    -7.1931,
+    3.5
+   ],
+   "yawDeg": 51.192,
+   "scale": 0.939
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -14.0162,
+    -6.8041,
+    3.5
+   ],
+   "yawDeg": 56.394,
+   "scale": 1.048
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -13.2289,
+    -9.352,
+    4.35
+   ],
+   "yawDeg": 47.134,
+   "scale": 1.046
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -13.6807,
+    -9.0833,
+    4.35
+   ],
+   "yawDeg": 50.317,
+   "scale": 1.064
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -14.1005,
+    -8.6882,
+    4.35
+   ],
+   "yawDeg": 51.969,
+   "scale": 1.0
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -14.6014,
+    -8.3822,
+    4.35
+   ],
+   "yawDeg": 48.9,
+   "scale": 1.031
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -14.9704,
+    -8.0257,
+    4.35
+   ],
+   "yawDeg": 50.718,
+   "scale": 1.026
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -13.9144,
+    -10.7782,
+    5.2
+   ],
+   "yawDeg": 52.109,
+   "scale": 0.945
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -14.4304,
+    -10.4607,
+    5.2
+   ],
+   "yawDeg": 46.851,
+   "scale": 0.943
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -14.8628,
+    -10.056,
+    5.2
+   ],
+   "yawDeg": 49.757,
+   "scale": 0.927
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -15.3096,
+    -9.7911,
+    5.2
+   ],
+   "yawDeg": 52.457,
+   "scale": 1.001
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -15.6614,
+    -9.4478,
+    5.2
+   ],
+   "yawDeg": 55.067,
+   "scale": 0.988
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -16.2232,
+    -9.0954,
+    5.2
+   ],
+   "yawDeg": 46.801,
+   "scale": 0.97
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -9.7198,
+    -9.4901,
+    3.5
+   ],
+   "yawDeg": 60.298,
+   "scale": 1.009
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -10.341,
+    -9.2389,
+    3.5
+   ],
+   "yawDeg": 60.905,
+   "scale": 1.019
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.7622,
+    -8.9555,
+    3.5
+   ],
+   "yawDeg": 61.306,
+   "scale": 1.044
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -11.2623,
+    -8.7663,
+    3.5
+   ],
+   "yawDeg": 60.492,
+   "scale": 0.953
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -11.7505,
+    -8.4485,
+    3.5
+   ],
+   "yawDeg": 63.768,
+   "scale": 0.992
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -10.2794,
+    -10.9451,
+    4.35
+   ],
+   "yawDeg": 67.151,
+   "scale": 1.057
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.7329,
+    -10.7799,
+    4.35
+   ],
+   "yawDeg": 62.069,
+   "scale": 0.937
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -11.171,
+    -10.4878,
+    4.35
+   ],
+   "yawDeg": 65.972,
+   "scale": 1.01
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -11.7055,
+    -10.281,
+    4.35
+   ],
+   "yawDeg": 58.856,
+   "scale": 1.054
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -12.2017,
+    -9.9591,
+    4.35
+   ],
+   "yawDeg": 60.829,
+   "scale": 1.0
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -12.6863,
+    -9.778,
+    4.35
+   ],
+   "yawDeg": 59.742,
+   "scale": 0.929
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.9777,
+    -12.3289,
+    5.2
+   ],
+   "yawDeg": 58.322,
+   "scale": 0.954
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -11.5,
+    -12.1285,
+    5.2
+   ],
+   "yawDeg": 61.675,
+   "scale": 1.041
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -11.9157,
+    -11.8478,
+    5.2
+   ],
+   "yawDeg": 62.861,
+   "scale": 0.947
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -12.3911,
+    -11.6714,
+    5.2
+   ],
+   "yawDeg": 67.046,
+   "scale": 0.944
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -12.9483,
+    -11.3182,
+    5.2
+   ],
+   "yawDeg": 58.277,
+   "scale": 0.954
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -13.4135,
+    -11.147,
+    5.2
+   ],
+   "yawDeg": 63.708,
+   "scale": 1.031
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -6.6969,
+    -10.5495,
+    3.5
+   ],
+   "yawDeg": 68.992,
+   "scale": 0.966
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -7.1431,
+    -10.4637,
+    3.5
+   ],
+   "yawDeg": 69.177,
+   "scale": 1.033
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -7.668,
+    -10.2251,
+    3.5
+   ],
+   "yawDeg": 74.769,
+   "scale": 0.986
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.1988,
+    -10.1111,
+    3.5
+   ],
+   "yawDeg": 75.882,
+   "scale": 1.046
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.7962,
+    -9.8482,
+    3.5
+   ],
+   "yawDeg": 77.101,
+   "scale": 1.063
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -9.3241,
+    -9.7351,
+    3.5
+   ],
+   "yawDeg": 73.927,
+   "scale": 0.929
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -7.1377,
+    -12.0365,
+    4.35
+   ],
+   "yawDeg": 70.994,
+   "scale": 1.063
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -7.6731,
+    -11.9209,
+    4.35
+   ],
+   "yawDeg": 65.92,
+   "scale": 1.028
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.2264,
+    -11.6728,
+    4.35
+   ],
+   "yawDeg": 72.423,
+   "scale": 0.93
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -8.6829,
+    -11.5835,
+    4.35
+   ],
+   "yawDeg": 76.928,
+   "scale": 0.938
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -9.2129,
+    -11.3432,
+    4.35
+   ],
+   "yawDeg": 76.377,
+   "scale": 0.999
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -9.7164,
+    -11.2383,
+    4.35
+   ],
+   "yawDeg": 74.792,
+   "scale": 0.941
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -7.3861,
+    -13.5877,
+    5.2
+   ],
+   "yawDeg": 70.486,
+   "scale": 1.043
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -7.9426,
+    -13.465,
+    5.2
+   ],
+   "yawDeg": 66.628,
+   "scale": 1.007
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -8.3714,
+    -13.2585,
+    5.2
+   ],
+   "yawDeg": 76.31,
+   "scale": 1.072
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -8.9662,
+    -13.1231,
+    5.2
+   ],
+   "yawDeg": 73.511,
+   "scale": 0.993
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -9.4781,
+    -12.8888,
+    5.2
+   ],
+   "yawDeg": 74.389,
+   "scale": 1.049
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -10.031,
+    -12.7674,
+    5.2
+   ],
+   "yawDeg": 66.923,
+   "scale": 0.961
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -10.4842,
+    -12.5527,
+    5.2
+   ],
+   "yawDeg": 68.165,
+   "scale": 0.94
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -6.021,
+    -10.7085,
+    3.5
+   ],
+   "yawDeg": 74.653,
+   "scale": 1.016
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -6.0804,
+    -12.2748,
+    4.35
+   ],
+   "yawDeg": 81.316,
+   "scale": 0.946
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -6.6208,
+    -12.2334,
+    4.35
+   ],
+   "yawDeg": 81.534,
+   "scale": 1.027
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -6.3359,
+    -13.804,
+    5.2
+   ],
+   "yawDeg": 77.286,
+   "scale": 0.929
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -6.8728,
+    -13.7633,
+    5.2
+   ],
+   "yawDeg": 76.358,
+   "scale": 1.02
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -3.7612,
+    -11.137,
+    3.5
+   ],
+   "yawDeg": 78.919,
+   "scale": 1.066
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -3.8386,
+    -12.6999,
+    4.35
+   ],
+   "yawDeg": 83.06,
+   "scale": 1.064
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -4.3295,
+    -12.6679,
+    4.35
+   ],
+   "yawDeg": 80.377,
+   "scale": 0.974
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -4.107,
+    -14.2266,
+    5.2
+   ],
+   "yawDeg": 77.184,
+   "scale": 1.024
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -4.6564,
+    -14.1835,
+    5.2
+   ],
+   "yawDeg": 76.025,
+   "scale": 1.043
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -0.2259,
+    -11.4138,
+    3.5
+   ],
+   "yawDeg": 91.361,
+   "scale": 0.983
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -0.8733,
+    -11.4341,
+    3.5
+   ],
+   "yawDeg": 87.346,
+   "scale": 1.001
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -1.3921,
+    -11.342,
+    3.5
+   ],
+   "yawDeg": 91.563,
+   "scale": 1.063
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -1.9332,
+    -11.3688,
+    3.5
+   ],
+   "yawDeg": 86.551,
+   "scale": 0.951
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.522,
+    -11.2724,
+    3.5
+   ],
+   "yawDeg": 83.965,
+   "scale": 1.074
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.9794,
+    -11.3044,
+    3.5
+   ],
+   "yawDeg": 85.136,
+   "scale": 1.037
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -0.0471,
+    -12.9778,
+    4.35
+   ],
+   "yawDeg": 82.114,
+   "scale": 0.96
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -0.6977,
+    -12.9978,
+    4.35
+   ],
+   "yawDeg": 86.738,
+   "scale": 1.009
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -1.1491,
+    -12.9099,
+    4.35
+   ],
+   "yawDeg": 85.686,
+   "scale": 0.937
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -1.7494,
+    -12.9331,
+    4.35
+   ],
+   "yawDeg": 91.338,
+   "scale": 1.03
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.3332,
+    -12.837,
+    4.35
+   ],
+   "yawDeg": 90.185,
+   "scale": 1.02
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -2.896,
+    -12.8625,
+    4.35
+   ],
+   "yawDeg": 88.363,
+   "scale": 0.984
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -3.3718,
+    -12.7731,
+    4.35
+   ],
+   "yawDeg": 85.644,
+   "scale": 1.039
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -0.1845,
+    -14.5222,
+    5.2
+   ],
+   "yawDeg": 91.236,
+   "scale": 1.017
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -0.7685,
+    -14.5464,
+    5.2
+   ],
+   "yawDeg": 91.202,
+   "scale": 0.997
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -1.3495,
+    -14.4505,
+    5.2
+   ],
+   "yawDeg": 87.597,
+   "scale": 1.041
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    -1.824,
+    -14.4814,
+    5.2
+   ],
+   "yawDeg": 88.692,
+   "scale": 1.078
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    -2.4012,
+    -14.3858,
+    5.2
+   ],
+   "yawDeg": 89.784,
+   "scale": 0.94
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    -2.8999,
+    -14.4152,
+    5.2
+   ],
+   "yawDeg": 83.568,
+   "scale": 1.065
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    -3.5376,
+    -14.3158,
+    5.2
+   ],
+   "yawDeg": 91.832,
+   "scale": 1.065
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    2.9698,
+    -11.2449,
+    3.5
+   ],
+   "yawDeg": 91.945,
+   "scale": 0.948
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    2.499,
+    -11.334,
+    3.5
+   ],
+   "yawDeg": 96.46,
+   "scale": 1.046
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    1.9402,
+    -11.3083,
+    3.5
+   ],
+   "yawDeg": 99.104,
+   "scale": 1.055
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    1.3254,
+    -11.4062,
+    3.5
+   ],
+   "yawDeg": 92.613,
+   "scale": 0.968
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    0.8479,
+    -11.3755,
+    3.5
+   ],
+   "yawDeg": 98.033,
+   "scale": 1.074
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    0.3168,
+    -11.4683,
+    3.5
+   ],
+   "yawDeg": 95.542,
+   "scale": 0.989
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    3.3714,
+    -12.7731,
+    4.35
+   ],
+   "yawDeg": 91.107,
+   "scale": 0.959
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    2.801,
+    -12.8683,
+    4.35
+   ],
+   "yawDeg": 90.283,
+   "scale": 0.983
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    2.2489,
+    -12.8422,
+    4.35
+   ],
+   "yawDeg": 95.946,
+   "scale": 1.028
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    1.733,
+    -12.9341,
+    4.35
+   ],
+   "yawDeg": 88.484,
+   "scale": 0.933
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    1.1924,
+    -12.9072,
+    4.35
+   ],
+   "yawDeg": 89.768,
+   "scale": 1.055
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    0.6791,
+    -12.999,
+    4.35
+   ],
+   "yawDeg": 90.098,
+   "scale": 1.073
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    0.0401,
+    -12.9782,
+    4.35
+   ],
+   "yawDeg": 90.379,
+   "scale": 0.934
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    3.5068,
+    -14.3177,
+    5.2
+   ],
+   "yawDeg": 88.722,
+   "scale": 0.95
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    2.9344,
+    -14.413,
+    5.2
+   ],
+   "yawDeg": 88.369,
+   "scale": 0.945
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    2.4377,
+    -14.3835,
+    5.2
+   ],
+   "yawDeg": 87.692,
+   "scale": 0.997
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    1.8439,
+    -14.4802,
+    5.2
+   ],
+   "yawDeg": 91.711,
+   "scale": 0.978
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    1.3062,
+    -14.4532,
+    5.2
+   ],
+   "yawDeg": 97.645,
+   "scale": 0.959
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    0.7094,
+    -14.55,
+    5.2
+   ],
+   "yawDeg": 93.821,
+   "scale": 0.995
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    0.2342,
+    -14.5192,
+    5.2
+   ],
+   "yawDeg": 93.09,
+   "scale": 1.061
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    3.8169,
+    -11.1264,
+    3.5
+   ],
+   "yawDeg": 96.454,
+   "scale": 1.069
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    4.3531,
+    -12.6024,
+    4.35
+   ],
+   "yawDeg": 105.305,
+   "scale": 1.073
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    3.8083,
+    -12.7667,
+    4.35
+   ],
+   "yawDeg": 95.502,
+   "scale": 1.038
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    4.5572,
+    -14.1413,
+    5.2
+   ],
+   "yawDeg": 102.249,
+   "scale": 1.033
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    4.1199,
+    -14.2853,
+    5.2
+   ],
+   "yawDeg": 97.487,
+   "scale": 1.031
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    6.0663,
+    -10.6999,
+    3.5
+   ],
+   "yawDeg": 99.267,
+   "scale": 1.073
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    6.6019,
+    -12.176,
+    4.35
+   ],
+   "yawDeg": 99.276,
+   "scale": 0.958
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    6.095,
+    -12.3331,
+    4.35
+   ],
+   "yawDeg": 98.07,
+   "scale": 0.944
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    6.9046,
+    -13.6962,
+    5.2
+   ],
+   "yawDeg": 98.53,
+   "scale": 1.02
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    6.3534,
+    -13.8618,
+    5.2
+   ],
+   "yawDeg": 97.662,
+   "scale": 0.951
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    9.2513,
+    -9.6962,
+    3.5
+   ],
+   "yawDeg": 103.624,
+   "scale": 0.951
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    8.801,
+    -9.9099,
+    3.5
+   ],
+   "yawDeg": 114.466,
+   "scale": 1.072
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    8.2322,
+    -10.0366,
+    3.5
+   ],
+   "yawDeg": 113.452,
+   "scale": 1.011
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    7.6655,
+    -10.2892,
+    3.5
+   ],
+   "yawDeg": 109.837,
+   "scale": 1.033
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    7.2273,
+    -10.3723,
+    3.5
+   ],
+   "yawDeg": 111.215,
+   "scale": 0.972
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    6.6446,
+    -10.6303,
+    3.5
+   ],
+   "yawDeg": 110.487,
+   "scale": 0.924
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    9.7241,
+    -11.1724,
+    4.35
+   ],
+   "yawDeg": 109.976,
+   "scale": 0.934
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    9.2749,
+    -11.3858,
+    4.35
+   ],
+   "yawDeg": 113.612,
+   "scale": 1.047
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    8.7635,
+    -11.4933,
+    4.35
+   ],
+   "yawDeg": 111.316,
+   "scale": 0.992
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    8.1768,
+    -11.7526,
+    4.35
+   ],
+   "yawDeg": 112.082,
+   "scale": 0.993
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    7.6888,
+    -11.8524,
+    4.35
+   ],
+   "yawDeg": 103.91,
+   "scale": 0.944
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    7.1531,
+    -12.0946,
+    4.35
+   ],
+   "yawDeg": 111.557,
+   "scale": 1.056
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    10.5057,
+    -12.5455,
+    5.2
+   ],
+   "yawDeg": 107.597,
+   "scale": 1.066
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    9.9703,
+    -12.7877,
+    5.2
+   ],
+   "yawDeg": 112.87,
+   "scale": 1.071
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    9.4229,
+    -12.9073,
+    5.2
+   ],
+   "yawDeg": 106.3,
+   "scale": 0.958
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    8.9579,
+    -13.1259,
+    5.2
+   ],
+   "yawDeg": 109.62,
+   "scale": 0.982
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    8.4395,
+    -13.2358,
+    5.2
+   ],
+   "yawDeg": 102.865,
+   "scale": 1.022
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    7.9435,
+    -13.4647,
+    5.2
+   ],
+   "yawDeg": 107.575,
+   "scale": 1.019
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    7.4252,
+    -13.5746,
+    5.2
+   ],
+   "yawDeg": 104.692,
+   "scale": 0.946
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    11.7187,
+    -8.4648,
+    3.5
+   ],
+   "yawDeg": 119.356,
+   "scale": 0.924
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    11.2347,
+    -8.7805,
+    3.5
+   ],
+   "yawDeg": 117.7,
+   "scale": 1.058
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    10.7874,
+    -8.9425,
+    3.5
+   ],
+   "yawDeg": 113.938,
+   "scale": 1.044
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    10.2504,
+    -9.2854,
+    3.5
+   ],
+   "yawDeg": 118.154,
+   "scale": 1.013
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    9.7837,
+    -9.4574,
+    3.5
+   ],
+   "yawDeg": 117.74,
+   "scale": 0.99
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    12.7317,
+    -9.6873,
+    4.35
+   ],
+   "yawDeg": 114.564,
+   "scale": 1.035
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    12.1722,
+    -10.0417,
+    4.35
+   ],
+   "yawDeg": 121.673,
+   "scale": 0.947
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    11.6512,
+    -10.2415,
+    4.35
+   ],
+   "yawDeg": 112.314,
+   "scale": 0.95
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    11.2889,
+    -10.4947,
+    4.35
+   ],
+   "yawDeg": 120.113,
+   "scale": 0.968
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    10.712,
+    -10.7232,
+    4.35
+   ],
+   "yawDeg": 112.747,
+   "scale": 1.004
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    10.3002,
+    -11.0019,
+    4.35
+   ],
+   "yawDeg": 117.798,
+   "scale": 1.006
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    13.3502,
+    -11.112,
+    5.2
+   ],
+   "yawDeg": 119.432,
+   "scale": 1.046
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    12.9619,
+    -11.3786,
+    5.2
+   ],
+   "yawDeg": 115.339,
+   "scale": 0.976
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    12.4144,
+    -11.592,
+    5.2
+   ],
+   "yawDeg": 111.379,
+   "scale": 0.929
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    11.9839,
+    -11.8802,
+    5.2
+   ],
+   "yawDeg": 119.306,
+   "scale": 1.055
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    11.4301,
+    -12.0969,
+    5.2
+   ],
+   "yawDeg": 116.314,
+   "scale": 1.036
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    10.9475,
+    -12.4119,
+    5.2
+   ],
+   "yawDeg": 123.124,
+   "scale": 1.066
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    14.0805,
+    -6.7552,
+    3.5
+   ],
+   "yawDeg": 128.127,
+   "scale": 0.937
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.6148,
+    -7.1852,
+    3.5
+   ],
+   "yawDeg": 129.166,
+   "scale": 1.051
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.1813,
+    -7.4399,
+    3.5
+   ],
+   "yawDeg": 130.256,
+   "scale": 0.943
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    12.7418,
+    -7.8501,
+    3.5
+   ],
+   "yawDeg": 125.096,
+   "scale": 0.947
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    12.3024,
+    -8.1093,
+    3.5
+   ],
+   "yawDeg": 126.26,
+   "scale": 1.066
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.988,
+    -8.0123,
+    4.35
+   ],
+   "yawDeg": 121.413,
+   "scale": 1.007
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    14.5989,
+    -8.3841,
+    4.35
+   ],
+   "yawDeg": 132.463,
+   "scale": 0.983
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    14.0745,
+    -8.708,
+    4.35
+   ],
+   "yawDeg": 133.1,
+   "scale": 1.048
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.6681,
+    -9.093,
+    4.35
+   ],
+   "yawDeg": 132.768,
+   "scale": 0.975
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    13.2468,
+    -9.3384,
+    4.35
+   ],
+   "yawDeg": 127.234,
+   "scale": 1.027
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.1373,
+    -9.0854,
+    5.2
+   ],
+   "yawDeg": 123.504,
+   "scale": 1.004
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    15.7556,
+    -9.4514,
+    5.2
+   ],
+   "yawDeg": 126.497,
+   "scale": 1.007
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    15.2836,
+    -9.7356,
+    5.2
+   ],
+   "yawDeg": 127.395,
+   "scale": 0.924
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    14.915,
+    -10.0917,
+    5.2
+   ],
+   "yawDeg": 128.843,
+   "scale": 0.974
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    14.4289,
+    -10.3864,
+    5.2
+   ],
+   "yawDeg": 130.32,
+   "scale": 1.074
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    13.9635,
+    -10.8163,
+    5.2
+   ],
+   "yawDeg": 124.674,
+   "scale": 1.002
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    15.6787,
+    -4.9154,
+    3.5
+   ],
+   "yawDeg": 143.69,
+   "scale": 1.076
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    15.3915,
+    -5.3929,
+    3.5
+   ],
+   "yawDeg": 145.209,
+   "scale": 1.046
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.9434,
+    -5.8245,
+    3.5
+   ],
+   "yawDeg": 134.384,
+   "scale": 0.941
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    14.6226,
+    -6.2425,
+    3.5
+   ],
+   "yawDeg": 138.388,
+   "scale": 0.935
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    17.0245,
+    -5.6973,
+    4.35
+   ],
+   "yawDeg": 149.028,
+   "scale": 0.973
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    16.724,
+    -6.2046,
+    4.35
+   ],
+   "yawDeg": 142.888,
+   "scale": 1.008
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.3247,
+    -6.6004,
+    4.35
+   ],
+   "yawDeg": 144.788,
+   "scale": 1.045
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    15.9595,
+    -7.0985,
+    4.35
+   ],
+   "yawDeg": 137.12,
+   "scale": 1.004
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    15.5557,
+    -7.4147,
+    4.35
+   ],
+   "yawDeg": 134.018,
+   "scale": 1.055
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.3615,
+    -6.4875,
+    5.2
+   ],
+   "yawDeg": 150.599,
+   "scale": 1.039
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.0335,
+    -7.0376,
+    5.2
+   ],
+   "yawDeg": 140.6,
+   "scale": 0.939
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    17.6468,
+    -7.4345,
+    5.2
+   ],
+   "yawDeg": 139.696,
+   "scale": 1.007
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    17.3506,
+    -7.8732,
+    5.2
+   ],
+   "yawDeg": 137.36,
+   "scale": 1.058
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.9007,
+    -8.2698,
+    5.2
+   ],
+   "yawDeg": 140.55,
+   "scale": 1.072
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    16.5373,
+    -8.7129,
+    5.2
+   ],
+   "yawDeg": 136.753,
+   "scale": 1.035
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.8445,
+    -2.7585,
+    3.5
+   ],
+   "yawDeg": 158.064,
+   "scale": 1.055
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    16.6605,
+    -3.3485,
+    3.5
+   ],
+   "yawDeg": 151.52,
+   "scale": 0.972
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.4197,
+    -3.7071,
+    3.5
+   ],
+   "yawDeg": 148.084,
+   "scale": 0.993
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    16.2088,
+    -4.2057,
+    3.5
+   ],
+   "yawDeg": 153.292,
+   "scale": 0.939
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.3389,
+    -3.1858,
+    4.35
+   ],
+   "yawDeg": 163.795,
+   "scale": 1.033
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    18.1748,
+    -3.7559,
+    4.35
+   ],
+   "yawDeg": 151.723,
+   "scale": 1.023
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    17.9041,
+    -4.2078,
+    4.35
+   ],
+   "yawDeg": 150.931,
+   "scale": 0.983
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    17.7398,
+    -4.6522,
+    4.35
+   ],
+   "yawDeg": 149.07,
+   "scale": 1.066
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    17.4271,
+    -5.0645,
+    4.35
+   ],
+   "yawDeg": 147.011,
+   "scale": 0.929
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    19.7159,
+    -3.9141,
+    5.2
+   ],
+   "yawDeg": 162.323,
+   "scale": 0.976
+  },
+  {
+   "variant": "StandingCheer",
+   "locationM": [
+    19.5856,
+    -4.4029,
+    5.2
+   ],
+   "yawDeg": 160.591,
+   "scale": 1.069
+  },
+  {
+   "variant": "SeatedCalm",
+   "locationM": [
+    19.3312,
+    -4.8172,
+    5.2
+   ],
+   "yawDeg": 158.974,
+   "scale": 0.95
+  },
+  {
+   "variant": "SeatedLean",
+   "locationM": [
+    19.1409,
+    -5.3192,
+    5.2
+   ],
+   "yawDeg": 151.258,
+   "scale": 1.027
+  },
+  {
+   "variant": "StandingPoint",
+   "locationM": [
+    18.7894,
+    -5.823,
+    5.2
+   ],
+   "yawDeg": 148.775,
+   "scale": 0.997
+  }
+ ]
+}
