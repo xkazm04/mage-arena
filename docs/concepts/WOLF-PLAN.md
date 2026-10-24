@@ -36,14 +36,14 @@ is a soft internal milestone (DECISIONS 2026-10-21, "Deadlines and Q9"). A misse
 
 Wolf's tooling only sees a project that is registered. Before any other step:
 
-- [ ] **Fleet registry.** In Wolf's `kiro/ai-registry` checkout (clean tree, `git pull --rebase` first), run
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. **Fleet registry.** In Wolf's `kiro/ai-registry` checkout (clean tree, `git pull --rebase` first), run
   `node scripts/register-project.mjs --slug mage-arena-vr --path <this checkout> --dry-run`, read it, then run it without
   `--dry-run`. Commit `projects.json` with a `fleet:` subject and push to `origin main`. The script refuses when the
   slug already points at a different checkout on Wolf; re-pointing is a decision, so ask the owner if it refuses. Wolf is already registered as `mage-arena-vr` at `kiro/mage-arena-vr`. If Wolf's checkout is now `kiro/mage-arena` (the GitHub name), the script refuses; ask the owner whether to re-point it.
-- [ ] **Personas.** If the Personas app runs on Wolf, register the checkout as a dev project (Dev Tools, or
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. **Personas.** If the Personas app runs on Wolf, register the checkout as a dev project (Dev Tools, or
   `POST /dev-tools/projects` with name and root path) and run a context scan. The headless App Masters for this
   project run on Lynx: Wolf does not run a second master for it. It reports back through commits on `origin/master`.
-- [ ] Proof: `projects.json` lists the Wolf checkout for `mage-arena-vr`, and the registry commit is on `origin/main`.
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. Proof: `projects.json` lists the Wolf checkout for `mage-arena-vr`, and the registry commit is on `origin/main`.
 
 
 Run each step from the repo root in PowerShell. The checkout path on Wolf is `kiro/mage-arena-vr` in the registry's
@@ -53,7 +53,9 @@ Run each step from the repo root in PowerShell. The checkout path on Wolf is `ki
 Record once, at the top of the first Wolf commit's evidence: `hostname`, the fleet name Wolf, and the engine build.
 **[verify on Wolf]** whether the Windows hostname is literally `Wolf`; if not, record both.
 
-- [ ] **B1. Unreal Engine 5.8.3 at `C:\Program Files\Epic Games\UE_5.8`.** The scripts hard-code this path
+First Wolf evidence: **Wolf = hostname `kaziho`** (x64; not literally `Wolf`), engine UE 5.8.3 CL 58210709, master `e321455`, 2026-10-24.
+
+- [x] Wolf kaziho 2026-10-24 e321455 `"PatchVersion": 3, "Changelist": 58210709, "CompatibleChangelist": 55116800`. **B1. Unreal Engine 5.8.3 at `C:\Program Files\Epic Games\UE_5.8`.** The scripts hard-code this path
   (`apps/vr/tools/build.ps1:4`, `install-xr.ps1:9`, `package-android.ps1:38`, `capture-*.ps1`). Expected version since
   2026-10-03: 5.8.3, Changelist 58210709, CompatibleChangelist 55116800 (`CLAUDE.md` "Build"; `docs/XR-TOOLCHAIN.md`
   "5.8.3 re-check").
@@ -63,11 +65,11 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   ```
   If it reads 5.8.4, the launcher updated the engine by surprise, against DECISIONS 2026-10-13 (F12). Stop and tell the
   owner. Do not build until the F12 procedure has run (that entry, steps 1-3).
-- [ ] **B2. Launcher auto-update off for the 5.8 install** (OWNER, F12; open since `docs/research/STATE-EVAL-2026-10-20.md`
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24 (B1 still read 5.8.3 that day). **B2. Launcher auto-update off for the 5.8 install** (OWNER, F12; open since `docs/research/STATE-EVAL-2026-10-20.md`
   section 6 risk 7). Epic Games Launcher, Unreal Engine, Library, the 5.8 tile: turn auto-update off. **[verify on Wolf]**
   the exact menu item in the current launcher. Proof: B1's `Build.version` still reads 5.8.3 at every later phase; check
   it before each phase.
-- [ ] **B3. Android target support in the Epic launcher** (OWNER, open since 2026-10-03, `docs/XR-TOOLCHAIN.md` "Owner
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. Read only: both `Test-Path` lines print False (Android not installed). **B3. Android target support in the Epic launcher** (OWNER, open since 2026-10-03, `docs/XR-TOOLCHAIN.md` "Owner
   steps" 1-2). Library, the 5.8 tile, the drop-down next to Launch, Options, enable Android, Apply. It is a large
   download (**[verify on Wolf]** the size). Proof:
   ```powershell
@@ -77,7 +79,7 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   After it is installed, remove the `[InstalledPlatforms]` block from
   `%LOCALAPPDATA%\Unreal Engine\Engine\Config\UserEngine.ini` and keep the SDK/NDK/Java paths (`docs/XR-TOOLCHAIN.md`,
   "Android toolchain actually used", last paragraph).
-- [ ] **B4. Visual Studio.** The version that built UE 5.8.2 and 5.8.3 here (2026-10-02, 2026-10-07) is not written down
+- [x] Wolf kaziho 2026-10-24 e321455 vswhere `17.14.23` (Community 2022, NativeGame + NativeDesktop); Clang component at `C:/Program Files/Microsoft Visual Studio/2022/Community`. **B4. Visual Studio.** The version that built UE 5.8.2 and 5.8.3 here (2026-10-02, 2026-10-07) is not written down
   anywhere in the repo. **[verify on Wolf]** the version UE 5.8's release notes require. Needed: the workloads "Game
   development with C++" and "Desktop development with C++", MSVC x64/x86 build tools, a Windows 11 SDK, and "C++ Clang
   tools for Windows" (for `apps/vr/tools/lint/tidy.ps1:22`; `format-check.mjs` also finds clang-format there)
@@ -89,7 +91,7 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   & $vsw -latest -products * -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang -property installationPath
   # expected: one path
   ```
-- [ ] **B5. Meta XR v207 and the Meta Interaction SDK v207, project-local** (route R-A, `docs/XR-TOOLCHAIN.md`
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24 (install-xr.ps1 not run). Found, read only: main checkout `apps/vr/Game/Plugins/MetaXR` and `MetaXRInteraction`, `VersionName` 1.207.0, Win64 `BuildId` 55116800. **B5. Meta XR v207 and the Meta Interaction SDK v207, project-local** (route R-A, `docs/XR-TOOLCHAIN.md`
   "Decision"). The plugin trees are gitignored; the script recreates them and checks both zips against a pinned SHA-256
   (`install-xr.ps1:52-55`). About 1.16 GB if not cached.
   ```powershell
@@ -100,7 +102,7 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   ```
   An `OWNER_ACTION` line for a login or licence page means the owner accepts the `oculussdk` licence (id 790194175111532)
   in a browser and re-runs (`docs/XR-TOOLCHAIN.md` "Owner steps" 4).
-- [ ] **B6. Meta XR Simulator v207, Quest 3 profile.** Recorded location:
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. Found, read only: `meta_openxr_simulator.json` present (True), `"device_profile": "Meta Quest 3"`. **B6. Meta XR Simulator v207, Quest 3 profile.** Recorded location:
   `C:\Users\kazda\AppData\Local\MetaXRSimulatorExtract\PFiles\MetaXRSimulator\v207.0` (`docs/XR-TOOLCHAIN.md` "Simulator
   boot"). **[verify on Wolf]** that it is still there. The boot uses `XR_RUNTIME_JSON`, not the HKLM activation script.
   ```powershell
@@ -109,7 +111,7 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   Select-String -Path "$sim\config\sim_core_configuration.json" -Pattern '"device_profile"'
   # expected: "device_profile": "Meta Quest 3"
   ```
-- [ ] **B7. Android SDK, NDK, JDK** (`docs/XR-TOOLCHAIN.md` "Versions on this machine"). Recorded: SDK
+- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24 (Turnkey and -SelfTest not run). Found, read only: `ANDROID_HOME` `C:/Users/kazda/scoop/apps/android-clt/current`, NDK `Pkg.Revision = 28.2.13676358`, `openjdk version "22.0.1"` at `C:/Program Files/Zulu/zulu-22`. **B7. Android SDK, NDK, JDK** (`docs/XR-TOOLCHAIN.md` "Versions on this machine"). Recorded: SDK
   `C:\Users\kazda\scoop\apps\android-clt\current` (`ANDROID_HOME`); NDK 28.2.13676358 (r28c, `NDKROOT`; the engine
   accepts r27c-r29 and pins 27.2.12479018); JDK Zulu 22.0.1 (`JAVA_HOME` `C:\Program Files\Zulu\zulu-22`; Epic documents
   OpenJDK 21.0.3, and 21 is the fallback if Gradle fails on a Java version, F11); platforms android-31/34/36; build-tools
@@ -122,32 +124,32 @@ Record once, at the top of the first Wolf commit's evidence: `hostname`, the fle
   # expected (as on 2026-10-03, runs/T05/turnkey-verify-3.txt): Android: (Status=Valid, ... Current_Sdk=r28c ...)
   powershell -NoProfile -File apps/vr/tools/package-android.ps1 -SelfTest                       # expected: exit 0
   ```
-- [ ] **B8. clang-format** (the format gate refuses to skip when it is missing, STATE-EVAL section 4).
+- [x] Wolf kaziho 2026-10-24 e321455 `self-test OK (clang-format version 19.1.5): house style passes, misformatted code fails, untouched lines are ignored`. **B8. clang-format** (the format gate refuses to skip when it is missing, STATE-EVAL section 4).
   ```powershell
   node apps/vr/tools/lint/format-check.mjs --self-test
   # expected: "self-test OK (clang-format version <n>): house style passes, misformatted code fails, untouched lines are ignored"
   ```
   Lynx printed clang-format 19.1.5 on 2026-10-21; CI uses Ubuntu's version, so counts are not CI parity.
-- [ ] **B9. ffmpeg and ffprobe on PATH** (`capture-style-pick.ps1:64`, `capture-colour-audio.ps1:58`, `:72`).
+- [x] Wolf kaziho 2026-10-24 e321455 `ffmpeg version 2025-02-17-git-b92577405b-essentials_build-www.gyan.dev`, `ffprobe version 2025-02-17-git-b92577405b-essentials_build-www.gyan.dev`. **B9. ffmpeg and ffprobe on PATH** (`capture-style-pick.ps1:64`, `capture-colour-audio.ps1:58`, `:72`).
   ```powershell
   ffmpeg -version | Select-Object -First 1; ffprobe -version | Select-Object -First 1   # expected: a version line each
   ```
-- [ ] **B10. Git LFS objects present.**
+- [x] Wolf kaziho 2026-10-24 e321455 `git lfs pull` clean; `git lfs ls-files` 394 lines, all marked present (`*`). **B10. Git LFS objects present.**
   ```powershell
   git lfs install; git lfs pull; (git lfs ls-files | Measure-Object -Line).Lines
   # expected: 279 at e1323e9 (measured on Lynx 2026-10-21); more after later LFS commits
   ```
-- [ ] **B11. Node.** Lynx runs v24.22.0. **[verify on Wolf]** the version; any Node 24 line is fine for the gates.
+- [x] Wolf kaziho 2026-10-24 e321455 `v24.14.0`; `pin OK: 9 files @ baeac66`, `conformance OK: 45 vectors`. **B11. Node.** Lynx runs v24.22.0. **[verify on Wolf]** the version; any Node 24 line is fine for the gates.
   ```powershell
   node --version; node apps/vr/tools/check-pin.mjs   # expected: v24.x; "pin OK: 9 files @ baeac66" and "conformance OK: 45 vectors"
   ```
-- [ ] **B12. Sigil test corpus** (gitignored; without it `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail, `CLAUDE.md`
+- [x] Wolf kaziho 2026-10-24 e321455 `wrote 270 corpus clips`, `wrote 5 noise clips (180.000s)`, `wrote 180 impostor clips`, `wrote 90 mouse clips`; `git status --short` empty. **B12. Sigil test corpus** (gitignored; without it `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail, `CLAUDE.md`
   "Build"). Never run `generate.mjs` bare or with `--templates`.
   ```powershell
   node apps/vr/tools/clipgen/generate.mjs --corpus 30 --seed 1000; node apps/vr/tools/clipgen/mousepaths.mjs; git status --short
   # expected (2026-10-07): 270 corpus, 5 noise, 180 impostor clips, then 90 mouse clips; git status shows no new tracked change
   ```
-- [ ] **B13. Cold editor build.**
+- [x] Wolf kaziho 2026-10-24 e321455 cold with plugins: `Result: Succeeded`, `Total execution time: 419.88 seconds`. **B13. Cold editor build.**
   ```powershell
   powershell -NoProfile -File apps/vr/tools/build.ps1
   # expected: exit 0 and "Result: Succeeded" in the UBT output (cold, about 393 s without plugins, 743 s with, CLAUDE.md / XR-TOOLCHAIN)
@@ -166,13 +168,13 @@ the end.
 ### P0. Baseline on current master (soft: Thu 22 Oct; effort 0.5 day)
 
 - Depends on: section b (B3 is not needed for P0).
-- [ ] Run section d's Node gates and both UE suites on clean master. Save `runs/wolf/baseline-<date>/` (logs plus the
+- [x] Wolf kaziho 2026-10-24 e321455 `MageArena.` 244/244 pass (45/45 Conformance); `MageArenaDesign.` failed=5, exactly the five known; Node gates green. Run section d's Node gates and both UE suites on clean master. Save `runs/wolf/baseline-<date>/` (logs plus the
   `-ReportExportPath` JSON). Expected: `MageArena.` all green (last count on record 234/234, `docs/design/V2-ROADMAP.md`,
   2026-10-08; the 45 `MageArena.Kernel.Conformance.*` last 45/45 at `b7f1009`, 2026-10-16), and `MageArenaDesign.` red
   in exactly the five known tests: `Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, `Session.Wave1Seated`,
   `Session.CreaturesSeated` (`CLAUDE.md` "Build"). This is the first UE run since 2026-10-16
   (`docs/research/KPI-2026-10-21.md` K4) and the first K2b reading on current master (K2b table).
-- [ ] Commit the per-test result table as `docs/research/WOLF-BASELINE-2026-10-DD.md` (DD = the run day; host, engine
+- [x] Wolf kaziho 2026-10-24 e321455 `docs/research/WOLF-BASELINE-2026-10-24.md` (244 + 7 rows). Commit the per-test result table as `docs/research/WOLF-BASELINE-2026-10-DD.md` (DD = the run day; host, engine
   build, commit, pass/fail per test, durations). Every later card compares per test against it (T24, T25, T27, T28 and T37
   all require a before/after per-test comparison).
 - Not done when: any `MageArena.` test is red, or a sixth `MageArenaDesign.` test is red. Then that red is the first work
