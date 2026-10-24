@@ -1067,6 +1067,9 @@ GPU-culled counts of the six `DumpStats` frames per run.
   row on BasePass (each opaque triangle once); on that reading the row passes. On the all-pass reading it still fails,
   by 7.6% instead of 21%. Section 4 stands: neither desktop reading has an independent cross-check, and V1 measures the
   device number.
+- **Verdict (owner ruling 2026-10-24, "BasePass", `docs/DECISIONS.md`): the visible-triangle row is judged on the
+  BasePass reading and passes, max 139,280 against the 350k budget.** The all-pass figure (max 376,518 here) stays a
+  logged number, reported beside it on every capture, and is not a gate. The 350k budget itself is unchanged.
 
 ### 13.5 Reproduce
 

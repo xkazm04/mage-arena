@@ -2,6 +2,18 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - D-G4 triangles: the BasePass reading is the verdict
+
+> Owner, 2026-10-24 day standup, asked which triangle reading judges the D-G4 visible-triangle row
+> (`docs/research/BUDGET-DG4-2026-10.md` 13.4): "BasePass".
+
+- **The row is judged on the GPU-culled BasePass reading** (each opaque triangle once, as 8.5 judged it). On the
+  shipping presentation after the bead fix (`57b5e52`) it reads max **139,280**, which **passes** the 350k budget.
+- **The all-pass figure stays a logged number, not a gate.** Captures keep reporting it (max 376,518 at `57b5e52`) so a
+  later rise is visible, but it cannot fail the row.
+- **What is therefore NOT touched:** the 350k budget, the other D-G4 rows (draw calls <=150, live particles <=2,000,
+  GPU emitters <=1), and section 4's caveat that V1 measures the device number.
+
 ## 2026-10-24 - DF-011 ruled: accept the three reds; P2 counts as landed
 
 > Owner, 2026-10-24 day standup, on `docs/design-findings/DF-011-after-t39-brennic-still-wins.md`: "Accept the reds".
