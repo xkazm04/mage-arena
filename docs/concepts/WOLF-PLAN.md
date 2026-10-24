@@ -231,9 +231,14 @@ the end.
   advanced the sim, every run hit the 12-minute timeout, and the skins only changed the floor tint).
 - Depends on: P3 (the skins recolour through the shared cache; a style colour write must be a material swap, T37
   deliverable 3).
-- [ ] `MageArena.Replay.Deterministic` green; `capture-style-pick.ps1` writes 4 MP4s, 16 stills and 4 event logs, exits
+- [x] Wolf kaziho 2026-10-24 122e480 (page 3f6c5bd) `capture-style-pick: ok`, exit 0; `MAGEVR_CAPTURE_DONE shots=1870` x4;
+  events-greybox/13/25/30.jsonl md5 `7b0715c871ac3399504c4f7a744896d4` x4; `MageArena.Replay.Deterministic`
+  `Result={Success}` (`MageArena.` 273/273); `-Styles 99` exits 1 on `FAIL events-99.jsonl is missing`.
+  `MageArena.Replay.Deterministic` green; `capture-style-pick.ps1` writes 4 MP4s, 16 stills and 4 event logs, exits
   non-zero if any log is missing or differs, and the 4 logs are identical (md5 of each in the report).
-- [ ] `apps/vr/art/style-pick/index.html` with the copied videos and stills (LFS rules checked in `.gitattributes`).
+- [x] Wolf kaziho 2026-10-24 3f6c5bd 4 MP4s + 16 PNGs in `apps/vr/art/style-pick/`, all 20 LFS pointers under the
+  existing repo-wide `*.mp4`/`*.png` rules (`git check-attr`: `filter: lfs`; `.gitattributes` unchanged); linked from
+  `apps/vr/art/index.html`. `apps/vr/art/style-pick/index.html` with the copied videos and stills (LFS rules checked in `.gitattributes`).
 - [ ] **OWNER:** picks 13, 25 or 30 from the page. Record the pick in `docs/DECISIONS.md` (the owner's words) before any
   style-dependent work. Until then, T38 uses the greybox look (T38 "The owner decision").
 - Moves K3 row 1 (and unblocks row 3, the P15 asset ceilings, which belong to pof, `docs/PROJECT-PLAN.md` section 8 P15;

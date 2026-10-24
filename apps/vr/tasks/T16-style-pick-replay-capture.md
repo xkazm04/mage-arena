@@ -1,6 +1,10 @@
 # T16 - Style-pick capture: one duel replay re-skinned in styles 13, 25 and 30 (P18)
 
-Status: open - deliverable 2 done (f933f5c, style skins + sampler; not yet loaded in the engine); 1 and 3-6 need the build machine
+Status: **done up to the owner's pick** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `60215f6` (style on
+every greybox surface), `603bd32` (a style that applies nothing FAILs), `122e480` (stills span the duel), `3f6c5bd`
+(review page and media). `capture-style-pick.ps1` exit 0, four identical event logs (md5
+`7b0715c871ac3399504c4f7a744896d4`); `MageArena.` 273/273; `MageArenaDesign.` 5/7, only DF-011's two accepted reds. See
+"Result" at the end. **OWNER:** the pick of 13, 25 or 30 from `apps/vr/art/style-pick/index.html` (WOLF-PLAN P4) is open.
 Max turns: 320
 
 ## Goal
@@ -88,3 +92,50 @@ an empty arena, no hands, no Fire mage. Fix these; evidence rules above still bi
 4. Run the full capture yourself **in the foreground and wait for it** (about 4 x 12 min is too long: with item 2 each
    run should take a few minutes). Look at the frames and stills; describe them in `runs/T16/REPORT.md` with real
    numbers (frames, durations, event counts, the md5 of each event log).
+
+## Result (Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709)
+
+Built from the worktree with `build.ps1`, `Result: Succeeded` at every step. One Unreal process at a time. The full
+report with every quoted line is `runs/T16/REPORT.md` on Wolf (gitignored); this section is its committed record.
+
+**Retry 1, item by item.**
+1. *The sim advances one kernel tick per frame:* already done by T45 (`191cad0`). The driver starts the duel through
+   `UArenaSessionSubsystem::Start`, the launcher runs `-usefixedtimestep -fps=60`, and a frame whose tick is not the
+   previous one plus one FAILs. Today, every run: `MAGEVR_STYLEPICK sim after 1s: 1.000000`, `end seq=1870 tick=1870`.
+2. *A deterministic end; failing on a missing or differing log:* already done by T45 (`191cad0`). The run ends at 3600
+   frames or at the end of the duel, a run under 1200 frames FAILs, and the launcher exits 1 on a missing, empty or
+   differing log. Added here: `603bd32` FAILs a style that applies no arena colour (a missing or mistyped file used to
+   record the greybox under the style's name). Proof: `-Styles 99` logged `MAGEVR_CAPTURE_FAIL style 99 applied no arena
+   colours (...style-99.json)`, then the launcher printed `FAIL events-99.jsonl is missing` and exited 1. The "differs"
+   branch was read, not run: `-ExtraArgs` reaches every style, so no launch makes one style's log differ.
+3. *The style on every greybox surface:* done here (`60215f6`). The 10-04 loader read `arena`, `groundTone`, `skyTone`
+   and `dome` as colour arrays, but the f933f5c schema nests them, so the only arena colour a style changed was the flame.
+   `FArenaLayout::ApplyStyle` now applies 17 colours: the 14 `arena` keys, with the wall split from the stands; the flame
+   from `projectiles.fire`; and both sky tones, the middle band at their midpoint. Under a style the sun and the sky
+   light become neutral greys of the greybox light's luminance. `arena.flame` is not read: style 25 samples it as the
+   leave red (0.84, 0.07, 0.04) above a near-black brazier. Each styled run logged `arena style: 17 colours applied`.
+   `MageArena.Greybox.StyleSkin` (new) holds it, including "no painted surface is the leave red".
+4. *A full capture to completion with a real report:* done here. All four styles ran to completion in one invocation
+   (about 21 min); the run held the turn, nothing was detached. `runs/T16/REPORT.md` is written from those outputs.
+
+**Capture** (code `122e480`): `MAGEVR_CAPTURE_DONE shots=1870` x4, `stage=lost sim=31.167` (Brennic wins: DF-011's
+accepted red). Four MP4s, 1920x1080, 60 fps, 1870 frames, 31.17 s, 2.65-2.95 MB. Sixteen stills at ticks 457 (hit),
+926 (cast), 1399 (cast) and 1870 (death): events 50/101/151/202 of 203, a quarter, half and three quarters into the
+log, plus its last event (`122e480`; event indices 2/5/15/30 had cut all four stills inside the first 5.2 s). Event logs,
+203 events each (145 casts, 52 hits, 5 blinks, 1 death): greybox, 13, 25 and 30 all md5
+`7b0715c871ac3399504c4f7a744896d4`, the log T45 found.
+
+**The greybox default.** No `-MageArenaStyle` applies nothing (`WallColour == Stone`, one shared stands-and-wall ISM, the
+dusk light). Measured against a baseline built from `85d104c`'s five C++ files in this worktree: the same event log;
+1794 of 1870 frames byte-identical. The 76 that differ all fall within 40 ticks after an event: the pawn's blink fade
+and the presentation's flashes run on `FPlatformTime::Seconds()` (wall clock), not on the sim tick. That variance was
+there before this change. The steady frames are identical.
+
+**Not done, by the card's own terms.** No SFX in the videos: the driver records frames only, and the colour-audio capture
+is a separate driver. The overlay shows `Sim: <s> | Last: <kind> (Actor <id>)`, without the clip fired, the recognizer
+result or the cast name. Bodies, the wrist cuff and the HP bar keep the greybox colours in every skin: most of the sampled
+`figures` colours are near-black (max channel < 0.1), which T49 reserves for the unblockable core.
+
+**Suites.** `MageArena.` 273/273 (272 + `MageArena.Greybox.StyleSkin`), including `MageArena.Replay.Deterministic`.
+`MageArenaDesign.` 5/7: `Duel.FireSeated` and `Session.FullSeated` fail, the accepted reds of DF-011.
+`check-pin.mjs`: `pin OK: 9 files @ baeac66`, `conformance OK: 45 vectors`.
