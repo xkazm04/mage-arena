@@ -4,7 +4,8 @@
 
 // T22: the collar ledger. Sources for the literals:
 // - apps/vr/data/vr/collar.json (proposals, owner sign-off pending): cracks perfect 1, reflect 1, reflectHitsCaster 1,
-//   unblockableBlinked 2; tithe areaCastTier3Plus 2, missedCast 1, crest 1; wardstones fullGlowTithe 30.
+//   unblockableBlinked 2; tithe areaCastTier3Plus 2, missedCast 1, missedCastMinTier 1 (T39 DF-009: a missed Bolt is free),
+//   crest 1; wardstones fullGlowTithe 30.
 // - spells-water.csv: tide_orb 1 Bubble Shot (projectile 12 m/s, range 12, damage 7); tide_orb 3 Twin Tides (two
 //   projectiles at +-10 deg, 11 each); tide_orb 4 A Leviathan Orb (one slow projectile, r 1.5 m); tide_orb 4 B Rain of
 //   Orbs (5-orb fan); lash 3 Maelstrom Lash (ring 360 deg r 3 m, damage 15, cast 0.30, telegraph 0.30); lash 4 Drown
@@ -373,7 +374,8 @@ bool IntoBout(FCollarRig& Rig, FArenaSession& Session)
 }
 
 // Appends scripted kernel events for the player; the next kernel step's ledger pass reads them (the cursor pattern).
-void Script(FArenaSession& Session, const TCHAR* Kind, int32 Count)
+// Value is the event value; for a miss it is the spell tier (collar.json missedCastMinTier 1: tier 0 pays nothing).
+void Script(FArenaSession& Session, const TCHAR* Kind, int32 Count, double Value = 0.0)
 {
 	FArenaState& State = const_cast<FArenaState&>(Session.GetGames().State);
 	for (int32 Index = 0; Index < Count; ++Index)
@@ -382,6 +384,7 @@ void Script(FArenaSession& Session, const TCHAR* Kind, int32 Count)
 		Event.Tick = State.Tick;
 		Event.Kind = Kind;
 		Event.ActorId = Session.GetGames().PlayerId;
+		Event.Value = Value;
 		State.Events.Add(Event);
 	}
 }
@@ -493,8 +496,13 @@ bool FMageArenaCollarEachSource::RunTest(const FString& Parameters)
 	Expect(TEXT("Maelstrom Lash (tier 3 ring) +2 tithe"), 5, 2);
 	Ledger.Observe(Event(TEXT("cast"), Me), Me, Bubble, 2.1);
 	Expect(TEXT("Bubble Shot (tier 1) adds nothing"), 5, 2);
-	Ledger.Observe(Event(TEXT("miss"), Me), Me, nullptr, 2.2);
-	Expect(TEXT("missed cast +1 tithe"), 5, 3);
+	// collar.json missedCastMinTier 1 (T39 DF-009): the miss value is the tier; a missed Bolt (tier 0) spills nothing.
+	Ledger.Observe(Event(TEXT("miss"), Me), Me, nullptr, 2.15);
+	Expect(TEXT("missed Bolt (tier 0) adds nothing"), 5, 2);
+	FArenaEvent TierOneMiss = Event(TEXT("miss"), Me);
+	TierOneMiss.Value = 1.0;
+	Ledger.Observe(TierOneMiss, Me, nullptr, 2.2);
+	Expect(TEXT("missed tier I cast +1 tithe"), 5, 3);
 	Ledger.ObserveCrests(1, 2.3);
 	Expect(TEXT("a Crest spent +1 tithe"), 5, 4);
 	Ledger.ObserveCrests(1, 2.4);
@@ -625,12 +633,12 @@ bool FMageArenaCollarMissedCasts::RunTest(const FString& Parameters)
 		bPass &= TestTrue(TEXT("Twin Tides at the foe: the foe was hurt"), SimFindActor(Run.State, Run.Foe)->Hp < 95.0);
 		bPass &= TestEqual(TEXT("Twin Tides at the foe: no miss"), CountKind(Run.State, TEXT("miss")), 0);
 	}
-	// A bolt (tier 0) into the empty sand is a missed cast too: 1 tithe.
+	// A bolt (tier 0) into the empty sand is a miss event, but collar.json missedCastMinTier 1 (T39 DF-009) makes it free.
 	{
 		const FCastRun Run = CastOnce(Cassia, TEXT("bolt:0:base"), 1, 5.0, FSimVec{10.0, 20.0}, &Rules);
 		const FArenaEvent* Miss = FirstKind(Run.State, TEXT("miss"));
 		bPass &= TestTrue(TEXT("bolt away: a miss of tier 0"), Miss && Miss->Value == 0.0 && Miss->ActorId == Run.Player);
-		bPass &= TestEqual(TEXT("bolt away: 1 tithe"), Tally(Run.State, Run.Player, Weights, FindSpellById(TEXT("bolt:0:base"))).GetBoutTithe(), 1);
+		bPass &= TestEqual(TEXT("bolt away: 0 tithe"), Tally(Run.State, Run.Player, Weights, FindSpellById(TEXT("bolt:0:base"))).GetBoutTithe(), 0);
 	}
 	bPass &= TestEqual(TEXT("the ruleset holds no finished activation"), Rules.CollarDamaged.Num(), 0);
 	return bPass;
@@ -761,10 +769,11 @@ bool FMageArenaCollarLifetime::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("an old install has no ledger: 0 cracks"), Session.GetCollar().GetLifetimeCracks(), 0);
 	bPass &= TestEqual(TEXT("collar file next to bout.txt"), Session.CollarFilePath(), LedgerPath);
 	bPass &= TestTrue(TEXT("into Bout 1"), IntoBout(Rig, Session));
-	// Bout 1: two perfects and a blinked unblockable (2 + 2 = 4 cracks), three misses and a Crest (3 + 1 = 4 tithe).
+	// Bout 1: two perfects and a blinked unblockable (2 + 2 = 4 cracks), three tier I misses and a Crest (3 + 1 = 4 tithe;
+	// collar.json missedCastMinTier 1, T39 DF-009).
 	Script(Session, TEXT("perfect"), 2);
 	Script(Session, TEXT("dodge"), 1);
-	Script(Session, TEXT("miss"), 3);
+	Script(Session, TEXT("miss"), 3, 1.0);
 	if (FActor* Player = SimFindActor(const_cast<FArenaState&>(Session.GetGames().State), Session.GetGames().PlayerId))
 	{
 		Player->Water.Crests += 1;
@@ -836,10 +845,10 @@ bool FMageArenaCollarTablet::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("lifetime cracks 10 loaded"), Session.GetCollar().GetLifetimeCracks(), 10);
 	bPass &= TestTrue(TEXT("into the final"), IntoBout(Rig, Session));
 	bPass &= TestEqual(TEXT("no tablet during the bout"), Session.GetTabletText(), FString());
-	// The final: a perfect and a reflection (2 cracks), two misses (2 tithe).
+	// The final: a perfect and a reflection (2 cracks), two tier I misses (2 tithe; collar.json missedCastMinTier 1, T39 DF-009).
 	Script(Session, TEXT("perfect"), 1);
 	Script(Session, TEXT("reflect"), 1);
-	Script(Session, TEXT("miss"), 2);
+	Script(Session, TEXT("miss"), 2, 1.0);
 	Session.Advance(kCollarTick, true);
 	WinNow(Session);
 	bPass &= TestEqual(TEXT("aftermath"), Session.GetStage(), FString(TEXT("aftermath")));

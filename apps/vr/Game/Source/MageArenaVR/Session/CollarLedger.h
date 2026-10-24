@@ -18,6 +18,8 @@ struct FCollarWeights
 	int32 UnblockableBlinked = 0;
 	int32 AreaCastTier3Plus = 0;
 	int32 MissedCast = 0;
+	/** T39 DF-009: a miss below this spell tier pays no Tithe (1 = Bolts are free). */
+	int32 MissedCastMinTier = 0;
 	int32 Crest = 0;
 	/** Presentation: the day's Tithe at which the Wardstones glow fully. */
 	double WardstoneFullTithe = 0.0;

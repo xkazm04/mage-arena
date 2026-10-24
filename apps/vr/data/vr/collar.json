@@ -17,7 +17,9 @@
     "areaCastTier3Plus": 2,
     "_areaCastTier3Plus": "Proposal, owner sign-off pending. DECISIONS 2026-10-07 'v2 vision accepted': 'Tithe (spilled magic ...)'; V2-VISION wave 2: 'tier III-IV area spells'. One player cast of a tier III or IV spell whose shape is an area (cone, ring, damaging zone, the Return Tide wave, a burst) or several projectiles (Twin Tides, Rain of Orbs).",
     "missedCast": 1,
-    "_missedCast": "Proposal, owner sign-off pending. V2-VISION wave 2: 'missed casts'. One miss event: a player projectile cast (all its projectiles) or a player area ends without damaging anyone. Bolts count.",
+    "_missedCast": "Proposal, owner sign-off pending. V2-VISION wave 2: 'missed casts'. One miss event: a player projectile cast (all its projectiles) or a player area ends without damaging anyone, from missedCastMinTier up.",
+    "missedCastMinTier": 1,
+    "_missedCastMinTier": "T39 DF-009 option A, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): count only spectacle. A miss whose spell tier is below this pays no Tithe, so a missed Bolt (tier 0) is free and a wasted tier I+ line still pays missedCast. The reference script missed Brennic 81 times in 36 s, which kept the Wardstones at full glow (DF-009).",
     "crest": 1,
     "_crest": "Proposal, owner sign-off pending. V2-VISION wave 2: 'Crests spent on spectacle'. One Crest the player spends (the kernel's Crest counter rises; a split Bolt at Flow 5 does not spend it, DECISIONS 2026-10-07 split hands)."
   },

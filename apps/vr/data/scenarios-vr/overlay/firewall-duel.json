@@ -1,11 +1,11 @@
 {
   "card": "T54",
   "variant": "live",
-  "overlaySha256": "f4eb19b24625b00fc33d80d859dfcf3382b0099468516e7acd728c44c41f51a0",
+  "overlaySha256": "5bb6c09094a7e98fbe895dc13b04e39b19329bd83521cc86ee75ac93b42d4f07",
   "files": {
     "combat.vr.json": "64488d720c11e022b23296516f49b392d5da07b47d015f398522539aba87b31e",
     "arena-layout.json": "e8230f0f56ebc464b2f69d45bdad556056c7229317c18c034e0d28cdd41b5a3a",
-    "collar.json": "701deaf25f8ced0f7ac3481672f47c604b4bed78da9702d951e17cea8ab7ac73",
+    "collar.json": "2d8885e3d66a5ee5340a39224d835d9ed405af996a7657ad453be7eb6913188a",
     "schools/spells-air.csv": "45df014c42cb414dc6c7be96eb4dbb7a0fe58b40425ea1d8426cd98f1f0657aa"
   },
   "bout": "firewall-duel",

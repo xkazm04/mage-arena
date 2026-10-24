@@ -123,20 +123,12 @@ bool ParseCollarWeights(const FString& Text, FCollarWeights& Out, FString& Error
 	}
 	// spare (T25) and interrupt (T29) have no source yet: accepted, ignored.
 	const TArray<FString> Reserved = {TEXT("spare"), TEXT("interrupt")};
-	if (!CheckKeys(*Cracks, TEXT("cracks"), {TEXT("perfect"), TEXT("reflect"), TEXT("reflectHitsCaster"), TEXT("unblockableBlinked")}, Reserved, Error)
-		|| !CheckKeys(*Tithe, TEXT("tithe"), {TEXT("areaCastTier3Plus"), TEXT("missedCast"), TEXT("crest")}, Reserved, Error)
-		|| !CheckKeys(*Stones, TEXT("wardstones"), {TEXT("fullGlowTithe")}, {}, Error))
+	if (!CheckKeys(*Cracks, TEXT("cracks"), {TEXT("perfect"), TEXT("reflect"), TEXT("reflectHitsCaster"), TEXT("unblockableBlinked")}, Reserved, Error) || !CheckKeys(*Tithe, TEXT("tithe"), {TEXT("areaCastTier3Plus"), TEXT("missedCast"), TEXT("missedCastMinTier"), TEXT("crest")}, Reserved, Error) || !CheckKeys(*Stones, TEXT("wardstones"), {TEXT("fullGlowTithe")}, {}, Error))
 	{
 		return false;
 	}
 	FCollarWeights Next;
-	if (!ReadWeight(*Cracks, TEXT("cracks"), TEXT("perfect"), Next.Perfect, Error)
-		|| !ReadWeight(*Cracks, TEXT("cracks"), TEXT("reflect"), Next.Reflect, Error)
-		|| !ReadWeight(*Cracks, TEXT("cracks"), TEXT("reflectHitsCaster"), Next.ReflectHitsCaster, Error)
-		|| !ReadWeight(*Cracks, TEXT("cracks"), TEXT("unblockableBlinked"), Next.UnblockableBlinked, Error)
-		|| !ReadWeight(*Tithe, TEXT("tithe"), TEXT("areaCastTier3Plus"), Next.AreaCastTier3Plus, Error)
-		|| !ReadWeight(*Tithe, TEXT("tithe"), TEXT("missedCast"), Next.MissedCast, Error)
-		|| !ReadWeight(*Tithe, TEXT("tithe"), TEXT("crest"), Next.Crest, Error))
+	if (!ReadWeight(*Cracks, TEXT("cracks"), TEXT("perfect"), Next.Perfect, Error) || !ReadWeight(*Cracks, TEXT("cracks"), TEXT("reflect"), Next.Reflect, Error) || !ReadWeight(*Cracks, TEXT("cracks"), TEXT("reflectHitsCaster"), Next.ReflectHitsCaster, Error) || !ReadWeight(*Cracks, TEXT("cracks"), TEXT("unblockableBlinked"), Next.UnblockableBlinked, Error) || !ReadWeight(*Tithe, TEXT("tithe"), TEXT("areaCastTier3Plus"), Next.AreaCastTier3Plus, Error) || !ReadWeight(*Tithe, TEXT("tithe"), TEXT("missedCast"), Next.MissedCast, Error) || !ReadWeight(*Tithe, TEXT("tithe"), TEXT("missedCastMinTier"), Next.MissedCastMinTier, Error) || !ReadWeight(*Tithe, TEXT("tithe"), TEXT("crest"), Next.Crest, Error))
 	{
 		return false;
 	}
@@ -270,7 +262,11 @@ void FCollarLedger::Observe(const FArenaEvent& Event, int32 PlayerId, const FSpe
 	}
 	else if (Event.Kind == TEXT("miss"))
 	{
-		Add(ECollarSource::MissedCast, SimSeconds);
+		// T39 DF-009: the miss value is the spell tier; below collar.json missedCastMinTier a miss spills nothing.
+		if (Event.Value >= static_cast<double>(Weights.MissedCastMinTier))
+		{
+			Add(ECollarSource::MissedCast, SimSeconds);
+		}
 	}
 	else if (Event.Kind == TEXT("cast") && CastSpell && IsAreaCastTier3Plus(*CastSpell))
 	{
