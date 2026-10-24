@@ -28,6 +28,11 @@ bool MatchDouble(const FString& Source, const FString& Pattern, double& Out, con
 bool MatchGroup(const FString& Source, const FString& Pattern, FString& Out);
 const FString* Cell(const TMap<FString, FString>& Row, const TCHAR* Key);
 
+// T44. A number cell is digits with an optional fraction and nothing else. "0.30" passes; "0.3s", "" and "x" fail.
+bool StrictNumber(const FString& Cell, double& Out);
+// StrictNumber with the error "<sheet> row <id>: <column> cell '<cell>' is not a number" (Air's wording, Air's sheet "air").
+bool CellNumber(const FString& Cell, const TCHAR* Sheet, const TCHAR* Column, const FString& Id, double& Out, FString& Error);
+
 bool BuildSpells(const FCsvTable& Rows, FKernelData& Data);
 bool LoadEnemies(const FJsonObject& Root, FKernelData& Data, const FString& Path);
 bool LoadArenaTiers(FKernelData& Data);

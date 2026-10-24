@@ -193,6 +193,28 @@ const FString* Cell(const TMap<FString, FString>& Row, const TCHAR* Key)
 	return Row.Find(FString(Key));
 }
 
+// Lifted from KernelDataAir.cpp (T44) unchanged, so Air reads its cells exactly as before.
+bool StrictNumber(const FString& Cell, double& Out)
+{
+	FString Text;
+	if (!MatchGroup(Cell, TEXT("^(\\d+(?:\\.\\d+)?)$"), Text))
+	{
+		return false;
+	}
+	Out = FCString::Atod(*Text);
+	return FMath::IsFinite(Out);
+}
+
+bool CellNumber(const FString& Cell, const TCHAR* Sheet, const TCHAR* Column, const FString& Id, double& Out, FString& Error)
+{
+	if (!StrictNumber(Cell, Out))
+	{
+		Error = FString::Printf(TEXT("%s row %s: %s cell '%s' is not a number"), Sheet, *Id, Column, *Cell);
+		return false;
+	}
+	return true;
+}
+
 bool LinearStat(const FCsvTable& Stats, const TCHAR* Stat, const TCHAR* Variable, double& Base, double& PerRank, FKernelData& Data)
 {
 	const TMap<FString, FString>* Found = nullptr;

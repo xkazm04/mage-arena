@@ -6,7 +6,9 @@
 
 #include <cmath>
 
+using KernelDataLoad::CellNumber;
 using KernelDataLoad::MatchGroup;
+using KernelDataLoad::StrictNumber;
 
 const FAirSpell* FindAirSpell(const FString& Id)
 {
@@ -33,27 +35,6 @@ bool AirFail(FString& Error, const FString& Message)
 {
 	Error = Message;
 	return false;
-}
-
-// A numeric cell is digits with an optional fraction and nothing else. "0.30" passes; "0.3s", "" and "x" fail.
-bool StrictNumber(const FString& Cell, double& Out)
-{
-	FString Text;
-	if (!MatchGroup(Cell, TEXT("^(\\d+(?:\\.\\d+)?)$"), Text))
-	{
-		return false;
-	}
-	Out = FCString::Atod(*Text);
-	return FMath::IsFinite(Out);
-}
-
-bool CellNumber(const FString& Cell, const TCHAR* Column, const FString& Id, double& Out, FString& Error)
-{
-	if (!StrictNumber(Cell, Out))
-	{
-		return AirFail(Error, FString::Printf(TEXT("air row %s: %s cell '%s' is not a number"), *Id, Column, *Cell));
-	}
-	return true;
 }
 
 // Matches the whole cell against Pattern and returns up to three capture groups.
@@ -380,12 +361,12 @@ bool ParseAirSpellsCsv(const FString& Text, TArray<FAirSpell>& OutSpells, TArray
 			return AirFail(Error, FString::Printf(TEXT("air spells: bad id or name in row: %s"), *Line));
 		}
 		double Tier = 0.0;
-		if (!CellNumber(Values[2], TEXT("tier"), Spell.Id, Tier, Error)
-			|| !CellNumber(Values[4], TEXT("cast_s"), Spell.Id, Spell.CastS, Error)
-			|| !CellNumber(Values[5], TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error)
-			|| !CellNumber(Values[6], TEXT("mana"), Spell.Id, Spell.Mana, Error)
-			|| !CellNumber(Values[9], TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error)
-			|| !CellNumber(Values[10], TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
+		if (!CellNumber(Values[2], TEXT("air"), TEXT("tier"), Spell.Id, Tier, Error)
+			|| !CellNumber(Values[4], TEXT("air"), TEXT("cast_s"), Spell.Id, Spell.CastS, Error)
+			|| !CellNumber(Values[5], TEXT("air"), TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error)
+			|| !CellNumber(Values[6], TEXT("air"), TEXT("mana"), Spell.Id, Spell.Mana, Error)
+			|| !CellNumber(Values[9], TEXT("air"), TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error)
+			|| !CellNumber(Values[10], TEXT("air"), TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
 		{
 			return false;
 		}
