@@ -23,8 +23,12 @@ const FLinearColor MageAirBody(0.05f, 0.20f, 0.06f);
 const FLinearColor HoundBody(0.28f, 0.07f, 0.02f);
 const FLinearColor MawBody(0.15f, 0.35f, 0.1f);
 const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
-const FLinearColor HpBack(0.02f, 0.02f, 0.02f);
-const FLinearColor HpFill(0.65f, 0.08f, 0.05f);
+// T49 (owner ruling 2026-10-21): a near-black back behind a red fill was the unblockable's black core and red rim, the
+// pair the threat language reserves for "leave". The bar is magenta on a dusky plum, about sRGB 231, 63, 203 on 97, 56,
+// 89: a hue no element (turquoise, ember orange, wind green, ochre), steel grey, the cuff's mana blue or clock gold, nor
+// the Tithe violet uses, and the back stays well clear of near-black. Tests/GreyboxTests.cpp holds both to that.
+const FLinearColor HpBack(0.12f, 0.04f, 0.10f);
+const FLinearColor HpFill(0.80f, 0.05f, 0.60f);
 bool bStyleLoaded = false;
 }
 

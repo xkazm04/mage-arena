@@ -25,8 +25,9 @@ namespace PresentationLook
 MAGEARENAVR_API FBodyLook Body(const FString& EnemyId);
 /** The training dummy: a conscript's column in a pale tone. */
 MAGEARENAVR_API FBodyLook Dummy();
+/** The back of an enemy's HP bar. Never near-black: that is the unblockable's core (T49). */
 MAGEARENAVR_API FLinearColor HpBackColour();
-/** The fill of an enemy's HP bar, and the HP bar on the wrist cuff. */
+/** The fill of an enemy's HP bar, and the HP bar on the wrist cuff (T49: one HP colour on the field and the wrist). */
 MAGEARENAVR_API FLinearColor HpFillColour();
 /** The HP bar: a back and a fill, HpBarLengthCm long and HpBarThicknessCm square, HpBarGapCm above the body top. */
 inline constexpr double HpBarLengthCm = 70.0;
