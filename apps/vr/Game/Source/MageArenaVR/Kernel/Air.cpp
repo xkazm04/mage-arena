@@ -584,8 +584,17 @@ void CancelAirChannel(FActor& Actor)
 void ResetAir(FActor& Actor)
 {
 	const bool bSchool = Actor.Air.bSchool;
+	const EAirSeatedReading Reading = Actor.Air.SeatedReading;
 	Actor.Air = FAirState();
 	Actor.Air.bSchool = bSchool;
+	Actor.Air.SeatedReading = Reading;
+}
+
+bool GrantAirSchool(FActor& Actor, EAirSeatedReading Reading)
+{
+	Actor.Air.bSchool = true;
+	Actor.Air.SeatedReading = Reading;
+	return true;
 }
 
 bool AirTryEvade(FArenaState& State, FActor& Target, const FHit& Hit)

@@ -1,5 +1,6 @@
 #include "Kernel/Games.h"
 
+#include "Kernel/Air.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Catalog.h"
 #include "Kernel/Enemies.h"
@@ -130,7 +131,8 @@ void SpawnWave(FGames& Games)
 				}
 				else if (School == TEXT("air"))
 				{
-					Actor->Air.bSchool = true;
+					const bool bGranted = GrantAirSchool(*Actor);
+					checkf(bGranted, TEXT("the Tiro rival of wave %d was refused the air school"), Games.Wave);
 				}
 				double Level = Spawn.Competence;
 				if (Games.VrRules.IsSet())

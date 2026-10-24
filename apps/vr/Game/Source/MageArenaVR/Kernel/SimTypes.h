@@ -211,10 +211,21 @@ struct FAirVolley
 	int32 PierceLeft = 0;
 };
 
+// T50. How a player-side Air school reads Momentum for a seated mage. UpdateAirResource measures Pos - PreviousPos, which a
+// seated player never has, so a player-castable Air school needs a reading. None is the default: a school that forgets
+// to declare one is refused by GrantAirSchool. The owner has not chosen the reading (BACKLOG owner item, SCHOOL-DEFENCES.md);
+// Declared is the slot the implementer flips, and is replaced by one value per reading when the owner rules.
+enum class EAirSeatedReading : uint8
+{
+	None,
+	Declared,
+};
+
 // Momentum exists only while bSchool is set. Water and Fire actors keep the zeros, and the state hash skips the block.
 struct FAirState
 {
 	bool bSchool = false;
+	EAirSeatedReading SeatedReading = EAirSeatedReading::None;
 	double Momentum = 0.0;
 	double MaxMomentum = 0.0;
 	int32 LockUntil = 0;

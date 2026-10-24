@@ -1250,4 +1250,112 @@ bool FMageArenaAirRivalBoltWard::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+// T50. Lio's Gale mage walks in the live games, so her Momentum is the one trace the guard must not move. The values are
+// the trace recorded on cd15d06 (before the guard): one sample per 60 ticks of the seed 7 Lio final, player idle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaAirRivalMomentumUnchanged, "MageArena.Air.RivalMomentumUnchanged",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaAirRivalMomentumUnchanged::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FVrRuleset Rules;
+	FString Error;
+	if (!TestTrue(TEXT("overlay loads"), LoadVrRuleset(Rules, Error, false)))
+	{
+		return false;
+	}
+	const FComposition* Preset = KernelData().Presets.FindByPredicate([](const FComposition& C)
+	{ return C.Name == KernelData().ReferencePreset; });
+	FGames Games;
+	if (!TestTrue(TEXT("final creates"), TryCreateGames(Games, 7, Preset, 3, false, true, &Rules, true)))
+	{
+		return false;
+	}
+	const int32 RivalId = Games.VrRules->RivalRuntime.ActorId;
+	if (!TestNotNull(TEXT("Lio bound"), SimFindActor(Games.State, RivalId)))
+	{
+		return false;
+	}
+	TArray<double> Trace;
+	for (int32 Tick = 0; Tick < 900; ++Tick)
+	{
+		StepGames(Games);
+		if ((Tick + 1) % 60 == 0)
+		{
+			Trace.Add(SimFindActor(Games.State, RivalId)->Air.Momentum);
+		}
+	}
+	FString Line;
+	for (const double Value : Trace)
+	{
+		Line += FString::Printf(TEXT(" %.17g"), Value);
+	}
+	UE_LOG(LogMageArena, Display, TEXT("T50 rival momentum trace:%s"), *Line);
+	const TArray<double> Expected = {50.000000000000121, 74.000000000000057, 97.999999999999773, 100.0, 100.0, 100.0, 100.0, 100.0,
+	    100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0};
+	bool bPass = TestEqual(TEXT("trace length"), Trace.Num(), Expected.Num());
+	for (int32 Index = 0; Index < FMath::Min(Trace.Num(), Expected.Num()); ++Index)
+	{
+		bPass &= Near(*this, FString::Printf(TEXT("second %d"), Index + 1), Trace[Index], Expected[Index]);
+	}
+	return bPass;
+}
+
+// T50. The seated-momentum guard. The seated Momentum reading is the owner's open decision (BACKLOG owner item,
+// SCHOOL-DEFENCES.md); these tests pin the guard around it and the reason it exists, they do not choose a reading.
+// Why the guard exists. A seated player is pinned to the pad (ArenaSession SeatOnActivePad, every tick), so the Pos -
+// PreviousPos that UpdateAirResource reads is zero and Momentum can only decay, which leaves Air Form uncastable.
+// The fixture hands the school to a player-side actor directly; no production path does that.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaAirSeatedPlayerMomentumOnlyDecays, "MageArena.Air.SeatedPlayerMomentumOnlyDecays",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaAirSeatedPlayerMomentumOnlyDecays::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FAirPair Pair = MakeAir(10.0);
+	FActor& Seated = Live(Pair.State, Pair.Actor);
+	const FSimVec Seat = Seated.Pos;
+	const FMomentumRules& Rules = KernelData().Momentum;
+	const FAirSpell& Form = KernelData().AirSpells[SlotOf(TEXT("air_form"))];
+	Seated.Air.Momentum = 60.0;
+	Seated.Air.MaxMomentum = 60.0;
+	bool bPass = TestTrue(TEXT("Air Form is castable at 60 Momentum"), AirCastLegal(Pair.State, Seated, Form));
+	double Previous = Seated.Air.Momentum;
+	bool bStill = true;
+	bool bNeverGains = true;
+	for (int32 Tick = 0; Tick < 200; ++Tick)
+	{
+		// Seated input: no Move, whatever the mage does with the hands. Then the per-tick pin to the pad.
+		Step(Pair.State, Pair.Actor, SimIdleInput(SimAdd(Seat, FSimVec{1.0, 0.0})));
+		FActor& Now = Live(Pair.State, Pair.Actor);
+		bStill &= SimDistance(Now.Pos, Now.PreviousPos) / SimDt() == 0.0;
+		bNeverGains &= Now.Air.Momentum <= Previous;
+		Previous = Now.Air.Momentum;
+		Now.Pos = Seat;
+		Now.PreviousPos = Seat;
+	}
+	bPass &= TestTrue(TEXT("Speed is zero on every tick"), bStill);
+	bPass &= TestTrue(TEXT("Momentum never gains"), bNeverGains);
+	bPass &= Near(*this, TEXT("Momentum decays to the pinned Min"), Live(Pair.State, Pair.Actor).Air.Momentum, Rules.Min);
+	bPass &= Near(*this, TEXT("the peak is still the 60 it started at"), Live(Pair.State, Pair.Actor).Air.MaxMomentum, 60.0);
+	bPass &= TestFalse(TEXT("Air Form is uncastable once Momentum is spent"), AirCastLegal(Pair.State, Live(Pair.State, Pair.Actor), Form));
+
+	// The card's "zero on every tick" holds for idle ticks only. The reseat runs after the kernel step, so a roll tick still
+	// sees the roll's displacement (11.4 m/s > 4) and gains one tick of Momentum. It is the roll, not a reading of the seat.
+	FInputFrame Roll = SimIdleInput(SimAdd(Seat, FSimVec{1.0, 0.0}));
+	Roll.bRoll = true;
+	Roll.Move = FSimVec{0.0, 1.0};
+	Step(Pair.State, Pair.Actor, Roll);
+	FActor& Rolled = Live(Pair.State, Pair.Actor);
+	bPass &= TestTrue(TEXT("a roll tick moves faster than the Momentum threshold"), SimDistance(Rolled.Pos, Rolled.PreviousPos) / SimDt() > Rules.MovingAboveMps);
+	bPass &= Near(*this, TEXT("and gains one tick of Momentum"), Rolled.Air.Momentum, Rules.Min + Rules.GainPerSecondMoving * SimDt());
+	return bPass;
+}
+
 #endif

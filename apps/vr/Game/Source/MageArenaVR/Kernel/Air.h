@@ -19,6 +19,9 @@ void ReleaseAir(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nul
 void UpdateAirResource(FArenaState& State, FActor& Actor);
 void UpdateAirOngoing(FArenaState& State, FActor& Actor, const FVrRuleset* Rules = nullptr);
 void GainMomentum(FArenaState& State, FActor& Actor, double Amount);
+// T50. The one place that switches an actor onto the Air school. A player-side actor (Team 0) needs a declared seated
+// Momentum reading; without one the grant is refused with a logged error and the actor stays a non-air mage.
+bool GrantAirSchool(FActor& Actor, EAirSeatedReading Reading = EAirSeatedReading::None);
 
 double AirAbsorbDrainMult(const FArenaState& State, const FActor& Actor);
 double AirRollStaminaMult(const FActor& Actor);
