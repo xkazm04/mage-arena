@@ -90,6 +90,12 @@ FString FHandClip::MakeFilePath(FName Action, EClipVariant Variant, bool bMirror
 		return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("stones"), FString::Printf(TEXT("%s.normal.jsonl"), *Action.ToString()));
 	}
 	const FString Name = FString::Printf(TEXT("%s.%s.jsonl"), *Action.ToString(), VariantToString(Variant));
+	// T25: the fist at missio (fist, and the fist-loose impostor) has its own folder too. Either hand may close it, so a
+	// left-handed player plays the same take.
+	if (Action.ToString().StartsWith(TEXT("fist")))
+	{
+		return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("fist"), Name);
+	}
 	if (bMirror)
 	{
 		return FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("mirror"), Name);

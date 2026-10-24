@@ -1776,9 +1776,9 @@ const USAGE = `generate.mjs needs a mode: its old default rewrote every tracked 
   --templates               REWRITE the tracked sigil templates
   --self-test               check the comparison logic on a throwaway tree`;
 
-// Directories a canonical regeneration owns, relative to Game/ (this module, stones.mjs, system-gesture.mjs).
+// Directories a canonical regeneration owns, relative to Game/ (this module, stones.mjs, fist.mjs, system-gesture.mjs).
 // Anything else under Game/Clips (templates, recordings) belongs to other writers and is not compared.
-const OWNED_DIRS = ['Clips', 'Clips/mirror', 'Clips/stones', 'TestData/Clips/ward', 'TestData/Clips/system'];
+const OWNED_DIRS = ['Clips', 'Clips/mirror', 'Clips/stones', 'Clips/fist', 'TestData/Clips/ward', 'TestData/Clips/system'];
 
 function listOwned(root) {
   const files = new Map();
@@ -1836,6 +1836,7 @@ async function runCheck(outArg) {
   try {
     writeCanonical(genRoot);
     (await import('./stones.mjs')).writeStones(genRoot, () => {});
+    (await import('./fist.mjs')).writeFist(genRoot, () => {});
     (await import('./system-gesture.mjs')).writeSystemGesture(genRoot, () => {});
   } finally {
     LOG = loud;
@@ -1963,6 +1964,8 @@ export {
   ease,
   mulberry32,
   seedFor,
+  variantParams,
+  isDetectorRaised,
   poseHand,
   palmForTip,
   applyJitter,
