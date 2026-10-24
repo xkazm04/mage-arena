@@ -85,8 +85,7 @@ struct FBeadRig
 		}
 		Session.SkipTeach();
 		Session.Advance(1.0 / 72.0, true);
-		return Test.TestNotNull(TEXT("the session has a player"), SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId))
-		    && Test.TestTrue(TEXT("the VR overlay is active"), Session.GetVrRules() && Session.GetVrRules()->bActive);
+		return Test.TestNotNull(TEXT("the session has a player"), SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId)) && Test.TestTrue(TEXT("the VR overlay is active"), Session.GetVrRules() && Session.GetVrRules()->bActive);
 	}
 
 	void Close()
@@ -157,7 +156,8 @@ struct FBeadRig
 
 	FProjectile* Find(int32 Id)
 	{
-		return Games().State.Projectiles.FindByPredicate([Id](const FProjectile& Each) { return Each.Id == Id; });
+		return Games().State.Projectiles.FindByPredicate([Id](const FProjectile& Each)
+		{ return Each.Id == Id; });
 	}
 };
 }
@@ -223,11 +223,13 @@ bool FMageArenaPresentationReusedRingNoBeads::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("the ring carried from the ember into a spear shows no bead"), Rig.Presentation->CountRingBeadsDrawn(BeadEmberId), 0);
 
 	// Free-slot reuse: the threat ends, its ring is freed, and a new spear takes the free ring.
-	Rig.Games().State.Projectiles.RemoveAll([](const FProjectile& Each) { return Each.Id == BeadEmberId; });
+	Rig.Games().State.Projectiles.RemoveAll([](const FProjectile& Each)
+	{ return Each.Id == BeadEmberId; });
 	Rig.AddThreat(BeadEmberId + 10, BeadHoundActorId, TEXT("magic"), 0.5 * KernelData().Absorb.WindowS);
 	Rig.Presentation->Sync(Rig.Session, false);
 	bPass &= TestTrue(TEXT("a second ember shows its beads"), Rig.Presentation->CountRingBeadsDrawn(BeadEmberId + 10) > 0);
-	Rig.Games().State.Projectiles.RemoveAll([](const FProjectile& Each) { return Each.Id == BeadEmberId + 10; });
+	Rig.Games().State.Projectiles.RemoveAll([](const FProjectile& Each)
+	{ return Each.Id == BeadEmberId + 10; });
 	Rig.Presentation->Sync(Rig.Session, false);
 	Rig.AddThreat(BeadSpearId, BeadConscriptActorId, TEXT("physical"), 0.5 * KernelData().Absorb.WindowS);
 	Rig.Presentation->Sync(Rig.Session, false);
