@@ -127,6 +127,8 @@ void AArenaGreybox::BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder)
 	UInstancedStaticMeshComponent* PadDisc = Greybox::MakeInstances(this, Cylinder, Greybox::Tint(Basic, this, Layout.PadRing));
 	UInstancedStaticMeshComponent* PadRing = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.PadRing));
 	UInstancedStaticMeshComponent* Seats = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.Seat));
+	// The wall shares the stands' instances unless a style gives it its own colour (T16), so the greybox draws as before.
+	UInstancedStaticMeshComponent* WallMesh = Layout.WallColour == Layout.Stone ? Stone : Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.WallColour));
 
 	// One centimetre above z=0 so a leftover map plane cannot win a coplanar fight.
 	const FVector FloorCentre(0.0, 0.0, -Layout.FloorThicknessM * 0.5 + 0.01);
@@ -151,7 +153,7 @@ void AArenaGreybox::BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder)
 		const FQuat Rotation = FRotationMatrix::MakeFromXZ(Chord.GetSafeNormal(), FVector::UpVector).ToQuat();
 
 		const FVector WallCentre = Mid + Normal * (Layout.WallThicknessM * 0.5) + FVector(0.0, 0.0, Layout.WallHeightM * 0.5);
-		AddBox(Stone, WallCentre, Rotation, FVector(ChordLen * 1.04, Layout.WallThicknessM, Layout.WallHeightM));
+		AddBox(WallMesh, WallCentre, Rotation, FVector(ChordLen * 1.04, Layout.WallThicknessM, Layout.WallHeightM));
 
 		const double MidRadius = FMath::Max(Mid.Size2D(), 0.01);
 		for (int32 Tier = 0; Tier < Layout.StandTiers; ++Tier)

@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 
+class FJsonObject;
+
 /** One rune pad. PositionM is the top centre, in metres. */
 struct FRunePad
 {
@@ -124,6 +126,8 @@ struct FArenaLayout
 	FLinearColor CastFlash = FLinearColor(0.12f, 0.82f, 0.20f);
 	FLinearColor RejectFlash = FLinearColor(0.50f, 0.50f, 0.50f);
 	FLinearColor WardArc = FLinearColor(0.45f, 0.75f, 0.95f, 0.40f);
+	/** The perimeter wall. arena-layout.json has no wall colour, so it is Stone unless a style names one (T16). */
+	FLinearColor WallColour = FLinearColor(0.46f, 0.45f, 0.43f);
 
 	double ChestHeightAboveSandM = 1.35;
 	double ThreatStaggerS = 0.2;
@@ -159,8 +163,22 @@ struct FArenaLayout
 	FLinearColor SkyZenith = FLinearColor(0.015f, 0.018f, 0.06f);
 	bool bCastShadows = false;
 
+	/** How many colours the style file of -MageArenaStyle=<id> applied in LoadFromFile; 0 for the greybox. */
+	int32 StyleColours = 0;
+
+	/** Loads the layout, then the style -MageArenaStyle=<id> names over it (none, or "greybox", leaves the greybox). */
 	bool LoadFromFile(const FString& Path, FString& OutError);
 	static FString DefaultFilePath();
+	/** apps/vr/data/vr/styles/style-<id>.json for -MageArenaStyle=<id>, or an empty string for no flag and "greybox". */
+	static FString StyleFilePathFromCommandLine();
+	/**
+	 * T16: applies a style file (apps/vr/data/vr/styles/style-<id>.json) over the greybox colours: `arena` (the
+	 * arena-layout.json `colours` keys plus `wall`; the flame is `projectiles.fire` instead of `arena.flame`), `sky.horizon`
+	 * and `sky.zenith`, the upper sky band at their midpoint.
+	 * A style that applies any colour also turns the sun and the sky light to neutral greys of their own luminance, so
+	 * the dusk light cannot tint the sampled colours. Alpha (the ward arc's) stays the layout's. Returns how many colours it applied.
+	 */
+	int32 ApplyStyle(const FJsonObject& Style);
 
 	const FRunePad* FindPad(int32 Index) const;
 	const FRunePad* FindPadById(const FString& Id) const;

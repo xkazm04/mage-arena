@@ -1,7 +1,10 @@
 #include "Greybox/ArenaLayout.h"
 
 #include "Dom/JsonObject.h"
+#include "MageArenaVR.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -266,6 +269,88 @@ FString FArenaLayout::DefaultFilePath()
 	return FPaths::ConvertRelativePathToFull(Path);
 }
 
+FString FArenaLayout::StyleFilePathFromCommandLine()
+{
+	FString StyleId;
+	if (!FParse::Value(FCommandLine::Get(), TEXT("MageArenaStyle="), StyleId) || StyleId.IsEmpty() || StyleId == TEXT("greybox"))
+	{
+		return FString();
+	}
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/styles/style-") + StyleId + TEXT(".json"));
+	FPaths::CollapseRelativeDirectories(Path);
+	return FPaths::ConvertRelativePathToFull(Path);
+}
+
+int32 FArenaLayout::ApplyStyle(const FJsonObject& Style)
+{
+	auto Read = [](const FJsonObject& Object, const TCHAR* Field, FLinearColor& Out)
+	{
+		const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+		if (!Object.TryGetArrayField(Field, Values) || !Values || Values->Num() < 3)
+		{
+			return 0;
+		}
+		Out = FLinearColor(static_cast<float>((*Values)[0]->AsNumber()), static_cast<float>((*Values)[1]->AsNumber()),
+		    static_cast<float>((*Values)[2]->AsNumber()), Out.A);
+		return 1;
+	};
+	int32 Applied = 0;
+	const TSharedPtr<FJsonObject>* Arena = nullptr;
+	if (Style.TryGetObjectField(TEXT("arena"), Arena) && Arena && Arena->IsValid())
+	{
+		const TPair<const TCHAR*, FLinearColor*> Fields[] = {
+		    {TEXT("sand"), &Sand},
+		    {TEXT("stone"), &Stone},
+		    {TEXT("wall"), &WallColour},
+		    {TEXT("dais"), &Dais},
+		    {TEXT("padRing"), &PadRing},
+		    {TEXT("seat"), &Seat},
+		    {TEXT("marker"), &Marker},
+		    {TEXT("brazier"), &Brazier},
+		    {TEXT("bannerCloth"), &BannerCloth},
+		    {TEXT("bannerPole"), &BannerPole},
+		    {TEXT("hand"), &Hand},
+		    {TEXT("castFlash"), &CastFlash},
+		    {TEXT("rejectFlash"), &RejectFlash},
+		    {TEXT("wardArc"), &WardArc},
+		};
+		for (const TPair<const TCHAR*, FLinearColor*>& Field : Fields)
+		{
+			Applied += Read(**Arena, Field.Key, *Field.Value);
+		}
+	}
+	// The brazier flame is the style's Fire colour, as the greybox flame is the ember orange, never `arena.flame`: style
+	// 25 samples that as the leave red (0.84, 0.07, 0.04), which over its near-black brazier is the unblockable's pair.
+	const TSharedPtr<FJsonObject>* Projectiles = nullptr;
+	if (Style.TryGetObjectField(TEXT("projectiles"), Projectiles) && Projectiles && Projectiles->IsValid())
+	{
+		Applied += Read(**Projectiles, TEXT("fire"), Flame);
+	}
+	const TSharedPtr<FJsonObject>* Sky = nullptr;
+	if (Style.TryGetObjectField(TEXT("sky"), Sky) && Sky && Sky->IsValid())
+	{
+		const int32 SkyApplied = Read(**Sky, TEXT("horizon"), SkyHorizon) + Read(**Sky, TEXT("zenith"), SkyZenith);
+		if (SkyApplied == 2)
+		{
+			// The style files sample two sky tones; the dome's middle band sits between them.
+			SkyUpper = FLinearColor((SkyHorizon.R + SkyZenith.R) * 0.5f, (SkyHorizon.G + SkyZenith.G) * 0.5f,
+			    (SkyHorizon.B + SkyZenith.B) * 0.5f, SkyUpper.A);
+		}
+		Applied += SkyApplied;
+	}
+	if (Applied > 0)
+	{
+		// The dusk sun is orange and the sky light blue; a style keeps their energy (luminance) and drops their hue. White
+		// at full strength drew a style's sand about three times its sampled colour (T16, style 25, linear).
+		const float Sun = DirectionalColour.GetLuminance();
+		const float SkyFill = SkyLightColour.GetLuminance();
+		DirectionalColour = FLinearColor(Sun, Sun, Sun);
+		SkyLightColour = FLinearColor(SkyFill, SkyFill, SkyFill);
+	}
+	StyleColours = Applied;
+	return Applied;
+}
+
 bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
 {
 	*this = FArenaLayout();
@@ -405,42 +490,18 @@ bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
 	{
 		return false;
 	}
-	FString StyleArg;
-	if (FParse::Value(FCommandLine::Get(), TEXT("MageArenaStyle="), StyleArg) && StyleArg != TEXT("greybox") && !StyleArg.IsEmpty())
+	WallColour = Stone;
+
+	const FString StylePath = StyleFilePathFromCommandLine();
+	if (!StylePath.IsEmpty())
 	{
-		FString StylePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/styles/style-") + StyleArg + TEXT(".json"));
-		FPaths::CollapseRelativeDirectories(StylePath);
 		FString StyleJson;
-		if (FFileHelper::LoadFileToString(StyleJson, *StylePath))
+		TSharedPtr<FJsonObject> StyleRoot;
+		if (FFileHelper::LoadFileToString(StyleJson, *StylePath) && FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(StyleJson), StyleRoot) && StyleRoot.IsValid())
 		{
-			TSharedPtr<FJsonObject> StyleRoot;
-			const TSharedRef<TJsonReader<>> StyleReader = TJsonReaderFactory<>::Create(StyleJson);
-			if (FJsonSerializer::Deserialize(StyleReader, StyleRoot) && StyleRoot.IsValid())
-			{
-				auto ReadCol = [&](const TSharedPtr<FJsonObject>& Obj, const TCHAR* Field, FLinearColor& Out) {
-					const TArray<TSharedPtr<FJsonValue>>* Arr;
-					if (Obj->TryGetArrayField(Field, Arr) && Arr->Num() >= 3) {
-						Out = FLinearColor((*Arr)[0]->AsNumber(), (*Arr)[1]->AsNumber(), (*Arr)[2]->AsNumber(), Out.A);
-					}
-				};
-				ReadCol(StyleRoot, TEXT("arena"), Stone);
-				ReadCol(StyleRoot, TEXT("arena"), Seat);
-				ReadCol(StyleRoot, TEXT("dais"), Dais);
-				ReadCol(StyleRoot, TEXT("pads"), PadRing);
-				ReadCol(StyleRoot, TEXT("hands"), Hand);
-				ReadCol(StyleRoot, TEXT("groundTone"), Sand);
-				ReadCol(StyleRoot, TEXT("arena"), Brazier);
-				ReadCol(StyleRoot, TEXT("arena"), BannerCloth);
-				ReadCol(StyleRoot, TEXT("arena"), BannerPole);
-				ReadCol(StyleRoot, TEXT("skyTone"), SkyHorizon);
-				ReadCol(StyleRoot, TEXT("dome"), SkyUpper);
-				ReadCol(StyleRoot, TEXT("dome"), SkyZenith);
-				const TSharedPtr<FJsonObject>* Proj = nullptr;
-				if (StyleRoot->TryGetObjectField(TEXT("projectiles"), Proj) && Proj && (*Proj).IsValid()) {
-					ReadCol(*Proj, TEXT("fire"), Flame);
-				}
-			}
+			ApplyStyle(*StyleRoot);
 		}
+		UE_LOG(LogMageArena, Log, TEXT("arena style: %d colours applied from %s"), StyleColours, *StylePath);
 	}
 	return true;
 }

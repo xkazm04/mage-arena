@@ -3,11 +3,16 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Budget/BudgetFx.h"
+#include "Dom/JsonObject.h"
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/ThreatDemo.h"
 #include "Hands/MageArenaPawn.h"
 #include "Session/ElementColour.h"
 #include "Session/PresentationLook.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Serialization/JsonReader.h"
+#include "Serialization/JsonSerializer.h"
 
 namespace
 {
@@ -304,6 +309,101 @@ bool FMageArenaGreyboxUnblockableRed::RunTest(const FString& Parameters)
 		return false;
 	}
 	TestTrue(*FString::Printf(TEXT("NS_Budget_Telegraph colour %s is the palette's"), *Telegraph->Colour.ToString()), Telegraph->Colour.Equals(Palette.UnblockableRim, 1.0e-6f));
+	return true;
+}
+
+// T16 (Retry 1 item 3): a style recolours every greybox surface - sand, stands, wall, dais, pads, seats, markers, braziers,
+// banners, hands and the sky dome - under neutral light. Without -MageArenaStyle the layout is the greybox, and no surface
+// a style paints is the unblockable's red rim, so no near-black prop beside it can form the leave pair.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxStyleSkin, "MageArena.Greybox.StyleSkin",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxStyleSkin::RunTest(const FString& Parameters)
+{
+	FArenaLayout Base;
+	FString Error;
+	if (!TestTrue(TEXT("layout file loads"), Base.LoadFromFile(FArenaLayout::DefaultFilePath(), Error)))
+	{
+		AddError(Error);
+		return false;
+	}
+	TestEqual(TEXT("no -MageArenaStyle applies no style colour"), Base.StyleColours, 0);
+	TestTrue(TEXT("the greybox wall is the stone"), Base.WallColour == Base.Stone);
+	{
+		FArenaLayout Untouched = Base;
+		TestEqual(TEXT("an empty style applies nothing"), Untouched.ApplyStyle(FJsonObject()), 0);
+		TestTrue(TEXT("an empty style keeps the dusk sun"), Untouched.DirectionalColour == Base.DirectionalColour);
+	}
+
+	for (const TCHAR* Id : {TEXT("13"), TEXT("25"), TEXT("30")})
+	{
+		FString Path = FPaths::Combine(FPaths::ProjectDir(), FString::Printf(TEXT("../data/vr/styles/style-%s.json"), Id));
+		FPaths::CollapseRelativeDirectories(Path);
+		FString Json;
+		TSharedPtr<FJsonObject> Style;
+		if (!TestTrue(*FString::Printf(TEXT("style %s loads"), Id), FFileHelper::LoadFileToString(Json, *Path) && FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Style) && Style.IsValid()))
+		{
+			continue;
+		}
+		auto Colour = [&Style](const TCHAR* Group, const TCHAR* Field)
+		{
+			const TArray<TSharedPtr<FJsonValue>>& Values = Style->GetObjectField(Group)->GetArrayField(Field);
+			return FLinearColor(static_cast<float>(Values[0]->AsNumber()), static_cast<float>(Values[1]->AsNumber()),
+			    static_cast<float>(Values[2]->AsNumber()));
+		};
+		auto Same = [](const FLinearColor& A, const FLinearColor& B)
+		{ return FMath::IsNearlyEqual(A.R, B.R, 1.0e-5f) && FMath::IsNearlyEqual(A.G, B.G, 1.0e-5f) && FMath::IsNearlyEqual(A.B, B.B, 1.0e-5f); };
+
+		FArenaLayout Styled = Base;
+		// 14 arena colours, the flame from projectiles.fire, and the two sky tones.
+		TestEqual(*FString::Printf(TEXT("style %s applies 17 colours"), Id), Styled.ApplyStyle(*Style), 17);
+		TestEqual(*FString::Printf(TEXT("style %s counts what it applied"), Id), Styled.StyleColours, 17);
+		TestTrue(*FString::Printf(TEXT("style %s sand"), Id), Same(Styled.Sand, Colour(TEXT("arena"), TEXT("sand"))));
+		TestTrue(*FString::Printf(TEXT("style %s stands"), Id), Same(Styled.Stone, Colour(TEXT("arena"), TEXT("stone"))));
+		TestTrue(*FString::Printf(TEXT("style %s wall"), Id), Same(Styled.WallColour, Colour(TEXT("arena"), TEXT("wall"))));
+		TestTrue(*FString::Printf(TEXT("style %s brazier"), Id), Same(Styled.Brazier, Colour(TEXT("arena"), TEXT("brazier"))));
+		TestTrue(*FString::Printf(TEXT("style %s banner cloth"), Id), Same(Styled.BannerCloth, Colour(TEXT("arena"), TEXT("bannerCloth"))));
+		TestTrue(*FString::Printf(TEXT("style %s flame is its fire"), Id), Same(Styled.Flame, Colour(TEXT("projectiles"), TEXT("fire"))));
+		TestTrue(*FString::Printf(TEXT("style %s sky horizon"), Id), Same(Styled.SkyHorizon, Colour(TEXT("sky"), TEXT("horizon"))));
+		TestTrue(*FString::Printf(TEXT("style %s sky zenith"), Id), Same(Styled.SkyZenith, Colour(TEXT("sky"), TEXT("zenith"))));
+		TestTrue(*FString::Printf(TEXT("style %s upper sky between them"), Id),
+		    Same(Styled.SkyUpper, (Styled.SkyHorizon + Styled.SkyZenith) * 0.5f));
+		TestEqual(*FString::Printf(TEXT("style %s keeps the ward arc alpha"), Id), Styled.WardArc.A, Base.WardArc.A);
+		for (const TPair<FLinearColor, FLinearColor>& Light :
+		    {TPair<FLinearColor, FLinearColor>(Styled.DirectionalColour, Base.DirectionalColour), TPair<FLinearColor, FLinearColor>(Styled.SkyLightColour, Base.SkyLightColour)})
+		{
+			TestTrue(*FString::Printf(TEXT("style %s light %s is neutral"), Id, *Light.Key.ToString()), Light.Key.R == Light.Key.G && Light.Key.G == Light.Key.B);
+			TestTrue(*FString::Printf(TEXT("style %s light %s keeps the greybox luminance"), Id, *Light.Key.ToString()),
+			    FMath::IsNearlyEqual(Light.Key.GetLuminance(), Light.Value.GetLuminance(), 1.0e-4f));
+		}
+		// Retry 1: "only the floor tint changes". Each of the big surfaces moves off the greybox.
+		struct FMoved
+		{
+			const TCHAR* Name;
+			FLinearColor Now;
+			FLinearColor Was;
+		};
+		const FMoved Moved[] = {
+		    {TEXT("sand"), Styled.Sand, Base.Sand},
+		    {TEXT("stands"), Styled.Stone, Base.Stone},
+		    {TEXT("wall"), Styled.WallColour, Base.WallColour},
+		    {TEXT("sky horizon"), Styled.SkyHorizon, Base.SkyHorizon},
+		    {TEXT("sky upper"), Styled.SkyUpper, Base.SkyUpper},
+		    {TEXT("sky zenith"), Styled.SkyZenith, Base.SkyZenith},
+		    {TEXT("banner cloth"), Styled.BannerCloth, Base.BannerCloth},
+		    {TEXT("brazier"), Styled.Brazier, Base.Brazier},
+		};
+		for (const FMoved& Surface : Moved)
+		{
+			TestTrue(*FString::Printf(TEXT("style %s changes the %s"), Id, Surface.Name), !Same(Surface.Now, Surface.Was));
+		}
+		const FLinearColor Painted[] = {Styled.Sand, Styled.Stone, Styled.WallColour, Styled.Dais, Styled.PadRing, Styled.Seat, Styled.Marker,
+		    Styled.Brazier, Styled.Flame, Styled.BannerCloth, Styled.BannerPole, Styled.Hand, Styled.SkyHorizon, Styled.SkyUpper, Styled.SkyZenith};
+		for (const FLinearColor& Surface : Painted)
+		{
+			TestFalse(*FString::Printf(TEXT("style %s surface %s is not the leave red"), Id, *Surface.ToString()), IsRedRim(Surface));
+		}
+	}
 	return true;
 }
 
