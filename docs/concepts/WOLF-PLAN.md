@@ -215,8 +215,8 @@ the end.
 - Card: `apps/vr/tasks/T37-shared-part-materials.md`. Way (b), the per-colour cache, unless step 1 finds a per-frame
   colour that cannot be quantised; then stop and report (the card's "The choice this card makes").
 - Depends on: P0. Does not share files with T39 except tests; run it after T39 so the design baseline is T39's.
-- [ ] `runs/T37/recolour-sites.md` written; the 16-cast count re-verified.
-- [ ] Done when: `MageArena.` green including `MageArena.Presentation.SharedMaterials.SameColourSameMaterial`,
+- [x] Wolf kaziho 2026-10-24 f851101 16 casts re-verified (`:1151` ... `:2100`), no per-frame colour that cannot be quantised (three fades: stones, crowd band, Wardstones), so way (b) holds. `runs/T37/recolour-sites.md` written; the 16-cast count re-verified.
+- [x] Wolf kaziho 2026-10-24 4352581 `MageArena.` 252/252 with the 3 SharedMaterials tests (red first: `Expected 'part B keeps its colour after A is recoloured (got (R=0.900000,G=0.260000,B=0.020000,A=1.000000))' to be true.`); `MageArenaDesign.` the P2 three reds with identical messages, no other; leverb1-3 `MAGEVR_BUDGET_DONE` x3, draw calls max 73 / 75 / 73 (median 70), live particles max 1,468, GPU emitters 1; `docs/research/BUDGET-DG4-2026-10.md` section 11. Done when: `MageArena.` green including `MageArena.Presentation.SharedMaterials.SameColourSameMaterial`,
   `.RecolourDoesNotLeak` (red line quoted) and `.Bounded`; `MageArenaDesign.` unchanged against the P2 result;
   `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix leverb` prints `MAGEVR_BUDGET_DONE` three
   times with draw calls max <=150 and particle rows still passing (<=2,000, <=1 GPU emitter); section 11 "Lever B

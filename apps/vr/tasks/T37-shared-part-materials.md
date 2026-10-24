@@ -1,7 +1,12 @@
 # T37 - Shared part materials in SessionPresentation (D-G4 lever B)
 
-Status: open (needs the build machine: UE 5.8 editor, the MetaXR plugins and `capture-budget.ps1`; written 2026-10-20 on
-the ARM64 laptop, where none of it runs)
+Status: done on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commit 4352581; Done-when met. Way (b), the per-colour
+cache: step 1 re-verified the 16 casts and found no unquantisable per-frame colour. Build `Result: Succeeded`;
+MageArena. 252/252 (the 3 new SharedMaterials tests, RecolourDoesNotLeak seen red first); MageArenaDesign. per test
+equal to P2 (FireSeated, AirSeated, FullSeated red with identical messages, DF-011; the card's list of five below is
+stale since T39); `capture-budget.ps1 -Runs 3 -Prefix leverb` draw calls median 70, max 73 / 75 / 73, live particles
+max 1,468, 1 GPU emitter; `docs/research/BUDGET-DG4-2026-10.md` section 11. The pass is on the stress proxy until T46
+(scene parity). Report: runs/T37/REPORT.md. (Was: open, written 2026-10-20 on the ARM64 laptop.)
 Max turns: 240
 
 ## Goal

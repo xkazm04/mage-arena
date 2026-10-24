@@ -736,3 +736,118 @@ The other count rows with the 6 systems in the scene (over the sample window):
 2. `powershell -NoProfile -File apps/vr/tools/create-budget-fx.ps1` (reports `unchanged` when the assets exist;
    `-Force` rebuilds, `-Dump` and `-Verify` log the rapid-iteration parameters).
 3. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix fx`
+
+## 11. Lever B shipped
+
+**Label: desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz.** Lever B of 7.7 and 9 (one
+material per colour, way (b), the per-colour cache) is now in the shipping presentation, and the stress driver's default
+path follows it (7.7, last bullet). The runs below use shipping settings and no switch. Sections 0-10 are unchanged.
+
+### 11.1 Provenance
+
+- **Code commit:** `4352581` (`T37: parts of one colour share one material (D-G4 lever B)`) on base `f851101`. It adds
+  `FGreyboxTintCache`, `Greybox::SharedTint`, `Greybox::Recolour` and `Greybox::QuantiseFade` (`Greybox/GreyboxUtil.h`).
+  `ASessionPresentation::MakePart` takes its material from the cache; the 16 cast-and-write recolours and the `UseMesh`
+  swap in `Sync` become `ASessionPresentation::Recolour` (a material swap, never a parameter write on a shared instance);
+  the dome and wall curtains share a translucent cache. The three per-frame fades are quantised: the comfort stones and
+  the crowd band in 1/16 steps, the Wardstone glow and pulse in 1/8 steps (the colour mixes two amounts, so 9 x 9 per
+  part). `UBudgetStressDriver` builds its parts with `Greybox::SharedTint` on its default path; `BudgetSharedTint` and
+  `FBudgetMaterialCache` are gone and `-MageArenaBudgetSharedMaterials` is now a no-op. No config line changed, and none
+  of the three lines of 9, choice 3, is set anywhere under `apps/vr/Game/Config/`. The greybox stays unlit.
+- **Step 1** (`runs/T37/recolour-sites.md`, uncommitted): the card's 16 casts re-verified at `f851101`; no per-frame
+  colour that cannot be quantised, so way (b) holds for every site.
+- **Host and date:** Wolf kaziho, 2026-10-24, launches 05:39-05:44 local. UE 5.8.3 (CL 58210709), D3D12, NVIDIA GeForce
+  RTX 4090, `-game -RenderOffScreen -ResX=1920 -ResY=1080 -nohmd` as in section 0. Each launch started with no other
+  Unreal process on the machine.
+- **Commands and results:**
+
+  | Step | Command | Result |
+  |---|---|---|
+  | Build | `powershell -NoProfile -File apps/vr/tools/build.ps1` | `Result: Succeeded` |
+  | Capture | `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix leverb` | `budget: ok (3 runs)`, exit 0 |
+  | Suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArena.;Quit" -nullrhi` | 252/252 pass (249 at `f851101` plus the 3 new `MageArena.Presentation.SharedMaterials.*`) |
+  | Design suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArenaDesign.;Quit" -nullrhi` | 4 pass, 3 fail: `Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, the same three as at `f851101` with identical failure messages (DF-011) |
+
+  Every launch logged `MAGEVR_BUDGET_DONE`, `MAGEVR_BUDGET_MATERIALS mids=8 colours=8 parts=160`, both
+  `MAGEVR_BUDGET_POP` lines at full count (`enemies=20 projectiles=100 hands=2 niagara=6`, 102 hand instances, 8,552
+  launches at the end) and `Set CVar [[r.AllowOcclusionQueries:0]]`, and no `MAGEVR_BUDGET_FAIL`. Warm-up took 10.0 s.
+  Wall times were 87, 86 and 88 s.
+- **Summaries:** `runs/DG4/leverb1..3/summary.json` (gitignored). They are not committed beside the `fx` ones in
+  `docs/research/budget-dg4/`, because that folder was outside this run's declared paths; the figures below are copied
+  from them.
+
+### 11.2 Results per run
+
+min / median / p95 / max over every frame of the 60 s window. Triangles are the GPU-culled counts of the six `DumpStats`
+frames per run.
+
+| Run | Frames | Draw calls | RHI primitives | GPU-culled BasePass tris | GPU-culled all-pass tris | Frame ms median / p95 | GPU ms median / p95 | Peak WS |
+|---|---|---|---|---|---|---|---|---|
+| leverb1 | 41,402 | 47 / 70 / 72 / 73 | 198,595 / 207,011 / 212,375 / 218,851 | 122,832 median, 123,792 max | 321,374 median, 324,256 max | 1.35 / 1.90 | 0.73 / 0.82 | 3,000 MB |
+| leverb2 | 41,962 | 49 / 70 / 73 / 75 | 205,631 / 213,039 / 218,719 / 226,097 | 122,832 median, 123,792 max | 320,896 median, 323,792 max | 1.36 / 1.93 | 0.73 / 0.84 | 2,897 MB |
+| leverb3 | 42,637 | 47 / 70 / 72 / 73 | 198,161 / 207,011 / 212,607 / 218,859 | 122,832 median, 123,792 max | 321,608 median, 324,488 max | 1.31 / 1.93 | 0.73 / 0.83 | 2,962 MB |
+
+The particle rows, with the 6 systems as in section 10:
+
+| Run | Live particles min / median / p95 / max | CPU max | GPU max | GPU emitters (max, cross-check) | Systems live (min) | Zero-particle frames | Verdict (driver) |
+|---|---|---|---|---|---|---|---|
+| leverb1 | 1,128 / 1,397 / 1,460 / 1,468 | 869 | 600 | 1, 1 | 6 | 0 | pass |
+| leverb2 | 1,131 / 1,400 / 1,462 / 1,468 | 869 | 600 | 1, 1 | 6 | 0 | pass |
+| leverb3 | 1,129 / 1,399 / 1,461 / 1,467 | 869 | 600 | 1, 1 | 6 | 0 | pass |
+
+**`DrawCall/*` CSV medians** (the per-category max is a single frame each and is not simultaneous with the others).
+"Other" is the total minus the five categories shown.
+
+| Run | Total | Basepass | Translucency | Prepass | RenderVelocities | SlateUI | BeginOcclusionTests | Other |
+|---|---|---|---|---|---|---|---|---|
+| ship1-3 (8.3, A only, no systems) | 183 | 145 | 16 | 11 | 2 | 2 | 0 | 7 |
+| leverb1 / leverb2 / leverb3 | 70 / 70 / 70 | **21** | 21 | 11 | 7 | 3 | 0 | 7 |
+
+### 11.3 Change
+
+- **Against fx1-3 (10.2: median 194, max 201).** Draw calls fall by 124 at the median and by 126-128 at the max. Against
+  ship1-3 (8.3), Basepass goes from 145 to 21, as the diagnostic `both1-3` predicted (7.2: 118 to 21 with occlusion on;
+  8.5: "lever B takes it ... to 21"). The material count of the stress parts falls from 160 (one per part) to 8 (one per
+  colour): `MAGEVR_BUDGET_MATERIALS mids=8 colours=8 parts=160`.
+- **Against the A + B diagnostic (7.2, 7.4: median 58-59, max 62, no particle systems).** The shipped pair plus the 6
+  systems gives median 70 and max 73-75. Section 10 put the systems at about 11 draws at the median, which accounts
+  for the difference.
+- **Triangles and particles do not move.** BasePass max 123,792 against 123,792-124,752 in 10.2; all-pass max 324,488
+  against 321,536 in 8.3 (93% of 350k); live particles max 1,468 and 1 GPU emitter, exactly as in 10.2. Sharing a
+  material changes how draws are batched, not what is drawn.
+- **Translucency median 21 against 16 in 8.3, RenderVelocities 7 against 2.** The 6 particle systems are in this scene
+  and were not in 8.3. Not attributed further here.
+
+### 11.4 Verdicts (desktop proxy)
+
+| Row | Target | Measured with levers A and B shipped and the 6 systems | Verdict |
+|---|---|---|---|
+| Draw calls | ≤150 (one total for the whole frame, DECISIONS 2026-10-16) | median 70, max 73 / 75 / 73 (leverb1-3); 75 draws under the limit at the worst frame | **pass**, in every sampled frame of all three runs |
+| Visible triangles | ≤350k | GPU-culled BasePass max 123,792; all passes max 324,488 (18 sampled frames); RHI lower bound max 226,097 | **pass** on desktop, with the limits in section 4 |
+| Live particles | ≤2,000 | max 1,468 (73% of the row) | **pass** |
+| GPU emitters | ≤1 | 1 (cross-check 1) in every frame | **pass** |
+
+- **What the draw-call pass means.** It is measured on the D-G4 stress scene, a parallel scene built by
+  `UBudgetStressDriver`, not on a live `ASessionPresentation`. Both now take their materials from `Greybox::SharedTint`,
+  so the material-sharing divergence is closed; the part list, populations, sizes and colours are not single-sourced
+  (card T46, the parity instrument). Until T46 lands, this verdict is a statement about the proxy scene.
+- **The shipping presentation itself.** `MageArena.Presentation.SharedMaterials.Bounded` plays the FullSeated script
+  headless with the presentation synced on every step and logs
+  `MAGEVR_PRESENTATION_MATERIALS distinct=22 peak=22 shared=21 parts=456`: 22 materials for 456 parts, against one
+  material per part before. The run ends where the script loses bout 3 (DF-011) and has no camera, so the camera-bound
+  visuals (cuff, phase flare and crowd band) are not in that count; the cap of 256 covers them by arithmetic
+  (`Tests/SharedMaterialTests.cpp`).
+
+### 11.5 What V1 must confirm on the device
+
+As 9.4: the real draw count with B and whether the 32-part split of MI 1.7 matches, and `GPUScene: Enabled` in the
+device log. In addition: that a recolour, now a material swap, does not cost a visible hitch on the Quest game thread
+(9: "each colour change rebuilds the part's proxy"). The busiest swap sites are the crowd band (32 parts) and the
+projectiles.
+
+### 11.6 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`
+2. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix leverb`. No `-ExtraArgs`. Expect
+   `MAGEVR_BUDGET_MATERIALS mids=8 colours=8 parts=160`, `DrawCall/Basepass` median 21 and a draw-call median of 70.
+3. Revert: revert `4352581`. The stress driver then builds one material per part again and the row returns to 10.2.
