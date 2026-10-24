@@ -48,7 +48,8 @@ bool RunCellCase(FAutomationTestBase& Test, const FCellCase& Case)
 		return false;
 	}
 	const FString Mutated = Text.Replace(Case.From, Case.To, ESearchCase::CaseSensitive);
-	bool bPass = Test.TestNotEqual(FString::Printf(TEXT("%s: the edit applies"), Case.Name), Mutated, Text);
+	// FString's == ignores case, and one edit below is only a change of case.
+	bool bPass = Test.TestFalse(FString::Printf(TEXT("%s: the edit applies"), Case.Name), Mutated.Equals(Text, ESearchCase::CaseSensitive));
 	TMap<FString, FString> Overrides;
 	Overrides.Add(KernelDataPinnedPath(Case.File), Mutated);
 	const FKernelData Loaded = LoadKernelDataWithOverrides(Overrides);
