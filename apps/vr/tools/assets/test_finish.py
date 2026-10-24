@@ -1,9 +1,11 @@
 # Offline proof of finish.py's Blender-free logic (apps/vr/tools/mesh/finish_lib.py): mode selection, the style clamp
-# math, UV coverage, bake-miss accounting and filling. numpy only, no Blender.
+# math, UV coverage, bake-miss accounting and filling, and the normal map (miss fill toward flat, deviation, 16-bit PNG).
+# numpy only, no Blender.
 #
 #   python -m unittest apps/vr/tools/assets/test_finish.py
 import os
 import sys
+import tempfile
 import unittest
 
 import numpy as np
@@ -41,7 +43,8 @@ class ModeSelection(unittest.TestCase):
     def test_bake_with_options(self):
         _, palette, o = fl.split_args(POS + ['Conscript', 'mode=bake', 'clamp=both', 'strength=0.5', 'levels=6', 'cage=0.015', 'ray=0.1', 'margin=8'])
         self.assertEqual(palette, 'Conscript')
-        self.assertEqual(o, {'mode': 'bake', 'clamp': 'both', 'strength': 0.5, 'levels': 6, 'cage': 0.015, 'ray': 0.1, 'margin': 8})
+        self.assertEqual(o, {'mode': 'bake', 'clamp': 'both', 'strength': 0.5, 'levels': 6, 'cage': 0.015, 'ray': 0.1, 'margin': 8,
+                             'normal': 'off'})
         self.assertIsInstance(o['levels'], int)
 
     def test_rejections(self):
@@ -53,6 +56,16 @@ class ModeSelection(unittest.TestCase):
                 fl.split_args(POS + extra)
         with self.assertRaises(ValueError):
             fl.split_args(POS[:6])
+
+    def test_normal_is_off_unless_asked(self):
+        # the flat call and the current bake call parse to the options they parsed to before the normal bake existed
+        self.assertEqual(fl.split_args(POS + ['Brennic'])[2]['normal'], 'off')
+        self.assertEqual(fl.split_args(POS + ['Brennic', 'mode=bake'])[2]['normal'], 'off')
+        o = fl.split_args(POS + ['Brennic', 'mode=bake', 'normal=on'])[2]
+        self.assertEqual((o['mode'], o['normal'], o['cage'], o['ray'], o['margin']), ('bake', 'on', 0.02, 0.08, 16))
+        for extra in (['normal=on'], ['mode=flat', 'normal=on'], ['mode=bake', 'normal=yes'], ['mode=bake', 'normal=1']):
+            with self.assertRaises(ValueError, msg=extra):
+                fl.split_args(POS + extra)
 
 
 class Colour(unittest.TestCase):
@@ -186,6 +199,63 @@ class Bake(unittest.TestCase):
         p = [[[0, 0, 0], [1, 0, 0], [1, 0, 1]], [[0, 0, 0], [1, 0, 1], [0, 0, 1]]]
         d = fl.texel_density(uv, p, 1024)
         self.assertEqual((d['uv_share'], d['surface_m2'], d['texels_per_m']), (0.25, 1.0, 512.0))
+
+
+class NormalMap(unittest.TestCase):
+    FLAT = np.array(fl.FLAT_NORMAL)
+
+    @staticmethod
+    def encode(v):
+        v = np.asarray(v, dtype=np.float64)
+        return v / np.linalg.norm(v, axis=-1, keepdims=True) * 0.5 + 0.5
+
+    def test_misses_fill_toward_flat_never_black(self):
+        n = 20; cov = np.zeros((n, n), bool); cov[4:12, 4:12] = True
+        nrm = np.zeros((n, n, 3)); nrm[cov] = self.encode([0.3, 0.0, 1.0])  # a tilted island on black background
+        miss = np.zeros_like(cov); miss[6:8, 6:8] = True; miss[4, 4:12] = True; nrm[miss] = 0  # holes the rays left black
+        out, q = fl.fill_normal_misses(nrm, miss, cov, margin=3)
+        np.testing.assert_allclose(out[miss], np.tile(self.FLAT, (miss.sum(), 1)))
+        np.testing.assert_array_equal(out[cov & ~miss], nrm[cov & ~miss])  # hit texels untouched
+        self.assertEqual((q['missed_not_flat_before_fill'], q['dark_where_hit'], q['dark_after_fill']), (12, 0, 0))
+        self.assertEqual(q['margin_rings'], 3)
+        # the margin is grown from island texels only: the ring next to the hit right edge carries the island's tilt
+        np.testing.assert_allclose(out[8, 12], nrm[8, 11])
+        np.testing.assert_allclose(out[8, 14], nrm[8, 11])
+        np.testing.assert_allclose(out[8, 15], self.FLAT)  # past the margin: flat, not black
+        np.testing.assert_allclose(out[0, 0], self.FLAT)
+        self.assertEqual(fl.dark_texels(out, np.ones((n, n), bool)), 0)
+
+    def test_deviation_from_flat(self):
+        mask = np.ones((10, 10), bool)
+        flat = np.tile(self.FLAT, (10, 10, 1))
+        self.assertEqual(fl.normal_deviation(flat, mask), {'texels': 100, 'mean_deg': 0.0, 'share_over_10deg': 0.0, 'share_over_20deg': 0.0})
+        img = flat.copy()
+        t = np.radians
+        img[:2] = self.encode([np.sin(t(15)), 0, np.cos(t(15))])  # 20 texels at 15 degrees
+        img[2:3] = self.encode([0, -np.sin(t(30)), np.cos(t(30))])  # 10 texels at 30 degrees
+        d = fl.normal_deviation(img, mask)
+        self.assertEqual((d['share_over_10deg'], d['share_over_20deg']), (0.3, 0.1))
+        self.assertAlmostEqual(d['mean_deg'], (20 * 15 + 10 * 30) / 100, delta=0.05)
+        sub = np.zeros_like(mask); sub[2:4] = True  # the statistic follows the mask
+        self.assertEqual(fl.normal_deviation(img, sub)['share_over_20deg'], 0.5)
+        self.assertEqual(fl.normal_deviation(img, np.zeros_like(mask))['texels'], 0)
+
+    def test_back_region_rule(self):
+        fn = np.array([[0, 1, 0], [0, -1, 0], [0, 0.6, 0.8], [0, 0.4, 0.917], [0, 1, 0], [0, 1, 0]])
+        cz = np.array([1.0, 1.0, 1.0, 1.0, 0.3, 1.6])
+        np.testing.assert_array_equal(fl.back_region_faces(fn, cz), [True, False, True, False, False, False])
+
+    def test_png16_round_trip_and_row_order(self):
+        rng = np.random.default_rng(5); img = rng.random((7, 5, 3)); img[0, 0] = (1.0, 0.0, 0.5)
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'n.png'); fl.png16(p, img)
+            raw = open(p, 'rb').read()
+            self.assertEqual(raw[:8], bytes([0x89]) + b'PNG' + bytes([13, 10, 26, 10]))
+            self.assertEqual(raw[24:26], bytes([16, 2]))  # bit depth 16, colour type RGB
+            self.assertNotIn(b'gAMA', raw); self.assertNotIn(b'sRGB', raw)
+            back = fl.read_png16(p)
+        np.testing.assert_allclose(back, img, atol=0.5 / 65535)
+        self.assertEqual(back.shape, (7, 5, 3))
 
 
 if __name__ == '__main__':

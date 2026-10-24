@@ -12,15 +12,17 @@
 //   node apps/vr/tools/mesh/finish.mjs <raw.glb> <outdir> --class Humanoid --name Brennic
 //        [--palette <finish.py set, default the class's>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>]
 //        [--mode bake|flat] [--clamp none|posterize|hue|both] [--strength <0-0.6>] [--levels <n>] [--cage <m>]
-//        [--ray <m>] [--margin <px>]      (the bake-mode flags: finish-args.mjs)
+//        [--ray <m>] [--margin <px>] [--normal off|on]      (the bake-mode flags: finish-args.mjs)
+//        [--expect <reference finish dir>]   fail (exit 1) when the geometry drifts from that run's (geometryDrift)
 //
 // The class (budgets.json) gives the triangle target and the height band; finish.py takes its height from the palette
 // set, so a set whose HEIGHT disagrees with the class shows up as scale-off on the finished card.
-// Exit: the finished card's (0 pass or warn, 1 fail, 3 incomplete); 1 when the raw card refuses; 2 usage or error.
+// Exit: the finished card's (0 pass or warn, 1 fail, 3 incomplete); 1 when the raw card refuses or the geometry drifts
+// from --expect; 2 usage or error.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { HERE, runBlender } from './blender.mjs';
-import { finishParams, finishPyArgs } from './finish-args.mjs';
+import { finishParams, finishPyArgs, geometryDrift } from './finish-args.mjs';
 import { classBudget, exitCodeFor, MESH_CODES } from './gate-lib.mjs';
 import { meshCard } from './mesh-card.mjs';
 
@@ -35,7 +37,7 @@ const [raw, outdir] = argv.filter((a, i) => !a.startsWith('--') && !argv[i - 1]?
 const className = opt('class');
 const name = opt('name');
 if (!raw || !outdir || !className || !name) {
-  console.error('usage: finish.mjs <raw.glb> <outdir> --class <class> --name <Name> [--palette <set>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>] [--mode bake|flat] [--clamp none|posterize|hue|both] [--strength <s>] [--levels <n>] [--cage <m>] [--ray <m>] [--margin <px>]');
+  console.error('usage: finish.mjs <raw.glb> <outdir> --class <class> --name <Name> [--palette <set>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>] [--mode bake|flat] [--clamp none|posterize|hue|both] [--strength <s>] [--levels <n>] [--cage <m>] [--ray <m>] [--margin <px>] [--normal off|on] [--expect <reference finish dir>]');
   process.exit(2);
 }
 
@@ -74,9 +76,21 @@ try {
   writeFileSync(join(outdir, `${name}_card_finished.json`), JSON.stringify(after, null, 1) + '\n');
   rec.secs.cardFinished = after.secs;
   rec.after = { verdict: after.verdict, tris: after.metrics.tris, components: after.metrics.components, heightM: after.metrics.heightM, minZ: after.metrics.minZ, watertight: after.metrics.watertight, codes: after.findings.map((x) => x.code) };
+  const expect = opt('expect');
+  if (expect) {
+    const ref = (f) => JSON.parse(readFileSync(join(expect, `${name}_${f}.json`), 'utf8'));
+    rec.expect = { dir: resolve(expect), drift: geometryDrift(ref('card_finished'), ref('finish'), after, rec.finishPy) };
+  }
   save();
   console.log(`finished card ${after.verdict}: ${after.metrics.tris} tris (budget ${cls.tris.min}-${cls.tris.max}), height ${after.metrics.heightM} m (${className} ${cls.heightM} m +-${100 * cls.heightTolerance} %); ${rec.after.codes.join(', ') || 'no findings'}`);
   console.log(`seconds: ${JSON.stringify(rec.secs)}`);
+  if (rec.expect) {
+    if (rec.expect.drift.length) {
+      console.error(`geometry drifted from ${rec.expect.dir}: ${rec.expect.drift.map((d) => `${d.key} ${JSON.stringify(d.expected)} -> ${JSON.stringify(d.actual)}`).join('; ')}`);
+      process.exit(1);
+    }
+    console.log(`geometry matches ${rec.expect.dir}`);
+  }
   process.exit(exitCodeFor(after.verdict));
 } catch (e) {
   console.error(e.message);

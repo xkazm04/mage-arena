@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { finishParams, finishPyArgs } from './finish-args.mjs';
+import { finishParams, finishPyArgs, geometryDrift } from './finish-args.mjs';
 import { classBudget } from './gate-lib.mjs';
 
 const budgets = JSON.parse(readFileSync(new URL('./budgets.json', import.meta.url), 'utf8'));
@@ -47,4 +47,28 @@ test('bad mode, bad clamp, and bake flags without the bake mode are refused', ()
   assert.throws(() => args({ mode: 'flat', clamp: 'hue' }), /need --mode bake/);
   assert.throws(() => args({ mode: 'flat', cage: '0.01' }), /need --mode bake/);
   assert.deepEqual(args({ clamp: 'hue' }).slice(8), ['mode=bake', 'clamp=hue']); // the default takes the bake flags
+});
+
+test('--normal on passes normal=on; off (the default) leaves the flat and bake lists unchanged', () => {
+  assert.deepEqual(args({ mode: 'bake', normal: 'on' }).slice(8), ['mode=bake', 'normal=on']);
+  assert.deepEqual(args({ normal: 'on', cage: '0.02' }).slice(8), ['mode=bake', 'cage=0.02', 'normal=on']);
+  assert.deepEqual(args({ normal: 'off' }), args({}));
+  assert.deepEqual(args({ mode: 'flat', normal: 'off' }), args({ mode: 'flat' }));
+  assert.throws(() => args({ mode: 'flat', normal: 'on' }), /need --mode bake/);
+  assert.throws(() => args({ normal: 'yes' }), /--normal yes/);
+});
+
+test('geometryDrift: the card numbers and the section count must match the reference run exactly', () => {
+  const card = { metrics: { tris: 23990, verts: 11987, edges: 35985, components: 1, watertight: true, heightM: 1.79923, minZ: 0.00027, bboxMin: [-0.51389, -0.19248, 0.00027], bboxMax: [0.51281, 0.19221, 1.7995], areaM2: 4.64266, file: { bytes: 3563700 } } };
+  const finish = { materials: { M_Brennic: {} }, tris_final: 23990, verts_final: 11987 };
+  const withNormal = { metrics: { ...card.metrics, file: { bytes: 9999999 } } }; // a bigger GLB is not drift
+  assert.deepEqual(geometryDrift(card, finish, withNormal, { ...finish, normal: {} }), []);
+  assert.deepEqual(geometryDrift(card, finish, { metrics: { ...card.metrics, tris: 23988, heightM: 1.79924 } }, finish), [
+    { key: 'tris', expected: 23990, actual: 23988 },
+    { key: 'heightM', expected: 1.79923, actual: 1.79924 },
+  ]);
+  assert.deepEqual(geometryDrift(card, finish, card, { ...finish, materials: { A: {}, B: {} }, verts_final: 11990 }), [
+    { key: 'sections', expected: 1, actual: 2 },
+    { key: 'verts_final', expected: 11987, actual: 11990 },
+  ]);
 });

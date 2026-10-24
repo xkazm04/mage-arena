@@ -1,6 +1,7 @@
 # The parts of apps/vr/tools/assets/finish.py that need no Blender, so they can be tested on any Python with numpy
 # (python -m unittest apps/vr/tools/assets/test_finish.py): the finish options (mode and style clamp), sRGB <-> CIE Lab,
-# the style clamp, UV coverage of a texture, and the accounting and filling of bake misses.
+# the style clamp, UV coverage of a texture, the accounting and filling of bake misses, and the tangent-space normal map
+# (miss fill toward flat, its deviation from flat, a 16-bit PNG writer).
 #
 # Modes. 'flat' (the default, the T38 recipe): every face takes the nearest palette colour of its baked texels, one flat
 # colour per material. 'bake': the LOD0 keeps the high-to-low base-colour bake as its texture, one material.
@@ -8,14 +9,20 @@
 # replacing it. 'posterize' snaps CIE L* part of the way to a few levels; 'hue' turns each texel's hue part of the way to
 # the nearest palette hue; 'both' does both. Strength is the fraction of the way (at most MAX_STRENGTH), never all of it,
 # and neither step touches chroma, so the texture's detail survives (detail_kept measures it).
+# Normal (bake mode only, off by default): normal=on also bakes the source's surface normal in the LOD0's tangent space
+# (T_<name>_Normal.png, OpenGL Y+, linear 16-bit) and feeds it to the material through a Normal Map node.
 import math
+import struct
+import zlib
+
 import numpy as np
 
 MODES = ('flat', 'bake')
 CLAMPS = ('none', 'posterize', 'hue', 'both')
+NORMALS = ('off', 'on')
 MAX_STRENGTH = 0.6  # above this a posterize starts to read as flat bands
 MIN_LEVELS = 4
-DEFAULTS = {'mode': 'flat', 'clamp': 'none', 'strength': 0.35, 'levels': 8, 'cage': 0.02, 'ray': 0.08, 'margin': 16}
+DEFAULTS = {'mode': 'flat', 'clamp': 'none', 'strength': 0.35, 'levels': 8, 'cage': 0.02, 'ray': 0.08, 'margin': 16, 'normal': 'off'}
 
 # The VISUAL-PLAN (c) structure accents a character can carry (bronze brooch and buckle, gold trim, crimson cloth, iron),
 # sRGB. The element colours (water turquoise, fire vermilion) are reserved for magic and are never clamp targets.
@@ -45,13 +52,17 @@ def parse_options(tokens):
         k, v = t.split('=', 1)
         if k not in DEFAULTS:
             raise ValueError(f'unknown option {k!r}; known: {", ".join(DEFAULTS)}')
-        o[k] = type(DEFAULTS[k])(v) if k not in ('mode', 'clamp') else v
+        o[k] = type(DEFAULTS[k])(v) if k not in ('mode', 'clamp', 'normal') else v
     if o['mode'] not in MODES:
         raise ValueError(f'mode {o["mode"]!r}: one of {MODES}')
     if o['clamp'] not in CLAMPS:
         raise ValueError(f'clamp {o["clamp"]!r}: one of {CLAMPS}')
+    if o['normal'] not in NORMALS:
+        raise ValueError(f'normal {o["normal"]!r}: one of {NORMALS}')
     if o['mode'] == 'flat' and o['clamp'] != 'none':
         raise ValueError('the style clamp works on a baked texture: it needs mode=bake')
+    if o['mode'] == 'flat' and o['normal'] != 'off':
+        raise ValueError('the normal bake shares the bake mode UV layout and hit mask: it needs mode=bake')
     if not 0 < o['strength'] <= MAX_STRENGTH:
         raise ValueError(f'strength {o["strength"]}: in (0, {MAX_STRENGTH}]')
     if o['levels'] < MIN_LEVELS:
@@ -240,3 +251,90 @@ def texel_density(uv_tris, tris_3d, res):
     a_3d = 0.5 * np.linalg.norm(np.cross(p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]), axis=1).sum()
     return {'uv_share': round(float(a_uv), 4), 'surface_m2': round(float(a_3d), 4),
             'texels_per_m': round(float(res * math.sqrt(a_uv / a_3d)), 1) if a_3d > 0 else 0.0}
+
+
+# ---- the tangent-space normal map: texels hold n * 0.5 + 0.5, (0.5, 0.5, 1.0) is the LOD0's own shading normal (flat)
+FLAT_NORMAL = (0.5, 0.5, 1.0)
+
+
+def fill_normal_misses(nrm, miss, coverage, margin):
+    """nrm: (res, res, 3) baked tangent-space normal texels. Every missed island texel (no ray found the source: there is
+    no relief to carry) becomes flat, never black. Then the margin is rebuilt from the island texels alone, `margin` rings
+    out, and every texel outside that is flat, so mip levels near an island edge average island normals, not Blender's
+    margin of an unhit texel. Returns (copy, counts)."""
+    img = np.asarray(nrm, dtype=np.float64).copy()
+    flat = np.array(FLAT_NORMAL)
+    q = {'missed_not_flat_before_fill': int((miss & (np.abs(img - flat).max(-1) > 1.5 / 255)).sum()),
+         'dark_where_hit': dark_texels(img, coverage & ~miss)}
+    img[miss] = flat
+    out = ~coverage
+    img, q['margin_rings'] = fill_misses(img, out, max_iter=margin, known=coverage)
+    grown = coverage
+    for _ in range(q['margin_rings']):
+        grown = _dilate(grown)
+    img[~grown] = flat
+    q['dark_after_fill'] = dark_texels(img, np.ones(coverage.shape, dtype=bool))
+    return img, q
+
+
+def _dilate(mask):
+    """Grow a bool mask by one texel (8-neighbourhood)."""
+    p = np.pad(mask, 1, constant_values=False)
+    h, w = mask.shape
+    out = mask.copy()
+    for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+            out |= p[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
+    return out
+
+
+def normal_deviation(nrm, mask, thresholds=(10, 20)):
+    """Angle (degrees) between each texel's decoded tangent-space normal and flat (0, 0, 1), over `mask`: the share of
+    texels past each threshold and the mean. The measure of how much relief the map carries; a map of flat reads 0."""
+    v = np.asarray(nrm, dtype=np.float64)[mask] * 2 - 1
+    n = np.linalg.norm(v, axis=-1)
+    z = np.where(n > 0, v[:, 2] / np.where(n > 0, n, 1), 1.0)
+    ang = np.degrees(np.arccos(np.clip(z, -1, 1)))
+    r = {'texels': int(ang.size), 'mean_deg': round(float(ang.mean()), 3) if ang.size else 0.0}
+    for t in thresholds:
+        r[f'share_over_{t}deg'] = round(float((ang > t).mean()), 4) if ang.size else 0.0
+    return r
+
+
+def back_region_faces(face_normals, centroids_z, zlo=0.5, zhi=1.5, min_back=0.5):
+    """The back-cloak face rule: a face whose unit normal points back (+Y in the character frame, the front faces -Y) by
+    more than `min_back` (within 60 degrees of straight back) with its centroid between zlo and zhi metres."""
+    fn = np.asarray(face_normals, dtype=np.float64)
+    cz = np.asarray(centroids_z, dtype=np.float64)
+    return (fn[:, 1] > min_back) & (cz >= zlo) & (cz <= zhi)
+
+
+def png16(path, rgb):
+    """Write a (h, w, 3) float image in 0-1 as a 16-bit RGB PNG, linear: no gAMA, no sRGB chunk. Row 0 of `rgb` is the
+    bottom (Blender's pixel order) and becomes the last PNG row."""
+    a = np.round(np.clip(np.asarray(rgb, dtype=np.float64)[::-1], 0, 1) * 65535).astype('>u2')
+    h, w = a.shape[:2]
+    raw = b''.join(b'\x00' + a[y].tobytes() for y in range(h))
+
+    def chunk(t, d):
+        return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    with open(path, 'wb') as f:
+        f.write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 16, 2, 0, 0, 0))
+                + chunk(b'IDAT', zlib.compress(raw, 6)) + chunk(b'IEND', b''))
+
+
+def read_png16(path):
+    """Read back a png16 file (no filters, as png16 writes it): (h, w, 3) float, row 0 at the bottom."""
+    b = open(path, 'rb').read()
+    i, idat, w, h = 8, b'', 0, 0
+    while i < len(b):
+        n = struct.unpack('>I', b[i:i + 4])[0]
+        t, d = b[i + 4:i + 8], b[i + 8:i + 8 + n]
+        if t == b'IHDR':
+            w, h = struct.unpack('>II', d[:8])
+        elif t == b'IDAT':
+            idat += d
+        i += 12 + n
+    raw = zlib.decompress(idat)
+    rows = [np.frombuffer(raw[y * (1 + 6 * w) + 1:(y + 1) * (1 + 6 * w)], dtype='>u2').reshape(w, 3) for y in range(h)]
+    return np.stack(rows)[::-1].astype(np.float64) / 65535

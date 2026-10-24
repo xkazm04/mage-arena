@@ -9,8 +9,11 @@
 #         an optional style clamp pulls the texture toward the palette (never flat) -> one material M_<name> whose base
 #         colour is T_<name>_BaseColor.png. Seen 2026-10-24: flat finishing lost Brennic's face, brooch and straps, which
 #         the raw TRELLIS texture keeps (docs/research/BRENNIC-MESH-2026-10-24.md).
+#   normal=on (bake mode, off by default): the source's surface normal is baked too, with the same rays onto the same UVs,
+#         in the LOD0's tangent space -> T_<name>_Normal.png (linear, 16-bit, OpenGL Y+) through a Normal Map node.
 #   blender -b -P finish.py -- <hi.glb> <outdir> <name> <rot_z_deg> <bake_res> <voxel_m> <target_tris> [<palette set, default Brennic>]
 #        [mode=flat|bake] [clamp=none|posterize|hue|both] [strength=0.35] [levels=8] [cage=0.02] [ray=0.08] [margin=16]
+#        [normal=off|on]
 # The options and the Blender-free maths live in ../mesh/finish_lib.py (tested by test_finish.py beside this file).
 # Palette sets (PALETTES): PALETTE are the display colours of the concept's palette blocks, REFERENCE the same parts as
 # TRELLIS bakes them, RULES re-label parts that share a colour: by height (from, to, 'below' | 'above', fraction of height)
@@ -269,6 +272,16 @@ t1 = time.time(); bpy.ops.object.bake(type='DIFFUSE'); R['bake_s'] = round(time.
 img.filepath_raw = f'{out}/{name}_bake_basecolor.png'; img.file_format = 'PNG'; img.save()
 R['bake_png'] = f'{name}_bake_basecolor.png'
 lap('bake')
+if OPT['normal'] == 'on':
+    # the same rays (cage, ray distance) onto the same repacked UVs as the albedo, Cycles NORMAL in TANGENT space: Cycles
+    # takes the LOD0's own MikkTSpace tangents from its UV map. Every face is a triangle already (quads_convert_to_tris
+    # above), so the basis is the one the FBX's triangles get. Blender's swizzle +X +Y +Z is OpenGL (green = Y up).
+    nrm_img = bpy.data.images.new('nrm', RES, RES, alpha=False, float_buffer=True); nrm_img.colorspace_settings.name = 'Non-Color'
+    nn_ = bmat.node_tree.nodes.new('ShaderNodeTexImage'); nn_.image = nrm_img; bmat.node_tree.nodes.active = nn_
+    t1 = time.time()
+    bpy.ops.object.bake(type='NORMAL', normal_space='TANGENT', normal_r='POS_X', normal_g='POS_Y', normal_b='POS_Z')
+    R['normal_bake_s'] = round(time.time() - t1, 1); bmat.node_tree.nodes.active = tn
+    lap('normal_bake')
 
 
 def finish_bake():
@@ -283,6 +296,7 @@ def finish_bake():
     corner = ls[:, None] + np.arange(3)[None, :]  # every face is a triangle here (quads_convert_to_tris above)
     cov = FL.uv_coverage(uv[corner], RES)
     miss, counts = FL.bake_misses(hit, cov)
+    geo['cov'], geo['miss'], geo['uv'] = cov, miss, uv[corner]
     q = {**counts, 'dark_in_islands_before_fill': FL.dark_texels(rgb, cov), 'dark_where_hit': FL.dark_texels(rgb, cov & ~miss)}
     unfilled = rgb
     rgb, q['fill_rings'] = FL.fill_misses(rgb, miss) if counts['missed'] else (rgb, 0)
@@ -322,8 +336,44 @@ def finish_bake():
     lap('texture')
 
 
+def finish_normal():
+    """normal=on: misses to flat, the margin rebuilt from the islands, the detail the map carries measured, the 16-bit PNG
+    written, and the material's normal fed through a Normal Map node."""
+    me = lo.data; cov, miss = geo['cov'], geo['miss']
+    px = np.empty(RES * RES * 4, dtype=np.float32); nrm_img.pixels.foreach_get(px); nrm = px.reshape(RES, RES, 4)[:, :, :3].astype(np.float64)
+    nrm, q = FL.fill_normal_misses(nrm, miss, cov, OPT['margin'])
+    q['missed'] = int(miss.sum())
+    # faces a miss touches: the texel at the face's UV centroid missed (the rule of BRENNIC-MESH-REWORK's miss table)
+    c = geo['uv'].mean(1); ix = np.clip((c[:, 0] * RES).astype(int), 0, RES - 1); iy = np.clip((c[:, 1] * RES).astype(int), 0, RES - 1)
+    face_miss = miss[iy, ix]; q['faces_missed'] = int(face_miss.sum())
+    fn = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('normal', fn); fn = fn.reshape(-1, 3)
+    cz = np.empty(len(me.polygons) * 3); me.polygons.foreach_get('center', cz); cz = cz.reshape(-1, 3)[:, 2]
+    back = FL.back_region_faces(fn, cz)
+    back_cov = FL.uv_coverage(geo['uv'][back], RES) & cov
+    q['back_region'] = {'rule': 'face normal y > 0.5 (within 60 deg of facing +Y, the back) and centroid z 0.5-1.5 m',
+                        'faces': int(back.sum()), 'faces_missed': int((back & face_miss).sum()),
+                        'texels_missed': int((back_cov & miss).sum())}
+    q['deviation_all'] = FL.normal_deviation(nrm, cov)
+    q['deviation_all_hit'] = FL.normal_deviation(nrm, cov & ~miss)
+    q['deviation_back'] = FL.normal_deviation(nrm, back_cov)
+    q['deviation_back_hit'] = FL.normal_deviation(nrm, back_cov & ~miss)
+    q.update({'space': 'tangent (MikkTSpace of the LOD0 UV map, triangles)', 'green': 'OpenGL Y+ (Blender); UE expects DirectX Y-: set bFlipGreenChannel on import',
+              'png': '16-bit RGB, linear (no gAMA / sRGB chunk)'})
+    path = f'{out}/T_{name}_Normal.png'; FL.png16(path, nrm)
+    tex = bpy.data.images.load(path); tex.colorspace_settings.name = 'Non-Color'; tex.name = f'T_{name}_Normal'
+    m = me.materials[0]; nt = m.node_tree; pb = nt.nodes['Principled BSDF']
+    tx = nt.nodes.new('ShaderNodeTexImage'); tx.image = tex; tx.interpolation = 'Linear'
+    nm = nt.nodes.new('ShaderNodeNormalMap'); nm.space = 'TANGENT'; nm.uv_map = me.uv_layers.active.name
+    nt.links.new(tx.outputs['Color'], nm.inputs['Color']); nt.links.new(nm.outputs['Normal'], pb.inputs['Normal'])
+    R['normal'] = q; R['normal_png'] = f'T_{name}_Normal.png'; R['materials'][m.name]['normal'] = R['normal_png']
+    lap('normal')
+
+
+geo = {}
 if MODE == 'bake':
     finish_bake(); me = lo.data
+    if OPT['normal'] == 'on':
+        finish_normal()
 else:
     # ---- palette segmentation: per face, the median baked colour of its 3 corner UVs + centroid, nearest palette entry
     px = np.empty(RES * RES * 4, dtype=np.float32); img.pixels.foreach_get(px); px = px.reshape(RES, RES, 4)[:, :, :3]  # byte sRGB image: values are sRGB
