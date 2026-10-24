@@ -1,6 +1,6 @@
 # T41 - Two cold desktop testers finish the session: protocol and dated record
 
-Status: open (prepare now; the sessions run once a Wolf build of the full Tiro day exists, after T39 and T16/T38 land; the
+Status: protocol written (`docs/research/PLAYTEST-PROTOCOL.md`, 2026-10-24); the sessions and the dated record remain open (the sessions run once a Wolf build of the full Tiro day exists, after T39 and T16/T38 land; the
 build is made on the build machine, Wolf, the x64 UE host: UE 5.8.3. Written 2026-10-20 on the ARM64 laptop, where no UE
 build runs). The testers are people the owner finds; a builder cannot be one.
 Max turns: 80
