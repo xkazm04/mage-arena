@@ -1,7 +1,13 @@
 # T44 - Fail loudly on an unknown threat family
 
-Status: open (needs Wolf: UE 5.8.3 editor and the `MageArena.` / `MageArenaDesign.` automation suites; written
-2026-10-21 on Lynx, where neither runs - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
+Status: **done** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `a982baf` (test seams, behaviour unchanged),
+`d4d7033` / `82bb3ba` (tests, red on that tree), `cab92d8` (Air's strict helpers lifted), `d35a15a` (EThreatFamily,
+ParseFamily / ParseBlockable, KindFromFamily fails safe), `46e87d4` (Water and Fire rows), `9132a81` (roster), `c56b61d`
+(absorb rules own notAgainst and their ranges), `e81a946` (clang-format, the tested tree). `Result: Succeeded`;
+`MageArena.` 289/289 (284 before + the 5 new tests; Conformance 45/45); `MageArenaDesign.` 5/7, only DF-011's FireSeated
+and FullSeated, failure lines and all 36 MAGEVR_MEASURE lines identical; `check-pin.mjs`: `pin OK: 9 files @ baeac66`,
+`conformance OK: 45 vectors`. No pinned cell was rejected. See "Result" at the end. (Was: open, written 2026-10-21 on
+Lynx.)
 Max turns: 320
 
 ## Goal
@@ -190,3 +196,79 @@ owns the single `notAgainst` enforcement and whether `FAbsorbResolver::Init` sti
 independently; how `ParseFamily` treats `"n/a"` and why; any pinned cell the new strictness would have rejected (with
 the exact file, row and value - and the fact that you stopped rather than edited it); premises that turned out false;
 files outside `Kernel/`, `Combat/` and `Tests/`; and anything you could not do, with the exact error.
+
+## Result (Wolf kaziho, 2026-10-24, UE 5.8.3 CL 58210709)
+
+`runs/` is never committed, so the report is here (the same text is in `runs/T44/REPORT.md`, with the site table in
+`runs/T44/family-sites.md`). Base `df30a87`; tested tree `e81a946`.
+
+**Premises re-verified at df30a87, by symbol.** All held. `KindFromFamily` sent every family but `physical` and
+`unblockable` to Magic; Water's `SpellFromRow` defaulted to `"magic"` and read numbers with `Atoi`/`Atod`; the Fire row
+passed the raw `blockable` cell through as the family; `ParseAttack` and the `onDeath` read used `NeedString` with no
+enum check; `FAbsorbRules::LoadFromPinnedFile` accepted any non-empty `notAgainst` strings and any reduction, and
+`FAbsorbResolver::Init` read it independently of `KernelData.cpp`'s `LoadAbsorb` check. Two additions: the ward detector
+(`Gestures/WardDetector.cpp:68`) is a third independent reader of the absorb block, and UE's `FString ==` is
+case-insensitive, so `unblockable` in a sheet already read as `UNBLOCKABLE` and `Magic` in the roster as magic. The pin
+uses exactly: Water and Fire `blockable` = `absorbable` / `UNBLOCKABLE` / `n/a`; `enemies.json` `family` = `magic` /
+`physical` / `unblockable`; every Water and Fire number cell is digits with an optional fraction. **No pinned cell is
+rejected by the new strictness.**
+
+**Built.**
+- `Kernel/KernelDataLoad.h` + `KernelData.cpp`: `StrictNumber` and `CellNumber` (lifted from Air unchanged; the sheet
+  name is a parameter, Air passes `air`, so its number messages and values are byte-identical); `enum class
+  EThreatFamily {Magic, Physical, Unblockable, None}`, `ParseFamily` (magic, physical, unblockable), `ParseBlockable`
+  (absorbable, UNBLOCKABLE, n/a -> None) and `FamilyName`, all case-sensitive. A new enum rather than `EAbsorbHitKind`
+  extended: `None` is not a hit kind, and `ReductionFor` / `KindName` switch on `EAbsorbHitKind` with defaults that a
+  fourth value would silently reach.
+- `KindFromFamily` (`Kernel/ArenaThreats.cpp`, now declared in `ArenaThreats.h`) is built on `ParseFamily` with no silent
+  fallback: an unknown family logs `LogMageArena` Error `hit family cell not understood: '<f>', treated as unblockable`
+  and returns Unblockable. A logged Error rather than `ensure`/`check`: the module has no ensure anywhere, a `check`
+  would crash a headset mid-duel, and an Error fails every automation test it fires in. In the full `MageArena.` run it
+  fired only the 6 times the new test asks for.
+- Water `SpellFromRow` and the Fire row read tier, cast_s, cooldown_s, mana, telegraph_s and range_m through `CellNumber`
+  (tier must be whole) and the blockable cell through `ParseBlockable`. Damage stays a prose cell, read as before.
+- Roster: `NeedFamily` for attacks and for `onDeath` (path `...enemies.json#cinder_hound.onDeath.ember_burst`).
+- `FAbsorbRules::LoadFromText` (the parse behind `LoadFromPinnedFile`) refuses `notAgainst` other than exactly one
+  `physical` and one `unblockable`, any reduction (`magic`, `physical`, `unblockable`, `outsideArc`, `perfect.reduction`)
+  outside [0, 1], and a negative `raiseCostMana` or `moveSpeedWhileHeldMult`. **That is now the one copy of the
+  notAgainst rule**; `LoadAbsorb` only calls it, and `AbsorbNotAgainstCount` had no other user and is gone.
+  `FAbsorbResolver::Init` still reads the pinned file itself: Combat does not depend on Kernel, and it now gets the same
+  enforcement. Taking its rules from `KernelData` (so a future absorb overlay reaches it) belongs with T33/M6's
+  injection seam, not this card.
+- Tests: `Tests/FamilyParseTests.cpp`, in-memory fixtures only (`LoadKernelDataWithOverrides`, `LoadFromText`).
+
+**`n/a`.** Accepted by `ParseBlockable` only, as `None`. Fire and Air keep the family string `n/a` (their `HitFamily`
+reads it as magic at the hit, the existing contract, and `MageArena.Kernel.FireCatalog` asserts Kindle's family is `n/a`); Water
+publishes an n/a row as `magic`, exactly as before. `ParseFamily` refuses `n/a`: a hit never carries it, so one that
+reaches `KindFromFamily` is a bug and fails safe.
+
+**Red, on `82bb3ba` (master + the behaviour-neutral seams + the tests), verbatim:**
+- `UnknownFamilyFailsLoad`: `Expected 'water blockable with a trailing space: the load fails' to be false.` (the Water
+  wrong-case, Fire `absorbable `, roster `physical ` and onDeath `arcane` cases fail the same way)
+- `GarbageNumberFailsLoad`: `Expected 'water cooldown_s not a number: the load fails' to be false.`
+- `AbsorbRulesRejectBadNotAgainst`: `Expected 'an empty notAgainst is refused' to be false.` (all 11 cases)
+- `Threats.UnknownFamilyIsNotAbsorbable`: `Expected 'family 'magic ' returns no perfect mana' to be 0.000000, but it
+  was 10.000000 and outside tolerance 0.000100.`
+- `PinnedDataStillLoads` is the no-regression guard and passes on both trees by design: 24 Water spells, 10 Fire, 10
+  Air, 8 enemies, 9 attacks, 1 onDeath, 2 notAgainst entries, the same PinHash, and `FAbsorbResolver::Init` OK.
+
+Green after: `MageArena.KernelData.` 4/4 and `MageArena.Threats.` 1/1, on `c56b61d` and again on `e81a946`.
+
+**Suites, per test.** `MageArena.` 284/284 before, 289/289 after; the only differences are the 5 new tests and Air's
+info line now quoting the cell (`blockable cell not understood: 'unblockable-ish'`). `MageArenaDesign.` 5/7 before and
+after, the same two failing assertions, all 36 `MAGEVR_MEASURE` lines and every LogMageArena line identical except
+wall-clock times. The census walls were slower in the after-run (Census 173.6 s -> 321.4 s) under 80-97 % CPU load from
+other processes; an interleaved A/B of only `KindFromFamily` on `Census.Rivals` (rival + lio wall) read old 95.1 / 96.7
+s, new 101.8 / 102.4 s, against 67.3 s for the old code on the quiet baseline: load, not the change.
+
+**Gates.** `check-pin.mjs`: `pin OK: 9 files @ baeac66` / `conformance OK: 45 vectors`, `--self-test` OK; `git status
+--porcelain -- apps/vr/data` empty; format-check `--self-test` and `--base origin/master` OK; unused-members and its
+`--self-test` OK; check-overlay and its `--self-test` OK; agy-guard 40/40; leonardo-redaction 24/24; check-repo-law 4/4;
+check-commits OK. `git grep -n 'TEXT("magic")' -- .../Kernel` names no loader: the hits are `FamilyName`, the
+`training.magic` JSON field, and sim producers or comparisons (`ArenaKernel.cpp:179`, `Water.cpp:366,378`,
+`VrRules.cpp:376,521`, `Training.cpp`, `MageAI.cpp`, `ArenaThreats.cpp:270`, the `Air.cpp:41` / `Fire.cpp:40` HitFamily).
+
+**Not done / for the Director.** (1) `MageAI.cpp:148` still defaults the AI's threat model to magic when a pending cast
+names no spell; that is AI prediction, not a loader, and outside this card. (2) The overlay spit family
+(`VrRulesLoad.cpp:631`) is checked only by equality with the pinned onDeath family, which is now parsed. (3) Only the red
+tree and the final tree were built; the intermediate commits were not built one by one.
