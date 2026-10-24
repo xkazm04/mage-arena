@@ -56,10 +56,11 @@ clean). Without the corpus, `Sigils.Accuracy` and `Sigils.NoFalseCasts` fail. Ne
 `--templates` for this: both rewrite tracked clips. Since f33bf18 that is **enforced, not just advised** - a bare
 `generate.mjs` prints usage and exits 2, and rewriting tracked clips needs an explicit `--canonical`. To verify the
 clips without writing anything, `node apps/vr/tools/clipgen/generate.mjs --check` regenerates into a temp directory
-and diffs against the tracked files (byte-identical on Windows ARM64 / Node 24, 2026-10-21). Since T39 (Wolf, 2026-10-24, 6f00555), three suite failures are known on a clean tree:
-`MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated` and `Session.FullSeated` (it loses bout 3 to Brennic). They are open
-in `docs/design-findings/DF-011-after-t39-brennic-still-wins.md`. `Session.Wave1Seated` and `Session.CreaturesSeated`, red
-before T39 (five known at 9f338f0, owner ruling 2026-10-16), are green.
+and diffs against the tracked files (byte-identical on Windows ARM64 / Node 24, 2026-10-21). Since T47 (2026-10-24, `f64c685`), two
+`MageArenaDesign` reds are known, both accepted under DF-011 (owner ruling 2026-10-24, "Accept the reds",
+`docs/design-findings/DF-011-after-t39-brennic-still-wins.md`): `Duel.FireSeated` (brennic-c15 reaches 1 of 2 phases) and
+`Session.FullSeated` (loses bout 3 to Brennic); `Duel.AirSeated` is green, its band now a `MAGEVR_MEASURE` line.
+`Session.Wave1Seated` and `Session.CreaturesSeated` stay green. The green gate `MageArena.` includes `MageArena.Invariants.*`.
 
 Before any packaged build (a Win64 stage or an APK), `node apps/vr/tools/check-staged-clips.mjs` must print OK, and
 package-android.ps1 runs it.
