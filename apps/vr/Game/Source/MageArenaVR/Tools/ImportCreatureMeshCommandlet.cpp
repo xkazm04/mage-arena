@@ -212,12 +212,12 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	if (!Spec || !FPaths::FileExists(Fbx) || !FPaths::FileExists(TexturePath))
 	{
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail usage: -name=<Brennic|CinderHound> -fbx=<existing file> -texture=<existing file> (got name=%s fbx=%s texture=%s)"),
-			*Name, *Fbx, *TexturePath);
+		    *Name, *Fbx, *TexturePath);
 		return 1;
 	}
 	const FString Folder = CreatureImport::FolderPath(Name);
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT start %s fbx=%s md5=%s texture=%s md5=%s -> %s"), *Name, *Fbx, *LexToString(FMD5Hash::HashFile(*Fbx)),
-		*TexturePath, *LexToString(FMD5Hash::HashFile(*TexturePath)), *Folder);
+	    *TexturePath, *LexToString(FMD5Hash::HashFile(*TexturePath)), *Folder);
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
 
 	UTexture2D* Texture = Cast<UTexture2D>(ImportOne(AssetTools, TexturePath, Folder, FString::Printf(TEXT("T_%s_BaseColor"), *Name), nullptr, nullptr));
@@ -297,15 +297,15 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 				Pose = Pose * Skeleton.GetRefBonePose()[Walk];
 			}
 			UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT bone %s component=(%.1f, %.1f, %.1f) cm"), *BoneName, Pose.GetLocation().X, Pose.GetLocation().Y,
-				Pose.GetLocation().Z);
+			    Pose.GetLocation().Z);
 		}
 	}
 	UE_LOG(LogMageArena, Display,
-		TEXT("MAGEVR_CREATURE_IMPORT mesh %s bones=%d lod0tris=%d lods=%d slots=%d clips=%d bounds origin=(%.1f, %.1f, %.1f) extent=(%.1f, %.1f, %.1f) cm height=%.4f m (expect %.4f)"),
-		*Mesh->GetPathName(), Skeleton.GetNum(), Triangles, Render ? Render->LODRenderData.Num() : 0, Slots.Num(), Clips, Bounds.Origin.X, Bounds.Origin.Y, Bounds.Origin.Z,
-		Bounds.BoxExtent.X, Bounds.BoxExtent.Y, Bounds.BoxExtent.Z, HeightM, Spec->HeightM);
+	    TEXT("MAGEVR_CREATURE_IMPORT mesh %s bones=%d lod0tris=%d lods=%d slots=%d clips=%d bounds origin=(%.1f, %.1f, %.1f) extent=(%.1f, %.1f, %.1f) cm height=%.4f m (expect %.4f)"),
+	    *Mesh->GetPathName(), Skeleton.GetNum(), Triangles, Render ? Render->LODRenderData.Num() : 0, Slots.Num(), Clips, Bounds.Origin.X, Bounds.Origin.Y, Bounds.Origin.Z,
+	    Bounds.BoxExtent.X, Bounds.BoxExtent.Y, Bounds.BoxExtent.Z, HeightM, Spec->HeightM);
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT texture %s %dx%d srgb=%d compression=%d material %s ember=%d"), *Texture->GetPathName(), Texture->Source.GetSizeX(),
-		Texture->Source.GetSizeY(), Texture->SRGB ? 1 : 0, static_cast<int32>(Texture->CompressionSettings), *Material->GetPathName(), Spec->bEmber ? 1 : 0);
+	    Texture->Source.GetSizeY(), Texture->SRGB ? 1 : 0, static_cast<int32>(Texture->CompressionSettings), *Material->GetPathName(), Spec->bEmber ? 1 : 0);
 	if (FMath::Abs(HeightM - Spec->HeightM) > 0.05 * Spec->HeightM)
 	{
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s height %.4f m is more than 5 %% off %.4f m (scale)"), *Name, HeightM, Spec->HeightM);
@@ -321,7 +321,7 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 		GShaderCompilingManager->FinishAllCompilation();
 	}
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT compiled %s texture %dx%d %s"), *Name, Texture->GetSizeX(), Texture->GetSizeY(),
-		GetPixelFormatString(Texture->GetPixelFormat()));
+	    GetPixelFormatString(Texture->GetPixelFormat()));
 
 	int32 Saved = 0;
 	if (!SavePackagesUnder(Folder, Saved))

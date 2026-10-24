@@ -5,7 +5,7 @@
 #include "Greybox/CreatureImport.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreatureImportEmberKey, "MageArena.CreatureImport.EmberKey",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaCreatureImportEmberKey::RunTest(const FString& Parameters)
 {
@@ -32,7 +32,7 @@ bool FMageArenaCreatureImportEmberKey::RunTest(const FString& Parameters)
 	// The HLSL names every parameter the material feeds it.
 	const FString Hlsl = CreatureImport::EmberHlsl();
 	for (const TCHAR* Name : {TEXT("HueCentreDeg"), TEXT("HueWidthDeg"), TEXT("SatLow"), TEXT("SatHigh"), TEXT("ValLow"), TEXT("ValHigh"), TEXT("BodyTint"),
-			 TEXT("BodyTintAmount"), TEXT("BodyGain")})
+	         TEXT("BodyTintAmount"), TEXT("BodyGain")})
 	{
 		TestTrue(*FString::Printf(TEXT("the HLSL reads %s"), Name), Hlsl.Contains(Name, ESearchCase::CaseSensitive));
 	}

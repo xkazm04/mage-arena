@@ -114,7 +114,7 @@ void UCreatureImportCaptureDriver::PoseShot(const FShotPlan& Plan)
 	Brennic->SetActorHiddenInGame(!bBoth && Subject != TEXT("Brennic"));
 	Hound->SetActorHiddenInGame(!bBoth && Subject != TEXT("CinderHound"));
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_IMPORT pose %s subject=%s yawOffset=%.0f distance=%.1f m"), Plan.File, Plan.Subject, Plan.YawOffsetDeg,
-		Plan.DistanceM > 0.0 ? Plan.DistanceM : CreatureImport::OpponentDistanceM());
+	    Plan.DistanceM > 0.0 ? Plan.DistanceM : CreatureImport::OpponentDistanceM());
 }
 
 void UCreatureImportCaptureDriver::NoteMemory()
@@ -128,7 +128,7 @@ void UCreatureImportCaptureDriver::NoteMemory()
 		const double TextureMB = Texture ? Texture->CalcTextureMemorySizeEnum(TMC_AllMips) / (1024.0 * 1024.0) : -1.0;
 		const double MeshMB = Mesh ? Mesh->GetResourceSizeBytes(EResourceSizeMode::Exclusive) / (1024.0 * 1024.0) : -1.0;
 		const FString Line = FString::Printf(TEXT("texture %dx%d format=%s all-mips %.2f MB; mesh exclusive %.2f MB"), Texture ? Texture->GetSizeX() : 0,
-			Texture ? Texture->GetSizeY() : 0, Texture ? GetPixelFormatString(Texture->GetPixelFormat()) : TEXT("-"), TextureMB, MeshMB);
+		    Texture ? Texture->GetSizeY() : 0, Texture ? GetPixelFormatString(Texture->GetPixelFormat()) : TEXT("-"), TextureMB, MeshMB);
 		UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_IMPORT memory %s %s"), Spec.Name, *Line);
 		Evidence.Note(FString::Printf(TEXT("memory.%s"), Spec.Name), Line);
 	}
@@ -173,14 +173,14 @@ void UCreatureImportCaptureDriver::Tick(float DeltaTime)
 void UCreatureImportCaptureDriver::Advance()
 {
 	static const FShotPlan Plans[] = {
-		{TEXT("01-brennic-front.png"), TEXT("Brennic"), 0.0, 0.0},
-		{TEXT("02-brennic-three-quarter.png"), TEXT("Brennic"), 45.0, 0.0},
-		{TEXT("03-brennic-back.png"), TEXT("Brennic"), 180.0, 0.0},
-		{TEXT("04-hound-front.png"), TEXT("CinderHound"), 0.0, 0.0},
-		{TEXT("05-hound-three-quarter.png"), TEXT("CinderHound"), 45.0, 0.0},
-		{TEXT("06-hound-back.png"), TEXT("CinderHound"), 180.0, 0.0},
-		{TEXT("07-hound-glow-near.png"), TEXT("CinderHound"), 30.0, NearDistanceM},
-		{TEXT("08-both-duel.png"), TEXT("both"), 0.0, 0.0},
+	    {TEXT("01-brennic-front.png"), TEXT("Brennic"), 0.0, 0.0},
+	    {TEXT("02-brennic-three-quarter.png"), TEXT("Brennic"), 45.0, 0.0},
+	    {TEXT("03-brennic-back.png"), TEXT("Brennic"), 180.0, 0.0},
+	    {TEXT("04-hound-front.png"), TEXT("CinderHound"), 0.0, 0.0},
+	    {TEXT("05-hound-three-quarter.png"), TEXT("CinderHound"), 45.0, 0.0},
+	    {TEXT("06-hound-back.png"), TEXT("CinderHound"), 180.0, 0.0},
+	    {TEXT("07-hound-glow-near.png"), TEXT("CinderHound"), 30.0, NearDistanceM},
+	    {TEXT("08-both-duel.png"), TEXT("both"), 0.0, 0.0},
 	};
 	constexpr int32 PlanCount = UE_ARRAY_COUNT(Plans);
 
@@ -194,8 +194,7 @@ void UCreatureImportCaptureDriver::Advance()
 	++Frames;
 	AMageArenaPawn* Pawn = FindPawn();
 	// Shaders, textures and meshes still compiling (the editor binary compiles derived data on load in -game).
-	const bool bShadersIdle = (GShaderCompilingManager == nullptr || !GShaderCompilingManager->IsCompiling())
-		&& FAssetCompilingManager::Get().GetNumRemainingAssets() == 0;
+	const bool bShadersIdle = (GShaderCompilingManager == nullptr || !GShaderCompilingManager->IsCompiling()) && FAssetCompilingManager::Get().GetNumRemainingAssets() == 0;
 
 	switch (Step)
 	{

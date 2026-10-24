@@ -18,10 +18,10 @@ namespace CreatureImport
 namespace
 {
 const FCreatureSpec GSpecs[] = {
-	// docs/research/BRENNIC-MESH-REWORK-2026-10-24.md: 23 bones, 1.7992 m, 23,990 tris.
-	{TEXT("Brennic"), 1.7992, false},
-	// docs/research/CREATURE-MESH-2026-10-24.md: 26 bones, 1.3569 m, 11,796 tris after parts and rig.
-	{TEXT("CinderHound"), 1.3569, true},
+    // docs/research/BRENNIC-MESH-REWORK-2026-10-24.md: 23 bones, 1.7992 m, 23,990 tris.
+    {TEXT("Brennic"), 1.7992, false},
+    // docs/research/CREATURE-MESH-2026-10-24.md: 26 bones, 1.3569 m, 11,796 tris after parts and rig.
+    {TEXT("CinderHound"), 1.3569, true},
 };
 
 double SmoothStep(double Low, double High, double X)
@@ -158,30 +158,29 @@ const TCHAR* EmberHlsl()
 	// C is the sampled base colour, linear (the texture is sRGB). The key was measured on the encoded PNG, so it is
 	// taken on pow(C, 1/2.2). Returns the shaded body colour in rgb and the crack mask in a.
 	return TEXT(
-		"float3 S = pow(saturate(C), 1.0 / 2.2);\n"
-		"float Mx = max(S.r, max(S.g, S.b));\n"
-		"float Dl = Mx - min(S.r, min(S.g, S.b));\n"
-		"float Sat = Mx > 0.0 ? Dl / Mx : 0.0;\n"
-		"float Hue = 0.0;\n"
-		"if (Dl > 1e-5)\n"
-		"{\n"
-		"    if (Mx == S.r) { Hue = fmod((S.g - S.b) / Dl + 6.0, 6.0); }\n"
-		"    else if (Mx == S.g) { Hue = (S.b - S.r) / Dl + 2.0; }\n"
-		"    else { Hue = (S.r - S.g) / Dl + 4.0; }\n"
-		"}\n"
-		"Hue *= 60.0;\n"
-		"float HueKey = 1.0 - smoothstep(HueWidthDeg * 0.5, HueWidthDeg, abs(Hue - HueCentreDeg));\n"
-		"float Mask = HueKey * smoothstep(SatLow, SatHigh, Sat) * smoothstep(ValLow, ValHigh, Mx);\n"
-		"float3 Lum = float3(0.2126, 0.7152, 0.0722);\n"
-		"float TintLum = max(dot(BodyTint, Lum), 1e-4);\n"
-		"float3 Body = lerp(C, BodyTint * (dot(C, Lum) / TintLum) * BodyGain, BodyTintAmount);\n"
-		"return float4(lerp(Body, C, Mask), Mask);\n");
+	    "float3 S = pow(saturate(C), 1.0 / 2.2);\n"
+	    "float Mx = max(S.r, max(S.g, S.b));\n"
+	    "float Dl = Mx - min(S.r, min(S.g, S.b));\n"
+	    "float Sat = Mx > 0.0 ? Dl / Mx : 0.0;\n"
+	    "float Hue = 0.0;\n"
+	    "if (Dl > 1e-5)\n"
+	    "{\n"
+	    "    if (Mx == S.r) { Hue = fmod((S.g - S.b) / Dl + 6.0, 6.0); }\n"
+	    "    else if (Mx == S.g) { Hue = (S.b - S.r) / Dl + 2.0; }\n"
+	    "    else { Hue = (S.r - S.g) / Dl + 4.0; }\n"
+	    "}\n"
+	    "Hue *= 60.0;\n"
+	    "float HueKey = 1.0 - smoothstep(HueWidthDeg * 0.5, HueWidthDeg, abs(Hue - HueCentreDeg));\n"
+	    "float Mask = HueKey * smoothstep(SatLow, SatHigh, Sat) * smoothstep(ValLow, ValHigh, Mx);\n"
+	    "float3 Lum = float3(0.2126, 0.7152, 0.0722);\n"
+	    "float TintLum = max(dot(BodyTint, Lum), 1e-4);\n"
+	    "float3 Body = lerp(C, BodyTint * (dot(C, Lum) / TintLum) * BodyGain, BodyTintAmount);\n"
+	    "return float4(lerp(Body, C, Mask), Mask);\n");
 }
 
 bool IsSceneRequested()
 {
-	return FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportScene"))
-		|| FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportCapture"));
+	return FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportScene")) || FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportCapture"));
 }
 
 double OpponentDistanceM()
@@ -232,8 +231,8 @@ ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, con
 	const FBoxSphereBounds Bounds = Mesh->GetBounds();
 	const FVector Forward = MeshForward(*Mesh);
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_IMPORT spawned %s at (%.0f, %.0f, %.0f) cm yaw=%.1f forward=(%.2f, %.2f) height=%.1f cm materials=%d idle=%s"),
-		*Name, PointCm.X, PointCm.Y, PointCm.Z, Actor->GetActorRotation().Yaw, Forward.X, Forward.Y, Bounds.BoxExtent.Z * 2.0, Mesh->GetMaterials().Num(),
-		Idle ? *Idle->GetName() : TEXT("none"));
+	    *Name, PointCm.X, PointCm.Y, PointCm.Z, Actor->GetActorRotation().Yaw, Forward.X, Forward.Y, Bounds.BoxExtent.Z * 2.0, Mesh->GetMaterials().Num(),
+	    Idle ? *Idle->GetName() : TEXT("none"));
 	return Actor;
 }
 
