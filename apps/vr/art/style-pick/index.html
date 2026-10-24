@@ -1,76 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Style Pick - Mage Arena VR</title>
-    <style>
-        body { font-family: sans-serif; margin: 2rem; background: #222; color: #eee; }
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-        .col { display: flex; flex-direction: column; gap: 1rem; }
-        video, img { width: 100%; height: auto; display: block; background: #000; }
-        h1, h2, h3 { font-weight: normal; }
-        .description { font-size: 0.9rem; color: #ccc; margin-bottom: 1rem; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style pick (T16) - Mage Arena VR</title>
+<style>
+body{margin:0;background:#141414;color:#ececec;font:16px/1.5 system-ui,Segoe UI,sans-serif}
+main{max-width:1800px;margin:0 auto;padding:28px 20px 60px}
+a{color:#3fd0d4} h1{margin:0 0 6px;font-size:28px} h2{margin:32px 0 10px;font-size:21px} h3{margin:0 0 6px;font-size:17px}
+.lead{color:#b4b4b4;max-width:1000px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.col{background:#1f1f1f;border:1px solid #2c2c2c;border-radius:8px;padding:10px}
+video,img{width:100%;height:auto;display:block;background:#000;border-radius:4px}
+.kept{color:#c8c8c8;font-size:14px;margin:8px 0 0}
+.stills td{vertical-align:top;padding:4px} .stills th{text-align:left;font-weight:normal;color:#b4b4b4;padding:4px}
+.stills{width:100%;border-collapse:collapse;table-layout:fixed}
+.stills .label{width:12%;color:#b4b4b4;font-size:14px}
+table.events{border-collapse:collapse;font-size:14px} table.events td,table.events th{padding:2px 10px;border-bottom:1px solid #2a2a2a;text-align:left}
+tr.still td{background:#203a3b}
+code{background:#262626;padding:0 4px;border-radius:3px}
+</style>
 </head>
-<body>
-    <h1>Style Pick (P18)</h1>
-    <a href="../index.html" style="color: #4af;">&larr; Back to Art Index</a>
-    
-    <h2>Videos</h2>
-    <div class="grid">
-        <div class="col">
-            <h3>Greybox</h3>
-            <video src="style-greybox.mp4" controls muted loop></video>
-            <div class="description">Baseline unlit greybox.</div>
-        </div>
-        <div class="col">
-            <h3>13 Screen-Print Poster</h3>
-            <video src="style-13.mp4" controls muted loop></video>
-            <div class="description">Warm, bold arena colors with solid white hands and yellow pads. Emphasizes bold flat contrasts.</div>
-        </div>
-        <div class="col">
-            <h3>25 Moonlit Silver Nocturne</h3>
-            <video src="style-25.mp4" controls muted loop></video>
-            <div class="description">Cool, dark silvers and blues. Emphasizes emissive bright magic against a dark backdrop.</div>
-        </div>
-        <div class="col">
-            <h3>30 Chalk & Slate</h3>
-            <video src="style-30.mp4" controls muted loop></video>
-            <div class="description">Dark slate environment with bright white/grey hands and chalky magic colors.</div>
-        </div>
-    </div>
+<body><main>
+<p><a href="../index.html">&larr; Art boards</a></p>
+<h1>Style pick: one duel in four skins (T16, P18)</h1>
+<p class="lead">The same scripted duel against Brennic (bout 2, seed 1, the reference seated script) was recorded four times at 1920x1080 and 60 fps, one sim tick per frame. The four runs differ only in the <code>-MageArenaStyle</code> flag. Each style recolours the greybox shapes with its sampled colours (<code>apps/vr/data/vr/styles/style-&lt;id&gt;.json</code>): sand, stands, wall, dais, pads, seats, markers, braziers, banners, hands and the sky dome, plus its threat palette. The sky, threats and bodies draw unlit. The arena shell keeps the greybox's lit material under a neutral light of the greybox's brightness. Bodies, the wrist cuff and the HP bar keep the greybox colours in every skin. The threat language holds in all four: magic is a ring in its element colour, steel is angular, and only the unblockable is a black core with a red rim. All four event logs are byte-identical (203 events, md5 <code>7b0715c871ac3399504c4f7a744896d4</code>), so the skins change pixels, never the simulation.</p>
+<p class="lead"><strong>The pick is the owner's:</strong> 13, 25 or 30, recorded in the owner's words in <code>docs/DECISIONS.md</code>.</p>
 
-    <h2>Stills</h2>
-    <div class="grid">
-        <div class="col">
-            <h3>Greybox</h3>
-            <img src="greybox-01.png" alt="Greybox 1">
-            <img src="greybox-02.png" alt="Greybox 2">
-            <img src="greybox-03.png" alt="Greybox 3">
-            <img src="greybox-04.png" alt="Greybox 4">
-        </div>
-        <div class="col">
-            <h3>13 Screen-Print Poster</h3>
-            <img src="13-01.png" alt="13 1">
-            <img src="13-02.png" alt="13 2">
-            <img src="13-03.png" alt="13 3">
-            <img src="13-04.png" alt="13 4">
-        </div>
-        <div class="col">
-            <h3>25 Moonlit Silver</h3>
-            <img src="25-01.png" alt="25 1">
-            <img src="25-02.png" alt="25 2">
-            <img src="25-03.png" alt="25 3">
-            <img src="25-04.png" alt="25 4">
-        </div>
-        <div class="col">
-            <h3>30 Chalk & Slate</h3>
-            <img src="30-01.png" alt="30 1">
-            <img src="30-02.png" alt="30 2">
-            <img src="30-03.png" alt="30 3">
-            <img src="30-04.png" alt="30 4">
-        </div>
-    </div>
-</body>
+<h2>Videos (31.17 s, 1870 frames each)</h2>
+<div class="grid">
+<div class="col"><h3>Greybox</h3><video src="style-greybox.mp4" controls muted loop preload="metadata"></video><p class="kept">The baseline: no <code>-MageArenaStyle</code> flag, the dusk greybox the mechanics were built in. Here for comparison, not a candidate.</p></div>
+<div class="col"><h3>13 Screen-Print Poster</h3><video src="style-13.mp4" controls muted loop preload="metadata"></video><p class="kept">Kept from its study: the poster inks on the arena. Ochre sand, a brick-red wall, ink-dark dais, seats and braziers, red banners, and an olive-gold sky over a teal zenith. Not shown yet: the ink outline, halftone and misregistration (texture work).</p></div>
+<div class="col"><h3>25 Moonlit Silver Nocturne</h3><video src="style-25.mp4" controls muted loop preload="metadata"></video><p class="kept">Kept from its study: the night palette. A navy sky, cold blue-grey stands, a dark slate-blue wall and pale moonlit sand, so the turquoise and ember threats are the only saturated colours on screen. Not shown yet: the silver rim light and glow (lighting work).</p></div>
+<div class="col"><h3>30 Chalk &amp; Slate</h3><video src="style-30.mp4" controls muted loop preload="metadata"></video><p class="kept">Kept from its study: the slate board. A slate sky, a slate-grey wall, chalk-pale stands, warm chalk-coloured sand and navy banners. Not shown yet: the chalk-white outlines and the hand-drawn line texture.</p></div>
+</div>
+
+<h2>Stills at the same four event ticks</h2>
+<table class="stills">
+<tr><th class="label"></th><th>Greybox</th><th>13 Screen-Print Poster</th><th>25 Moonlit Silver Nocturne</th><th>30 Chalk &amp; Slate</th></tr>
+<tr><td class="label">1. tick 457 (7.62 s), the player's shot hits Brennic</td><td><a href="greybox-01.png"><img src="greybox-01.png" alt="Greybox, still 1" loading="lazy"></a></td><td><a href="13-01.png"><img src="13-01.png" alt="13 Screen-Print Poster, still 1" loading="lazy"></a></td><td><a href="25-01.png"><img src="25-01.png" alt="25 Moonlit Silver Nocturne, still 1" loading="lazy"></a></td><td><a href="30-01.png"><img src="30-01.png" alt="30 Chalk &amp; Slate, still 1" loading="lazy"></a></td></tr>
+<tr><td class="label">2. tick 926 (15.43 s), the player casts</td><td><a href="greybox-02.png"><img src="greybox-02.png" alt="Greybox, still 2" loading="lazy"></a></td><td><a href="13-02.png"><img src="13-02.png" alt="13 Screen-Print Poster, still 2" loading="lazy"></a></td><td><a href="25-02.png"><img src="25-02.png" alt="25 Moonlit Silver Nocturne, still 2" loading="lazy"></a></td><td><a href="30-02.png"><img src="30-02.png" alt="30 Chalk &amp; Slate, still 2" loading="lazy"></a></td></tr>
+<tr><td class="label">3. tick 1399 (23.32 s), Brennic casts</td><td><a href="greybox-03.png"><img src="greybox-03.png" alt="Greybox, still 3" loading="lazy"></a></td><td><a href="13-03.png"><img src="13-03.png" alt="13 Screen-Print Poster, still 3" loading="lazy"></a></td><td><a href="25-03.png"><img src="25-03.png" alt="25 Moonlit Silver Nocturne, still 3" loading="lazy"></a></td><td><a href="30-03.png"><img src="30-03.png" alt="30 Chalk &amp; Slate, still 3" loading="lazy"></a></td></tr>
+<tr><td class="label">4. tick 1870 (31.17 s), the player falls; the duel ends</td><td><a href="greybox-04.png"><img src="greybox-04.png" alt="Greybox, still 4" loading="lazy"></a></td><td><a href="13-04.png"><img src="13-04.png" alt="13 Screen-Print Poster, still 4" loading="lazy"></a></td><td><a href="25-04.png"><img src="25-04.png" alt="25 Moonlit Silver Nocturne, still 4" loading="lazy"></a></td><td><a href="30-04.png"><img src="30-04.png" alt="30 Chalk &amp; Slate, still 4" loading="lazy"></a></td></tr>
+</table>
+
+<h2>Event list (identical in all four logs)</h2>
+<p class="lead">145 casts (player 90, Brennic 55), 52 hits (33 on Brennic, 19 on the player), 5 player blinks, 1 death. The four stills are cut at events 50, 101, 151 and 202 (highlighted): a quarter, half and three quarters into the log, and its last event.</p>
+<details><summary>All 203 events</summary>
+<table class="events">
+<tr><th>#</th><th>tick</th><th>sim s</th><th>kind</th><th>actor</th><th>target</th><th></th></tr>
+<tr><td>0</td><td>1</td><td>0.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>1</td><td>31</td><td>0.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>2</td><td>37</td><td>0.617</td><td>blink</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>3</td><td>49</td><td>0.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>4</td><td>61</td><td>1.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>5</td><td>67</td><td>1.117</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>6</td><td>82</td><td>1.367</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>7</td><td>86</td><td>1.433</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>8</td><td>91</td><td>1.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>9</td><td>97</td><td>1.617</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>10</td><td>109</td><td>1.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>11</td><td>112</td><td>1.867</td><td>blink</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>12</td><td>151</td><td>2.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>13</td><td>169</td><td>2.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>14</td><td>170</td><td>2.833</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>15</td><td>178</td><td>2.967</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>16</td><td>188</td><td>3.133</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>17</td><td>195</td><td>3.250</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>18</td><td>211</td><td>3.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>19</td><td>212</td><td>3.533</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>20</td><td>229</td><td>3.817</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>21</td><td>229</td><td>3.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>22</td><td>246</td><td>4.100</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>23</td><td>263</td><td>4.383</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>24</td><td>271</td><td>4.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>25</td><td>280</td><td>4.667</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>26</td><td>285</td><td>4.750</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>27</td><td>289</td><td>4.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>28</td><td>297</td><td>4.950</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>29</td><td>302</td><td>5.033</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>30</td><td>314</td><td>5.233</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>31</td><td>330</td><td>5.500</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>32</td><td>331</td><td>5.517</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>33</td><td>331</td><td>5.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>34</td><td>348</td><td>5.800</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>35</td><td>349</td><td>5.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>36</td><td>361</td><td>6.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>37</td><td>365</td><td>6.083</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>38</td><td>369</td><td>6.150</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>39</td><td>382</td><td>6.367</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>40</td><td>390</td><td>6.500</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>41</td><td>391</td><td>6.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>42</td><td>399</td><td>6.650</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>43</td><td>416</td><td>6.933</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>44</td><td>421</td><td>7.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>45</td><td>433</td><td>7.217</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>46</td><td>439</td><td>7.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>47</td><td>439</td><td>7.317</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>48</td><td>449</td><td>7.483</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>49</td><td>450</td><td>7.500</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr class="still"><td>50</td><td>457</td><td>7.617</td><td>hit</td><td>player</td><td>Brennic</td><td>still 01</td></tr>
+<tr><td>51</td><td>467</td><td>7.783</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>52</td><td>481</td><td>8.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>53</td><td>484</td><td>8.067</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>54</td><td>499</td><td>8.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>55</td><td>501</td><td>8.350</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>56</td><td>501</td><td>8.350</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>57</td><td>518</td><td>8.633</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>58</td><td>519</td><td>8.650</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>59</td><td>535</td><td>8.917</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>60</td><td>541</td><td>9.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>61</td><td>552</td><td>9.200</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>62</td><td>559</td><td>9.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>63</td><td>569</td><td>9.483</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>64</td><td>586</td><td>9.767</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>65</td><td>601</td><td>10.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>66</td><td>603</td><td>10.050</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>67</td><td>619</td><td>10.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>68</td><td>620</td><td>10.333</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>69</td><td>637</td><td>10.617</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>70</td><td>654</td><td>10.900</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>71</td><td>661</td><td>11.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>72</td><td>671</td><td>11.183</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>73</td><td>679</td><td>11.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>74</td><td>688</td><td>11.467</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>75</td><td>691</td><td>11.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>76</td><td>705</td><td>11.750</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>77</td><td>721</td><td>12.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>78</td><td>751</td><td>12.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>79</td><td>756</td><td>12.600</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>80</td><td>756</td><td>12.600</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>81</td><td>763</td><td>12.717</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>82</td><td>769</td><td>12.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>83</td><td>773</td><td>12.883</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>84</td><td>778</td><td>12.967</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>85</td><td>785</td><td>13.083</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>86</td><td>790</td><td>13.167</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>87</td><td>807</td><td>13.450</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>88</td><td>807</td><td>13.450</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>89</td><td>811</td><td>13.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>90</td><td>824</td><td>13.733</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>91</td><td>829</td><td>13.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>92</td><td>841</td><td>14.017</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>93</td><td>843</td><td>14.050</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>94</td><td>858</td><td>14.300</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>95</td><td>860</td><td>14.333</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>96</td><td>871</td><td>14.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>97</td><td>875</td><td>14.583</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>98</td><td>889</td><td>14.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>99</td><td>892</td><td>14.867</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>100</td><td>909</td><td>15.150</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr class="still"><td>101</td><td>926</td><td>15.433</td><td>cast</td><td>player</td><td>-</td><td>still 02</td></tr>
+<tr><td>102</td><td>931</td><td>15.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>103</td><td>943</td><td>15.717</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>104</td><td>948</td><td>15.800</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>105</td><td>949</td><td>15.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>106</td><td>956</td><td>15.933</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>107</td><td>960</td><td>16.000</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>108</td><td>965</td><td>16.083</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>109</td><td>974</td><td>16.233</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>110</td><td>977</td><td>16.283</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>111</td><td>991</td><td>16.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>112</td><td>993</td><td>16.550</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>113</td><td>994</td><td>16.567</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>114</td><td>1009</td><td>16.817</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>115</td><td>1011</td><td>16.850</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>116</td><td>1011</td><td>16.850</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>117</td><td>1028</td><td>17.133</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>118</td><td>1045</td><td>17.417</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>119</td><td>1062</td><td>17.700</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>120</td><td>1079</td><td>17.983</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>121</td><td>1096</td><td>18.267</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>122</td><td>1113</td><td>18.550</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>123</td><td>1130</td><td>18.833</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>124</td><td>1147</td><td>19.117</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>125</td><td>1164</td><td>19.400</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>126</td><td>1181</td><td>19.683</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>127</td><td>1192</td><td>19.867</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>128</td><td>1198</td><td>19.967</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>129</td><td>1215</td><td>20.250</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>130</td><td>1215</td><td>20.250</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>131</td><td>1228</td><td>20.467</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>132</td><td>1228</td><td>20.467</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>133</td><td>1232</td><td>20.533</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>134</td><td>1233</td><td>20.550</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>135</td><td>1244</td><td>20.733</td><td>blink</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>136</td><td>1250</td><td>20.833</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>137</td><td>1261</td><td>21.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>138</td><td>1279</td><td>21.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>139</td><td>1310</td><td>21.833</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>140</td><td>1321</td><td>22.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>141</td><td>1327</td><td>22.117</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>142</td><td>1339</td><td>22.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>143</td><td>1344</td><td>22.400</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>144</td><td>1347</td><td>22.450</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>145</td><td>1361</td><td>22.683</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>146</td><td>1364</td><td>22.733</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>147</td><td>1378</td><td>22.967</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>148</td><td>1381</td><td>23.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>149</td><td>1382</td><td>23.033</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>150</td><td>1395</td><td>23.250</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr class="still"><td>151</td><td>1399</td><td>23.317</td><td>cast</td><td>Brennic</td><td>-</td><td>still 03</td></tr>
+<tr><td>152</td><td>1400</td><td>23.333</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>153</td><td>1405</td><td>23.417</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>154</td><td>1412</td><td>23.533</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>155</td><td>1417</td><td>23.617</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>156</td><td>1423</td><td>23.717</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>157</td><td>1429</td><td>23.817</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>158</td><td>1430</td><td>23.833</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>159</td><td>1441</td><td>24.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>160</td><td>1445</td><td>24.083</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>161</td><td>1446</td><td>24.100</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>162</td><td>1458</td><td>24.300</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>163</td><td>1459</td><td>24.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>164</td><td>1462</td><td>24.367</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>165</td><td>1463</td><td>24.383</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>166</td><td>1477</td><td>24.617</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>167</td><td>1480</td><td>24.667</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>168</td><td>1480</td><td>24.667</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>169</td><td>1497</td><td>24.950</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>170</td><td>1498</td><td>24.967</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>171</td><td>1501</td><td>25.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>172</td><td>1514</td><td>25.233</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>173</td><td>1515</td><td>25.250</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>174</td><td>1519</td><td>25.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>175</td><td>1531</td><td>25.517</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>176</td><td>1533</td><td>25.550</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>177</td><td>1548</td><td>25.800</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>178</td><td>1551</td><td>25.850</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>179</td><td>1565</td><td>26.083</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>180</td><td>1582</td><td>26.367</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>181</td><td>1599</td><td>26.650</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>182</td><td>1616</td><td>26.933</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>183</td><td>1633</td><td>27.217</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>184</td><td>1650</td><td>27.500</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>185</td><td>1667</td><td>27.783</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>186</td><td>1684</td><td>28.067</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>187</td><td>1701</td><td>28.350</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>188</td><td>1718</td><td>28.633</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>189</td><td>1732</td><td>28.867</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>190</td><td>1733</td><td>28.883</td><td>cast</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>191</td><td>1738</td><td>28.967</td><td>hit</td><td>Brennic</td><td>player</td><td></td></tr>
+<tr><td>192</td><td>1762</td><td>29.367</td><td>blink</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>193</td><td>1781</td><td>29.683</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>194</td><td>1782</td><td>29.700</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>195</td><td>1794</td><td>29.900</td><td>blink</td><td>player</td><td>-</td><td></td></tr>
+<tr><td>196</td><td>1801</td><td>30.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>197</td><td>1819</td><td>30.317</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>198</td><td>1831</td><td>30.517</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>199</td><td>1832</td><td>30.533</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr><td>200</td><td>1861</td><td>31.017</td><td>cast</td><td>Brennic</td><td>-</td><td></td></tr>
+<tr><td>201</td><td>1870</td><td>31.167</td><td>hit</td><td>player</td><td>Brennic</td><td></td></tr>
+<tr class="still"><td>202</td><td>1870</td><td>31.167</td><td>death</td><td>player</td><td>-</td><td>still 04</td></tr>
+</table>
+</details>
+<p class="lead">Recorded on Wolf (kaziho), UE 5.8.3 CL 58210709, by <code>apps/vr/tools/capture-style-pick.ps1</code>.</p>
+</main></body>
 </html>
