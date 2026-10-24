@@ -26,8 +26,11 @@ constexpr int32 GridX = 32;
 constexpr int32 GridY = 18;
 constexpr int32 MinDistinctColours = 12;
 constexpr double MinLumaStdDev = 4.0;
-// Seconds the recorded WAV may differ from the requested length, and the game clock from the mixer clock. The
-// 2026-10 take that "came out 20.8 s long for 30 s of play" is 10 s out; see runs/T45/REPORT.md for the live numbers.
+// Seconds the recorded WAV may differ from the requested length, and the game clock from the mixer clock. Three 30.8 s
+// takes on Wolf (2026-10-24): the mixer ended 0.446, 1.179 and 0.008 s behind the game clock and the WAVs held 30.272,
+// 29.483 and 30.741 s. Each lag is one stall of the mixer between 14 and 22 s of play, not a steady drift (the cue TSV's
+// mixer_s against audio_s). 1 s passes the recorder's start-up latency (0.3-0.5 s) and a short stall, and refuses the
+// 1.2 s stall and the take that "came out 20.8 s long for 30 s of play" (10 s).
 constexpr double AudioToleranceS = 1.0;
 
 struct FPixelSanity

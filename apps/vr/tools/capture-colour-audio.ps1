@@ -21,7 +21,8 @@ $RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 $AudioDir = Join-Path $RunDir "audio"
 # The same numbers as RecordSeconds (Session/ColourAudioCapture.cpp) and MageArenaCapture::AudioToleranceS
-# (Session/CaptureEvidence.h): the driver records 30.8 s of game time and the WAV must hold that within 1 s.
+# (Session/CaptureEvidence.h, where the three Wolf takes that justify 1 s are listed): the driver records 30.8 s of game
+# time and the WAV must hold that within 1 s.
 $RecordSeconds = 30.8
 $DurationToleranceS = 1.0
 $SilentPeakDb = -60.0
