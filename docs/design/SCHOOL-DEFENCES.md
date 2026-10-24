@@ -60,6 +60,10 @@ mechanic below attacks one of those two gaps.
   30 % magic; unblockables are not evaded), blink costs reduced. Paid with **Momentum**.
 - **Seated reading of Momentum (answers the open Air question):** Momentum builds from **consecutive blinks and quick
   casting cadence** instead of running speed. Air form spends it.
+- **Guard (T50, still open as a decision):** the reading above is not chosen. Until it is, `GrantAirSchool` (`Kernel/Air.cpp`)
+  refuses a player-side (Team 0) Air school whose `FAirState::SeatedReading` is still `None`, with the logged error
+  `air school: player-castable without a seated momentum reading (BACKLOG owner item, SCHOOL-DEFENCES.md)`. Rivals walk and are
+  unchanged. Whoever implements the owner's reading replaces `EAirSeatedReading::Declared` with it and passes it to the grant.
 
 ## Order of work (proposal)
 1. **T11** - A (concurrent per-hand clips + split-hand casting) and E (planted staff) for the Water slice, with gesture clips,

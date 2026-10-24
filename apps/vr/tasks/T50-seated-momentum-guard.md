@@ -1,7 +1,18 @@
 # T50 - Seated-momentum guard: a player-castable Air school must declare a seated Momentum reading
 
-Status: open (needs Wolf: UE 5.8.3 editor and the `MageArena.` automation suite; written 2026-10-21 on Lynx, where
-neither runs - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
+Status: guard done (Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, `dc81bae` ... `bb53109`, tested tree `bb53109`). The design
+half stays open: the seated Momentum reading is the owner's decision and was not chosen here.
+Wolf evidence: `Result: Succeeded`; `pin OK: 9 files @ baeac66` / `conformance OK: 45 vectors`; `MageArena.Air.` 16/16;
+`MageArena.` 292/292 (289 + the three new tests); `MageArenaDesign.` 5/7, only FireSeated and FullSeated red, 36
+MAGEVR_MEASURE lines identical to baseline. Red first: `Expected 'a player-side actor with no declared reading is
+refused' to be false.` Rival trace (s 1..15, before and after identical): 50.000000000000121, 74.000000000000057,
+97.999999999999773, then 100 x12. Chose option (b), `EAirSeatedReading` on `FAirState`, because (a) would edit
+`apps/vr/data/vr/` and move the sha256 `Overlay.Golden` records. The guard is `GrantAirSchool` (`Kernel/Air.cpp`), the one
+grant site; a hand-set `bSchool` in a fixture bypasses it by design. Premise that was false: "Speed is zero on every
+tick" holds for idle ticks only; the reseat runs after the kernel step, so a seated roll tick sees 11.4 m/s and gains one
+tick of Momentum (+0.333), pinned in `SeatedPlayerMomentumOnlyDecays`.
+Original status: open (needs Wolf: UE 5.8.3 editor and the `MageArena.` automation suite; written 2026-10-21 on Lynx,
+where neither runs - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
 Size: S/M. Max turns: 140
 
 ## Goal
