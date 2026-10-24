@@ -412,26 +412,14 @@ bool CheckReferences(FKernelData& Data)
 	return true;
 }
 
+// The absorb rules check their own contract (notAgainst exactly physical and unblockable, fractions in [0, 1]), so the
+// desktop resolver, which reads the same block without KernelData, is held to it too.
 bool LoadAbsorb(FKernelData& Data)
 {
 	FString AbsorbError;
 	if (!Data.Absorb.LoadFromPinnedFile(AbsorbError))
 	{
 		return Fail(Data, AbsorbError);
-	}
-	bool bPhysical = false;
-	bool bUnblockable = false;
-	bool bMagic = false;
-	for (const FString& Entry : Data.Absorb.NotAgainst)
-	{
-		bPhysical |= Entry == TEXT("physical");
-		bUnblockable |= Entry == TEXT("unblockable");
-		bMagic |= Entry == TEXT("magic");
-	}
-	// kernel.ts:57 hard-codes family === 'magic'. BlocksPerfect matches only while notAgainst is the other two families.
-	if (Data.Absorb.NotAgainst.Num() != AbsorbNotAgainstCount || !bPhysical || !bUnblockable || bMagic)
-	{
-		return Fail(Data, TEXT("kernel data: perfect.notAgainst must be exactly physical and unblockable"));
 	}
 	return true;
 }

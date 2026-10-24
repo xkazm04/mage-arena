@@ -122,6 +122,15 @@ bool RequireNumber(const FJsonObject& Object, const TCHAR* Field, double& OutVal
 	return true;
 }
 
+bool RequireFraction(double Value, const TCHAR* Field, const FString& Path, FString& OutError)
+{
+	if (Value >= 0.0 && Value <= 1.0)
+	{
+		return true;
+	}
+	return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: %s %g is not a fraction in [0, 1]"), *Path, Field, Value));
+}
+
 bool InArc(const FVector& Facing, const FVector& Toward, double ArcDeg)
 {
 	const FVector2D To(Toward.X, Toward.Y);
@@ -207,6 +216,11 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	{
 		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s has a non-positive arc or a negative release gap"), *Path));
 	}
+	if (Parsed.RaiseCostMana < 0.0 || Parsed.MoveSpeedWhileHeldMult < 0.0)
+	{
+		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: raiseCostMana %g and moveSpeedWhileHeldMult %g must not be negative"), *Path,
+			Parsed.RaiseCostMana, Parsed.MoveSpeedWhileHeldMult));
+	}
 	if (!Absorb.TryGetStringField(TEXT("drainPerSecond"), Parsed.DrainFormula))
 	{
 		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s has no drainPerSecond string"), *Path));
@@ -229,6 +243,13 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	{
 		return false;
 	}
+	if (!RequireFraction(Parsed.ReductionMagic, TEXT("reduction.magic"), Path, OutError)
+		|| !RequireFraction(Parsed.ReductionPhysical, TEXT("reduction.physical"), Path, OutError)
+		|| !RequireFraction(Parsed.ReductionUnblockable, TEXT("reduction.unblockable"), Path, OutError)
+		|| !RequireFraction(Parsed.ReductionOutsideArc, TEXT("reduction.outsideArc"), Path, OutError))
+	{
+		return false;
+	}
 
 	const TSharedPtr<FJsonObject>* PerfectPtr = nullptr;
 	if (!Absorb.TryGetObjectField(TEXT("perfect"), PerfectPtr) || PerfectPtr == nullptr || !PerfectPtr->IsValid())
@@ -245,6 +266,10 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	if (!(Parsed.WindowS > 0.0))
 	{
 		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s has a non-positive perfect window"), *Path));
+	}
+	if (!RequireFraction(Parsed.PerfectReduction, TEXT("perfect.reduction"), Path, OutError))
+	{
+		return false;
 	}
 	if (!Perfect.TryGetStringField(TEXT("manaReturned"), Parsed.ManaFormula))
 	{
@@ -267,6 +292,31 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 			return Fail(OutError, FString::Printf(TEXT("absorb rules: %s has a non-string perfect.notAgainst entry"), *Path));
 		}
 		Parsed.NotAgainst.Add(Name);
+	}
+	// kernel.ts:57 treats only family "magic" as perfectable, so notAgainst must name exactly the other two families.
+	// T44: this is the one copy of the rule. KernelData's absorb load, the desktop resolver and the ward detector all
+	// read their rules through here.
+	int32 Physical = 0;
+	int32 Unblockable = 0;
+	for (const FString& Entry : Parsed.NotAgainst)
+	{
+		if (Entry.Equals(KindName(EAbsorbHitKind::Physical), ESearchCase::CaseSensitive))
+		{
+			++Physical;
+		}
+		else if (Entry.Equals(KindName(EAbsorbHitKind::Unblockable), ESearchCase::CaseSensitive))
+		{
+			++Unblockable;
+		}
+		else
+		{
+			return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: perfect.notAgainst entry '%s' is not physical or unblockable"), *Path, *Entry));
+		}
+	}
+	if (Physical != 1 || Unblockable != 1)
+	{
+		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: perfect.notAgainst must be exactly physical and unblockable: [%s]"), *Path,
+			*FString::Join(Parsed.NotAgainst, TEXT(", "))));
 	}
 
 	*this = MoveTemp(Parsed);
