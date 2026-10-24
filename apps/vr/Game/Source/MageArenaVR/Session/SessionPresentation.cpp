@@ -217,6 +217,20 @@ bool ASessionPresentation::IsShotDrawn(int32 ProjectileId) const
 	return false;
 }
 
+int32 ASessionPresentation::CountRingBeadsDrawn(int32 Id) const
+{
+	for (const FRing& Ring : Rings)
+	{
+		if (Ring.Id == Id)
+		{
+			return Ring.Beads.FilterByPredicate([](const UStaticMeshComponent* Bead)
+			{ return Bead && Bead->IsVisible(); })
+			    .Num();
+		}
+	}
+	return -1;
+}
+
 ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id, bool bSpear)
 {
 	for (FShot& Shot : Shots)
@@ -266,9 +280,16 @@ ASessionPresentation::FRing& ASessionPresentation::RingFor(int32 Id)
 	Created.Id = Id;
 	Created.Mesh = MakePart(TEXT("Cylinder"), ActiveElementPalette().Steel);
 	Created.Rim = MakePart(TEXT("Cylinder"), ActiveElementPalette().UnblockableRim);
+	// The beads are born hidden, as the glow is: only a magic threat inside the perfect window shows them. A spear ring
+	// never does, and a visible bead nobody places draws a 1 m white cube at world origin (T46, BUDGET-DG4 section 13).
 	for (int32 i = 0; i < 20; ++i)
 	{
-		Created.Beads.Add(MakePart(TEXT("Cube"), FLinearColor::White));
+		UStaticMeshComponent* Bead = MakePart(TEXT("Cube"), FLinearColor::White);
+		if (Bead)
+		{
+			Bead->SetVisibility(false);
+		}
+		Created.Beads.Add(Bead);
 	}
 	Created.Glow = MakePart(TEXT("Sphere"), ActiveElementPalette().Steel);
 	if (Created.Glow)
@@ -1486,6 +1507,18 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			if (Ring.Rim)
 			{
 				Ring.Rim->SetVisibility(false);
+			}
+			// A spear is steel, never perfected: no beads, even on a ring a magic threat held before.
+			for (UStaticMeshComponent* Bead : Ring.Beads)
+			{
+				if (Bead)
+				{
+					Bead->SetVisibility(false);
+				}
+			}
+			if (Ring.Glow)
+			{
+				Ring.Glow->SetVisibility(false);
 			}
 		}
 		else

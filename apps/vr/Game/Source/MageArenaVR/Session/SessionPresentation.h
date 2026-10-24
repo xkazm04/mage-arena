@@ -43,6 +43,8 @@ public:
 	bool IsBodyDrawn(int32 ActorId) const;
 	/** T46: this projectile is live and its part is visible. */
 	bool IsShotDrawn(int32 ProjectileId) const;
+	/** The visible beads of the ring this id holds (a spear, an ember or a telegraph), or -1 when no ring holds it. */
+	int32 CountRingBeadsDrawn(int32 Id) const;
 
 private:
 	struct FBody
