@@ -16,8 +16,9 @@ $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
 $RunsDir = Join-Path $VrDir "..\..\runs\T16"
 $OutputShotsDir = Join-Path $RunsDir "shots"
 $AllStyles = @("greybox", "13", "25", "30")
-# The event indices the four stills are cut at (the first event is index 0).
-$StillEvents = @(2, 5, 15, 30)
+# The four stills are cut at the events a quarter, half and three quarters into the log, and at its last event (the
+# duel's end), so they span the whole duel. The logs are identical across styles, so the ticks are too.
+$StillQuarters = @(1, 2, 3, 4)
 
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
@@ -125,8 +126,8 @@ foreach ($Style in $Styles) {
 	$EventsLog = Join-Path $RunsDir "events-$Style.jsonl"
 	if (-not (Test-Path $EventsLog) -or (Get-Item $EventsLog).Length -eq 0) { continue }
 	$Events = @(Get-Content $EventsLog | ConvertFrom-Json)
-	$Need = ($StillEvents | Measure-Object -Maximum).Maximum + 1
-	if ($Events.Count -lt $Need) { Add-Failure "$Style logged $($Events.Count) events, the stills need $Need"; continue }
+	if ($Events.Count -lt $StillQuarters.Count + 1) { Add-Failure "$Style logged $($Events.Count) events, the stills need $($StillQuarters.Count + 1)"; continue }
+	$StillEvents = @($StillQuarters | ForEach-Object { [int][math]::Floor(($Events.Count - 1) * $_ / 4) })
 	for ($i = 0; $i -lt $StillEvents.Count; $i++) {
 		$Tick = [int]$Events[$StillEvents[$i]].tick
 		$Frame = @($Manifests[$Style].shots | Where-Object { [int]$_.tick -eq $Tick }) | Select-Object -First 1
@@ -134,7 +135,7 @@ foreach ($Style in $Styles) {
 		if (Test-Path $DestPath) { Remove-Item -Force $DestPath }
 		if (-not $Frame) { Add-Failure "$Style has no frame at event tick $Tick (event $($StillEvents[$i]))"; continue }
 		Copy-Item $Frame.path $DestPath
-		Write-Host "capture-style-pick: still $DestPath = $($Frame.name) tick=$Tick"
+		Write-Host "capture-style-pick: still $DestPath = $($Frame.name) tick=$Tick event=$($StillEvents[$i]) kind=$($Events[$StillEvents[$i]].kind)"
 	}
 }
 
