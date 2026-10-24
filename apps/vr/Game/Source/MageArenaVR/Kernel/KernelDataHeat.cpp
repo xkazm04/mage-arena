@@ -650,17 +650,36 @@ bool LoadFireSpells(FKernelData& Data)
 		FFireSpell Spell;
 		Spell.Id = Values[0];
 		Spell.Name = Values[1];
-		Spell.Tier = FCString::Atoi(*Values[2]);
+		// T44: a number cell that is not a number, or a blockable cell the pin does not use, refuses the load. The raw
+		// blockable cell no longer passes through as the family.
+		const TCHAR* const Sheet = TEXT("spells-fire.csv");
+		FString Error;
+		double Tier = 0.0;
+		if (!CellNumber(Values[2], Sheet, TEXT("tier"), Spell.Id, Tier, Error)
+			|| !CellNumber(Values[4], Sheet, TEXT("cast_s"), Spell.Id, Spell.CastS, Error)
+			|| !CellNumber(Values[5], Sheet, TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error)
+			|| !CellNumber(Values[6], Sheet, TEXT("mana"), Spell.Id, Spell.Mana, Error)
+			|| !CellNumber(Values[9], Sheet, TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error)
+			|| !CellNumber(Values[10], Sheet, TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
+		{
+			return Fail(Data, TEXT("kernel data: ") + Error);
+		}
+		if (Tier != std::floor(Tier))
+		{
+			return Fail(Data, FString::Printf(TEXT("kernel data: %s row %s: tier cell '%s' is not a whole number"), Sheet, *Spell.Id, *Values[2]));
+		}
+		EThreatFamily Family = EThreatFamily::None;
+		if (!ParseBlockable(Values[8], Family, Error))
+		{
+			return Fail(Data, FString::Printf(TEXT("kernel data: %s row %s: %s"), Sheet, *Spell.Id, *Error));
+		}
+		Spell.Tier = static_cast<int32>(Tier);
 		Spell.Shape = Values[3];
-		Spell.CastS = FCString::Atod(*Values[4]);
-		Spell.CooldownS = FCString::Atod(*Values[5]);
-		Spell.Mana = FCString::Atod(*Values[6]);
 		Spell.DamageText = Damage;
 		Spell.Damage = (!Damage.IsEmpty() && FChar::IsDigit(Damage[0])) ? FCString::Atod(*Damage) : 0.0;
 		Spell.Blockable = Values[8];
-		Spell.Family = Spell.Blockable == TEXT("UNBLOCKABLE") ? TEXT("unblockable") : Spell.Blockable == TEXT("absorbable") ? TEXT("magic") : Spell.Blockable;
-		Spell.TelegraphS = FCString::Atod(*Values[9]);
-		Spell.RangeM = FCString::Atod(*Values[10]);
+		// Fire keeps n/a as its family; HitFamily (Fire.cpp) reads it as magic at the hit.
+		Spell.Family = FamilyName(Family);
 		Spell.HeatGain = Values[11];
 		Spell.Notes = Notes;
 		if (!ParseFireSpell(Spell, Data))

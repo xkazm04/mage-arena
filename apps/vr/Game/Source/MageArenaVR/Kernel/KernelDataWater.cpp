@@ -39,29 +39,48 @@ bool FindLashArc(const FCsvTable& Rows, double& LashArc, FKernelData& Data)
 	return MatchDouble(*LashShape, TEXT("cone ([\\d.]+) deg"), LashArc, TEXT("lash arc"), Data);
 }
 
-// The cells every Water line has. RequireSpellColumns has already checked that each one exists.
-FSpell SpellFromRow(const TMap<FString, FString>& Row)
+// The cells every Water line has. RequireSpellColumns has already checked that each one exists. T44: a number cell
+// that is not a number, or a blockable cell the pin does not use, refuses the load instead of reading as 0 or magic.
+bool SpellFromRow(const TMap<FString, FString>& Row, FSpell& Spell, FKernelData& Data)
 {
+	const TCHAR* const Sheet = TEXT("spells-water.csv");
 	const FString& Line = *Cell(Row, TEXT("line"));
 	const FString& TierText = *Cell(Row, TEXT("tier"));
 	const FString& Branch = *Cell(Row, TEXT("branch"));
 	const FString& DamageText = *Cell(Row, TEXT("damage"));
-	const int32 Tier = FCString::Atoi(*TierText);
-	FSpell Spell;
-	Spell.Id = FString::Printf(TEXT("%s:%d:%s"), *Line, Tier, Branch.IsEmpty() ? TEXT("base") : *Branch);
+	const FString& Blockable = *Cell(Row, TEXT("blockable"));
+	const TCHAR* const BranchId = Branch.IsEmpty() ? TEXT("base") : *Branch;
+	const FString RowId = FString::Printf(TEXT("%s:%s:%s"), *Line, *TierText, BranchId);
+	FString Error;
+	double Tier = 0.0;
+	if (!CellNumber(TierText, Sheet, TEXT("tier"), RowId, Tier, Error)
+		|| !CellNumber(*Cell(Row, TEXT("cast_s")), Sheet, TEXT("cast_s"), RowId, Spell.CastS, Error)
+		|| !CellNumber(*Cell(Row, TEXT("cooldown_s")), Sheet, TEXT("cooldown_s"), RowId, Spell.CooldownS, Error)
+		|| !CellNumber(*Cell(Row, TEXT("mana")), Sheet, TEXT("mana"), RowId, Spell.Mana, Error)
+		|| !CellNumber(*Cell(Row, TEXT("telegraph_s")), Sheet, TEXT("telegraph_s"), RowId, Spell.TelegraphS, Error)
+		|| !CellNumber(*Cell(Row, TEXT("range_m")), Sheet, TEXT("range_m"), RowId, Spell.RangeM, Error))
+	{
+		return Fail(Data, TEXT("kernel data: ") + Error);
+	}
+	if (Tier != std::floor(Tier))
+	{
+		return Fail(Data, FString::Printf(TEXT("kernel data: %s row %s: tier cell '%s' is not a whole number"), Sheet, *RowId, *TierText));
+	}
+	EThreatFamily Family = EThreatFamily::None;
+	if (!ParseBlockable(Blockable, Family, Error))
+	{
+		return Fail(Data, FString::Printf(TEXT("kernel data: %s row %s: %s"), Sheet, *RowId, *Error));
+	}
+	Spell.Id = FString::Printf(TEXT("%s:%d:%s"), *Line, static_cast<int32>(Tier), BranchId);
 	Spell.Line = Line;
-	Spell.Tier = Tier;
+	Spell.Tier = static_cast<int32>(Tier);
 	Spell.Branch = Branch;
 	Spell.Name = *Cell(Row, TEXT("name"));
-	Spell.CastS = FCString::Atod(**Cell(Row, TEXT("cast_s")));
-	Spell.CooldownS = FCString::Atod(**Cell(Row, TEXT("cooldown_s")));
-	Spell.Mana = FCString::Atod(**Cell(Row, TEXT("mana")));
 	Spell.Damage = (!DamageText.IsEmpty() && FChar::IsDigit(DamageText[0])) ? FCString::Atod(*DamageText) : 0.0;
-	Spell.Family = *Cell(Row, TEXT("blockable")) == TEXT("UNBLOCKABLE") ? TEXT("unblockable") : TEXT("magic");
-	Spell.TelegraphS = FCString::Atod(**Cell(Row, TEXT("telegraph_s")));
-	Spell.RangeM = FCString::Atod(**Cell(Row, TEXT("range_m")));
+	// Water publishes an n/a row as magic, as it always has; Air and Fire keep n/a and read it as magic at the hit.
+	Spell.Family = FamilyName(Family == EThreatFamily::None ? EThreatFamily::Magic : Family);
 	Spell.Kind = TEXT("self");
-	return Spell;
+	return true;
 }
 
 // bolt and tide_orb. The bolt row is also published as the Data.Bolt* fields.
@@ -324,8 +343,8 @@ bool BuildSpells(const FCsvTable& Rows, FKernelData& Data)
 	}
 	for (const TMap<FString, FString>& Row : Rows.Rows)
 	{
-		FSpell Spell = SpellFromRow(Row);
-		if (!ParseWaterLine(Row, LashArc, Spell, Data))
+		FSpell Spell;
+		if (!SpellFromRow(Row, Spell, Data) || !ParseWaterLine(Row, LashArc, Spell, Data))
 		{
 			return false;
 		}
