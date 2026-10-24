@@ -198,11 +198,11 @@ the end.
 - Order inside the card: DF-003 and DF-006 A data, then DF-009, DF-007 B, then the C++ ones (DF-005, DF-006 B, DF-007 A,
   DF-008). One commit per DF, `T39: DF-00x ...`. Hooks, not inline branches: DF-005 in `FVrRuleset::TickSplitLatch`, DF-006
   B in `VrRivals.cpp` `TickRivalPhases`, DF-008 through `MageInput(..., const FVrRuleset*)` (the card's table).
-- [ ] DF-003 `wide` live in `apps/vr/data/vr/combat.vr.json` (stale TV text at `:68`, `:134` replaced); the null-path
+- [x] Wolf kaziho 2026-10-24 5b13463 `MageArena.` 246/246; combat.vr.json wide set live, stale TV text replaced; `fire-duel-competence-1*.json` untouched. DF-003 `wide` live in `apps/vr/data/vr/combat.vr.json` (stale TV text at `:68`, `:134` replaced); the null-path
   goldens `fire-duel-competence-1*.json` untouched.
-- [ ] DF-009, DF-007 B, DF-005, DF-006 B, DF-007 A, DF-008, each committed with the test literals it moved citing their
+- [x] Wolf kaziho 2026-10-24 0acf0c2 / a64eab5 / bef9323 / 0f33106 / 7f4926d / 6f00555, each with its literals and goldens; `MageArena.` 249/249 at 6f00555. DF-009, DF-007 B, DF-005, DF-006 B, DF-007 A, DF-008, each committed with the test literals it moved citing their
   overlay field (the card's "Test files each DF commit may update").
-- [ ] Done when (all on Wolf, quoted in `runs/T39/REPORT.md` and summarised in the card's status line):
+- [ ] NOT MET, Wolf kaziho 2026-10-24 6f00555: `Expected 'brennic-c1 length 38.32s in 45-80' to be true.`, `Expected 'length 23.12s in 45-80' to be true.` (AirSeated), `Expected 'the script did not lose bout 3' to be false.` (FullSeated): explained only by the open DF-011. Met: `pin OK`, `conformance OK: 45 vectors`, `Result: Succeeded`, Conformance 45/45, Wave1Seated and CreaturesSeated green, goldens re-recorded per DF. Done when (all on Wolf, quoted in `runs/T39/REPORT.md` and summarised in the card's status line):
   `node apps/vr/tools/check-pin.mjs` prints `pin OK` and `conformance OK: 45 vectors`; `build.ps1` succeeds; one
   `MageArenaDesign` run on the final overlay where each of the five known reds is green or explained by an accepted DF;
   `MageArena.Kernel.Conformance` 45/45. If P1 landed, the overlay goldens are re-recorded per DF.

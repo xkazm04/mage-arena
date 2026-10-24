@@ -1,6 +1,6 @@
 # T39 - Adopt the DF-003/005/006/007/008/009 recommendations and re-run MageArenaDesign once
 
-Status: ready for Wolf (the x64 UE host), after T54 (overlay end-state goldens) is recorded. Owner ruling `docs/DECISIONS.md` 2026-10-20: "adopt each DF's recommended
+Status: built on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709; Done-when NOT met. All six DFs landed, one commit each (5b13463 DF-003/006 A, 0acf0c2 DF-009, a64eab5 DF-007 B, bef9323 DF-005, 0f33106 DF-006 B, 7f4926d DF-007 A, 6f00555 DF-008), T54 goldens re-recorded per DF. check-pin `pin OK` / `conformance OK: 45 vectors`, build `Result: Succeeded`, MageArena.Kernel.Conformance 45/45, MageArena. 249/249. The one MageArenaDesign run on the final overlay: Wave1Seated and CreaturesSeated green; FireSeated (brennic-c1 lost at 38.32 s), AirSeated (23.12 s) and FullSeated (lost bout 3) stay red, explained only by the open DF-011, so "each green or explained by an accepted DF" fails. Report: runs/T39/REPORT.md. (Was: ready for Wolf, after T54.) Owner ruling `docs/DECISIONS.md` 2026-10-20: "adopt each DF's recommended
 option; card one design-suite re-run." Written 2026-10-20 on Lynx (ARM64, no Unreal); nothing here was built or run.
 Max turns: 240
 
