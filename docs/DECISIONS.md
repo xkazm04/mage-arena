@@ -2,6 +2,21 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - Athena 19:11Z: the maw needs a back view; the multi-view ban is lifted for it
+
+> Athena, 2026-10-24 19:11Z (owner delegation), on `docs/research/CREATURE-MESH-2026-10-24.md`.
+
+- **Cinder hound: a working asset, not a final one.** Its glow comes from an Unreal emissive material, not from the mesh or
+  its texture (the source image has no glow to bake).
+- **Mire maw: the front is ACCEPTED, the back is REJECTED.** The unseen back of the TRELLIS mesh is a torn shell that
+  finishing closes with a fan, so **one front image is not enough for the maw**.
+- **The multi-view ban is lifted for the maw two-view path only** (it was "no front/back pairs for creatures yet", 17:04Z).
+  The maw gets a Leonardo back view drawn from the accepted master s7202 and a two-view TRELLIS.2 run. Built and tested in
+  `docs/research/MAW-BACK-2026-10-24.md`; the run itself is not done in that lane.
+- **RAM order: Unreal first, then TRELLIS and Blender.** Nothing from the TRELLIS/Blender group starts while an Unreal
+  process is up.
+- Nothing ships: the DINOv3 hold stands.
+
 ## 2026-10-24 - Visual approvals: Leonardo for new inputs, key-art creature canon, 18-30k soldiers, style delegated to Athena
 
 > Owner, 2026-10-24 evening, on `docs/concepts/VISUAL-PLAN.md` section (g). Chosen options, verbatim:
