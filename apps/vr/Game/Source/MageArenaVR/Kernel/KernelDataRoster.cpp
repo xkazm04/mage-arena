@@ -22,10 +22,26 @@ bool OptionalNumber(const FJsonObject& Object, const TCHAR* Field, TOptional<dou
 	return true;
 }
 
+// T44. The family of a hit the roster deals: magic, physical or unblockable, exactly. Anything else refuses the load.
+bool NeedFamily(const FJsonObject& Object, FString& Out, const FString& Path, FKernelData& Data)
+{
+	if (!NeedString(Object, TEXT("family"), Out, Path, Data))
+	{
+		return false;
+	}
+	EThreatFamily Family = EThreatFamily::None;
+	FString Error;
+	if (!ParseFamily(Out, Family, Error))
+	{
+		return Fail(Data, FString::Printf(TEXT("kernel data: %s: %s"), *Path, *Error));
+	}
+	return true;
+}
+
 bool ParseAttack(const FJsonObject& Object, FAttackSpec& Attack, const FString& Path, FKernelData& Data)
 {
 	if (!NeedString(Object, TEXT("id"), Attack.Id, Path, Data)
-		|| !NeedString(Object, TEXT("family"), Attack.Family, Path, Data)
+		|| !NeedFamily(Object, Attack.Family, Path, Data)
 		|| !NeedNumber(Object, TEXT("damage"), Attack.Damage, Path, Data)
 		|| !NeedNumber(Object, TEXT("windupS"), Attack.WindupS, Path, Data))
 	{
@@ -115,7 +131,7 @@ bool ParseEnemy(const FJsonObject& Object, FEnemySpec& Spec, const FString& Path
 	{
 		FDeathSpec SpecDeath;
 		if (!NeedString(**Death, TEXT("id"), SpecDeath.Id, Path, Data)
-			|| !NeedString(**Death, TEXT("family"), SpecDeath.Family, Path, Data)
+			|| !NeedFamily(**Death, SpecDeath.Family, Path + TEXT(".onDeath.") + SpecDeath.Id, Data)
 			|| !NeedInt(**Death, TEXT("tier"), SpecDeath.Tier, Path, Data)
 			|| !NeedNumber(**Death, TEXT("damage"), SpecDeath.Damage, Path, Data)
 			|| !NeedNumber(**Death, TEXT("radiusM"), SpecDeath.RadiusM, Path, Data)
