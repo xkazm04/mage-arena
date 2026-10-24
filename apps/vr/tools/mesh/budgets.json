@@ -1,0 +1,64 @@
+{
+ "_doc": "Per-class world scale and LOD0 triangle budget for the mesh lane (finish.mjs, mesh-card.mjs). Triangles are the unit everywhere. Each number cites where it comes from; change it there first, then here.",
+ "components": {
+  "speckShare": 0.005,
+  "speckMinFaces": 8,
+  "_source": "speckShare 0.5 % = apps/vr/tools/assets/finish.py drop_small_components(hm, 0.005) and the ai-registry game-production floater-vs-part-face-share-rule default; speckMinFaces 8 = the same rule's absolute minimum"
+ },
+ "finish": {
+  "voxelM": 0.01,
+  "bakeRes": 4096,
+  "rotZDeg": 0,
+  "_source": "the Brennic rebuild line in apps/vr/art/characters/brennic/HANDOFF.md: finish.py ... Brennic 0 4096 0.01 24000"
+ },
+ "classes": {
+  "Humanoid": {
+   "heightM": 1.8,
+   "heightTolerance": 0.1,
+   "tris": { "target": 24000, "min": 18000, "max": 30000 },
+   "partsMax": 8,
+   "specksMax": 4,
+   "palette": "Brennic",
+   "_source": {
+    "heightM": "apps/vr/tasks/T38-first-animated-opponent.md Wolf check 'unit scale matching FBody' (the FBody mage is 180 cm, HANDOFF.md check 8); finish.py HEIGHT default 1.8",
+    "heightTolerance": "apps/vr/tools/assets/metrics.py check 8 'unit scale, height 1.62-1.98 m' (1.8 m +-10 %)",
+    "tris": "apps/vr/tools/assets/metrics.py TRI_BUDGET_LOD0 = (18000, 30000) (HANDOFF.md check 4 'target 18-30k'); target 24000 = the HANDOFF.md rebuild line",
+    "partsMax": "ai-registry game-production structural-scorecard: a part budget of 8 is the starting point for characters",
+    "specksMax": "ai-registry game-production structural-scorecard: a speck tolerance of 4 is the starting point for characters",
+    "palette": "the default finish.py palette set (concept-front-s3801-medium.jpg); pass --palette for another figure"
+   }
+  },
+  "CinderHound": {
+   "heightM": 1.36,
+   "heightTolerance": 0.1,
+   "tris": { "target": 12000, "min": 1, "max": 12000 },
+   "partsMax": 8,
+   "specksMax": 4,
+   "palette": "CinderHound",
+   "_source": {
+    "heightM": "apps/vr/tools/assets/metrics.py BEASTS CinderHound height 1.36 (finish.py: sheet 05 side view, 473 px at 2.875 mm/px)",
+    "heightTolerance": "metrics.py BEASTS check 8: +-10 %",
+    "tris": "metrics.py BEASTS CinderHound tris 12000, 'three hounds on screen at once'; the check is 0 < tris <= budget, so min 1 and target = the budget",
+    "partsMax": "ai-registry structural-scorecard character default",
+    "specksMax": "ai-registry structural-scorecard character default",
+    "palette": "finish.py PALETTES CinderHound"
+   }
+  },
+  "MireMaw": {
+   "heightM": 1.25,
+   "heightTolerance": 0.1,
+   "tris": { "target": 20000, "min": 1, "max": 20000 },
+   "partsMax": 8,
+   "specksMax": 4,
+   "palette": "MireMaw",
+   "_source": {
+    "heightM": "apps/vr/tools/assets/metrics.py BEASTS MireMaw height 1.25 (finish.py: sheet 06, 435 px)",
+    "heightTolerance": "metrics.py BEASTS check 8: +-10 %",
+    "tris": "metrics.py BEASTS MireMaw tris 20000, 'one maw'; the check is 0 < tris <= budget, so min 1 and target = the budget",
+    "partsMax": "ai-registry structural-scorecard character default",
+    "specksMax": "ai-registry structural-scorecard character default",
+    "palette": "finish.py PALETTES MireMaw"
+   }
+  }
+ }
+}
