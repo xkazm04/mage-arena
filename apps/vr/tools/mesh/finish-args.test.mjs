@@ -12,15 +12,15 @@ const human = classBudget(budgets, 'Humanoid');
 const optOf = (flags) => (name, dflt) => (name in flags ? flags[name] : dflt);
 const args = (flags, cls = human) => finishPyArgs('raw.glb', 'out', 'Brennic', finishParams(optOf(flags), budgets, cls));
 
-test('flat is the default and passes exactly the pre-bake argument list', () => {
+test('--mode flat passes exactly the pre-bake argument list', () => {
   // the list finish.mjs built before the bake mode: the HANDOFF rebuild line "Brennic 0 4096 0.01 24000"
-  assert.deepEqual(args({}), ['raw.glb', 'out', 'Brennic', '0', '4096', '0.01', '24000', 'Brennic']);
-  assert.deepEqual(args({ mode: 'flat' }), args({}));
+  assert.deepEqual(args({ mode: 'flat' }), ['raw.glb', 'out', 'Brennic', '0', '4096', '0.01', '24000', 'Brennic']);
 });
 
-test('bake mode bakes at bakeTextureRes and says so', () => {
+test('bake is the default (DECISIONS 2026-10-24, Athena 17:56Z), bakes at bakeTextureRes and says so', () => {
   assert.equal(budgets.finish.bakeTextureRes, 2048);
-  assert.deepEqual(args({ mode: 'bake' }), ['raw.glb', 'out', 'Brennic', '0', '2048', '0.01', '24000', 'Brennic', 'mode=bake']);
+  assert.deepEqual(args({}), ['raw.glb', 'out', 'Brennic', '0', '2048', '0.01', '24000', 'Brennic', 'mode=bake']);
+  assert.deepEqual(args({ mode: 'bake' }), args({}));
   assert.equal(args({ mode: 'bake', bake: '1024' })[4], '1024');
 });
 
@@ -36,6 +36,7 @@ test('bake options pass through as key=value; clamp none is left out', () => {
 });
 
 test('a class palette and --palette still reach finish.py', () => {
+  assert.equal(args({ mode: 'flat' }, classBudget(budgets, 'CinderHound'))[7], 'CinderHound');
   assert.equal(args({}, classBudget(budgets, 'CinderHound'))[7], 'CinderHound');
   assert.equal(args({ palette: 'Conscript', mode: 'bake' })[7], 'Conscript');
 });
@@ -43,6 +44,7 @@ test('a class palette and --palette still reach finish.py', () => {
 test('bad mode, bad clamp, and bake flags without the bake mode are refused', () => {
   assert.throws(() => args({ mode: 'paint' }), /--mode paint/);
   assert.throws(() => args({ mode: 'bake', clamp: 'flat' }), /--clamp flat/);
-  assert.throws(() => args({ clamp: 'hue' }), /need --mode bake/);
-  assert.throws(() => args({ cage: '0.01' }), /need --mode bake/);
+  assert.throws(() => args({ mode: 'flat', clamp: 'hue' }), /need --mode bake/);
+  assert.throws(() => args({ mode: 'flat', cage: '0.01' }), /need --mode bake/);
+  assert.deepEqual(args({ clamp: 'hue' }).slice(8), ['mode=bake', 'clamp=hue']); // the default takes the bake flags
 });

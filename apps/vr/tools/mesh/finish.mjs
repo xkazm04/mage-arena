@@ -2,8 +2,8 @@
 // Finishing wrapper: one raw image-to-3D mesh -> the class's world scale and LOD0 triangle budget, gated on both sides.
 //   1. mesh card on the raw file (stage raw): refuses when a finding is one finishing does not resolve
 //   2. apps/vr/tools/assets/finish.py (Blender 4.2): floaters dropped, scaled to the palette set's HEIGHT with the feet
-//      at z = 0, voxel remesh, collapse to the class triangle target, UV, bake; then --mode flat (default) one flat
-//      palette colour per material, or --mode bake the baked TRELLIS albedo as the texture T_<name>_BaseColor.png
+//      at z = 0, voxel remesh, collapse to the class triangle target, UV, bake; then --mode bake (default) the baked
+//      TRELLIS albedo as the texture T_<name>_BaseColor.png, or --mode flat one flat palette colour per material
 //   3. export_glb.py: the finished SM_ mesh as <name>_finish.glb (bake mode: the texture embedded)
 //   4. mesh card on that GLB (stage finished, the class budget)
 // Writes <outdir>/<name>_card_raw.json, <name>_finish.{blend,json,glb}, <name>_card_finished.json and
@@ -11,7 +11,7 @@
 //
 //   node apps/vr/tools/mesh/finish.mjs <raw.glb> <outdir> --class Humanoid --name Brennic
 //        [--palette <finish.py set, default the class's>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>]
-//        [--mode flat|bake] [--clamp none|posterize|hue|both] [--strength <0-0.6>] [--levels <n>] [--cage <m>]
+//        [--mode bake|flat] [--clamp none|posterize|hue|both] [--strength <0-0.6>] [--levels <n>] [--cage <m>]
 //        [--ray <m>] [--margin <px>]      (the bake-mode flags: finish-args.mjs)
 //
 // The class (budgets.json) gives the triangle target and the height band; finish.py takes its height from the palette
@@ -35,7 +35,7 @@ const [raw, outdir] = argv.filter((a, i) => !a.startsWith('--') && !argv[i - 1]?
 const className = opt('class');
 const name = opt('name');
 if (!raw || !outdir || !className || !name) {
-  console.error('usage: finish.mjs <raw.glb> <outdir> --class <class> --name <Name> [--palette <set>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>] [--mode flat|bake] [--clamp none|posterize|hue|both] [--strength <s>] [--levels <n>] [--cage <m>] [--ray <m>] [--margin <px>]');
+  console.error('usage: finish.mjs <raw.glb> <outdir> --class <class> --name <Name> [--palette <set>] [--rot <deg>] [--bake <px>] [--voxel <m>] [--budgets <json>] [--mode bake|flat] [--clamp none|posterize|hue|both] [--strength <s>] [--levels <n>] [--cage <m>] [--ray <m>] [--margin <px>]');
   process.exit(2);
 }
 

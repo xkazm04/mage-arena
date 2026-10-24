@@ -2,11 +2,12 @@
 // (finish-args.test.mjs). finish.py's own checks (../mesh/finish_lib.py parse_options) stay the authority; these fail
 // early with the same rules so a bad flag never costs a Blender start.
 //
-// mode flat (default): the T38 recipe, one flat palette colour per material. Its argument list is exactly the one
+// mode bake (default since DECISIONS 2026-10-24, Athena 17:56Z: the pipeline default for characters and creatures):
+// the TRELLIS albedo baked onto LOD0 as its texture, at budgets.finish.bakeTextureRes unless --bake says otherwise;
+// --clamp none|posterize|hue|both (with --strength, --levels) pulls the texture toward the palette; --cage, --ray,
+// --margin tune the bake.
+// mode flat (an option): the T38 recipe, one flat palette colour per material. Its argument list is exactly the one
 // finish.mjs built before the bake mode existed: 7 positionals and the palette set, no options.
-// mode bake: the TRELLIS albedo baked onto LOD0 as its texture, at budgets.finish.bakeTextureRes unless --bake says
-// otherwise; --clamp none|posterize|hue|both (with --strength, --levels) pulls the texture toward the palette;
-// --cage, --ray, --margin tune the bake.
 
 export const MODES = ['flat', 'bake'];
 export const CLAMPS = ['none', 'posterize', 'hue', 'both'];
@@ -15,7 +16,7 @@ const BAKE_OPTIONS = ['clamp', 'strength', 'levels', 'cage', 'ray', 'margin'];
 /** opt(name, default) reads a --flag; budgets is budgets.json; cls its class. Throws on a bad mode or clamp. */
 export function finishParams(opt, budgets, cls) {
   const f = budgets.finish;
-  const mode = opt('mode', 'flat');
+  const mode = opt('mode', 'bake');
   if (!MODES.includes(mode)) throw new Error(`--mode ${mode}: one of ${MODES.join(', ')}`);
   const clamp = opt('clamp', 'none');
   if (!CLAMPS.includes(clamp)) throw new Error(`--clamp ${clamp}: one of ${CLAMPS.join(', ')}`);

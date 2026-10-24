@@ -10,9 +10,10 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `input-gate.mjs` + `image_stats.py` | gate 1: can this image (or view set) be reconstructed? Verdict JSON with defect codes |
 | `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
-| `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode flat` (default): one flat palette colour per material; `--mode bake`: the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png` (see "Finish modes") |
+| `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode bake` (default): the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png`; `--mode flat`: one flat palette colour per material (see "Finish modes") |
 | `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
 | `finish_lib.py` (+ `../assets/test_finish.py`) | finish.py's Blender-free logic: mode and option parsing, sRGB/Lab, the style clamp, UV coverage, bake-miss accounting and filling (`python -m unittest apps/vr/tools/assets/test_finish.py`) |
+| `beast_fit.py` (+ `test_beast_fit.py`), `beast-fits/*.json` | the Bout 2 beasts' fit: joints, jaw/tongue weight rules and hand-made parts for `../assets/beast_parts.py` and `../assets/rig_anim.py` (STYLE Hound, Maw). Without a fit file both scripts use the 2026-10-21 tables; a mesh with other proportions gets its own file (see "Beasts") |
 | `budgets.json` | per-class height and triangle targets, each citing its source (T38 card, `metrics.py` TRI_BUDGET_LOD0 and BEASTS) |
 | `gate-lib.mjs` + `gate-lib.test.mjs` | the pure scoring both gates use (`node --test apps/vr/tools/mesh/gate-lib.test.mjs`) |
 | `components.py`, `blender.mjs` | numpy connected components; the Blender runner |
@@ -83,22 +84,53 @@ world scale and the triangle budget are UNMEASURED and the card cannot pass.
 Both modes share every geometry step (floaters, scale and height, voxel remesh, collapse to the class target, smart UV),
 so the structural card is the same; they differ in what the surface carries.
 
-- **`--mode flat`** (the default, the T38 recipe): every face takes the nearest palette colour of its baked texels. Six
+`finish.mjs` defaults to `bake` (DECISIONS 2026-10-24, Athena 17:56Z: the pipeline default for characters and
+creatures). `finish.py` called directly (the HANDOFF rebuild lines) still defaults to `flat`, so those lines rebuild
+what they built.
+
+- **`--mode flat`** (an option, the T38 recipe): every face takes the nearest palette colour of its baked texels. Six
   flat materials, no image. It loses everything smaller than a colour region (Brennic 2026-10-24: face, brooch, collar
   plate, straps; saw-toothed region edges). Kept for comparison and for assets that really are flat blocks.
-- **`--mode bake`**: the UV islands are repacked (`pack_islands`, concave, margin 0.003), the TRELLIS albedo is baked
+- **`--mode bake`** (the default): the UV islands are repacked (`pack_islands`, concave, margin 0.003), the TRELLIS albedo is baked
   selected-to-active (Cycles DIFFUSE, colour pass only, metallic zeroed first) at `budgets.finish.bakeTextureRes`
   (2048), cage extrusion 0.02 m, max ray distance 0.08 m, margin 16 px EXTEND. A second bake of the source in white
   emission (no margin) is the **hit mask**: an island texel no ray reached reads 0. Misses are counted
   (`bake.missed`, `missed_interior`), filled from their neighbours, and every island texel is checked for black
-  (`dark_in_islands_after_fill`, must be 0). One material `M_<Name>` with `T_<Name>_BaseColor.png`; the GLB embeds it.
+  (`dark_in_islands_after_fill`, must be 0). When that fill leaves black (`black_after_ring_fill` > 0: it took colour
+  from Blender's margin around unhit islands), every miss is filled again from the unfilled bake, from hit island texels
+  alone (`refill_rings`), and misses no island path reaches take the median hit colour (`orphan_black_filled`). A
+  bake with no black after the first fill (Brennic, the hound) is byte-identical to before. One material `M_<Name>` with `T_<Name>_BaseColor.png`; the GLB embeds it.
   `--clamp posterize|hue|both` (`--strength` <= 0.6, `--levels` >= 4) pulls the texture part of the way toward the
   palette set plus the VISUAL-PLAN (c) accents (bronze, gold, crimson, iron); it never replaces it (`clamp.detail_kept`).
 - **Rigging a bake finish:** `rig_anim.py` exports the FBX with `path_mode='STRIP'`, so copy `T_<Name>_BaseColor.png`
   next to the FBX before `evidence.mjs` or a UE import.
 
 Measured on Brennic seed 7 (docs/research/BRENNIC-MESH-REWORK-2026-10-24.md): finish.py 34 s at 2048, 0.64 % of island
-texels missed (mostly the inner cloak and between the legs), 0 black texels after the fill.
+texels missed (mostly the inner cloak and between the legs), 0 black texels after the fill. On the 2026-10-24 maw (a torn
+shell filled by FILL) 23 % of island texels missed and 174,922 were black after the first fill; the refill left 0
+(docs/research/CREATURE-MESH-2026-10-24.md).
+
+## Beasts
+
+The cinder hound and the mire maw are finished like any class (`--class CinderHound`, `MireMaw`), then get parts and a
+rig in Blender:
+
+```
+blender -b --python-exit-code 1 -P apps/vr/tools/assets/beast_parts.py -- <finish>/<Name>_finish.blend <rig> <Name> <CinderHound|MireMaw> [<fit.json>]
+blender -b --python-exit-code 1 -P apps/vr/tools/assets/rig_anim.py -- <rig>/<Name>_parts.blend <rig> <Name> <rig>/<Name>.fbx <Hound|Maw> [<fit.json>]
+cp <finish>/T_<Name>_BaseColor.png <rig>/
+node apps/vr/tools/mesh/evidence.mjs <rig>/<Name>.fbx <evidence> <Name> <rig>/<Name>_rig.json Attack <CinderHound|MireMaw>
+```
+
+The joints, the jaw and tongue weight rules and the parts (the hound's Ember mouth slit; the maw's mouth slot, tongue and
+eyes) were measured on the 2026-10-21 meshes and scale with the height only. A mesh with other proportions needs its own
+fit file in `beast-fits/` (`beast_fit.py` says what it must hold; every key is required, none falls back). Measure it from
+leg-column centroids and a side or section render of the finished mesh. The 2026-10-24 key-art meshes have
+`cinder-hound-s7101-s42.json` and `mire-maw-s7202-s7.json`. Without a fit file the scripts reproduce the old tables (on
+the 2026-10-24 hound: the same bones, clips, records and vertex set; the weights differ only at float-noise level, as
+two runs of the unchanged scripts do, because the EXACT boolean returns its vertices in a different order each run).
+`render_evidence.py` frames the beasts for the 2026-10-21 sizes, so its turnaround crops the longer 2026-10-24 hound and
+the wider maw.
 
 ## Starting and stopping the local ComfyUI
 
