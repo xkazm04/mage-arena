@@ -73,7 +73,7 @@ function Repair-BudgetFromCsv {
 	$Budget = Get-Content -Raw -Path $BudgetPath | ConvertFrom-Json
 	# The C++ capture writes the LOD0 sum. Never replace that with RHI or CSV primitive counts.
 	$Names = @($Budget.PSObject.Properties.Name)
-	if ($Names -contains "plausibilityOk" -or $Names -contains "measuredTriangles" -or $Names -contains "visibleLod0Triangles") {
+	if ($Names -contains "trianglesSampled" -or $Names -contains "plausibilityOk" -or $Names -contains "measuredTriangles" -or $Names -contains "visibleLod0Triangles") {
 		return
 	}
 	$DrawMax = 0
@@ -189,7 +189,9 @@ foreach ($Name in $ShotNames) {
 }
 $HasBudget = Test-Path $BudgetPath
 
-$Plausible = $false
+# T46: trianglesSampled replaced plausibilityOk, which compared the LOD0 sum with itself. It only says a sampled frame had
+# in-frustum geometry; the triangle figure has no independent desktop cross-check (the device number is V1's).
+$TrianglesSampled = $false
 $ColoursOk = $false
 if ($HasBudget) {
 	$Budget = Get-Content -Raw -Path $BudgetPath | ConvertFrom-Json
@@ -199,13 +201,13 @@ if ($HasBudget) {
 	Write-Host ("triangles min/median/max: {0} / {1} / {2}" -f $Budget.triangles.min, $Budget.triangles.median, $Budget.triangles.max)
 	Write-Host ("frame ms min/median/p95/max: {0} / {1} / {2} / {3}" -f $Budget.frameTimeMs.min, $Budget.frameTimeMs.median, $Budget.frameTimeMs.p95, $Budget.frameTimeMs.max)
 	Write-Host ("within count budget: {0}" -f $Budget.withinCountBudget)
-	if ($Budget.plausibilityOk -eq $true) { $Plausible = $true }
+	if ($Budget.trianglesSampled -eq $true) { $TrianglesSampled = $true }
 	if ($Budget.coloursOk -eq $true) { $ColoursOk = $true }
-	Write-Host ("plausibility: {0}" -f $Plausible)
+	Write-Host ("triangles sampled (not a cross-check): {0}" -f $TrianglesSampled)
 	Write-Host ("colours: {0}" -f $ColoursOk)
 }
 
-if ($Done -and $Missing.Count -eq 0 -and $HasBudget -and $Plausible -and $ColoursOk) {
+if ($Done -and $Missing.Count -eq 0 -and $HasBudget -and $TrianglesSampled -and $ColoursOk) {
 	Write-Host "capture: ok"
 	exit 0
 }
@@ -214,7 +216,7 @@ Write-Host "capture: failed"
 if (-not $Done) { Write-Host "missing MAGEVR_CAPTURE_DONE in $LogPath" }
 if ($Missing.Count -gt 0) { Write-Host ("missing shots: {0}" -f ($Missing -join ", ")) }
 if (-not $HasBudget) { Write-Host "missing $BudgetPath" }
-if ($HasBudget -and -not $Plausible) { Write-Host "budget plausibilityOk is not true" }
+if ($HasBudget -and -not $TrianglesSampled) { Write-Host "budget trianglesSampled is not true" }
 if ($HasBudget -and -not $ColoursOk) { Write-Host "budget coloursOk is not true" }
 if ($LogText -match "MAGEVR_CAPTURE_FAIL") { Write-Host "log contains MAGEVR_CAPTURE_FAIL" }
 exit 1

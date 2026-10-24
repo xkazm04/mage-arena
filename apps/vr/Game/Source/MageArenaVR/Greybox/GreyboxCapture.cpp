@@ -1,5 +1,6 @@
 #include "Greybox/GreyboxCapture.h"
 
+#include "Camera/CameraTypes.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ConvexVolume.h"
@@ -13,6 +14,7 @@
 #include "Gestures/SigilRecognizerSubsystem.h"
 #include "Gestures/WardDetector.h"
 #include "Greybox/ThreatDemo.h"
+#include "Greybox/VisibleLod0.h"
 #include "HAL/FileManager.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformMisc.h"
@@ -114,15 +116,6 @@ TSharedRef<FJsonObject> SpanInt(const TArray<int32>& Values)
 	Object->SetNumberField(TEXT("median"), MedianOf(AsDouble));
 	Object->SetNumberField(TEXT("max"), Max);
 	return Object;
-}
-
-int32 Lod0Triangles(const UStaticMesh* Mesh)
-{
-	if (!Mesh || !Mesh->GetRenderData() || Mesh->GetRenderData()->LODResources.Num() == 0)
-	{
-		return 0;
-	}
-	return Mesh->GetRenderData()->LODResources[0].GetNumTriangles();
 }
 
 struct FLab
@@ -378,81 +371,21 @@ bool UGreyboxCaptureDriver::ShotFinished() const
 	return !PendingShot.IsEmpty() && !FScreenshotRequest::IsScreenshotRequested() && IFileManager::Get().FileSize(*PendingShot) > 0;
 }
 
-int32 UGreyboxCaptureDriver::CountVisibleLod0() const
+int32 UGreyboxCaptureDriver::VisibleLod0(UWorld* World, const FMinimalViewInfo& View)
 {
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		return 0;
-	}
-	APlayerController* Controller = World->GetFirstPlayerController();
-	if (!Controller || !Controller->PlayerCameraManager)
-	{
-		return 0;
-	}
-	const FMinimalViewInfo View = Controller->PlayerCameraManager->GetCameraCacheView();
-	FMatrix ViewMatrix;
-	FMatrix ProjectionMatrix;
-	FMatrix ViewProjection;
-	UGameplayStatics::GetViewProjectionMatrix(View, ViewMatrix, ProjectionMatrix, ViewProjection);
-	FConvexVolume Frustum;
-	GetViewFrustumBounds(Frustum, ViewProjection, false);
-
-	int32 Total = 0;
-	for (TActorIterator<AActor> It(World); It; ++It)
-	{
-		TArray<UStaticMeshComponent*> Components;
-		It->GetComponents<UStaticMeshComponent>(Components);
-		for (UStaticMeshComponent* Component : Components)
-		{
-			if (!Component || !Component->IsVisible())
-			{
-				continue;
-			}
-			UStaticMesh* Mesh = Component->GetStaticMesh();
-			const int32 Tris = Lod0Triangles(Mesh);
-			if (Tris <= 0)
-			{
-				continue;
-			}
-			if (UInstancedStaticMeshComponent* Instances = Cast<UInstancedStaticMeshComponent>(Component))
-			{
-				const int32 Count = Instances->GetInstanceCount();
-				for (int32 Index = 0; Index < Count; ++Index)
-				{
-					FTransform InstanceTransform;
-					if (!Instances->GetInstanceTransform(Index, InstanceTransform, true))
-					{
-						continue;
-					}
-					const FBoxSphereBounds WorldBounds = Mesh->GetBounds().TransformBy(InstanceTransform);
-					if (Frustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))
-					{
-						Total += Tris;
-					}
-				}
-			}
-			else if (Frustum.IntersectBox(Component->Bounds.Origin, Component->Bounds.BoxExtent))
-			{
-				Total += Tris;
-			}
-		}
-	}
-	return Total;
+	return Greybox::CountVisibleLod0(World, View);
 }
 
 void UGreyboxCaptureDriver::SampleBudget()
 {
 	const double Milliseconds = static_cast<double>(FApp::GetDeltaTime()) * 1000.0;
 	const int32 Draws = GNumDrawCallsRHI[0];
-	const int32 VisibleLod0 = CountVisibleLod0();
-	// The published triangle count is the in-view LOD0 sum. That includes GPU-scene
-	// indirect draws, which GNumPrimitivesDrawnRHI misses. The plausibility floor is
-	// the same sum, so a frame passes when measured >= visible and the sum is not
-	// stuck at zero for the whole capture.
-	const int32 Measured = VisibleLod0;
+	// The published triangle count is the in-view LOD0 sum. That includes GPU-scene indirect draws, which
+	// GNumPrimitivesDrawnRHI misses. Nothing on the desktop checks it independently (T46): the device number is V1's.
+	FMinimalViewInfo View;
+	const int32 Lod0 = Greybox::FirstPlayerView(GetWorld(), View) ? VisibleLod0(GetWorld(), View) : 0;
 	const int32 RhiPrimitivesDrawn = GNumPrimitivesDrawnRHI[0];
-	if (Measured <= 0 && Draws <= 0)
+	if (Lod0 <= 0 && Draws <= 0)
 	{
 		return;
 	}
@@ -461,8 +394,7 @@ void UGreyboxCaptureDriver::SampleBudget()
 		return;
 	}
 	DrawCalls.Add(Draws);
-	MeasuredTriangles.Add(Measured);
-	VisibleLod0Triangles.Add(VisibleLod0);
+	VisibleLod0Triangles.Add(Lod0);
 	RhiPrimitives.Add(RhiPrimitivesDrawn);
 	FrameMs.Add(Milliseconds);
 }
@@ -867,14 +799,14 @@ void UGreyboxCaptureDriver::Advance()
 		break;
 	case EStep::WriteBudget:
 		WriteBudgetFile();
-		if (ShotNames.Num() >= 6 && bPlausible && bColoursOk && bWithinBudget)
+		if (ShotNames.Num() >= 6 && bTrianglesSampled && bColoursOk && bWithinBudget)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
 		}
 		else
 		{
-			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL shots=%d samples=%d plausible=%d colours=%d budget=%d"),
-				ShotNames.Num(), DrawCalls.Num(), bPlausible ? 1 : 0, bColoursOk ? 1 : 0, bWithinBudget ? 1 : 0);
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL shots=%d samples=%d trianglesSampled=%d colours=%d budget=%d"),
+			    ShotNames.Num(), DrawCalls.Num(), bTrianglesSampled ? 1 : 0, bColoursOk ? 1 : 0, bWithinBudget ? 1 : 0);
 		}
 		Enter(EStep::Quit);
 		break;
@@ -896,7 +828,7 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("label"), TEXT("desktop proxy - not Quest truth"));
 	Root->SetStringField(TEXT("source"),
-		TEXT("measuredTriangles sums LOD0 triangles of visible in-frustum static mesh components and instances. visibleLod0Triangles is that same floor. The capture fails when measuredTriangles is below the floor or the floor is never positive. rhiPrimitivesDrawn is GNumPrimitivesDrawnRHI and is not the budget, because it misses GPU-scene indirect draws. drawCalls are GNumDrawCallsRHI."));
+	    TEXT("triangles (visibleLod0Triangles) sums LOD0 triangles of visible static mesh components and instances whose bounds touch the view frustum: an estimate with no occlusion and no GPU culling. It has no independent desktop cross-check: trianglesSampled is true when at least one sampled frame had in-frustum geometry, and says nothing about the figure. The device number comes from V1. rhiPrimitivesDrawn is GNumPrimitivesDrawnRHI and is not the budget, because it misses GPU-scene indirect draws. drawCalls are GNumDrawCallsRHI."));
 	Root->SetStringField(TEXT("triangleMethod"), TEXT("LOD0 sum of visible in-frustum spawned static meshes"));
 	Root->SetStringField(TEXT("colourMetric"), TEXT("CIEDE2000"));
 	Root->SetNumberField(TEXT("colourThreshold"), 10.0);
@@ -910,12 +842,10 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 	Root->SetObjectField(TEXT("targets"), Targets);
 
 	TSharedRef<FJsonObject> Draws = SpanInt(DrawCalls);
-	TSharedRef<FJsonObject> Measured = SpanInt(MeasuredTriangles);
 	TSharedRef<FJsonObject> Visible = SpanInt(VisibleLod0Triangles);
 	TSharedRef<FJsonObject> Rhi = SpanInt(RhiPrimitives);
 	Root->SetObjectField(TEXT("drawCalls"), Draws);
-	Root->SetObjectField(TEXT("triangles"), Measured);
-	Root->SetObjectField(TEXT("measuredTriangles"), Measured);
+	Root->SetObjectField(TEXT("triangles"), Visible);
 	Root->SetObjectField(TEXT("visibleLod0Triangles"), Visible);
 	Root->SetObjectField(TEXT("rhiPrimitivesDrawn"), Rhi);
 	Root->SetObjectField(TEXT("frameTimeMs"), SpanTime(FrameMs));
@@ -923,25 +853,15 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 	double MaxDraws = 0.0;
 	double MaxTris = 0.0;
 	Draws->TryGetNumberField(TEXT("max"), MaxDraws);
-	Measured->TryGetNumberField(TEXT("max"), MaxTris);
+	Visible->TryGetNumberField(TEXT("max"), MaxTris);
 	bWithinBudget = DrawCalls.Num() > 0 && MaxDraws <= 150.0 && MaxTris <= 350000.0;
 	Root->SetBoolField(TEXT("withinCountBudget"), bWithinBudget);
 
-	bPlausible = MeasuredTriangles.Num() > 0 && MeasuredTriangles.Num() == VisibleLod0Triangles.Num();
-	int32 MaxVisible = 0;
-	for (int32 Index = 0; Index < MeasuredTriangles.Num() && bPlausible; ++Index)
-	{
-		if (MeasuredTriangles[Index] < VisibleLod0Triangles[Index])
-		{
-			bPlausible = false;
-		}
-		MaxVisible = FMath::Max(MaxVisible, VisibleLod0Triangles[Index]);
-	}
-	if (MaxVisible <= 0)
-	{
-		bPlausible = false;
-	}
-	Root->SetBoolField(TEXT("plausibilityOk"), bPlausible);
+	// T46: there used to be a "plausibility" floor here that compared the LOD0 sum with itself and could never fail. This
+	// field says only what it tests. The triangle row has no independent desktop cross-check (BACKLOG.md:13).
+	bTrianglesSampled = VisibleLod0Triangles.ContainsByPredicate([](int32 Triangles)
+	{ return Triangles > 0; });
+	Root->SetBoolField(TEXT("trianglesSampled"), bTrianglesSampled);
 	Root->SetBoolField(TEXT("coloursOk"), bColoursOk);
 
 	TArray<TSharedPtr<FJsonValue>> Colours;
@@ -977,8 +897,8 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET write failed %s"), *Path);
 		return;
 	}
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET path=%s samples=%d drawMax=%.0f triMax=%.0f within=%d plausible=%d colours=%d"),
-		*Path, DrawCalls.Num(), MaxDraws, MaxTris, bWithinBudget ? 1 : 0, bPlausible ? 1 : 0, bColoursOk ? 1 : 0);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET path=%s samples=%d drawMax=%.0f triMax=%.0f within=%d trianglesSampled=%d colours=%d"),
+	    *Path, DrawCalls.Num(), MaxDraws, MaxTris, bWithinBudget ? 1 : 0, bTrianglesSampled ? 1 : 0, bColoursOk ? 1 : 0);
 }
 
 TStatId UGreyboxCaptureDriver::GetStatId() const

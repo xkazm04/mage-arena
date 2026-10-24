@@ -5,6 +5,8 @@
 #include "UObject/Object.h"
 #include "GreyboxCapture.generated.h"
 
+struct FMinimalViewInfo;
+
 /**
  * Scripted desktop capture: initial view, sigil-line2 cast flash, ward arc,
  * four threats mid-flight, blink to the left pad. Writes shots and budget.json.
@@ -24,6 +26,9 @@ public:
 	virtual bool IsTickable() const override;
 	virtual UWorld* GetTickableGameObjectWorld() const override;
 	virtual void BeginDestroy() override;
+
+	/** T46: the call site of the shared visible-LOD0 sum (Greybox::CountVisibleLod0) that SampleBudget reads. */
+	static int32 VisibleLod0(UWorld* World, const FMinimalViewInfo& View);
 
 private:
 	enum class EStep : uint8
@@ -69,7 +74,6 @@ private:
 	bool RequestShot(const TCHAR* FileName);
 	bool ShotFinished() const;
 	void SampleBudget();
-	int32 CountVisibleLod0() const;
 	void SampleThreatColours();
 	void WriteBudgetFile();
 	FString RepoPath(const TCHAR* Relative) const;
@@ -99,7 +103,6 @@ private:
 	TWeakObjectPtr<class UWardDetectorSubsystem> Wards;
 
 	TArray<int32> DrawCalls;
-	TArray<int32> MeasuredTriangles;
 	TArray<int32> VisibleLod0Triangles;
 	TArray<int32> RhiPrimitives;
 	TArray<double> FrameMs;
@@ -107,6 +110,7 @@ private:
 	TArray<FGreyboxColourRow> ColourRows;
 	bool bColoursChecked = false;
 	bool bColoursOk = false;
-	bool bPlausible = false;
+	/** At least one sampled frame had in-frustum geometry. Not a cross-check of the triangle figure (T46). */
+	bool bTrianglesSampled = false;
 	bool bWithinBudget = false;
 };
