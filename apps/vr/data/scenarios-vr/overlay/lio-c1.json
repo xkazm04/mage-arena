@@ -1,9 +1,9 @@
 {
   "card": "T54",
   "variant": "live",
-  "overlaySha256": "d6a5e96acf9fceb38a39db8c281d176c808d71fcb8de9c242aa0420fbdbbcb03",
+  "overlaySha256": "390f74ad2b78f2cd27e8c5b70cd8c6c04e6392d28bdd6990fd25aa4fb9a2f3ce",
   "files": {
-    "combat.vr.json": "ebff5bee88aa84b0203db94105afb5eb6770d5a187072c1333d3785f692d7e5b",
+    "combat.vr.json": "23305434a78440e3cf32f8bc4b609099166cc38d16d7f866094b683845c8aaac",
     "arena-layout.json": "e8230f0f56ebc464b2f69d45bdad556056c7229317c18c034e0d28cdd41b5a3a",
     "collar.json": "2d8885e3d66a5ee5340a39224d835d9ed405af996a7657ad453be7eb6913188a",
     "schools/spells-air.csv": "45df014c42cb414dc6c7be96eb4dbb7a0fe58b40425ea1d8426cd98f1f0657aa"
@@ -16,23 +16,27 @@
   "airFinal": 1,
   "outcome": "loss",
   "phase": "lost",
-  "ticks": 1558,
-  "durationS": 25.966667,
-  "hash": "0547b8ba",
+  "ticks": 2419,
+  "durationS": 40.316667,
+  "hash": "2c650b40",
   "sunfallCast": 0,
   "sunfallRelease": 0,
   "sunfall": 0,
   "hp": 0.000000,
-  "mana": 48.281250,
+  "mana": 6.812500,
   "wavesCleared": 0,
   "wallsRaised": 0,
   "kind": "Gale mage 1.5",
   "events": {
-    "cast": 128,
+    "airform": 1,
+    "cast": 181,
+    "deflect": 1,
     "down": 1,
-    "hit": 30,
-    "miss": 48,
-    "phase": 1,
-    "unlock": 4
+    "evade": 1,
+    "hit": 44,
+    "miss": 71,
+    "perfect": 1,
+    "phase": 2,
+    "unlock": 6
   }
 }

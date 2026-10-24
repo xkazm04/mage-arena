@@ -43,6 +43,11 @@ bool FVrRuleset::IsRival(int32 ActorId) const
 	return BoundRival() != nullptr && RivalRuntime.ActorId == ActorId;
 }
 
+const FVrRivalAi* FVrRuleset::RivalAiFor(int32 ActorId) const
+{
+	return IsRival(ActorId) ? &BoundRival()->Ai : nullptr;
+}
+
 namespace
 {
 // One surge step per tier, each a normal unlock: the tier, the unlock tick and the event. The minimum gap between

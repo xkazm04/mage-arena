@@ -1176,4 +1176,78 @@ bool FMageArenaAirMind::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaAirRivalBoltWard, "MageArena.Air.RivalBoltWard",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaAirRivalBoltWard::RunTest(const FString& Parameters)
+{
+	if (!KernelData().bReady)
+	{
+		AddError(TEXT("kernel data is not ready"));
+		return false;
+	}
+	FVrRuleset Rules;
+	FString Error;
+	if (!LoadVrRuleset(Rules, Error, false))
+	{
+		AddError(Error);
+		return false;
+	}
+	const int32 Index = Rules.FindRival(TEXT("tiro"), 4, TEXT("final"), TEXT("air"));
+	if (!TestTrue(TEXT("Lio is in the overlay"), Index != INDEX_NONE))
+	{
+		return false;
+	}
+	// T39 DF-008 A: combat.vr.json rivals.lio.ai wardsBolts, wardManaFloor 15, formVsBolts, spendsTiers.
+	const FVrRivalAi& Ai = Rules.Rivals[Index].Ai;
+	bool bPass = TestTrue(TEXT("ai.wardsBolts"), Ai.bWardsBolts);
+	bPass &= Near(*this, TEXT("ai.wardManaFloor"), Ai.WardManaFloor, 15.0);
+	bPass &= TestTrue(TEXT("ai.formVsBolts"), Ai.bFormVsBolts);
+	bPass &= TestTrue(TEXT("ai.spendsTiers"), Ai.bSpendsTiers);
+	bPass &= TestNull(TEXT("no rival bound: no AI rules"), Rules.RivalAiFor(1));
+	// A volley of the player's magic bolts at Lio, one every 10 ticks for 1.5 s: with the VR rules and on the pinned path.
+	const auto Volley = [&](bool bVr)
+	{
+		FArenaState State = CreateArena(23);
+		const int32 PlayerId = AddMage(State, 0, KernelData().PlayerSpawn, TEXT("Cassia")).Id;
+		// 10 m in front of the player, so an 18 m/s bolt arrives in about half a second.
+		FActor& Spawned = AddMage(State, 1, SimAdd(KernelData().PlayerSpawn, FSimVec{10.0, 0.0}), TEXT("Lio"));
+		Spawned.Air.bSchool = true;
+		AttachMageAI(Spawned, 1.5, 0);
+		const int32 LioId = Spawned.Id;
+		FVrRuleset Local = Rules;
+		Local.RivalRuntime.ActorId = LioId;
+		Local.RivalRuntime.RivalIndex = Index;
+		FVrRuleset* Used = bVr ? &Local : nullptr;
+		int32 AbsorbTicks = 0;
+		for (int32 Step = 0; Step < 90; ++Step)
+		{
+			const FActor* Player = SimFindActor(State, PlayerId);
+			FActor* Lio = SimFindActor(State, LioId);
+			if (Step % 10 == 0)
+			{
+				FHit Hit;
+				Hit.OwnerId = PlayerId;
+				Hit.ActivationId = State.NextId++;
+				Hit.Damage = 2.05;
+				Hit.Family = TEXT("magic");
+				Hit.Source = Player->Pos;
+				SpawnProjectile(State, Hit, Player->Pos, SimUnit(SimSub(Lio->Pos, Player->Pos)), 18.0, 30.0);
+			}
+			TMap<int32, FInputFrame> Inputs;
+			Inputs.Add(LioId, MageInput(State, *Lio, Used));
+			Inputs.Add(PlayerId, SimIdleInput(Lio->Pos));
+			StepArena(State, Inputs, Used);
+			AbsorbTicks += SimFindActor(State, LioId)->bAbsorb ? 1 : 0;
+		}
+		return AbsorbTicks;
+	};
+	const int32 WithAi = Volley(true);
+	const int32 Pinned = Volley(false);
+	AddInfo(FString::Printf(TEXT("ward ticks over 90: vr ai %d, pinned path %d"), WithAi, Pinned));
+	bPass &= TestTrue(TEXT("Lio wards the volley with the VR rules"), WithAi > 0);
+	bPass &= TestTrue(TEXT("and holds it longer than the pinned reaction rule does"), WithAi > Pinned);
+	return bPass;
+}
+
 #endif

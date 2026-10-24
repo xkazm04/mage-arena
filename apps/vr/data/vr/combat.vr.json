@@ -187,7 +187,17 @@
         }
       ],
       "surgeTiers": 1,
-      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. The same rule as Brennic's, capped at tier IV."
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. The same rule as Brennic's, capped at tier IV.",
+      "ai": {
+        "wardsBolts": true,
+        "wardManaFloor": 15,
+        "formVsBolts": true,
+        "spendsTiers": true,
+        "_wardsBolts": "T39 DF-008 option A, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): AI first. Lio wards like the Fire mage: the Fire mage answers a volley of the player's bolts with its wall once the volley has lasted its reaction delay (ConsiderFireWall); Lio answers the same volley with the palm ward, held while a bolt is inbound and dropped a quarter second after the last. The pinned reaction rule cannot see a bolt (it flies shorter than the delay), so Lio blocked none of the player's bolts (DF-008: 0 blocks).",
+        "_wardManaFloor": "Lio raises or holds that ward only at or above this much mana, so the ward cannot starve his spells. Not a pinned number: the seat's script drops its ward at 16 (FSeatedPolicy WardDropMana).",
+        "_formVsBolts": "T39 DF-008 option A, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): AI first. Air Form answers the player's bolts in flight at Lio, not any hostile threat (a telegraph, a melee swing or a pending cast no longer trigger it).",
+        "_spendsTiers": "T39 DF-008 option A, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): AI first. once unlocked and offerable, Veering Bolt, Squall and Downdraft (tier II-III, damaging) are cast before the draw, the most damage first, instead of Gale Darts (53 of his 54 casts in DF-008's census were darts)."
+      }
     }
   },
 

@@ -381,6 +381,28 @@ bool AirOfferable(const FArenaState& State, const FActor& Self, const FAirSpell&
 	return !bReach || !(Spell.RangeM > 0.0) || Distance <= Spell.RangeM * AirSpellRangeMult(Self);
 }
 
+// T39 DF-008 A: a hostile magic or physical bolt in flight whose line still crosses this mage. Unblockables are not.
+bool HostileBoltInbound(const FArenaState& State, const FActor& Self)
+{
+	for (const FProjectile& Projectile : State.Projectiles)
+	{
+		if (Projectile.Family != TEXT("magic") && Projectile.Family != TEXT("physical"))
+		{
+			continue;
+		}
+		if (Projectile.OwnerId == Self.Id || SameTeam(State, Projectile.OwnerId, Self.Team) || !(Projectile.RemainingM > 0.0) || !(SimLength(Projectile.Velocity) > 0.0))
+		{
+			continue;
+		}
+		const FSimVec End = SimAdd(Projectile.Pos, SimScale(SimUnit(Projectile.Velocity), Projectile.RemainingM));
+		if (SimSegmentHit(Projectile.Pos, End, Self.Pos, Self.Radius + Projectile.Radius).IsSet())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool AirUseful(const FAirSpell& Spell)
 {
 	return Spell.Damage > 0.0 || Spell.Kind == TEXT("zone");
@@ -393,7 +415,9 @@ bool AirUseful(const FAirSpell& Spell)
 //   3. Slipstream while Momentum is below what Air Form needs, dashed along the current move (never at the target).
 // At level 2+ Veering Bolt and Squall sort first, then damage. Eye of the Storm, like Furnace Heart, is cast only when
 // no useful row is legal.
-void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance, const TArray<FThreat>& Seen)
+// T39 DF-008 A: Ai (a rival's VR rules, null on the pinned path) narrows Air Form to bolts and spends tier II-III first.
+void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance,
+    const TArray<FThreat>& Seen, const FVrRivalAi* Ai)
 {
 	const TArray<FAirSpell>& Spells = KernelData().AirSpells;
 	auto Cast = [&](int32 Slot)
@@ -415,6 +439,10 @@ void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const F
 	for (const FThreat& Threat : Seen)
 	{
 		bIncoming |= Threat.bAimed && Threat.Family != TEXT("unblockable");
+	}
+	if (Ai && Ai->bFormVsBolts)
+	{
+		bIncoming = HostileBoltInbound(State, Self);
 	}
 	const FAirSpell* Form = nullptr;
 	for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
@@ -442,6 +470,27 @@ void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const F
 				: SimRotate(SimUnit(SimSub(Target.Pos, Self.Pos)), SimPi / 2.0);
 			Brain.Input.Aim = SimAdd(Self.Pos, SimScale(Along, Spell.DashM));
 			Cast(Slot);
+			return;
+		}
+	}
+	if (Ai && Ai->bSpendsTiers)
+	{
+		int32 Best = INDEX_NONE;
+		double BestValue = 0.0;
+		for (int32 Slot = 0; Slot < Spells.Num(); ++Slot)
+		{
+			const FAirSpell& Spell = Spells[Slot];
+			const bool bRow = Spell.Kind == TEXT("veer") || Spell.Kind == TEXT("squall") || Spell.Kind == TEXT("zone");
+			const double Value = Spell.Damage * static_cast<double>(Spell.Count);
+			if (bRow && Spell.Tier >= 2 && Spell.Tier <= 3 && Value > BestValue && AirOfferable(State, Self, Spell, Distance))
+			{
+				Best = Slot;
+				BestValue = Value;
+			}
+		}
+		if (Best != INDEX_NONE)
+		{
+			Cast(Best);
 			return;
 		}
 	}
@@ -497,7 +546,8 @@ void ChooseAirSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const F
 	Cast(Ordered[0]);
 }
 
-void ChooseSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance, const TArray<FThreat>& Seen)
+void ChooseSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, const FActor& Target, double Distance,
+    const TArray<FThreat>& Seen, const FVrRuleset* Rules)
 {
 	if (Self.Fire.bSchool)
 	{
@@ -506,7 +556,7 @@ void ChooseSpell(FArenaState& State, FActor& Self, FMageBrain& Brain, const FMag
 	}
 	if (Self.Air.bSchool)
 	{
-		ChooseAirSpell(State, Self, Brain, Profile, Target, Distance, Seen);
+		ChooseAirSpell(State, Self, Brain, Profile, Target, Distance, Seen, Rules && Rules->bActive ? Rules->RivalAiFor(Self.Id) : nullptr);
 		return;
 	}
 	const FKernelData& Data = KernelData();
@@ -763,6 +813,52 @@ void ConsiderFireWall(FArenaState& State, FActor& Self, FMageBrain& Brain, const
 	Result.bCast = false;
 	Result.bAbsorb = false;
 }
+
+// T39 DF-008 A: an air rival with ai.wardsBolts answers a volley of bolts the way ConsiderFireWall does (first sight held across
+// the volley, the reaction delay counted from it), but with the palm ward, held while a bolt is inbound and a quarter second
+// after. The brain's wall timers carry the volley: an air mage raises no wall.
+void ConsiderAirWard(const FArenaState& State, const FActor& Self, FMageBrain& Brain, const FMageProfile& Profile, FInputFrame& Result,
+    const FVrRuleset* Rules)
+{
+	const FVrRivalAi* Ai = Rules && Rules->bActive && Self.Air.bSchool ? Rules->RivalAiFor(Self.Id) : nullptr;
+	if (!Ai || !Ai->bWardsBolts)
+	{
+		return;
+	}
+	if (HostileBoltInbound(State, Self))
+	{
+		Brain.WallLastSeenTick = State.Tick;
+		if (Brain.WallSeenTick == NeverTick)
+		{
+			Brain.WallSeenTick = State.Tick;
+		}
+	}
+	else if (Brain.WallSeenTick == NeverTick)
+	{
+		return;
+	}
+	else if (State.Tick - Brain.WallLastSeenTick > SimTicks(Profile.ReactionDelayS) + SimTicks(0.4))
+	{
+		Brain.WallSeenTick = NeverTick;
+		Brain.WallLastSeenTick = NeverTick;
+		return;
+	}
+	if (State.Tick - Brain.WallSeenTick < SimTicks(Profile.ReactionDelayS) || State.Tick - Brain.WallLastSeenTick > SimTicks(0.25) || Self.Mana < Ai->WardManaFloor)
+	{
+		return;
+	}
+	if (Result.bCast)
+	{
+		// The signature (the unblockable Tempest Lance) goes first.
+		const FAirSpell* Spell = AirSpellFor(Self, Result.Slot);
+		if (Spell && Spell->Family == TEXT("unblockable"))
+		{
+			return;
+		}
+	}
+	Result.bAbsorb = true;
+	Result.bCast = false;
+}
 }
 
 FMageProfile MageCompetence(double Level)
@@ -875,7 +971,7 @@ FInputFrame MageInput(FArenaState& State, FActor& Self, const FVrRuleset* Rules)
 				const double Error = (ArenaRandom(State, FString::Printf(TEXT("mage %d aim"), Self.Id)) * 2.0 - 1.0) * Profile.AimErrorDeg * SimPi / 180.0;
 				const FSimVec AimDirection = SimRotate(SimSub(Prediction, Self.Pos), Error);
 				Brain.Input.Aim = SimAdd(Self.Pos, AimDirection);
-				ChooseSpell(State, Self, Brain, Profile, *Target, Distance, Seen);
+				ChooseSpell(State, Self, Brain, Profile, *Target, Distance, Seen, Rules);
 			}
 		}
 	}
@@ -892,6 +988,7 @@ FInputFrame MageInput(FArenaState& State, FActor& Self, const FVrRuleset* Rules)
 		Result.Move = FSimVec{0.0, 0.0};
 	}
 	ConsiderFireWall(State, Self, Brain, Profile, Result, Rules);
+	ConsiderAirWard(State, Self, Brain, Profile, Result, Rules);
 	Brain.Input.bRoll = false;
 	if (Rules)
 	{

@@ -151,6 +151,15 @@ struct FVrRivalPhase
 	FString OpensWith;
 };
 
+// T39 DF-008 A: AI rules for a rival (combat.vr.json rivals.<id>.ai). All off when the block is absent.
+struct FVrRivalAi
+{
+	bool bWardsBolts = false;
+	double WardManaFloor = 0.0;
+	bool bFormVsBolts = false;
+	bool bSpendsTiers = false;
+};
+
 // appliesTo picks the spawn: the mage of this arena tier's wave n (and its kind), in this school.
 struct FVrRival
 {
@@ -163,6 +172,7 @@ struct FVrRival
 	int32 SurgeTiers = 1;
 	// T39 DF-006 B: seconds of the phase-break beat (warded, no cast). 0: no beat.
 	double PhaseBeatS = 0.0;
+	FVrRivalAi Ai;
 };
 
 // T21: who fights the Tiro final (the last Tiro wave). combat.vr.json tiroFinal. Rival empty: a mage of School with no
@@ -281,6 +291,8 @@ struct FVrRuleset
 	int32 FindRival(const FString& TierId, int32 WaveN, const FString& WaveKind, const FString& School) const;
 	const FVrRival* BoundRival() const;
 	bool IsRival(int32 ActorId) const;
+	// T39 DF-008 A: the bound rival's AI rules when ActorId is that rival, else null.
+	const FVrRivalAi* RivalAiFor(int32 ActorId) const;
 	// Phase breaks for the bound rival. StepArena calls it once per tick, after hits resolve and before the tier clock.
 	void TickRivalPhases(FArenaState& State);
 	// T39 DF-006 B: during a phase-break beat the bound rival's brain input is held: no cast, wall, roll or move.

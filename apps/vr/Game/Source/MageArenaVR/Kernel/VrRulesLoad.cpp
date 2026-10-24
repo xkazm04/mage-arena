@@ -411,7 +411,7 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 			return Fail(Error, FString::Printf(TEXT("vr rules: rival %s is not an object"), *Pair.Key));
 		}
 		const FString Where = FString::Printf(TEXT("rival %s"), *Pair.Key);
-		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers"), TEXT("phaseBeatS")}, *Where, Error))
+		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers"), TEXT("phaseBeatS"), TEXT("ai")}, *Where, Error))
 		{
 			return false;
 		}
@@ -436,6 +436,15 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 		if (!ReadOptionalStrictNumber(*Entry, TEXT("phaseBeatS"), Rival.PhaseBeatS, Error, 0.0, 10.0))
 		{
 			return false;
+		}
+		// T39 DF-008 A. Absent: the pinned AI.
+		if (Entry->HasField(TEXT("ai")))
+		{
+			const FJsonObject* Ai = nullptr;
+			if (!NeedObject(*Entry, TEXT("ai"), Ai, Error) || !OnlyKnownKeys(*Ai, {TEXT("wardsBolts"), TEXT("wardManaFloor"), TEXT("formVsBolts"), TEXT("spendsTiers")}, *Where, Error) || !ReadOptionalStrictBool(*Ai, TEXT("wardsBolts"), Rival.Ai.bWardsBolts, Error) || !ReadOptionalStrictNumber(*Ai, TEXT("wardManaFloor"), Rival.Ai.WardManaFloor, Error, 0.0, 200.0) || !ReadOptionalStrictBool(*Ai, TEXT("formVsBolts"), Rival.Ai.bFormVsBolts, Error) || !ReadOptionalStrictBool(*Ai, TEXT("spendsTiers"), Rival.Ai.bSpendsTiers, Error))
+			{
+				return false;
+			}
 		}
 		double WaveN = 0.0;
 		if (!OnlyKnownKeys(*Applies, {TEXT("tier"), TEXT("waveN"), TEXT("kind")}, *Where, Error)
