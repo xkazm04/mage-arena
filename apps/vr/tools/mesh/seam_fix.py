@@ -3,13 +3,14 @@
 # The logic is seam_lib.py (tested in test_seam_lib.py). First used on the mire maw (docs/research/CREATURE-CAST-UE-2026-10-24.md).
 #
 #   python apps/vr/tools/mesh/seam_fix.py <finish.glb> <in.png> <out.png> [--source <id.png> | --cut -0.30] [--band 0.05]
-#        [--radius-match 0.08] [--max-gain 1.25] [--feather 0.03] [--radius 0.015] [--record <out.json>]
+#        [--radius-match 0.08] [--falloff 0.15] [--max-gain 1.0] [--feather 0.03] [--radius 0.015] [--record <out.json>]
 #   python apps/vr/tools/mesh/seam_fix.py <finish.glb> <in.png> --measure [--source <id.png> | --cut -0.30] [--record <out.json>]
 #
 # The seam is the source-id bake's front/back switch (--source, from bake_source_id.py), else the plane y = --cut. Every
 # back texel moves from the back's local mean colour onto the front's, both measured within --band of the seam at
-# anchors along it, within --radius-match (seam_lib.anchor_match); its spread is scaled by one gain for the whole seam
-# (at most --max-gain). Then texels within --feather of the seam are blended toward their 3D neighbourhood mean
+# anchors along it, within --radius-match (seam_lib.anchor_match); away from the seam the local shift fades into the
+# seam-wide one (--falloff m, seam_lib.fade_to_global), so a hind leg does not take a far anchor's shift; its spread
+# can be scaled by one gain for the whole seam (at most --max-gain; 1, the default, keeps it). Then texels within --feather of the seam are blended toward their 3D neighbourhood mean
 # (--radius), and the bake margin takes its nearest island texel's colour. --measure writes nothing but the record: the
 # seam report of <in.png> (seam_report below). Otherwise the record holds the match, the report before and after.
 import argparse
@@ -68,7 +69,7 @@ def main(argv):
     ap.add_argument('glb'); ap.add_argument('png'); ap.add_argument('out', nargs='?')
     ap.add_argument('--source'); ap.add_argument('--cut', type=float, default=-0.30)
     ap.add_argument('--band', type=float, default=0.05); ap.add_argument('--radius-match', type=float, default=0.08)
-    ap.add_argument('--max-gain', type=float, default=1.25)
+    ap.add_argument('--max-gain', type=float, default=1.0); ap.add_argument('--falloff', type=float, default=0.15)
     ap.add_argument('--feather', type=float, default=0.03); ap.add_argument('--radius', type=float, default=0.015)
     ap.add_argument('--record'); ap.add_argument('--measure', action='store_true')
     a = ap.parse_args(argv)
@@ -101,6 +102,7 @@ def main(argv):
         fm, fs, _ = sl.mask_stats(rgb, M & ~back & near); bm, bs, _ = sl.mask_stats(rgb, back & near)
         gain, _ = sl.gain_offset(bm, bs, fm, fs, a.max_gain)  # the spread: one gain for the whole seam
         lf, lb, local = sl.anchor_match(rgb, P, M, back, dist, a.band, a.radius_match)
+        lf = sl.fade_to_global(lf, fm, dist[back], a.falloff); lb = sl.fade_to_global(lb, bm, dist[back], a.falloff)
         out = sl.match_back(rgb, back, lf, lb, gain)
         out = sl.blur_band(out, P, M, dist, a.feather, a.radius)
         out[~M] = sl.spread_to_margin(out, M)[~M]
@@ -108,7 +110,7 @@ def main(argv):
         os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
         Image.fromarray(q8, 'RGB').save(a.out)
         R.update({'out': a.out, 'band': a.band, 'radius_match': a.radius_match, 'max_gain': a.max_gain, 'feather': a.feather,
-                  'radius': a.radius, 'seam_front_mean': fm.round(4).tolist(), 'seam_front_std': fs.round(4).tolist(),
+                  'radius': a.radius, 'falloff': a.falloff, 'seam_front_mean': fm.round(4).tolist(), 'seam_front_std': fs.round(4).tolist(),
                   'seam_back_mean': bm.round(4).tolist(), 'seam_back_std': bs.round(4).tolist(), 'gain': gain.round(4).tolist(),
                   'local': local, 'after': seam_report(q8 / 255.0, P, M, back, dist)})
     R['secs'] = round(time.time() - t0, 1)

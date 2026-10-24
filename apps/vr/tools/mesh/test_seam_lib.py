@@ -153,6 +153,12 @@ class Seam(unittest.TestCase):
         near = dist < 0.05
         np.testing.assert_allclose(out[back & near].mean(0), rgb[~back & near].mean(0), atol=0.005)
 
+    def test_far_texels_take_the_seam_wide_shift(self):
+        local = np.array([[0.1, 0.2, 0.3], [0.1, 0.2, 0.3]]); g = np.array([0.5, 0.5, 0.5])
+        out = sl.fade_to_global(local, g, np.array([0.0, 10.0]), 0.15)
+        np.testing.assert_allclose(out[0], local[0]); np.testing.assert_allclose(out[1], g, atol=1e-9)
+        np.testing.assert_array_equal(sl.fade_to_global(local, g, np.array([5.0, 5.0]), 0), local)
+
     def test_blur_band_softens_the_seam_only(self):
         P, M, rgb = slab()
         back = sl.back_from_cut(P, M, -0.3); dist = sl.seam_distance(P, M, back)

@@ -188,6 +188,16 @@ def match_back(rgb, back, front_mean, back_mean, gain):
     return out
 
 
+def fade_to_global(local, global_mean, dist, falloff):
+    """Local means (n x c) faded toward one seam-wide mean with the distance from the seam (n): exp(-dist / falloff) of
+    the local value, so a texel far behind the seam (a hind leg, the rump) takes the seam-wide shift, not the shift of
+    whichever anchor happens to be nearest. falloff <= 0 keeps the local means."""
+    if falloff <= 0:
+        return local
+    w = np.exp(-np.asarray(dist, float) / falloff)[:, None]
+    return global_mean + (local - global_mean) * w
+
+
 def blur_band(rgb, P, M, dist, feather, radius):
     """rgb with every island texel within feather of the seam blended toward the mean colour of the island texels within
     radius of it (3D), by a tent weight: all of the way on the seam, none at feather. Island texels only; the margin is

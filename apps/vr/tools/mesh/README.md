@@ -191,8 +191,10 @@ python apps/vr/tools/mesh/seam_fix.py <finish>/<Name>_finish.glb <finish>/T_<Nam
   must equal the finish's hit mask; on the maw it did to 2 texels in 1.13 M.
 - `seam_fix.py` rasterizes the LOD0's UV triangles to give every texel its surface point, moves every back texel from the
   back's local mean colour onto the front's (measured within 5 cm of the seam at anchors along it, 8 cm around each,
-  so a flank is compared with the same flank; one gain for the spread, at most 1.25), blends texels within 3 cm of the
-  seam toward their 1.5 cm neighbourhood mean (the feather), and gives the bake margin its nearest island colour.
+  so a flank is compared with the same flank; the local shift fades into the seam-wide one over 15 cm, so a hind leg
+  does not take a far anchor's shift; the spread is kept, `--max-gain` 1), blends texels within 3 cm of the seam toward
+  their 1.5 cm neighbourhood mean (the feather), and gives the bake margin its nearest island colour. On the maw a
+  1.25 contrast gain and no fade left yellow streaks and olive spill on the hind leg (a blind critic's reading).
 - The record has the seam report before and after: 2 cm patches either side of the seam on both flanks at z 0.2-0.9 m
   (adjacent, and 4-6 cm out, outside the feather), their noise floor (two patches on one texture), and 5 cm flank bands.
 - Copy the new `T_<Name>_BaseColor.png` beside the finish `.blend` before `beast_parts.py` and `rig_anim.py` (the FBX
