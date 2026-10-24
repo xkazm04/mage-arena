@@ -119,6 +119,22 @@ FThreatLook LookOf(const FGames& Games, int32 OwnerId, const FString& Family)
 }
 }
 
+FHpBarParts SessionHpBar::Parts(double Fraction)
+{
+	constexpr double BarLength = PresentationLook::HpBarLengthCm;
+	constexpr double BarThickness = PresentationLook::HpBarThicknessCm;
+	// The fill stands 0.5 cm proud of the back on each side. At the back's own section, centred in it, the fill was
+	// hidden inside the back box from every view (T49's sampled bar pixel was the back colour before and after).
+	constexpr double FillProudCm = 1.0;
+	constexpr double FillThickness = BarThickness + FillProudCm;
+	const double Clamped = FMath::Clamp(Fraction, 0.0, 1.0);
+	FHpBarParts Parts;
+	Parts.BackSizeCm = FVector(BarLength, BarThickness, BarThickness);
+	Parts.FillSizeCm = FVector(FMath::Max(PresentationLook::HpFillMinCm, BarLength * Clamped), FillThickness, FillThickness);
+	Parts.FillOffsetCm = FVector((Clamped - 1.0) * BarLength * 0.5, 0.0, 0.0);
+	return Parts;
+}
+
 ASessionPresentation::ASessionPresentation()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -1404,19 +1420,18 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 		const double Fraction = Actor.MaxHp > 0.0 ? FMath::Clamp(Actor.Hp / Actor.MaxHp, 0.0, 1.0) : 0.0;
 		const FVector Bar = Centre + FVector(0.0, 0.0, Height * 0.5 + PresentationLook::HpBarGapCm);
-		constexpr double BarLength = PresentationLook::HpBarLengthCm;
-		constexpr double BarThickness = PresentationLook::HpBarThicknessCm;
+		const FHpBarParts Parts = SessionHpBar::Parts(Fraction);
 		if (Body.HpBack)
 		{
 			Body.HpBack->SetVisibility(true);
 			Body.HpBack->SetWorldLocation(Bar);
-			Greybox::SetSized(Body.HpBack, FVector(BarLength, BarThickness, BarThickness));
+			Greybox::SetSized(Body.HpBack, Parts.BackSizeCm);
 		}
 		if (Body.HpFill)
 		{
 			Body.HpFill->SetVisibility(true);
-			Body.HpFill->SetWorldLocation(Bar + FVector((Fraction - 1.0) * BarLength * 0.5, 0.0, 0.0));
-			Greybox::SetSized(Body.HpFill, FVector(FMath::Max(PresentationLook::HpFillMinCm, BarLength * Fraction), BarThickness, BarThickness));
+			Body.HpFill->SetWorldLocation(Bar + Parts.FillOffsetCm);
+			Greybox::SetSized(Body.HpFill, Parts.FillSizeCm);
 		}
 	}
 

@@ -16,6 +16,20 @@ class UTextRenderComponent;
 class UWidgetComponent;
 class UTexture2D;
 
+/** An enemy HP bar's two Cube parts: their sizes, and the fill centre's offset from the back centre. */
+struct FHpBarParts
+{
+	FVector BackSizeCm;
+	FVector FillSizeCm;
+	FVector FillOffsetCm;
+};
+
+namespace SessionHpBar
+{
+/** The bar at Fraction of full HP (clamped to 0..1); the fill is left-anchored on the back's length. */
+MAGEARENAVR_API FHpBarParts Parts(double Fraction);
+}
+
 /** Greybox bodies, projectiles, telegraphs, hit flashes, HP bars, and the wrist cuff. */
 UCLASS()
 class MAGEARENAVR_API ASessionPresentation : public AActor
