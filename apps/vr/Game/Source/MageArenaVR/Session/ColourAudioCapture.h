@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Session/CaptureEvidence.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "ColourAudioCapture.generated.h"
@@ -54,7 +55,6 @@ private:
 	void Advance();
 	void Fail(const FString& Reason);
 	void RequestShot(const TCHAR* FileName);
-	bool ShotFinished() const;
 	FString RepoPath(const FString& Relative) const;
 	class UArenaSessionSubsystem* SessionSys() const;
 	class AMageArenaPawn* FindPawn() const;
@@ -73,6 +73,7 @@ private:
 	double RecordStartClock = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;
+	FCaptureEvidence Evidence;
 	FString RunId = TEXT("T26");
 	int32 ShotCount = 0;
 	int32 CuesLogged = 0;

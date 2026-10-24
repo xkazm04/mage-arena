@@ -88,6 +88,11 @@ void UColourAudioCaptureDriver::Start()
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 start mode=%s run=%s"), bAudio ? TEXT("audio") : TEXT("stills"), *RunId);
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
+	Evidence.Begin(TEXT("ColourAudio"));
+	if (!MageArenaCapture::CanCapture())
+	{
+		Fail(TEXT("no rhi"));
+	}
 }
 
 void UColourAudioCaptureDriver::Enter(EStep Next)
@@ -130,13 +135,9 @@ void UColourAudioCaptureDriver::RequestShot(const TCHAR* FileName)
 	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
 	PendingShot = Path;
 	bShotOpen = true;
+	Evidence.Requested(FileName, Path, SessionSys());
 	++ShotCount;
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_SHOT name=%s path=%s"), FileName, *Path);
-}
-
-bool UColourAudioCaptureDriver::ShotFinished() const
-{
-	return !PendingShot.IsEmpty() && !FScreenshotRequest::IsScreenshotRequested() && IFileManager::Get().FileSize(*PendingShot) > 0;
 }
 
 void UColourAudioCaptureDriver::Fail(const FString& Reason)
@@ -154,7 +155,8 @@ void UColourAudioCaptureDriver::Tick(float DeltaTime)
 	}
 	if (bShotOpen)
 	{
-		if (!ShotFinished())
+		const ECaptureShotPoll Shot = Evidence.Poll();
+		if (Shot == ECaptureShotPoll::Pending)
 		{
 			return;
 		}
@@ -164,7 +166,14 @@ void UColourAudioCaptureDriver::Tick(float DeltaTime)
 		{
 			Session->GetSession().SetFrameHold(false);
 		}
-		Enter(AfterShot);
+		if (Shot == ECaptureShotPoll::Failed)
+		{
+			Fail(Evidence.GetFailure());
+		}
+		else
+		{
+			Enter(AfterShot);
+		}
 	}
 	Advance();
 }
@@ -179,13 +188,17 @@ void UColourAudioCaptureDriver::LogNewCues()
 		return;
 	}
 	const TArray<FAudioPlayRequest>& History = Audio->GetHistory();
+	// audio_s is game time since the recording started (FApp::GetDeltaTime summed), kept for existing readers. mixer_s is
+	// the mixer clock since the recording started: a cue's position in the WAV is read from mixer_s (T45).
 	const double Wall = RecordedS;
+	FAudioDevice* Device = GetWorld() ? GetWorld()->GetAudioDeviceRaw() : nullptr;
+	const double Mixer = Device ? Device->GetAudioClock() - RecordStartClock : -1.0;
 	const TCHAR* Kinds[] = {TEXT("oneshot"), TEXT("loop-start"), TEXT("loop-stop"), TEXT("swell")};
 	for (; CuesLogged < History.Num(); ++CuesLogged)
 	{
 		const FAudioPlayRequest& Request = History[CuesLogged];
-		CueLog += FString::Printf(TEXT("%.3f\t%.3f\t%s\t%s\t%s\t%d\t%.0f\t%.0f\t%.0f\t%.1f\n"), Wall, Request.AtS, Kinds[static_cast<int32>(Request.Kind)],
-			*Request.Cue.ToString(), *Request.Event, Request.SourceId, Request.LocationCm.X, Request.LocationCm.Y, Request.LocationCm.Z, Request.GainDb);
+		CueLog += FString::Printf(TEXT("%.3f\t%.3f\t%s\t%s\t%s\t%d\t%.0f\t%.0f\t%.0f\t%.1f\t%.3f\n"), Wall, Request.AtS, Kinds[static_cast<int32>(Request.Kind)],
+		    *Request.Cue.ToString(), *Request.Event, Request.SourceId, Request.LocationCm.X, Request.LocationCm.Y, Request.LocationCm.Z, Request.GainDb, Mixer);
 	}
 }
 
@@ -453,7 +466,7 @@ void UColourAudioCaptureDriver::Advance()
 		UAudioMixerBlueprintLibrary::StartRecordingOutput(GetWorld(), static_cast<float>(RecordSeconds));
 		RecordStartWall = FPlatformTime::Seconds();
 		RecordedS = 0.0;
-		CueLog = TEXT("audio_s\tsim_s\tkind\tcue\tevent\tsource\tx_cm\ty_cm\tz_cm\tgain_db\n");
+		CueLog = TEXT("audio_s\tsim_s\tkind\tcue\tevent\tsource\tx_cm\ty_cm\tz_cm\tgain_db\tmixer_s\n");
 		const FActor* Brennic = FindSchoolMage(*Bout, true);
 		FAudioDevice* Device = GetWorld() ? GetWorld()->GetAudioDeviceRaw() : nullptr;
 		RecordStartClock = Device ? Device->GetAudioClock() : -1.0;
@@ -472,8 +485,19 @@ void UColourAudioCaptureDriver::Advance()
 			FFileHelper::SaveStringToFile(CueLog, *FPaths::Combine(Dir, TEXT("brennic-opening-cues.tsv")));
 			FAudioDevice* Device = GetWorld() ? GetWorld()->GetAudioDeviceRaw() : nullptr;
 			const double Clock = Device ? Device->GetAudioClock() : -1.0;
+			const double MixerS = Device ? Clock - RecordStartClock : -1.0;
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 recording stop audio=%.3f wall=%.3f sim=%.3f mixer=%.3f cues=%d phase=%s"), RecordedS,
-				Now - RecordStartWall, Bout->GetSimSeconds(), Clock - RecordStartClock, CuesLogged, *Bout->GetGames().Phase);
+			    Now - RecordStartWall, Bout->GetSimSeconds(), MixerS, CuesLogged, *Bout->GetGames().Phase);
+			Evidence.Note(TEXT("audioS"), FString::Printf(TEXT("%.3f"), RecordedS));
+			Evidence.Note(TEXT("mixerS"), FString::Printf(TEXT("%.3f"), MixerS));
+			// The game clock and the mixer clock must agree: the take that "came out 20.8 s long for 30 s of play" is
+			// exactly this divergence.
+			const FString Drift = MageArenaCapture::CheckMixerDrift(RecordedS, MixerS, MageArenaCapture::AudioToleranceS);
+			if (!Drift.IsEmpty())
+			{
+				Fail(Drift);
+				break;
+			}
 			Enter(EStep::WaitWav);
 		}
 		break;
@@ -486,6 +510,23 @@ void UColourAudioCaptureDriver::Advance()
 		if (WavStableFrames >= 30)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 wav %s bytes=%lld"), *Wav, Size);
+			// The file's own header says how long it is: StopRecordingOutput writes a RIFF/WAVE PCM file.
+			TArray<uint8> Bytes;
+			FFileHelper::LoadFileToArray(Bytes, *Wav);
+			MageArenaCapture::FWavInfo Info;
+			FString WavError;
+			if (MageArenaCapture::ParseWav(Bytes, Info, WavError))
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 wav duration=%.3f rate=%d channels=%d bits=%d"), Info.DurationS, Info.SampleRate,
+				    Info.Channels, Info.BitsPerSample);
+				Evidence.Note(TEXT("wavS"), FString::Printf(TEXT("%.3f"), Info.DurationS));
+			}
+			const FString Duration = MageArenaCapture::CheckWavDuration(Bytes, RecordSeconds, MageArenaCapture::AudioToleranceS);
+			if (!Duration.IsEmpty())
+			{
+				Fail(Duration);
+				break;
+			}
 			Enter(EStep::Finish);
 		}
 		else if (Elapsed > 30.0)
@@ -501,7 +542,15 @@ void UColourAudioCaptureDriver::Advance()
 		}
 		if (bAudio || ShotCount >= 3)
 		{
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE mode=%s shots=%d"), bAudio ? TEXT("audio") : TEXT("stills"), ShotCount);
+			FString ManifestError;
+			if (Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/%s/manifest.json"), *RunId, bAudio ? TEXT("audio") : TEXT("shots"))), ManifestError))
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE mode=%s shots=%d"), bAudio ? TEXT("audio") : TEXT("stills"), ShotCount);
+			}
+			else
+			{
+				UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *ManifestError);
+			}
 		}
 		else
 		{
