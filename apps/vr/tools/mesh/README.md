@@ -10,7 +10,9 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `input-gate.mjs` + `image_stats.py` | gate 1: can this image (or view set) be reconstructed? Verdict JSON with defect codes |
 | `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
-| `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (unchanged, runs on Blender 4.2.1), export, finished card |
+| `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode flat` (default): one flat palette colour per material; `--mode bake`: the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png` (see "Finish modes") |
+| `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
+| `finish_lib.py` (+ `../assets/test_finish.py`) | finish.py's Blender-free logic: mode and option parsing, sRGB/Lab, the style clamp, UV coverage, bake-miss accounting and filling (`python -m unittest apps/vr/tools/assets/test_finish.py`) |
 | `budgets.json` | per-class height and triangle targets, each citing its source (T38 card, `metrics.py` TRI_BUDGET_LOD0 and BEASTS) |
 | `gate-lib.mjs` + `gate-lib.test.mjs` | the pure scoring both gates use (`node --test apps/vr/tools/mesh/gate-lib.test.mjs`) |
 | `components.py`, `blender.mjs` | numpy connected components; the Blender runner |
@@ -29,7 +31,7 @@ resolves toward the harsher verdict, and **a pass is never a quality claim** (bo
                   node apps/vr/tools/mesh/comfy.mjs run <concept.jpg> <label> 42 <dir>     (guard first, then trellis.mjs)
                   node apps/vr/tools/mesh/comfy.mjs free
 3. raw card       \
-4. finishing       > node apps/vr/tools/mesh/finish.mjs <dir>/<label>.glb <dir>/finish --class Humanoid --name <Name>
+4. finishing       > node apps/vr/tools/mesh/finish.mjs <dir>/<label>.glb <dir>/finish --class Humanoid --name <Name> --mode bake
 5. finished card  /
 6. stop           node apps/vr/tools/mesh/comfy.mjs stop
 ```
@@ -75,6 +77,28 @@ world scale and the triangle budget are UNMEASURED and the card cannot pass.
 | `degenerate-faces` | finish | the voxel remesh rebuilds every face; not yet observed on a raw card |
 | `empty-mesh`, `degenerate-bbox` | reroll | a bad draw; a fresh seed can differ |
 | `too-many-parts`, `tris-under-budget` | neither | finish keeps separate parts above 0.5 % and cannot add detail |
+
+## Finish modes
+
+Both modes share every geometry step (floaters, scale and height, voxel remesh, collapse to the class target, smart UV),
+so the structural card is the same; they differ in what the surface carries.
+
+- **`--mode flat`** (the default, the T38 recipe): every face takes the nearest palette colour of its baked texels. Six
+  flat materials, no image. It loses everything smaller than a colour region (Brennic 2026-10-24: face, brooch, collar
+  plate, straps; saw-toothed region edges). Kept for comparison and for assets that really are flat blocks.
+- **`--mode bake`**: the UV islands are repacked (`pack_islands`, concave, margin 0.003), the TRELLIS albedo is baked
+  selected-to-active (Cycles DIFFUSE, colour pass only, metallic zeroed first) at `budgets.finish.bakeTextureRes`
+  (2048), cage extrusion 0.02 m, max ray distance 0.08 m, margin 16 px EXTEND. A second bake of the source in white
+  emission (no margin) is the **hit mask**: an island texel no ray reached reads 0. Misses are counted
+  (`bake.missed`, `missed_interior`), filled from their neighbours, and every island texel is checked for black
+  (`dark_in_islands_after_fill`, must be 0). One material `M_<Name>` with `T_<Name>_BaseColor.png`; the GLB embeds it.
+  `--clamp posterize|hue|both` (`--strength` <= 0.6, `--levels` >= 4) pulls the texture part of the way toward the
+  palette set plus the VISUAL-PLAN (c) accents (bronze, gold, crimson, iron); it never replaces it (`clamp.detail_kept`).
+- **Rigging a bake finish:** `rig_anim.py` exports the FBX with `path_mode='STRIP'`, so copy `T_<Name>_BaseColor.png`
+  next to the FBX before `evidence.mjs` or a UE import.
+
+Measured on Brennic seed 7 (docs/research/BRENNIC-MESH-REWORK-2026-10-24.md): finish.py 34 s at 2048, 0.64 % of island
+texels missed (mostly the inner cloak and between the legs), 0 black texels after the fill.
 
 ## Starting and stopping the local ComfyUI
 
@@ -130,6 +154,7 @@ side view fails `view-missing`.
   `--python-exit-code`); `finish.py` and `rig_anim.py` do. Run the evidence through `evidence.mjs`:
   `node apps/vr/tools/mesh/evidence.mjs <in.fbx> <outdir> <Name> <outdir>/<Name>_rig.json Cast`.
 - `node --test apps/vr/tools/mesh/` (a directory) fails to load on Node 24; name the files:
-  `node --test apps/vr/tools/mesh/*.test.mjs`.
+  `node --test apps/vr/tools/mesh/*.test.mjs`. The Python half: `python -m unittest apps/vr/tools/assets/test_finish.py`
+  (numpy only).
 - The see-only input criteria and the card's shape quality need a judge that can see; until pof has one, a character
   input is at best `incomplete`.

@@ -9,7 +9,8 @@
   "voxelM": 0.01,
   "bakeRes": 4096,
   "rotZDeg": 0,
-  "_source": "the Brennic rebuild line in apps/vr/art/characters/brennic/HANDOFF.md: finish.py ... Brennic 0 4096 0.01 24000"
+  "bakeTextureRes": 2048,
+  "_source": "the Brennic rebuild line in apps/vr/art/characters/brennic/HANDOFF.md: finish.py ... Brennic 0 4096 0.01 24000 (bakeRes: the flat mode's classification bake). bakeTextureRes: the shipped base-colour texture of --mode bake, chosen in docs/research/BRENNIC-MESH-REWORK-2026-10-24.md (texel density against the Quest 3 view at the duel distance, and room for UE to downsample to 1024 on device)"
  },
  "classes": {
   "Humanoid": {
