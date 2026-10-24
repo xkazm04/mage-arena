@@ -14,6 +14,7 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `budgets.json` | per-class height and triangle targets, each citing its source (T38 card, `metrics.py` TRI_BUDGET_LOD0 and BEASTS) |
 | `gate-lib.mjs` + `gate-lib.test.mjs` | the pure scoring both gates use (`node --test apps/vr/tools/mesh/gate-lib.test.mjs`) |
 | `components.py`, `blender.mjs` | numpy connected components; the Blender runner |
+| `evidence.mjs` + `blender-compat.mjs` | the T38 evidence renders: `../assets/render_evidence.py` (unchanged on disk) run from a temp copy whose EEVEE id fits this Blender; fails on a Blender error or a missing PNG |
 
 The rules come from the ai-registry game-production subjects image-to-3d-input-gating and generated-mesh-acceptance:
 findings are codes from a closed vocabulary (never prose), an unmeasured criterion keeps a verdict off pass, ambiguity
@@ -124,7 +125,11 @@ side view fails `view-missing`.
   cu130 (it logs "You need pytorch with cu130 or higher to use optimized CUDA operations"), so remesh and decimate take
   their scipy / CPU fallbacks. The run still took 195 s. Lynx ran cu134, so the raw meshes are not bit-comparable
   between the hosts (raw by finish.py's weld: Lynx 695,551 tris and 151 components, Wolf 694,873 tris and 117 components).
-- `apps/vr/tools/assets/preview.py` does not run on Blender 4.2 (it sets `BLENDER_EEVEE`, which 4.2 names
-  `BLENDER_EEVEE_NEXT`); `finish.py` does.
+- `apps/vr/tools/assets/preview.py` and `render_evidence.py` do not run on Blender 4.2 as they are (they set
+  `BLENDER_EEVEE`, which 4.2 names `BLENDER_EEVEE_NEXT`, and Blender exits 0 after the traceback unless given
+  `--python-exit-code`); `finish.py` and `rig_anim.py` do. Run the evidence through `evidence.mjs`:
+  `node apps/vr/tools/mesh/evidence.mjs <in.fbx> <outdir> <Name> <outdir>/<Name>_rig.json Cast`.
+- `node --test apps/vr/tools/mesh/` (a directory) fails to load on Node 24; name the files:
+  `node --test apps/vr/tools/mesh/*.test.mjs`.
 - The see-only input criteria and the card's shape quality need a judge that can see; until pof has one, a character
   input is at best `incomplete`.
