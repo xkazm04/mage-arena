@@ -445,7 +445,9 @@ void WriteProposal(const FCandidate& Candidate, const FScore& Score, int32 Seeds
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetNumberField(TEXT("version"), 1);
-	Root->SetStringField(TEXT("_about"), TEXT("not live until the owner signs off; applied only with -MageArenaProposal"));
+	// T39 DF-003: the ruled wide set is live in combat.vr.json; this file stays the census winner, applied with -MageArenaProposal.
+	Root->SetStringField(TEXT("_about"),
+	    TEXT("The DF-003 census winner. The wide set is live in combat.vr.json since T39 DF-003 (owner ruling 2026-10-20); -MageArenaProposal still applies these knobs on top."));
 	TSharedRef<FJsonObject> Knobs = MakeShared<FJsonObject>();
 	TSharedRef<FJsonObject> Wave = MakeShared<FJsonObject>();
 	Wave->SetNumberField(TEXT("conscriptCount"), Candidate.Conscript);
