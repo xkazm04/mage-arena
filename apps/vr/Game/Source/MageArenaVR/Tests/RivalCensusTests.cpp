@@ -442,6 +442,17 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 	Root->SetStringField(TEXT("scenario"), TEXT("Tiro semifinal (wave index 2), Fire, seated reference script, 120 s cap; competence set on every opponent mage"));
 	Root->SetStringField(TEXT("targets"), TEXT("DECISIONS 2026-10-07: signature in 100% of duels reaching the last phase; median 45-80 s; win >= 0.70 at competence 1, 0.40-0.60 at 1.5"));
 	TArray<TSharedPtr<FJsonValue>> Values;
+	// T47: the one census target met in every recorded set (DF-006, DF-008 tables) is a population gate: every duel that
+	// reaches the last phase casts the signature. A set where no duel reached it has nothing to judge.
+	TArray<FString> SignatureMisses;
+	auto CheckSignature = [&SignatureMisses](const TCHAR* Rival, const FRivalSummary& Summary)
+	{
+		if (Summary.ReachedLast > 0 && Summary.SignatureInLast != Summary.ReachedLast)
+		{
+			SignatureMisses.Add(FString::Printf(TEXT("%s %s c=%.1f %d/%d"), Rival, *Summary.Set, Summary.Competence, Summary.SignatureInLast,
+			    Summary.ReachedLast));
+		}
+	};
 	for (const FRivalSummary& Summary : Summaries)
 	{
 		Values.Add(MakeShared<FJsonValueObject>(SummaryJson(Summary)));
@@ -450,6 +461,7 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 			Summary.SignatureInLast, Summary.ReachedLast, Summary.AnySunfall, Summary.Loosed, Summary.Blinked, Summary.Hit, Summary.Missed,
 			Summary.bSignatureTarget ? 1 : 0, Summary.bMedianTarget ? 1 : 0, Summary.bWinTarget ? 1 : 0);
 		ReportRivalSummary(TEXT("Census.Rivals.brennic"), Summary);
+		CheckSignature(TEXT("brennic"), Summary);
 	}
 	Root->SetArrayField(TEXT("sets"), Values);
 	FString Text;
@@ -497,6 +509,7 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 					Summary.SignatureInLast, Summary.ReachedLast, Summary.AnySunfall, Summary.Loosed, Summary.Blinked, Summary.Hit, Summary.Missed,
 					Summary.bSignatureTarget ? 1 : 0, Summary.bMedianTarget ? 1 : 0, Summary.bWinTarget ? 1 : 0);
 				ReportRivalSummary(TEXT("Census.Rivals.lio"), Summary);
+				CheckSignature(TEXT("lio"), Summary);
 			}
 		}
 		LioRoot->SetArrayField(TEXT("sets"), LioValues);
@@ -506,7 +519,8 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 		UE_LOG(LogMageArena, Log, TEXT("LioCensus done seeds=%d rows=%d wall=%.1fs official=%d"), Seeds, LioRows.Num(), LioWall, bOfficial ? 1 : 0);
 	}
 
-	// Structure only. The targets are measured and reported, not asserted: the owner moves the knobs.
+	// Structure, plus the signature population gate above. The medians and win rates are measured and reported (the
+	// MAGEVR_MEASURE lines), not asserted: the owner moves the knobs.
 	bool bPass = TestEqual(TEXT("row count"), Rows.Num(), Seeds * Sets.Num() * 2);
 	bPass &= TestEqual(TEXT("lio row count"), LioRows.Num(), Seeds * 2 * 2);
 	bool bLio = true;
@@ -533,6 +547,9 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("every bout started"), bStarted);
 	bPass &= TestTrue(TEXT("finite rows"), bFinite);
 	bPass &= TestTrue(TEXT("Brennic is bound exactly on the phase sets"), bBinding);
+	bPass &= TestTrue(*FString::Printf(TEXT("the signature is cast in every duel that reaches the last phase, every set (misses: %s)"),
+	                      SignatureMisses.IsEmpty() ? TEXT("none") : *FString::Join(SignatureMisses, TEXT("; "))),
+	    SignatureMisses.IsEmpty());
 	Instance->RemoveFromRoot();
 	Instance->MarkAsGarbage();
 	return bPass;

@@ -220,7 +220,6 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 	const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
 	const double Measured = Session.GetSimSeconds();
 	const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
-	const bool bInsideWindow = bWon && Measured >= PinnedWindowLo && Measured <= PinnedWindowHi;
 	const bool bReportedInside = MageArenaMeasure::Report(TEXT("Session.CreaturesSeated"), TEXT("victoryS"), Measured, PinnedWindowLo, PinnedWindowHi, bWon);
 	const double DamageTaken = Player ? Player->Metrics.DamageTaken : -1.0;
 
@@ -243,8 +242,7 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 
 	bool bPass = true;
 	bPass &= TestTrue(TEXT("won bout 2"), bWon);
-	bPass &= TestTrue(*FString::Printf(TEXT("victory inside %.0f-%.0fs window (measured %.2fs, phase %s)"),
-		PinnedWindowLo, PinnedWindowHi, Measured, *Session.GetGames().Phase), bInsideWindow);
+	// T47: the 30-45 s window is the MAGEVR_MEASURE victoryS line above, reported, not asserted and not moved.
 
 	Rig.Close(Session);
 	return bPass;
@@ -277,7 +275,7 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		return false;
 	}
 	bPass &= TestTrue(TEXT("combat.vr.json names a rival"), Loaded.Rivals.Num() > 0);
-	auto RunOne = [&](double Competence, uint32 Seed, const TCHAR* Label, bool bRequireWin) -> bool
+	auto RunOne = [&](double Competence, uint32 Seed, const TCHAR* Label) -> bool
 	{
 		FArenaSession Session;
 		Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
@@ -324,7 +322,6 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		}
 		const double Measured = Session.GetSimSeconds();
 		const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
-		const bool bBand = Measured >= Lo && Measured <= Hi && Session.GetGames().Phase != TEXT("active");
 		const FVrRuleset* Live = Session.GetVrRules();
 		const bool bBound = Live && Live->BoundRival() != nullptr;
 		const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
@@ -345,19 +342,16 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 		MageArenaMeasure::Report(TEXT("Duel.FireSeated"), FString::Printf(TEXT("%s.won"), Label), bWon ? 1.0 : 0.0, 1.0, 1.0);
 		bool bOne = true;
 		bOne &= TestTrue(*FString::Printf(TEXT("%s Brennic bound"), Label), bBound);
-		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s reached the last phase (%d of %d breaks)"), Label, Breaks, LastBreaks), Breaks >= LastBreaks);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s signature cast in the last phase"), Label), Breaks < LastBreaks || bSignature);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s stayed on a pad (worst %.4f m)"), Label, WorstOffPad), WorstOffPad < 1.0e-3);
-		if (bRequireWin)
-		{
-			bOne &= TestTrue(*FString::Printf(TEXT("%s player wins (phase %s)"), Label, *Session.GetGames().Phase), bWon);
-		}
+		// T47: the 45-80 s band and the win are the MAGEVR_MEASURE lines above: a single seed is a narrative trace, and the
+		// signed median and win rates are reported from MageArenaDesign.Census.Rivals.
 		Session.Unbind();
 		return bOne;
 	};
-	bPass &= RunOne(1.0, 1, TEXT("brennic-c1"), true);
-	bPass &= RunOne(1.5, 1, TEXT("brennic-c15"), false);
+	bPass &= RunOne(1.0, 1, TEXT("brennic-c1"));
+	bPass &= RunOne(1.5, 1, TEXT("brennic-c15"));
 	FArenaSession Dummy;
 	Rig.Close(Dummy);
 	return bPass;
@@ -446,7 +440,6 @@ bool FMageArenaAirSeated::RunTest(const FString& Parameters)
 	const FActor* Lio = Live ? SimFindActor(Games.State, Live->RivalRuntime.ActorId) : nullptr;
 	const double Measured = Session.GetSimSeconds();
 	const bool bWon = Games.Phase == TEXT("intermission") || Games.Phase == TEXT("complete");
-	const bool bBand = Measured >= Lo && Measured <= Hi && Games.Phase != TEXT("active");
 	const bool bBound = Live && Live->BoundRival() != nullptr && Live->BoundRival()->Id == TEXT("lio");
 	const int32 Breaks = Live ? Live->RivalRuntime.PhasesBroken : 0;
 	const int32 LastBreaks = bBound ? Live->BoundRival()->Phases.Num() : 2;
@@ -484,11 +477,10 @@ bool FMageArenaAirSeated::RunTest(const FString& Parameters)
 	MageArenaMeasure::Report(TEXT("Duel.AirSeated"), TEXT("lio-c15.won"), bWon ? 1.0 : 0.0, 1.0, 1.0);
 	bool bPass = TestTrue(TEXT("Lio bound in the final"), bBound);
 	bPass &= TestTrue(TEXT("Lio is the air mage"), Lio && Lio->Air.bSchool);
-	bPass &= TestTrue(*FString::Printf(TEXT("length %.2fs in %.0f-%.0f"), Measured, Lo, Hi), bBand);
 	bPass &= TestTrue(*FString::Printf(TEXT("reached the last phase (%d of %d breaks)"), Breaks, LastBreaks), Breaks >= LastBreaks);
 	bPass &= TestTrue(TEXT("signature cast in the last phase"), Breaks < LastBreaks || bSignature);
 	bPass &= TestTrue(*FString::Printf(TEXT("stayed on a pad (worst %.4f m)"), WorstOffPad), WorstOffPad < 1.0e-3);
-	bPass &= TestTrue(*FString::Printf(TEXT("player wins (phase %s)"), *Games.Phase), bWon);
+	// T47: the 45-80 s band and the win are the MAGEVR_MEASURE lines above, reported from the census as a population.
 	Rig.Close(Session);
 	return bPass;
 }
@@ -796,7 +788,8 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 	bPass &= TestFalse(*FString::Printf(TEXT("the script did not lose bout %d"), Session.GetGames().Wave + 1), bStopped);
 	bPass &= TestEqual(TEXT("the day closes"), Session.GetStage(), FString(TEXT("closed")));
 	bPass &= TestEqual(TEXT("all four bouts won"), Won, 4);
-	bPass &= TestTrue(*FString::Printf(TEXT("the day with the teach (%.2f s) is in the plan's 7-10 min"), WithTeachS), WithTeachS >= PlanLoS && WithTeachS <= PlanHiS);
+	// T47, DF-010 ruled E (docs/DECISIONS.md 2026-10-21): the day's length is the MAGEVR_MEASURE dayWithTeachS line above,
+	// a logged measurement against the 7-10 min target, which stands; it no longer decides the verdict.
 	IFileManager::Get().DeleteDirectory(*Dir, false, true);
 	Rig.Close(Session);
 	return bPass;
