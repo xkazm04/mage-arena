@@ -6,6 +6,10 @@
 //   node apps/vr/tools/mesh/comfy.mjs guard     wait until the GPU is free for a job (below), polling every 2 minutes
 //   node apps/vr/tools/mesh/comfy.mjs run <image> <label> <seed> <outdir> [--faces N]
 //                                               guard, then trellis.mjs run, sampling VRAM; writes <outdir>/gpu-run.json
+//   node apps/vr/tools/mesh/comfy.mjs run <front> <label> <seed> <outdir> --back <image> [--faces N]
+//                                               the same with a second view: trellis-mv.mjs builds the front + back TRELLIS.2 workflow
+//   node apps/vr/tools/mesh/comfy.mjs run <front> <label> <seed> <outdir> [--back <image>] --dry-run
+//                                               print the workflow JSON that would be sent; no guard, no ComfyUI, no upload
 //   node apps/vr/tools/mesh/comfy.mjs free      unload the models (trellis.mjs free)
 //   node apps/vr/tools/mesh/comfy.mjs stop      stop the ComfyUI this script started, and nothing else
 //   node apps/vr/tools/mesh/comfy.mjs status
@@ -22,6 +26,7 @@ import { existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } 
 import { freemem } from 'node:os';
 import { join, resolve } from 'node:path';
 import { HERE } from './blender.mjs';
+import { dryRun, parseRunArgs } from './trellis-mv.mjs';
 
 const COMFY = resolve(process.env.MAGEVR_COMFY_DIR || 'C:/Users/kazda/ai-tools/ComfyUI');
 const PY = join(COMFY, 'venv', 'Scripts', 'python.exe');
@@ -29,6 +34,7 @@ const URL_ = 'http://127.0.0.1:8188';
 const PIDFILE = join(COMFY, 'magevr-comfy.pid');
 const LOG = join(COMFY, 'user', 'magevr-comfy.log');
 const TRELLIS = join(HERE, '..', 'assets', 'trellis.mjs');
+const TRELLIS_MV = join(HERE, 'trellis-mv.mjs');
 const MIN_FREE_RAM = 8 * 2 ** 30;
 const MAX_UTIL = 40;
 const MAX_OTHER_VRAM_MIB = 6144;
@@ -140,8 +146,12 @@ function stop() {
 }
 
 async function run(args) {
-  const outdir = args[3];
-  if (args.length < 4) throw new Error('usage: run <image> <label> <seed> <outdir> [--faces N]');
+  const a = parseRunArgs(args);
+  if (a.dryRun) {
+    console.log(JSON.stringify(dryRun(a), null, 1));
+    return;
+  }
+  const outdir = a.outdir;
   const before = await guard();
   const baseline = gpu();
   let peak = baseline.usedMiB;
@@ -151,7 +161,7 @@ async function run(args) {
     } catch {}
   }, 2000);
   const t0 = Date.now();
-  const code = await new Promise((res) => spawn(process.execPath, [TRELLIS, 'run', ...args], { stdio: 'inherit' }).on('exit', res));
+  const code = await new Promise((res) => spawn(process.execPath, a.back ? [TRELLIS_MV, 'run', ...args] : [TRELLIS, 'run', ...args], { stdio: 'inherit' }).on('exit', res));
   clearInterval(timer);
   const record = {
     at: new Date(t0).toISOString(),
@@ -179,7 +189,7 @@ try {
   else if (cmd === 'free') spawnSync(process.execPath, [TRELLIS, 'free'], { stdio: 'inherit' });
   else if (cmd === 'status') console.log(JSON.stringify({ comfy: COMFY, pidfile: existsSync(PIDFILE) ? JSON.parse(readFileSync(PIDFILE, 'utf8')) : null, ...(await look()) }, null, 1));
   else {
-    console.error('usage: comfy.mjs start | guard | run <image> <label> <seed> <outdir> [--faces N] | free | stop | status');
+    console.error('usage: comfy.mjs start | guard | run <image> <label> <seed> <outdir> [--back <image>] [--faces N] [--dry-run] | free | stop | status');
     process.exitCode = 2;
   }
 } catch (e) {

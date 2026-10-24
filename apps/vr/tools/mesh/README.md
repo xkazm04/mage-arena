@@ -8,7 +8,8 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | File | Role |
 |---|---|
 | `input-gate.mjs` + `image_stats.py` | gate 1: can this image (or view set) be reconstructed? Verdict JSON with defect codes |
-| `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged |
+| `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged, or to `trellis-mv.mjs` with `--back` |
+| `trellis-mv.mjs` + `trellis-mv.test.mjs` | the two-view (front + back) TRELLIS.2 workflow builder and runner, and its offline test |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
 | `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode bake` (default): the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png`; `--mode flat`: one flat palette colour per material (see "Finish modes") |
 | `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
@@ -131,6 +132,22 @@ the 2026-10-24 hound: the same bones, clips, records and vertex set; the weights
 two runs of the unchanged scripts do, because the EXACT boolean returns its vertices in a different order each run).
 `render_evidence.py` frames the beasts for the 2026-10-21 sizes, so its turnaround crops the longer 2026-10-24 hound and
 the wider maw.
+
+## Two views (front + back): `--back`, for the mire maw
+
+```
+node apps/vr/tools/mesh/comfy.mjs run <front.jpg> <label> <seed> <outdir> --back <back.jpg> --dry-run     print the workflow, nothing else
+node apps/vr/tools/mesh/comfy.mjs run <front.jpg> <label> <seed> <outdir> --back <back.jpg> [--faces N]  guard, then the real job
+```
+
+`--dry-run` needs no ComfyUI, no GPU and no upload (the offline test is `node --test apps/vr/tools/mesh/trellis-mv.test.mjs`);
+it prints the JSON that would be POSTed to `/prompt` and writes nothing. With `--back`, `trellis-mv.mjs` uploads both
+images (`t38_<label>_front.*`, `t38_<label>_back.*`), clones the single-image view chain (LoadImage, RemoveBackground,
+ImageCropToMask at pad 1.1) for the back, and replaces `Trellis2Conditioning` (front only) with the installed pack's
+`Pixal3DMultiViewConditioning` (front at 0 degrees, back at 180, fov 20). The installed checkpoint has no `proj_linear`
+weights, so this averages the views' DINOv3 class and register tokens in the model's global attention mode: the back steers
+the whole object, there is no per-voxel projection. Without `--back` nothing changes. A real run is a GPU job: run it only
+after the Unreal slot is free (see `docs/research/MAW-BACK-2026-10-24.md` for the order).
 
 ## Starting and stopping the local ComfyUI
 
