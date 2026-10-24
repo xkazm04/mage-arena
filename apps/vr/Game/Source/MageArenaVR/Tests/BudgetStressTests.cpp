@@ -90,8 +90,9 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaBudgetSharedMaterials, "MageArena.Bud
 
 bool FMageArenaBudgetSharedMaterials::RunTest(const FString& Parameters)
 {
-	// The -MageArenaBudgetSharedMaterials lever: every part of the stress plan asks the cache for its colour,
-	// and the cache hands out exactly one material per distinct colour. No renderer is needed to make the instances.
+	// D-G4 lever B, the default since T37: every part of the stress plan asks Greybox::SharedTint for its colour (the cache
+	// SessionPresentation uses), and the cache hands out exactly one material per distinct colour. No renderer is needed
+	// to make the instances.
 	FArenaLayout Layout;
 	FBudgetStressPlan Plan;
 	FString Error;
@@ -117,11 +118,11 @@ bool FMageArenaBudgetSharedMaterials::RunTest(const FString& Parameters)
 	}
 	TSet<FLinearColor> Distinct(Colours);
 
-	FBudgetMaterialCache Cache;
+	FGreyboxTintCache Cache;
 	TMap<FLinearColor, UMaterialInstanceDynamic*> First;
 	for (const FLinearColor& Colour : Colours)
 	{
-		UMaterialInstanceDynamic* Instance = BudgetSharedTint(Cache, Base, GetTransientPackage(), Colour);
+		UMaterialInstanceDynamic* Instance = Greybox::SharedTint(Cache, GetTransientPackage(), Colour);
 		if (!TestNotNull(TEXT("the cache makes a material"), Instance))
 		{
 			return false;
@@ -132,9 +133,10 @@ bool FMageArenaBudgetSharedMaterials::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the material carries a colour parameter"), Instance->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Tint));
 		TestTrue(*FString::Printf(TEXT("colour %s is the tint"), *Colour.ToString()), Tint.Equals(Colour));
 	}
-	TestEqual(TEXT("one material per distinct colour"), Cache.Num(), Distinct.Num());
+	TestEqual(TEXT("one material per distinct colour"), Cache.Tints.Num(), Distinct.Num());
+	TestTrue(TEXT("the cache tints the unlit base"), Cache.Base == Base);
 	TSet<UMaterialInstanceDynamic*> Instances;
-	for (const TPair<FLinearColor, UMaterialInstanceDynamic*>& Pair : Cache)
+	for (const TPair<FLinearColor, TObjectPtr<UMaterialInstanceDynamic>>& Pair : Cache.Tints)
 	{
 		Instances.Add(Pair.Value);
 	}

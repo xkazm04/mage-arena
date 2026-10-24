@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Greybox/GreyboxUtil.h"
 #include "SessionPresentation.generated.h"
 
 class FArenaSession;
@@ -28,6 +29,16 @@ public:
 	int32 GetEnemiesOnScreen() const { return EnemiesOnScreen; }
 	/** T26: the bout's audio (spatialised cues from the event stream). */
 	UArenaAudioComponent* GetAudio() const { return Audio; }
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/** T37: an opaque part whose material is the shared instance of Colour (one material per colour, D-G4 lever B). */
+	UStaticMeshComponent* MakePart(const TCHAR* Shape, const FLinearColor& Colour);
+	/** T37: a runtime recolour is a swap to the shared instance of the new colour, never a write into a shared one. */
+	void Recolour(UStaticMeshComponent* Part, const FLinearColor& Colour);
+	/** T37: distinct materials on this actor's mesh components (MAGEVR_PRESENTATION_MATERIALS). */
+	int32 CountDistinctMaterials() const;
+	/** T37: shared instances in the opaque part cache and the translucent curtain cache together. */
+	int32 GetSharedTintCount() const { return PartTints.Tints.Num() + CurtainTints.Tints.Num(); }
 
 private:
 	struct FBody
@@ -67,7 +78,6 @@ private:
 		double Until = 0.0;
 	};
 
-	UStaticMeshComponent* MakePart(const TCHAR* Shape, const FLinearColor& Colour);
 	FBody& BodyFor(int32 Id, const FString& EnemyId);
 	FShot& ShotFor(int32 Id, bool bSpear);
 	FRing& RingFor(int32 Id);
@@ -109,6 +119,13 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> Plane;
+
+	// T37: one material per colour for the opaque parts, and one per colour for the translucent dome and wall curtains.
+	UPROPERTY()
+	FGreyboxTintCache PartTints;
+
+	UPROPERTY()
+	FGreyboxTintCache CurtainTints;
 
 	TArray<FBody> Bodies;
 	TArray<FShot> Shots;

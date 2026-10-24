@@ -179,8 +179,35 @@ UStaticMeshComponent* ASessionPresentation::MakePart(const TCHAR* Shape, const F
 	{
 		return nullptr;
 	}
-	UStaticMeshComponent* Component = Greybox::MakeMesh(this, Mesh, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), this, Colour));
+	UStaticMeshComponent* Component = Greybox::MakeMesh(this, Mesh, Greybox::SharedTint(PartTints, this, Colour));
 	return Component;
+}
+
+void ASessionPresentation::Recolour(UStaticMeshComponent* Part, const FLinearColor& Colour)
+{
+	Greybox::Recolour(Part, PartTints, this, Colour);
+}
+
+int32 ASessionPresentation::CountDistinctMaterials() const
+{
+	TSet<const UMaterialInterface*> Materials;
+	TInlineComponentArray<UStaticMeshComponent*> Meshes(this);
+	for (const UStaticMeshComponent* Mesh : Meshes)
+	{
+		if (const UMaterialInterface* Material = Mesh ? Mesh->GetMaterial(0) : nullptr)
+		{
+			Materials.Add(Material);
+		}
+	}
+	return Materials.Num();
+}
+
+void ASessionPresentation::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	TInlineComponentArray<UStaticMeshComponent*> Meshes(this);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_PRESENTATION_MATERIALS distinct=%d tints=%d curtains=%d parts=%d"), CountDistinctMaterials(),
+	    PartTints.Tints.Num(), CurtainTints.Tints.Num(), Meshes.Num());
+	Super::EndPlay(EndPlayReason);
 }
 
 ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FString& EnemyId)
@@ -672,8 +699,8 @@ void ASessionPresentation::EnsureTeachVisuals()
 	if (PlaneMesh && GlyphAnchor)
 	{
 		UMaterialInterface* GlyphMat = GlyphMaterial
-			? static_cast<UMaterialInterface*>(GlyphMaterial)
-			: Greybox::Tint(Greybox::UnlitOpaqueMaterial(), this, FLinearColor::White);
+		    ? static_cast<UMaterialInterface*>(GlyphMaterial)
+		    : Greybox::SharedTint(PartTints, this, FLinearColor::White);
 		GlyphPlane = Greybox::MakeMesh(this, PlaneMesh, GlyphMat);
 		if (GlyphPlane)
 		{
@@ -860,7 +887,11 @@ void ASessionPresentation::EnsureDome()
 		{
 			return nullptr;
 		}
-		UMaterialInstanceDynamic* Material = Greybox::Tint(Greybox::TranslucentMaterial(), this, Colour);
+		if (!CurtainTints.Base)
+		{
+			CurtainTints.Base = Greybox::TranslucentMaterial();
+		}
+		UMaterialInstanceDynamic* Material = Greybox::SharedTint(CurtainTints, this, Colour);
 		UStaticMeshComponent* Mesh = Greybox::MakeMesh(this, Shape, Material);
 		if (Mesh)
 		{
@@ -968,7 +999,11 @@ void ASessionPresentation::SyncWalls(const FArenaSession& Session)
 				const FSimVec Point = SimAdd(Wall.Centre, SimScale(Direction, Wall.DistanceM));
 				if (!WallSlats.IsValidIndex(Used))
 				{
-					UMaterialInstanceDynamic* Material = Greybox::Tint(Greybox::TranslucentMaterial(), this, Curtain);
+					if (!CurtainTints.Base)
+					{
+						CurtainTints.Base = Greybox::TranslucentMaterial();
+					}
+					UMaterialInstanceDynamic* Material = Greybox::SharedTint(CurtainTints, this, Curtain);
 					UStaticMeshComponent* Mesh = Greybox::MakeMesh(this, CylinderMesh, Material);
 					if (Mesh)
 					{
@@ -1146,12 +1181,11 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 			continue;
 		}
 		const bool bGlow = Index == Held;
-		const float Alpha = bGlow ? static_cast<float>(0.35 + 0.65 * Fill) : 0.f;
-		const FLinearColor Colour = FMath::Lerp(StoneBase[Index], FLinearColor(1.f, 0.97f, 0.88f), Alpha) * (bGlow ? 1.f + 1.5f * static_cast<float>(Fill) : 1.f);
-		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)))
-		{
-			Mid->SetVectorParameterValue(TEXT("Color"), Colour);
-		}
+		// T37: the colour follows the fill in 1/16 steps, so the shared cache stays bounded; the size follows the raw fill.
+		const float Step = Greybox::QuantiseFade(static_cast<float>(Fill));
+		const float Alpha = bGlow ? 0.35f + 0.65f * Step : 0.f;
+		const FLinearColor Colour = FMath::Lerp(StoneBase[Index], FLinearColor(1.f, 0.97f, 0.88f), Alpha) * (bGlow ? 1.f + 1.5f * Step : 1.f);
+		Recolour(Stone, Colour);
 		Greybox::SetSized(Stone, bGlow ? FVector(12.0 + 4.0 * Fill) : FVector(12.0));
 	}
 
@@ -1277,10 +1311,7 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 			RivalFlare->SetWorldLocation(At);
 			Greybox::SetSized(RivalFlare, FVector(FMath::Lerp(60.0, 230.0, Alpha)));
 			// T23: the flare is the rival's element colour, so the air rival flares in the air colour.
-			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(RivalFlare->GetMaterial(0)))
-			{
-				Mid->SetVectorParameterValue(TEXT("Color"), ActiveElementPalette().ElementColour(ActorElement(Session.GetGames().State, Rival->Id).Get(EElement::Fire)));
-			}
+			Recolour(RivalFlare, ActiveElementPalette().ElementColour(ActorElement(Session.GetGames().State, Rival->Id).Get(EElement::Fire)));
 		}
 	}
 	// Surge: a clock-gold ring on each wrist, 0.8 s, opening outward.
@@ -1302,7 +1333,8 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 	const double Swell = Since < 1.6 ? 1.0 - Since / 1.6 : 0.0;
 	const FLinearColor Dim(0.20f, 0.18f, 0.15f);
 	const FLinearColor Bright(0.98f, 0.92f, 0.78f);
-	const FLinearColor Band = FMath::Lerp(Dim, Bright, static_cast<float>(Swell));
+	// T37: the swell steps in 1/16, so the band asks the shared cache for at most 17 colours.
+	const FLinearColor Band = FMath::Lerp(Dim, Bright, Greybox::QuantiseFade(static_cast<float>(Swell)));
 	for (UStaticMeshComponent* Piece : CrowdBand)
 	{
 		if (!Piece)
@@ -1310,10 +1342,7 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 			continue;
 		}
 		Piece->SetVisibility(bRivalBout);
-		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Piece->GetMaterial(0)))
-		{
-			Mid->SetVectorParameterValue(TEXT("Color"), Band);
-		}
+		Recolour(Piece, Band);
 	}
 }
 
@@ -1381,10 +1410,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			}
 			Body.Mesh->SetWorldLocation(Centre);
 			Greybox::SetSized(Body.Mesh, FVector(Length, Width, Height));
-			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Body.Mesh->GetMaterial(0)))
-			{
-				Mid->SetVectorParameterValue(TEXT("Color"), BodyColour);
-			}
+			Recolour(Body.Mesh, BodyColour);
 			const FVector To = Centre - CamLoc;
 			if (!Actor.bDummy && Camera && FVector::DotProduct(To.GetSafeNormal(), CamFwd) > 0.45f)
 			{
@@ -1411,7 +1437,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	const FVrAttackMode* SpearMode = Rules ? Rules->FindThrow(TEXT("conscript")) : nullptr;
 	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
 	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
-	auto UseMesh = [](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
+	auto UseMesh = [this](UStaticMeshComponent* Mesh, UStaticMesh* Shape, const FLinearColor& Colour)
 	{
 		if (!Mesh || !Shape)
 		{
@@ -1420,7 +1446,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		if (Mesh->GetStaticMesh() != Shape)
 		{
 			Mesh->SetStaticMesh(Shape);
-			Mesh->SetMaterial(0, Greybox::Tint(Greybox::UnlitOpaqueMaterial(), Mesh, Colour));
+			Recolour(Mesh, Colour);
 		}
 	};
 	// Ground beads for the perfect cue, centred on At at RadiusCm. Hidden unless bShow.
@@ -1489,10 +1515,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Mesh->SetVisibility(true);
 				Ring.Mesh->SetWorldLocation(Ground);
 				Greybox::SetSized(Ring.Mesh, FVector(160.0, 160.0, 5.0));
-				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
-				{
-					Mid->SetVectorParameterValue(TEXT("Color"), LookOf(Games, Projectile.OwnerId, Projectile.Family).Body);
-				}
+				Recolour(Ring.Mesh, LookOf(Games, Projectile.OwnerId, Projectile.Family).Body);
 			}
 			if (Ring.Rim)
 			{
@@ -1535,10 +1558,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 					Ring.Mesh->SetWorldLocation(Ground);
 					Ring.Mesh->SetWorldRotation(FRotator::ZeroRotator);
 					Greybox::SetSized(Ring.Mesh, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
-					if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
-					{
-						Mid->SetVectorParameterValue(TEXT("Color"), Magic);
-					}
+					Recolour(Ring.Mesh, Magic);
 				}
 				if (Ring.Rim)
 				{
@@ -1586,11 +1606,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		{
 			Shot.Mesh->SetVisibility(true);
 			Shot.Mesh->SetWorldLocation(At);
-			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Shot.Mesh->GetMaterial(0)))
-			{
-				const FLinearColor Colour = LookOf(Games, Projectile.OwnerId, Projectile.Family).Body;
-				Mid->SetVectorParameterValue(TEXT("Color"), Colour);
-			}
+			Recolour(Shot.Mesh, LookOf(Games, Projectile.OwnerId, Projectile.Family).Body);
 		}
 	}
 	for (FShot& Shot : Shots)
@@ -1639,10 +1655,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Mesh->SetWorldLocation(Mid);
 				Ring.Mesh->SetWorldRotation(Rot);
 				Greybox::SetSized(Ring.Mesh, FVector(Length, Width, 8.0));
-				if (UMaterialInstanceDynamic* MidMat = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
-				{
-					MidMat->SetVectorParameterValue(TEXT("Color"), BodyColour);
-				}
+				Recolour(Ring.Mesh, BodyColour);
 			}
 			if (Ring.Rim)
 			{
@@ -1650,10 +1663,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 3.0));
 				Ring.Rim->SetWorldRotation(Rot);
 				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
-				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
-				{
-					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
-				}
+				Recolour(Ring.Rim, Look.Rim);
 			}
 			continue;
 		}
@@ -1685,10 +1695,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Ring.Mesh->SetWorldLocation(At);
 			Ring.Mesh->SetWorldRotation(FRotator::ZeroRotator);
 			Greybox::SetSized(Ring.Mesh, FVector(RadiusCm * 2.0, RadiusCm * 2.0, 5.0));
-			if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Mesh->GetMaterial(0)))
-			{
-				Mid->SetVectorParameterValue(TEXT("Color"), Colour);
-			}
+			Recolour(Ring.Mesh, Colour);
 		}
 		if (Ring.Rim)
 		{
@@ -1698,10 +1705,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, 1.0));
 				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
 				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
-				if (UMaterialInstanceDynamic* RimMat = Cast<UMaterialInstanceDynamic>(Ring.Rim->GetMaterial(0)))
-				{
-					RimMat->SetVectorParameterValue(TEXT("Color"), Look.Rim);
-				}
+				Recolour(Ring.Rim, Look.Rim);
 			}
 		}
 
@@ -1731,10 +1735,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Mouth.Z += LiftCm;
 				Ring.Glow->SetWorldLocation(Mouth);
 				Greybox::SetSized(Ring.Glow, FVector(FMath::Lerp(8.0, 24.0, Alpha)));
-				if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Ring.Glow->GetMaterial(0)))
-				{
-					Mid->SetVectorParameterValue(TEXT("Color"), Look.Body);
-				}
+				Recolour(Ring.Glow, Look.Body);
 			}
 		}
 	}
@@ -1914,17 +1915,17 @@ void ASessionPresentation::SyncCollarVisuals(const FArenaSession& Session)
 		}
 	}
 	const double Full = FMath::Max(1.0, Collar.GetWeights().WardstoneFullTithe);
-	const float Glow = static_cast<float>(FMath::Clamp(static_cast<double>(Session.GetDayTithe()) / Full, 0.0, 1.0));
+	// T37: the colour mixes two amounts (the day's glow and the per-frame pulse), so both step in 1/8 and the stones ask
+	// the shared cache for at most 9 x 9 colours each for body and crown. The cap's size follows the raw pulse.
+	const float Glow = Greybox::QuantiseFade(static_cast<float>(FMath::Clamp(static_cast<double>(Session.GetDayTithe()) / Full, 0.0, 1.0)), 8.f);
 	const double SinceTithe = Collar.GetLastTitheSim() >= 0.0 ? Sim - Collar.GetLastTitheSim() : 1.0e9;
-	const float Pulse = bFight && SinceTithe >= 0.0 && SinceTithe < TithePulseS ? static_cast<float>(1.0 - SinceTithe / TithePulseS) : 0.f;
+	const float RawPulse = bFight && SinceTithe >= 0.0 && SinceTithe < TithePulseS ? static_cast<float>(1.0 - SinceTithe / TithePulseS) : 0.f;
+	const float Pulse = Greybox::QuantiseFade(RawPulse, 8.f);
 	const FLinearColor Body = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, Glow), WardstonePulse, 0.6f * Pulse);
 	const FLinearColor Crown = FMath::Lerp(FMath::Lerp(WardstoneDim, WardstoneGlow, FMath::Min(1.f, 0.25f + Glow)), WardstonePulse, Pulse);
 	for (UStaticMeshComponent* Stone : Wardstones)
 	{
-		if (UMaterialInstanceDynamic* Mid = Stone ? Cast<UMaterialInstanceDynamic>(Stone->GetMaterial(0)) : nullptr)
-		{
-			Mid->SetVectorParameterValue(TEXT("Color"), Body);
-		}
+		Recolour(Stone, Body);
 	}
 	for (UStaticMeshComponent* Cap : WardstoneCaps)
 	{
@@ -1932,11 +1933,8 @@ void ASessionPresentation::SyncCollarVisuals(const FArenaSession& Session)
 		{
 			continue;
 		}
-		if (UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(Cap->GetMaterial(0)))
-		{
-			Mid->SetVectorParameterValue(TEXT("Color"), Crown);
-		}
-		Greybox::SetSized(Cap, FVector(90.0 + 50.0 * Pulse));
+		Recolour(Cap, Crown);
+		Greybox::SetSized(Cap, FVector(90.0 + 50.0 * RawPulse));
 	}
 }
 
@@ -2089,18 +2087,12 @@ void ASessionPresentation::SyncOrbPaths(const FArenaSession& Session)
 			Path.Body->SetWorldLocation(Mid);
 			Path.Body->SetWorldRotation(Dir.Rotation());
 			Greybox::SetSized(Path.Body, FVector(Length, Width, 6.0));
-			if (UMaterialInstanceDynamic* Material = Cast<UMaterialInstanceDynamic>(Path.Body->GetMaterial(0)))
-			{
-				Material->SetVectorParameterValue(TEXT("Color"), BodyColour);
-			}
+			Recolour(Path.Body, BodyColour);
 		}
 		if (Path.Rim)
 		{
 			Path.Rim->SetVisibility(Look.bRim);
-			if (UMaterialInstanceDynamic* RimMaterial = Cast<UMaterialInstanceDynamic>(Path.Rim->GetMaterial(0)))
-			{
-				RimMaterial->SetVectorParameterValue(TEXT("Color"), Look.Rim);
-			}
+			Recolour(Path.Rim, Look.Rim);
 			Path.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 2.0));
 			Path.Rim->SetWorldRotation(Dir.Rotation());
 			Greybox::SetSized(Path.Rim, FVector(Length + 24.0, Width + 36.0, 4.0));

@@ -80,6 +80,39 @@ UMaterialInstanceDynamic* Greybox::Tint(UMaterialInterface* Base, UObject* Outer
 	return Instance;
 }
 
+UMaterialInstanceDynamic* Greybox::SharedTint(FGreyboxTintCache& Cache, UObject* Outer, const FLinearColor& Colour)
+{
+	if (const TObjectPtr<UMaterialInstanceDynamic>* Found = Cache.Tints.Find(Colour))
+	{
+		return *Found;
+	}
+	if (!Cache.Base)
+	{
+		Cache.Base = UnlitOpaqueMaterial();
+	}
+	UMaterialInstanceDynamic* Instance = Tint(Cache.Base, Outer, Colour);
+	if (Instance)
+	{
+		Cache.Tints.Add(Colour, Instance);
+	}
+	return Instance;
+}
+
+void Greybox::Recolour(UStaticMeshComponent* Part, FGreyboxTintCache& Cache, UObject* Outer, const FLinearColor& Colour)
+{
+	if (!Part)
+	{
+		return;
+	}
+	// SetMaterial does nothing when the slot already holds this instance, so an unchanged colour costs one map lookup.
+	Part->SetMaterial(0, SharedTint(Cache, Outer, Colour));
+}
+
+float Greybox::QuantiseFade(float Amount, float Steps)
+{
+	return FMath::RoundToFloat(FMath::Clamp(Amount, 0.f, 1.f) * Steps) / Steps;
+}
+
 UInstancedStaticMeshComponent* Greybox::MakeInstances(AActor* Owner, UStaticMesh* Mesh, UMaterialInterface* Material)
 {
 	if (!Owner || !Mesh)

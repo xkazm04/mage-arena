@@ -5,6 +5,7 @@
 #include "Budget/BudgetStressPlan.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Greybox/GreyboxUtil.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "BudgetStressDriver.generated.h"
@@ -14,13 +15,8 @@ class UMaterialInterface;
 class UNiagaraComponent;
 class UStaticMeshComponent;
 
-/** Diagnostic only (-MageArenaBudgetSharedMaterials): one tinted material per colour, reused by every part of that colour. */
-using FBudgetMaterialCache = TMap<FLinearColor, UMaterialInstanceDynamic*>;
-
-/** Returns the cached tint of Base for Colour, making it with Greybox::Tint the first time a colour is asked for. */
-UMaterialInstanceDynamic* BudgetSharedTint(FBudgetMaterialCache& Cache, UMaterialInterface* Base, UObject* Outer, const FLinearColor& Colour);
-
-/** Owns the stress population's parts. Each part is one basic-shape component with its own tint, as SessionPresentation builds them. */
+/** Owns the stress population's parts. Each part is one basic-shape component whose material is the shared tint of its colour
+ * (Greybox::SharedTint), as SessionPresentation::MakePart builds them since T37. */
 UCLASS()
 class MAGEARENAVR_API ABudgetStressRig : public AActor
 {
@@ -43,7 +39,8 @@ private:
  * Also spawns the six NS_Budget_ Niagara systems (Budget/BudgetFx.h, docs/research/NIAGARA-PROXY-2026-10.md) and counts
  * their live particles and GPU emitters on every frame of the window.
  * Logs MAGEVR_BUDGET_POP twice and ends with MAGEVR_BUDGET_DONE or MAGEVR_BUDGET_FAIL.
- * Diagnostic variant: -MageArenaBudgetSharedMaterials makes the parts of one colour share one material (D-G4 levers).
+ * The parts of one colour share one material, as the shipping presentation does since T37 (D-G4 lever B, BUDGET-DG4 7.7).
+ * -MageArenaBudgetSharedMaterials, the diagnostic switch that did this before, is now a no-op alias of the default.
  */
 UCLASS()
 class MAGEARENAVR_API UBudgetStressDriver : public UObject, public FTickableGameObject
@@ -119,8 +116,9 @@ private:
 	int64 Launches = 0;
 	int32 MinLiveShots = TNumericLimits<int32>::Max();
 	FString RunName;
-	bool bSharedMaterials = false;
-	FBudgetMaterialCache SharedMaterials;
+	UPROPERTY()
+	FGreyboxTintCache PartTints;
+
 	int32 SharedMaterialParts = 0;
 	int32 SharedMaterialDistinct = 0;
 
