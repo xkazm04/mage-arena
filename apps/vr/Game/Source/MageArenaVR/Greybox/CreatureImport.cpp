@@ -2,16 +2,22 @@
 
 #include "Animation/AnimSequence.h"
 #include "Animation/SkeletalMeshActor.h"
+#include "AssetCompilingManager.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/SkinnedAssetCommon.h"
 #include "Engine/World.h"
 #include "Greybox/ArenaLayout.h"
 #include "MageArenaVR.h"
+#include "MeshDescription.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "ReferenceSkeleton.h"
+#include "Rendering/SkeletalMeshLODModel.h"
+#include "Rendering/SkeletalMeshModel.h"
+#include "Rendering/SkeletalMeshRenderData.h"
 
 namespace CreatureImport
 {
@@ -26,8 +32,10 @@ const FCreatureSpec GSpecs[] = {
     // docs/research/CREATURE-MESH-2026-10-24.md: 26 bones, 1.3569 m, 11,796 tris after parts and rig.
     {TEXT("CinderHound"), 1.3569, true, 1.4},
     // docs/research/MAW-MV-2026-10-24.md and CREATURE-CAST-UE-2026-10-24.md: 11 bones, 1.2509 m, 17,752 tris after the
-    // tongue part. Slots M_MireMaw (the seam-fixed bake) and M_MireMaw_Tongue (a capsule, flat dark red).
-    {TEXT("MireMaw"), 1.2509, false, -4.0, TEXT("Tongue"), FLinearColor(0.20f, 0.012f, 0.012f)},
+    // tongue part. Slots M_MireMaw (the seam-fixed bake) and M_MireMaw_Tongue (a capsule, flat dark red). The merge points
+    // the tongue at texel (571, 658) of T_MireMaw_BaseColor.png, sRGB (112, 44, 46): every texel within 8 px of it is within
+    // 0.102 of the flat colour's sRGB (124, 29, 29), the closest such patch on the bake (DRAWCALL-BUDGET-2026-10-25 3.1).
+    {TEXT("MireMaw"), 1.2509, false, -4.0, TEXT("Tongue"), FLinearColor(0.20f, 0.012f, 0.012f), FVector2f(0.279053f, 0.321533f)},
 };
 
 double SmoothStep(double Low, double High, double X)
@@ -227,6 +235,267 @@ double EmberSoftMask(TConstArrayView<FLinearColor> SrgbTaps, const FEmberParams&
 	return SrgbTaps.Num() > 0 ? Sum / SrgbTaps.Num() : 0.0;
 }
 
+const FCreatureBudget& DefaultBudget()
+{
+	static const FCreatureBudget Budget;
+	return Budget;
+}
+
+FCreatureBudget UncutBudget()
+{
+	FCreatureBudget Budget;
+	Budget.bMergeSections = false;
+	Budget.bPerBoneVelocity = true;
+	Budget.Shadow = ECreatureShadow::Cascades;
+	Budget.ShadowMaxDistanceM = 0.0;
+	Budget.bGenerateLods = false;
+	return Budget;
+}
+
+FCreatureBudget BudgetFromCommandLine()
+{
+	const TCHAR* Line = FCommandLine::Get();
+	FCreatureBudget Budget = FParse::Param(Line, TEXT("MageArenaCreatureUncut")) ? UncutBudget() : DefaultBudget();
+	int32 Switch = 0;
+	if (FParse::Value(Line, TEXT("MageArenaCreatureMerge="), Switch))
+	{
+		Budget.bMergeSections = Switch != 0;
+	}
+	if (FParse::Value(Line, TEXT("MageArenaCreatureVelocity="), Switch))
+	{
+		Budget.bPerBoneVelocity = Switch != 0;
+	}
+	if (FParse::Value(Line, TEXT("MageArenaCreatureLods="), Switch))
+	{
+		Budget.bGenerateLods = Switch != 0;
+	}
+	FParse::Value(Line, TEXT("MageArenaCreatureForceLod="), Budget.ForcedLod);
+	FParse::Value(Line, TEXT("MageArenaCreatureShadowMaxM="), Budget.ShadowMaxDistanceM);
+	FString Shadow;
+	if (FParse::Value(Line, TEXT("MageArenaCreatureShadow="), Shadow))
+	{
+		Budget.Shadow = Shadow == TEXT("off") ? ECreatureShadow::Off : Shadow == TEXT("inset") ? ECreatureShadow::Inset
+		                                                                                       : ECreatureShadow::Cascades;
+	}
+	return Budget;
+}
+
+double ScreenSizeAt(double SphereRadiusCm, double DistanceM, double ScreenMultiple)
+{
+	return 2.0 * ScreenMultiple * SphereRadiusCm / FMath::Max(1.0, DistanceM * 100.0);
+}
+
+bool CastsShadowAt(const FCreatureBudget& Budget, double DistanceM)
+{
+	return Budget.Shadow != ECreatureShadow::Off && (Budget.ShadowMaxDistanceM <= 0.0 || DistanceM <= Budget.ShadowMaxDistanceM);
+}
+
+FSectionMerge PlanSectionMerge(TConstArrayView<FName> SlotNames, TConstArrayView<int32> TriangleGroups, TConstArrayView<int32> TriangleCorners, const FCreatureSpec& Spec)
+{
+	FSectionMerge Merge;
+	TArray<int32> Counts;
+	Counts.Init(0, SlotNames.Num());
+	for (const int32 Group : TriangleGroups)
+	{
+		if (Counts.IsValidIndex(Group))
+		{
+			++Counts[Group];
+		}
+	}
+	TSet<FName> Used;
+	for (int32 Group = 0; Group < SlotNames.Num(); ++Group)
+	{
+		if (Counts[Group] > 0)
+		{
+			Used.Add(SlotNames[Group]);
+			if (Merge.TargetGroup == INDEX_NONE || Counts[Group] > Counts[Merge.TargetGroup])
+			{
+				Merge.TargetGroup = Group;
+			}
+		}
+	}
+	Merge.SlotsBefore = Used.Num();
+	Merge.SlotsAfter = Used.Num();
+	if (Used.Num() < 2)
+	{
+		return Merge;
+	}
+	Merge.SlotsAfter = 1;
+	Merge.TrianglesMoved = TriangleGroups.Num() - Counts[Merge.TargetGroup];
+	if (!Spec.FlatSlot)
+	{
+		return Merge;
+	}
+	// A corner is the flat slot's own when no body triangle uses it too.
+	TSet<int32> InFlat;
+	TSet<int32> InBody;
+	for (int32 Triangle = 0; Triangle < TriangleGroups.Num(); ++Triangle)
+	{
+		const int32 Group = TriangleGroups[Triangle];
+		const bool bFlat = SlotNames.IsValidIndex(Group) && Group != Merge.TargetGroup && SlotNames[Group].ToString().Contains(Spec.FlatSlot);
+		for (int32 Corner = 0; Corner < 3 && 3 * Triangle + Corner < TriangleCorners.Num(); ++Corner)
+		{
+			(bFlat ? InFlat : InBody).Add(TriangleCorners[3 * Triangle + Corner]);
+		}
+	}
+	for (const int32 Corner : InFlat)
+	{
+		if (InBody.Contains(Corner))
+		{
+			++Merge.FlatCornersShared;
+		}
+		else
+		{
+			Merge.FlatCorners.Add(Corner);
+		}
+	}
+	Merge.FlatCorners.Sort();
+	return Merge;
+}
+
+FSectionMerge MergeSections(FMeshDescription& Description, const FCreatureSpec& Spec)
+{
+	// The attribute names of MeshAttribute::PolygonGroup::ImportedMaterialSlotName and VertexInstance::TextureCoordinate,
+	// spelled out: the module links Engine, not MeshDescription, so only the description's inline accessors are used.
+	TMeshAttributesRef<FPolygonGroupID, FName> SlotNames = Description.PolygonGroupAttributes().GetAttributesRef<FName>(FName(TEXT("ImportedMaterialSlotName")));
+	TMeshAttributesRef<FVertexInstanceID, FVector2f> Uvs = Description.VertexInstanceAttributes().GetAttributesRef<FVector2f>(FName(TEXT("TextureCoordinate")));
+	if (!SlotNames.IsValid())
+	{
+		return FSectionMerge();
+	}
+	TArray<FPolygonGroupID> Groups;
+	TArray<FName> Names;
+	TMap<int32, int32> GroupIndex;
+	for (const FPolygonGroupID Group : Description.PolygonGroups().GetElementIDs())
+	{
+		GroupIndex.Add(Group.GetValue(), Groups.Num());
+		Groups.Add(Group);
+		Names.Add(SlotNames[Group]);
+	}
+	TArray<int32> TriangleGroups;
+	TArray<int32> TriangleCorners;
+	for (const FTriangleID Triangle : Description.Triangles().GetElementIDs())
+	{
+		const int32* Index = GroupIndex.Find(Description.GetTrianglePolygonGroup(Triangle).GetValue());
+		TriangleGroups.Add(Index ? *Index : INDEX_NONE);
+		const TArrayView<const FVertexInstanceID> Corners = Description.GetTriangleVertexInstances(Triangle);
+		for (int32 Corner = 0; Corner < 3; ++Corner)
+		{
+			TriangleCorners.Add(Corners.IsValidIndex(Corner) ? Corners[Corner].GetValue() : INDEX_NONE);
+		}
+	}
+	const FSectionMerge Merge = PlanSectionMerge(Names, TriangleGroups, TriangleCorners, Spec);
+	if (Merge.SlotsAfter >= Merge.SlotsBefore)
+	{
+		return Merge;
+	}
+	if (Uvs.IsValid())
+	{
+		for (const int32 Corner : Merge.FlatCorners)
+		{
+			for (int32 Channel = 0; Channel < Uvs.GetNumChannels(); ++Channel)
+			{
+				Uvs.Set(FVertexInstanceID(Corner), Channel, Spec.FlatSlotUv);
+			}
+		}
+	}
+	const FName Target = Names[Merge.TargetGroup];
+	for (const FPolygonGroupID Group : Groups)
+	{
+		SlotNames.Set(Group, Target);
+	}
+	return Merge;
+}
+
+#if WITH_EDITOR
+namespace
+{
+/** Sections and triangles per LOD of the render data, for the log. */
+FString DescribeLods(const USkeletalMesh& Mesh)
+{
+	FString Out;
+	const FSkeletalMeshRenderData* RenderData = Mesh.GetResourceForRendering();
+	for (int32 Lod = 0; RenderData && Lod < RenderData->LODRenderData.Num(); ++Lod)
+	{
+		const FSkeletalMeshLODInfo* Info = Mesh.GetLODInfo(Lod);
+		Out += FString::Printf(TEXT(" lod%d=%d tris/%d sections@%.3f"), Lod, RenderData->LODRenderData[Lod].GetTotalFaces(), RenderData->LODRenderData[Lod].RenderSections.Num(),
+		    Info ? Info->ScreenSize.Default : 0.0f);
+	}
+	return Out;
+}
+}
+#endif
+
+void PrepareMesh(USkeletalMesh& Mesh, const FCreatureSpec& Spec, const FCreatureBudget& Budget)
+{
+#if WITH_EDITOR
+	// Once per asset: the capture and the budget scene spawn each creature once, and a second pass would merge nothing
+	// and find its LODs already there.
+	static TSet<FString> Prepared;
+	const FString Path = Mesh.GetPathName();
+	if (Prepared.Contains(Path))
+	{
+		return;
+	}
+	Prepared.Add(Path);
+	bool bRebuild = false;
+	FSectionMerge Merge;
+	if (Budget.bMergeSections && Mesh.HasMeshDescription(0))
+	{
+		if (FMeshDescription* Description = Mesh.GetMeshDescription(0))
+		{
+			Merge = MergeSections(*Description, Spec);
+			if (Merge.SlotsAfter < Merge.SlotsBefore)
+			{
+				USkeletalMesh::FCommitMeshDescriptionParams Params;
+				Params.bMarkPackageDirty = false;
+				Mesh.CommitMeshDescription(0, Params);
+				bRebuild = true;
+			}
+		}
+	}
+	if (Budget.bGenerateLods && Mesh.GetLODNum() == 1 && Mesh.GetImportedModel())
+	{
+		const double Radius = Mesh.GetBounds().SphereRadius;
+		const double Distances[] = {Budget.Lod1DistanceM, Budget.Lod2DistanceM};
+		const double Shares[] = {Budget.Lod1TriangleShare, Budget.Lod2TriangleShare};
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Distances); ++Index)
+		{
+			FSkeletalMeshLODInfo& Info = Mesh.AddLODInfo();
+			Info.ScreenSize = FPerPlatformFloat(static_cast<float>(ScreenSizeAt(Radius, Distances[Index])));
+			Info.ReductionSettings.TerminationCriterion = SMTC_NumOfTriangles;
+			Info.ReductionSettings.NumOfTrianglesPercentage = static_cast<float>(Shares[Index]);
+			Info.ReductionSettings.BaseLOD = 0;
+			Info.bHasBeenSimplified = true;
+			// The reduction fills the LOD's model; the builder walks the models, so each generated LOD needs its slot.
+			if (Mesh.GetImportedModel()->LODModels.Num() < Mesh.GetLODNum())
+			{
+				Mesh.GetImportedModel()->LODModels.Add(new FSkeletalMeshLODModel());
+			}
+		}
+		bRebuild = true;
+	}
+	if (bRebuild)
+	{
+		Mesh.Build();
+		FAssetCompilingManager::Get().FinishCompilationForObjects({&Mesh});
+	}
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_BUDGET mesh %s merge=%d slots=%d->%d moved=%d flatUvs=%d shared=%d lods=%d%s"), Spec.Name, Budget.bMergeSections ? 1 : 0,
+	    Merge.SlotsBefore, Merge.SlotsAfter, Merge.TrianglesMoved, Merge.FlatCorners.Num(), Merge.FlatCornersShared, Mesh.GetLODNum(), *DescribeLods(Mesh));
+#endif
+}
+
+void ApplyComponentBudget(USkeletalMeshComponent& Component, double DistanceM, const FCreatureBudget& Budget)
+{
+	const bool bCasts = CastsShadowAt(Budget, DistanceM);
+	Component.SetCastShadow(bCasts);
+	Component.bCastInsetShadow = bCasts && Budget.Shadow == ECreatureShadow::Inset;
+	Component.bPerBoneMotionBlur = Budget.bPerBoneVelocity;
+	// SetForcedLOD counts from 1 (0 picks by screen size).
+	Component.SetForcedLOD(Budget.ForcedLod >= 0 ? Budget.ForcedLod + 1 : 0);
+	Component.MarkRenderStateDirty();
+}
+
 bool IsSceneRequested()
 {
 	return FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportScene")) || FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportCapture"));
@@ -259,6 +528,11 @@ ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, con
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s does not load (run ImportCreatureMesh first)"), *MeshObjectPath(Name));
 		return nullptr;
 	}
+	const FCreatureBudget Budget = BudgetFromCommandLine();
+	if (const FCreatureSpec* Spec = FindSpec(Name))
+	{
+		PrepareMesh(*Mesh, *Spec, Budget);
+	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	ASkeletalMeshActor* Actor = World.SpawnActor<ASkeletalMeshActor>(ASkeletalMeshActor::StaticClass(), FTransform(PointCm), Params);
@@ -269,8 +543,8 @@ ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, con
 	USkeletalMeshComponent* Component = Actor->GetSkeletalMeshComponent();
 	Component->SetMobility(EComponentMobility::Movable);
 	Component->SetSkeletalMesh(Mesh);
-	Component->SetCastShadow(true);
 	Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ApplyComponentBudget(*Component, DistanceFromViewM(Layout, PointCm), Budget);
 	PlaceCreature(*Actor, Layout, PointCm, 0.0);
 	UAnimSequence* Idle = FindIdle(Name);
 	if (Idle)
@@ -282,6 +556,9 @@ ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, con
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_IMPORT spawned %s at (%.0f, %.0f, %.0f) cm yaw=%.1f forward=(%.2f, %.2f) height=%.1f cm materials=%d idle=%s"),
 	    *Name, PointCm.X, PointCm.Y, PointCm.Z, Actor->GetActorRotation().Yaw, Forward.X, Forward.Y, Bounds.BoxExtent.Z * 2.0, Mesh->GetMaterials().Num(),
 	    Idle ? *Idle->GetName() : TEXT("none"));
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CREATURE_BUDGET spawned %s distance=%.2f m shadow=%d inset=%d perBoneVelocity=%d forcedLod=%d sphere=%.1f cm"), *Name,
+	    DistanceFromViewM(Layout, PointCm), Component->CastShadow ? 1 : 0, Component->bCastInsetShadow ? 1 : 0, Component->bPerBoneMotionBlur ? 1 : 0, Budget.ForcedLod,
+	    Bounds.SphereRadius);
 	return Actor;
 }
 
@@ -296,12 +573,25 @@ void PlaceCreature(ASkeletalMeshActor& Actor, const FArenaLayout& Layout, const 
 	Actor.SetActorLocationAndRotation(PointCm, FRotator(0.0, Yaw, 0.0));
 }
 
+double DistanceFromViewM(const FArenaLayout& Layout, const FVector& PointCm)
+{
+	const FRunePad* Centre = Layout.FindPad(1);
+	const FVector Pad = (Centre ? Centre->PositionM : FVector(-12.0, 0.0, 0.0)) * 100.0;
+	return FVector2D(PointCm.X - Pad.X, PointCm.Y - Pad.Y).Size() / 100.0;
+}
+
 TArray<ASkeletalMeshActor*> SpawnScene(UWorld& World, const FArenaLayout& Layout)
 {
 	TArray<ASkeletalMeshActor*> Spawned;
 	const double Distance = OpponentDistanceM();
+	FString Only;
+	FParse::Value(FCommandLine::Get(), TEXT("MageArenaCreatureOnly="), Only);
 	for (const FCreatureSpec& Spec : GSpecs)
 	{
+		if (!Only.IsEmpty() && Only != Spec.Name)
+		{
+			continue;
+		}
 		if (ASkeletalMeshActor* Actor = SpawnCreature(World, Layout, Spec.Name, StandPointCm(Layout, Distance, Spec.SceneLateralM)))
 		{
 			Spawned.Add(Actor);

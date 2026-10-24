@@ -146,7 +146,9 @@ void UCreatureImportCaptureDriver::PoseShot(const FShotPlan& Plan)
 	if (ASkeletalMeshActor* Hound = FindActor(TEXT("CinderHound")))
 	{
 		USkeletalMeshComponent* Component = Hound->GetSkeletalMeshComponent();
-		Component->SetCastShadow(!Plan.bMask);
+		// The mask shot drops the shadow; every other shot keeps the spawn's shadow policy (CreatureImport::FCreatureBudget).
+		const FVector HoundPoint = CreatureImport::StandPointCm(Layout, Distance, CreatureImport::FindSpec(TEXT("CinderHound"))->SceneLateralM);
+		Component->SetCastShadow(!Plan.bMask && CreatureImport::CastsShadowAt(CreatureImport::BudgetFromCommandLine(), CreatureImport::DistanceFromViewM(Layout, HoundPoint)));
 		// Held from the hound's first shot (a mask shot) through its glow shots; the cast still lets it breathe again.
 		if (Subject == TEXT("CinderHound"))
 		{
