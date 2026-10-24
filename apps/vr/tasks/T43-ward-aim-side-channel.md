@@ -1,7 +1,11 @@
 # T43 - Make the ward gate a real test: close the desktop aim side-channel
 
-Status: open (needs Wolf: UE 5.8.3 editor and the `MageArena.Ward` automation suite; written 2026-10-21 on Lynx, where
-neither runs - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
+Status: **done** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `110f5f9` (seam, behaviour unchanged),
+`20fdeea` (reference from the head; SetThreatFacing deleted with ElevatedThreatFacing), `4ef0c19` and `79d3575`
+(DESKTOP-INPUT), `2324143` (the tested tree). `Result: Succeeded`; `MageArena.Ward` 14/14, red first:
+`Expected 'raises from a palm aimed 40 deg off the seat facing' to be 0, but it was 1.`; `MageArena.` 284/284 (45/45
+Conformance); `MageArenaDesign.` 5/7, only DF-011's two accepted reds. See "Result" at the end. (Was: open, written
+2026-10-21 on Lynx.)
 Max turns: 280
 
 ## Goal
@@ -177,3 +181,99 @@ master and its green line after; the per-test suite comparison before/after; whi
 chose for `SetThreatFacing` and why; the one-paragraph statement that desktop and VR measure the same quantity; what
 you did about `docs/DESKTOP-INPUT.md:34`; premises in "The finding this card fixes" that turned out false; files
 outside the stated set; and anything you could not do, with the exact error.
+
+## Result (Wolf kaziho, 2026-10-24, UE 5.8.3 CL 58210709)
+
+`runs/` is never committed, so the report is here (the same text is in `runs/T43/REPORT.md`, with the site table in
+`runs/T43/reference-facing-sites.md`). Base `4c69c10`; tested tree `2324143`.
+
+**Finding re-verified at 4c69c10 (after T25).** All four premises held. `AimWard` sent one aim to `SetAimYaw` and to
+`SetAimFacing`; `git grep SetThreatFacing` found only declarations, definitions, the subsystem forward and
+`Tests/WardTests.cpp:2035,2065`; `grep -rin click` over `Hands/ Gestures/ Session/` printed nothing. Two line numbers
+had moved: the capture write is `Greybox/GreyboxCapture.cpp:656` (not `:724`), and `AimWard` is at `:405-420`. One
+premise was incomplete: the clip is drawn in the seat frame (hands are parented to `SeatedOrigin`), but `AimWard`
+turned it by the *world* yaw, so on a side pad (seat yaw 14.4 deg) the hand and the seat disagreed by the pad yaw.
+
+**Built.**
+- `Gestures/WardDetector.{h,cpp}`: one reference, `SetReferenceFacing(SeatFacing)` (flattened; +X until written), with
+  `GetReferenceFacing()`. `SetAimFacing`, `SetThreatFacing`, both subsystem forwards, `AimFacing`, `ThreatFacing`,
+  `bThreatTargeted` and `ReferenceFacing()` are gone.
+- `Session/ArenaSession.{h,cpp}`: the producer, `UArenaSessionSubsystem::ApplyWardReference`, called from
+  `ApplyViewAim` every session tick. It writes the possessed pawn's control rotation in the seat frame, or the seat
+  forward in a scripted run or with no possessed pawn. A comment at the read site says MOONSHOT M2 will own the
+  transform.
+- `Hands/MageArenaPawn.{h,cpp}`: `AMageArenaPawn::ToSeatFrame(World, SeatYawDeg)`, the yaw-only world-to-seat turn
+  that both the clip aim and the reference use (no XR tracking; M2 territory untouched).
+- `Hands/MageArenaPlayerController.{h,cpp}`: `ApplyWardAim(Hands, SeatAim)` only calls `SetAimYaw`; `AimWard` turns
+  the world aim into the seat frame first. The controller no longer includes `WardDetector.h`.
+- `Greybox/GreyboxCapture.cpp`: the `SetAimFacing(+X)` write is deleted; the capture gets the reference from the
+  session, as play does.
+- `Tests/WardTests.cpp`: `MageArena.Ward.ArcGateRejectsOffAxis`, `.ArcGateAcceptsOnAxis` and
+  `.ReferenceFacingHasAProducer`, all three in the `FWardReport` label list and the ward-timing JSON `tests` rows.
+  `MageArena.Ward.ElevatedThreatFacing` and its only helper `PalmUpFrame` are deleted.
+- `docs/DESKTOP-INPUT.md`: the ward rows, a new section "The ward aim and what it is measured against", and the bolt
+  row.
+
+**SetThreatFacing: deleted (ending 2), with ElevatedThreatFacing.** Reasons: (1) the kernel is 2D (`FSimVec`), so no
+production state can ever produce an elevated threat, and that was the test's only subject. (2) The kernel already
+judges the threat direction: `ResolveHit` guards a hit only if `SimInArc(Target.Facing, Hit.Source - Target.Pos,
+Absorb.ArcDeg)`, with the pinned `arcDeg`. (3) Wiring a threat direction into the detector would make the scripted
+design runs, which hold an unturned ward clip, miss raises against off-axis threats. That would change pinned design
+numbers without an owner ruling. What is lost: the palm-up-faces-an-elevated-threat case is untested, and a
+straight-up palm can no longer raise at all (it is 90 deg off a flat reference). The `PalmFacing` fallback for it
+stays as a guard.
+
+**Desktop and VR measure the same quantity.** On both paths the arc gate is the angle between the ward palm's normal
+and the head's flat facing, both in the seat frame the hands are drawn in. The palm comes from the hand stream: a clip
+turned by `ApplyWardAim` on desktop, the tracked hand on a headset. The head comes from one writer,
+`ApplyWardReference`, which reads the pawn's control rotation minus the seat yaw. That is the same rotation that sets
+the kernel facing (`ViewAim`), whose arc then judges the threat. No input layer writes the reference on either path
+(the producer test counts 0 writes in `Hands/`). On desktop the control rotation is mouse look. On a headset it is the
+same read until M2 maps the HMD into the seat frame. That is the one caveat P9 must close: the frame is right, but the
+head source on a headset belongs to M2.
+
+**`DESKTOP-INPUT.md:34`.** No click-to-bolt exists. The bolt comes only from `FBlinkDetector`'s flick in the hand
+stream (the `Q` clip), and LMB only streams a fingertip path to the sigil recognizer (`MouseSigilCapture.cpp:52`). The
+cell now says the bolt has no mouse binding. No binding was added. Finding for the Director: if the owner wants a
+mouse bolt, it needs a card (a mouse flick into the hand pipeline, not a shortcut).
+
+**RED first.** `MageArena.Ward.ArcGateRejectsOffAxis` was run on master's production code, through the
+behaviour-preserving seam commit `110f5f9`, which only moves `AimWard`'s body into `ApplyWardAim`:
+`Expected 'raises from a palm aimed 40 deg off the seat facing' to be 0, but it was 1.` The first run used aims of
++-40 and +-60 deg, and all four were red. After the fix, the left aims still raised. The authored rise turns the left
+palm from about 80 deg right of forward down to forward, so a clip turned left sweeps across the reference on the way
+up (and at -40 the 50 deg lower angle keeps it up). That is the detector working, not the side-channel. So the test
+now checks that +40/+60/+90 never raise and that -60/-90 do not keep the ward up. That final test was run again on
+`110f5f9`'s production files and is red in every case: `... 40 deg ... to be 0, but it was 1.`, `... 60 deg ...`,
+`... 90 deg ...`, `Expected 'a palm held -60 deg off the seat facing keeps the ward up' to be false.`, and the same
+for -90. Green after: `Ward arc reject aim=40.0 held=40.00 raises=0 end=0`, the same for 60 and 90,
+`aim=-60.0 ... raises=1 end=0`, and -90 `raises=0 end=0`. `ArcGateAcceptsOnAxis` (0, +-30) was green both before and
+after.
+
+**Acceptance on `2324143`.**
+- `build.ps1`: `Result: Succeeded` (read from the log, each build).
+- `Automation RunTests MageArena.Ward`: 14/14 green, including the three new tests. The producer test logs
+  `Ward reference producers=1 inputLayer=0 removed=0 sites: Session/ArenaSession.cpp x1`.
+- `Automation RunTests MageArena.`: 284 run, 0 failed, 45/45 `Kernel.Conformance`. Compared per test against the
+  baseline on `4c69c10` (282/282), it is identical except `-ElevatedThreatFacing` and `+ArcGateRejectsOffAxis`,
+  `+ArcGateAcceptsOnAxis`, `+ReferenceFacingHasAProducer`. One more test passed with warnings (7 vs 6):
+  `Hands.HeldSample.BlinkModels` caught the engine's HTTP probe timing out (`https://www.google.com/generate_204`),
+  which is an environment log.
+- `Automation RunTests MageArenaDesign.` (on `20fdeea`, the same production code): 5/7. Only `Duel.FireSeated`
+  (brennic-c15 reaches 1 of 2) and `Session.FullSeated` (loses bout 3) are red. Those are DF-011's accepted reds, with
+  the same assertions as the baseline, and all 36 `MAGEVR_MEASURE` lines are byte-identical to the baseline run.
+- `git grep -n SetAimFacing -- .../Hands`: no match. `git grep -c SetThreatFacing -- .../MageArenaVR`: 0.
+- `format-check.mjs --base 4c69c10`: `format-check OK: 10 changed C++ file(s)`; its self-test is OK.
+  `unused-members.mjs`: `unused-members OK: 584 private/protected members in 41 classes`; its self-test is OK.
+- `check-pin.mjs`: `pin OK: 9 files @ baeac66`, `conformance OK: 45 vectors`. Also: agy-guard 40/40, check-overlay
+  and both self-tests OK, leonardo-redaction 24/24, `repo-law OK: 4/4`, `check-commits OK`,
+  `actions pinned: 6 refs`, `staged clips OK: 115 files`.
+
+**Files outside the card's stated set:** `Hands/MageArenaPawn.{h,cpp}` for `ToSeatFrame`. They are in `Hands/`, so
+inside the brief's paths, but the card's list names only the controller. Also `Session/ArenaSession.h` (the brief
+allows `Session/`) for the producer's declaration. Nothing is outside the brief's paths.
+
+**Not done / for the Director.** (1) The resume gate (`SessionFlow.cpp:521-527`) and T25's missio palm
+(`DayFlow.cpp:405-406`) still measure against a fixed seat forward, not the head reference. T25 logic was out of
+scope. (2) The left/right asymmetry above comes from the authored clip; changing the clip or the gate needs an
+owner/clip card. (3) On a headset the head source is the control rotation until M2.
