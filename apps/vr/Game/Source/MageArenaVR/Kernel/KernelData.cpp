@@ -215,6 +215,61 @@ bool CellNumber(const FString& Cell, const TCHAR* Sheet, const TCHAR* Column, co
 	return true;
 }
 
+// The one place a family string becomes a family. Exact, case-sensitive matches (FString's == ignores case): the pin
+// spells every family it uses this way (enemies.json: magic, physical, unblockable; the sheets: absorbable,
+// UNBLOCKABLE, n/a).
+bool ParseFamily(const FString& Cell, EThreatFamily& Out, FString& Error)
+{
+	for (const EThreatFamily Family : {EThreatFamily::Magic, EThreatFamily::Physical, EThreatFamily::Unblockable})
+	{
+		if (Cell.Equals(FamilyName(Family), ESearchCase::CaseSensitive))
+		{
+			Out = Family;
+			return true;
+		}
+	}
+	Error = FString::Printf(TEXT("family cell not understood: '%s'"), *Cell);
+	return false;
+}
+
+bool ParseBlockable(const FString& Cell, EThreatFamily& Out, FString& Error)
+{
+	if (Cell.Equals(TEXT("absorbable"), ESearchCase::CaseSensitive))
+	{
+		Out = EThreatFamily::Magic;
+	}
+	else if (Cell.Equals(TEXT("UNBLOCKABLE"), ESearchCase::CaseSensitive))
+	{
+		Out = EThreatFamily::Unblockable;
+	}
+	else if (Cell.Equals(FamilyName(EThreatFamily::None), ESearchCase::CaseSensitive))
+	{
+		Out = EThreatFamily::None;
+	}
+	else
+	{
+		Error = FString::Printf(TEXT("blockable cell not understood: '%s'"), *Cell);
+		return false;
+	}
+	return true;
+}
+
+const TCHAR* FamilyName(EThreatFamily Family)
+{
+	switch (Family)
+	{
+	case EThreatFamily::Magic:
+		return TEXT("magic");
+	case EThreatFamily::Physical:
+		return TEXT("physical");
+	case EThreatFamily::Unblockable:
+		return TEXT("unblockable");
+	case EThreatFamily::None:
+		return TEXT("n/a");
+	}
+	return TEXT("n/a");
+}
+
 bool LinearStat(const FCsvTable& Stats, const TCHAR* Stat, const TCHAR* Variable, double& Base, double& PerRank, FKernelData& Data)
 {
 	const TMap<FString, FString>* Found = nullptr;

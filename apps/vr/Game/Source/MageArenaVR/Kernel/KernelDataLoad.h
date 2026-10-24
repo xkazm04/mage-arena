@@ -33,6 +33,25 @@ bool StrictNumber(const FString& Cell, double& Out);
 // StrictNumber with the error "<sheet> row <id>: <column> cell '<cell>' is not a number" (Air's wording, Air's sheet "air").
 bool CellNumber(const FString& Cell, const TCHAR* Sheet, const TCHAR* Column, const FString& Id, double& Out, FString& Error);
 
+// T44. The threat families. Magic is absorbed (element colour), Physical is rolled (steel), Unblockable is left (black
+// core, red rim). None is a sheet's "n/a": a self or dash row that publishes no hit of its own.
+enum class EThreatFamily : uint8
+{
+	Magic,
+	Physical,
+	Unblockable,
+	None
+};
+
+// A hit's family name, as enemies.json and the hit pipeline spell it: magic, physical, unblockable. Anything else, a
+// trailing space or "n/a" included, is refused with "family cell not understood: '<cell>'" and is never defaulted.
+bool ParseFamily(const FString& Cell, EThreatFamily& Out, FString& Error);
+// A school sheet's blockable cell: absorbable (magic), UNBLOCKABLE, n/a (None). Anything else is refused with
+// "blockable cell not understood: '<cell>'".
+bool ParseBlockable(const FString& Cell, EThreatFamily& Out, FString& Error);
+// The family string the kernel carries: magic, physical, unblockable, n/a.
+const TCHAR* FamilyName(EThreatFamily Family);
+
 bool BuildSpells(const FCsvTable& Rows, FKernelData& Data);
 bool LoadEnemies(const FJsonObject& Root, FKernelData& Data, const FString& Path);
 bool LoadArenaTiers(FKernelData& Data);

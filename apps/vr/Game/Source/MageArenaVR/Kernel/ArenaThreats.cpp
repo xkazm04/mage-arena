@@ -5,22 +5,33 @@
 #include "Kernel/Enemies.h"
 #include "Kernel/Fire.h"
 #include "Kernel/Geometry.h"
+#include "Kernel/KernelDataLoad.h"
 #include "Kernel/VrRules.h"
 #include "Kernel/Water.h"
 
 #include <limits>
 
+// T44. Every loader refuses a family it cannot name, so one that still reaches a hit is a bug upstream. It is logged as
+// an error and fails safe as Unblockable: never perfect-eligible, nothing off it at the ward. A wrong refusal is
+// survivable; a wrong free perfect is not.
 EAbsorbHitKind KindFromFamily(const FString& Family)
 {
-	if (Family == TEXT("physical"))
+	KernelDataLoad::EThreatFamily Parsed = KernelDataLoad::EThreatFamily::Unblockable;
+	FString Why;
+	if (!KernelDataLoad::ParseFamily(Family, Parsed, Why))
 	{
-		return EAbsorbHitKind::Physical;
-	}
-	if (Family == TEXT("unblockable"))
-	{
+		UE_LOG(LogMageArena, Error, TEXT("hit %s, treated as unblockable"), *Why);
 		return EAbsorbHitKind::Unblockable;
 	}
-	return EAbsorbHitKind::Magic;
+	switch (Parsed)
+	{
+	case KernelDataLoad::EThreatFamily::Magic:
+		return EAbsorbHitKind::Magic;
+	case KernelDataLoad::EThreatFamily::Physical:
+		return EAbsorbHitKind::Physical;
+	default:
+		return EAbsorbHitKind::Unblockable;
+	}
 }
 
 namespace

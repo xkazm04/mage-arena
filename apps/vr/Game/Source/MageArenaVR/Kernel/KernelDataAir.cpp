@@ -7,6 +7,7 @@
 #include <cmath>
 
 using KernelDataLoad::CellNumber;
+using KernelDataLoad::EThreatFamily;
 using KernelDataLoad::MatchGroup;
 using KernelDataLoad::StrictNumber;
 
@@ -380,22 +381,14 @@ bool ParseAirSpellsCsv(const FString& Text, TArray<FAirSpell>& OutSpells, TArray
 		Spell.Blockable = Values[8];
 		Spell.MomentumGain = Values[11];
 		Spell.Notes = Notes;
-		if (Spell.Blockable == TEXT("UNBLOCKABLE"))
+		// Air keeps n/a as its family; HitFamily (Air.cpp) reads it as magic at the hit.
+		EThreatFamily Family = EThreatFamily::None;
+		FString Why;
+		if (!KernelDataLoad::ParseBlockable(Spell.Blockable, Family, Why))
 		{
-			Spell.Family = TEXT("unblockable");
+			return AirFail(Error, FString::Printf(TEXT("air row %s: %s"), *Spell.Id, *Why));
 		}
-		else if (Spell.Blockable == TEXT("absorbable"))
-		{
-			Spell.Family = TEXT("magic");
-		}
-		else if (Spell.Blockable == TEXT("n/a"))
-		{
-			Spell.Family = TEXT("n/a");
-		}
-		else
-		{
-			return AirFail(Error, FString::Printf(TEXT("air row %s: blockable cell not understood: %s"), *Spell.Id, *Spell.Blockable));
-		}
+		Spell.Family = KernelDataLoad::FamilyName(Family);
 		if (!ParseAirShape(Spell, Error) || !ParseAirDamage(Spell, Error) || !ParseAirMomentum(Spell, Error) || !ParseAirNotes(Spell, Error))
 		{
 			return false;
