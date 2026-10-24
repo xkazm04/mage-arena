@@ -13,9 +13,256 @@
     "credits": 400
   },
   "staging": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24",
-  "totalCredits": 0,
+  "totalCredits": 104,
   "note": "One entry per Leonardo generation call, failed calls included; reference uploads (v1 init-image, no generation, no credits) are under uploads. A PENDING entry (creditsSource reserved) is a call whose run ended before the call did; it counts at the expected cost. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback). file is outside every repo; sha256 binds it. latched is set by the first quota or HTTP 402 error, after which every call is refused.",
-  "calls": [],
-  "uploads": [],
+  "calls": [
+    {
+      "date": "2026-10-24T16:41:01.123Z",
+      "id": "arm-b",
+      "what": "step 0, consistency control arm B: a new subject conditioned on the sheet (S5 = Brennic master, S1)",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6001,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "master",
+          "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+          "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+          "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087"
+        }
+      ],
+      "prompt": "The attached images are style references, not content to copy: take only their rendering idiom, palette roles, shape simplicity and finish. Do not draw the people, the arena, the crowd, the fire, the water or the pose from them; draw only the subject described below. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic front view of an arena herald of the Roman era, a tall, lean, older man with a clean-shaven long face and short grey hair: an ankle-length tunic, a wide cloth sash at the waist, a cloak with a broad trimmed edge over his left shoulder, metal bands on both upper arms, a thin metal circlet on his head, simple leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, facing the camera directly. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "e70f88aec3d8678c06b56446d145b6c7fe3125627427750b0500d543eeb2779a",
+      "out": "arm-b-s6001-medium",
+      "generationId": "1f1cfc9b-41ea-6780-ac5b-eaa2be9cbc1f",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/arm-b-s6001-medium.jpg",
+      "sha256": "17056f5a4cbba397208ca25477a5f79c7704263064876a46c78357bb394e0f0b",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 79146
+    },
+    {
+      "date": "2026-10-24T16:41:32.357Z",
+      "id": "arm-c",
+      "what": "step 0, consistency control arm C: the same subject as arm B, unconditioned (no reference)",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6001,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [],
+      "prompt": "Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic front view of an arena herald of the Roman era, a tall, lean, older man with a clean-shaven long face and short grey hair: an ankle-length tunic, a wide cloth sash at the waist, a cloak with a broad trimmed edge over his left shoulder, metal bands on both upper arms, a thin metal circlet on his head, simple leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, facing the camera directly. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "17014d481b58aced55b7d1fb74e2758ef82f042577844fd4ecde495f49dd8b21",
+      "out": "arm-c-s6001-medium",
+      "generationId": "1f1cfc9c-5946-6950-a404-ea7d404f8833",
+      "status": "COMPLETE",
+      "credits": 14,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/arm-c-s6001-medium.jpg",
+      "sha256": "62f4fd7be7b846cd9e8ba3b1fc531d2a5995077aea0a169129d17ffb9383690f",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 78827
+    },
+    {
+      "date": "2026-10-24T16:42:32.160Z",
+      "id": "front",
+      "what": "Brennic multi-view master reference: front view",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6101,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "master",
+          "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+          "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+          "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087"
+        }
+      ],
+      "prompt": "The attached images are references, not content to copy. The first is the identity reference: the same man, his face, build, proportions, hair, beard and costume must match it exactly; it is the front view and it wins any disagreement. The second is a style reference only: take its rendering idiom, palette roles and finish, never its scene, lighting, people, crowd, fire, water or camera. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic front view of Brennic, the broad, stocky, middle-aged fire mage shown in the identity reference: bare-headed with short dark curly hair and a full dark beard, a strong brow; a heavy plain iron collar with a small square plate at the front; a knee-length muted brick red tunic with short sleeves; a wide mid-brown leather belt with a square buckle; a dark charcoal brown wool cloak over both shoulders, fastened at the chest with one round bronze brooch and hanging behind him to the back of the knees; broad mid-brown leather bands wrapped on both forearms and on both shins below the knee; simple strapped leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, head level and facing the same way as the body. He faces the camera directly, symmetrical. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "d80787fefa8217541b606a8861443653acfba5db8838f97644c534c5b6633fe0",
+      "out": "front-s6101-medium",
+      "generationId": "1f1cfc9e-9571-6310-b39e-55a8678cce7a",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/front-s6101-medium.jpg",
+      "sha256": "94d95257497af4ae8dd737311f1e91915466585c9536e5415f6e425f4ed181cf",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 77790
+    },
+    {
+      "date": "2026-10-24T16:43:06.417Z",
+      "id": "side",
+      "what": "Brennic multi-view master reference: right side view",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6102,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "master",
+          "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+          "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+          "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087"
+        }
+      ],
+      "prompt": "The attached images are references, not content to copy. The first is the identity reference: the same man, his face, build, proportions, hair, beard and costume must match it exactly; it is the front view and it wins any disagreement. The second is a style reference only: take its rendering idiom, palette roles and finish, never its scene, lighting, people, crowd, fire, water or camera. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic right side view, in exact profile, of Brennic, the broad, stocky, middle-aged fire mage shown in the identity reference: bare-headed with short dark curly hair and a full dark beard, a strong brow; a heavy plain iron collar with a small square plate at the front; a knee-length muted brick red tunic with short sleeves; a wide mid-brown leather belt with a square buckle; a dark charcoal brown wool cloak over both shoulders, fastened at the chest with one round bronze brooch and hanging behind him to the back of the knees; broad mid-brown leather bands wrapped on both forearms and on both shins below the knee; simple strapped leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, head level and facing the same way as the body. His right side faces the camera and he looks to the right of the image, the whole head and body turned 90 degrees from the front view, the arms in the same A-pose as the front view. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "71f36917df4e102a45529593e2983121202da189035d5ec8ecd40530db82b832",
+      "out": "side-s6102-medium",
+      "generationId": "1f1cfc9f-da65-6ab0-99fc-a1af7fd6908f",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/side-s6102-medium.jpg",
+      "sha256": "bd7c5d7dfb92f6ad1b994637287ffd640507f90c92e9014b4f5180a3e5e4230b",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 66997
+    },
+    {
+      "date": "2026-10-24T16:43:26.082Z",
+      "id": "back",
+      "what": "Brennic multi-view master reference: back view",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6103,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "master",
+          "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+          "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+          "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087"
+        }
+      ],
+      "prompt": "The attached images are references, not content to copy. The first is the identity reference: the same man, his face, build, proportions, hair, beard and costume must match it exactly; it is the front view and it wins any disagreement. The second is a style reference only: take its rendering idiom, palette roles and finish, never its scene, lighting, people, crowd, fire, water or camera. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic back view of Brennic, the broad, stocky, middle-aged fire mage shown in the identity reference: bare-headed with short dark curly hair and a full dark beard, a strong brow; a heavy plain iron collar with a small square plate at the front; a knee-length muted brick red tunic with short sleeves; a wide mid-brown leather belt with a square buckle; a dark charcoal brown wool cloak over both shoulders, fastened at the chest with one round bronze brooch and hanging behind him to the back of the knees; broad mid-brown leather bands wrapped on both forearms and on both shins below the knee; simple strapped leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, head level and facing the same way as the body. He faces directly away from the camera, symmetrical; the back of the head, the cloak hanging down his back and the backs of the legs are seen. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "4c814316a5736fcea593255c660cf0fdf957a556421859b30a76b3a27a7fda98",
+      "out": "back-s6103-medium",
+      "generationId": "1f1cfca0-9553-6ac0-afdf-0f6457444e6a",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/back-s6103-medium.jpg",
+      "sha256": "d0fb9ac74cca0763f369f66f442b80b590ee307ea08951f0eebf9d6215c09ab6",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 72479
+    },
+    {
+      "date": "2026-10-24T16:44:40.282Z",
+      "id": "side",
+      "what": "Brennic multi-view master reference: right side view",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 6104,
+      "quality": "MEDIUM",
+      "width": 768,
+      "height": 1376,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "master",
+          "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+          "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+          "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087"
+        }
+      ],
+      "prompt": "The attached images are references, not content to copy. The first is the identity reference: the same man, his face, build, proportions, hair, beard and costume must match it exactly; it is the front view and it wins any disagreement. The second is a style reference only: take its rendering idiom, palette roles and finish, never its scene, lighting, people, crowd, fire, water or camera. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body orthographic right side view, in exact profile, of Brennic, the broad, stocky, middle-aged fire mage shown in the identity reference: bare-headed with short dark curly hair and a full dark beard, a strong brow; a heavy plain iron collar with a small square plate at the front; a knee-length muted brick red tunic with short sleeves; a wide mid-brown leather belt with a square buckle; a dark charcoal brown wool cloak over both shoulders, fastened at the chest with one round bronze brooch and hanging behind him to the back of the knees; broad mid-brown leather bands wrapped on both forearms and on both shins below the knee; simple strapped leather sandals. He stands in a neutral A-pose: arms straight, held out and angled about 35 degrees down away from the torso so they do not touch the body or the cloak, open empty hands with fingers together, legs slightly apart, feet flat, head level and facing the same way as the body. His right side faces the camera and he looks to the right of the image, the whole head and body turned 90 degrees from the front view, the arms in the same A-pose as the front view. The whole figure from the top of the head to the soles of the sandals is visible, standing upright, centred, filling about 85 percent of the image height with the same empty margin above the head and below the feet, orthographic camera at chest height, on a plain flat light grey background with no gradient. A single figure. Avoid: scenery, floor, ground plane, contact shadow or any cast shadow, sand, crowd, arena, sky, fire, flames, glow, sparks, smoke, magic effects, weapon, staff, held objects, a second figure, a second view of the figure, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "71f36917df4e102a45529593e2983121202da189035d5ec8ecd40530db82b832",
+      "out": "side-s6104-medium",
+      "generationId": "1f1cfca3-595a-68e0-9066-875d0a2f6237",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24/side-s6104-medium.jpg",
+      "sha256": "00522178b36d2af78d8c28107ed0480d14c94d203c32f6da16ee5d20e6753977",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 70971
+    }
+  ],
+  "uploads": [
+    {
+      "date": "2026-10-24T16:41:01.123Z",
+      "ref": "master",
+      "file": "apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg",
+      "sha256": "34b43291deda6db6739413fc38febe4b5b0ee0a1701d1c3392cff78c8d3263d7",
+      "approval": "Brennic identity master and style sheet S5, approved 2026-10-24 by Athena under owner delegation",
+      "initImageId": "0c11a1e6-c424-4c6e-b6e3-97ed86e30b9b",
+      "status": "OK"
+    },
+    {
+      "date": "2026-10-24T16:41:02.381Z",
+      "ref": "S1",
+      "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+      "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+      "approval": "style sheet S1 (the north-star frame), approved 2026-10-24 by Athena under owner delegation",
+      "initImageId": "d6d0195e-0dd0-4558-a2e6-725456ce7087",
+      "status": "OK"
+    }
+  ],
   "latched": null
 }
