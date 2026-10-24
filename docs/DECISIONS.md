@@ -2,6 +2,44 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena: ce1d3ca ACCEPTED; the draw-call budget before any further asset
+
+> Athena, 2026-10-25 (shortly after 00:00Z, owner delegation), on ce1d3ca
+> (`docs/research/CREATURE-CAST-UE-2026-10-24.md`: the maw beside Brennic and the hound, the soft crack bloom, the cast at
+> 134 / 137 of 150 draw calls). The ruling is recorded as the dispatch brief relayed it, not verbatim.
+
+- **ce1d3ca is ACCEPTED.**
+- **The hound's soft crack bloom carries at 8 m** (`SoftIntensity` 1.2; the cracks stay orange).
+- **The maw's seam ledge is left until a re-mesh is worth it.** The colour step is fixed; the geometric ledge at the cut
+  stays for now.
+- **The order changes: the draw-call budget comes before any further asset.** Three creatures cost +25 draw calls
+  (D-G4 max 137 of 150), and the wave and crowd plans need more bodies. This is plan milestone 4 (desktop count budgets
+  met), and it gates every later creature.
+- **Brennic's back-cloak normal pass comes after the budget card.**
+- Run as `docs/research/DRAWCALL-BUDGET-2026-10-25.md`. Nothing ships: the DINOv3 hold stands. No signed number or
+  pinned band changes.
+
+**The creature budget policy the card settled** (the defaults of `CreatureImport::FCreatureBudget`, applied when a
+creature spawns, each with a command-line switch to measure it off). Athena may overrule any line.
+
+- **Before:** every mesh section costs a draw in the base pass, the depth prepass, velocity and both shadow cascades.
+- **After:** the three creatures add +12 / +11 draw calls over the no-creature baseline instead of +24 / +23 (D-G4 121 /
+  124 of 150), and a blind critic read the stills as SAME.
+- **Sections: one per creature.** The slots fold into the largest, in UE. The maw's tongue samples a body texel of its
+  colour. Saves 5 calls per two-slot creature.
+- **Velocity: no per-bone velocity** (`bPerBoneMotionBlur` off). A creature standing at its spot draws no velocity
+  pass. The project runs MSAA (no TAA or TSR), and Quest draws velocity only for TAA or space warp. Saves 1 call per
+  section. Revisit if space warp is turned on.
+- **Shadows: stay in the two cascades at the duel distance.**
+  - Off would save 2 calls per section, but a blind critic read it as a visible loss of grounding at 8 m.
+  - Inset (per-object) shadows cost more calls on desktop and draw none on Quest by default. Not used.
+  - A distance cutoff exists as a lever, default off; the far ring was not shot.
+- **LODs: LOD1 (50 % of the triangles) from 12 m and LOD2 (25 %) from 20 m**, for the seated Quest 3 eye: the near ring
+  (8 m) keeps LOD0, the far ring (15 m) draws LOD1.
+  - LOD1 at 8 m would cut 27k BasePass triangles, at a MINOR critic read. It stays an open question, not a default.
+- **Headroom:** a further creature costs 4 calls at the near ring. A fourth lands at about 128 and a fifth at about 132
+  of 150.
+
 ## 2026-10-24 - Athena 20:46Z: the maw ACCEPTED as a working asset; split-and-merge is the path; the seam fix ordered
 
 > Athena, 2026-10-24 20:46Z (owner delegation), on 6fc79bf (`docs/research/MAW-MV-2026-10-24.md`: the two-view
