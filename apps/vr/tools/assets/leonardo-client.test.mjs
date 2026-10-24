@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { ENV_FILES, NIGHT_ROOTS, isImage, nightArts, nightTotal, pollGeneration, readKey, settleCredits, writeLog } from './leonardo-client.mjs';
+import crypto from 'node:crypto';
+import { ENV_FILES, NIGHT_ROOTS, imageReferenceGuidance, isImage, nightArts, nightTotal, pollGeneration, readKey, routingEvidence, settleCredits, uploadInitImage, writeLog } from './leonardo-client.mjs';
 
 test('settleCredits: the API-reported cost wins over the balance difference', () => {
   assert.deepEqual(settleCredits({ reported: 7, before: 100, after: 90, generationId: 'g', expected: 14 }), { credits: 7, creditsSource: 'api' });
@@ -126,4 +127,41 @@ test('nightTotal: the same generation id in the main checkout and a worktree cou
   writeLog(path.join(art(dir, 'trees', 'a'), 'y', 'leonardo-log.json'), { calls: [{ date: `${day}T17:00:00Z`, generationId: 'g3', credits: 6 }] });
   assert.equal(nightTotal(nightArts(path.join(dir, 'trees', 'a'), roots), day), 34);
   fs.rmSync(dir, { recursive: true });
+});
+
+test('imageReferenceGuidance: uploaded ids become image_reference entries', () => {
+  assert.deepEqual(imageReferenceGuidance(['a', 'b']), { image_reference: [{ image: { id: 'a', type: 'UPLOADED' } }, { image: { id: 'b', type: 'UPLOADED' } }] });
+  assert.deepEqual(imageReferenceGuidance([]), { image_reference: [] });
+});
+test('uploadInitImage: asks for a slot, posts the file with the slot fields, returns the id; no network', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leo-up-'));
+  const file = path.join(dir, 'ref.jpg');
+  const bytes = Buffer.from([0xff, 0xd8, 0xff, 1, 2, 3]);
+  fs.writeFileSync(file, bytes);
+  const hash = crypto.createHash('sha256').update(bytes).digest('hex');
+  const seen = [];
+  const real = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    seen.push({ url: String(url), method: init?.method, body: init?.body });
+    if (String(url).endsWith('/v1/init-image')) {
+      return new Response(JSON.stringify({ uploadInitImage: { id: 'init-1', url: 'https://slot.example/up', fields: JSON.stringify({ key: 'k1' }) } }), { status: 200 });
+    }
+    return new Response('', { status: 201 });
+  };
+  try {
+    assert.equal(await uploadInitImage('KEY', file, { sha256: hash }), 'init-1');
+    assert.equal(seen.length, 2);
+    assert.equal(JSON.parse(seen[0].body).extension, 'jpg');
+    assert.equal(seen[1].url, 'https://slot.example/up');
+    assert.equal(seen[1].body.get('key'), 'k1');
+    assert.equal(seen[1].body.get('file').size, bytes.length);
+    seen.length = 0;
+    await assert.rejects(uploadInitImage('KEY', file, { sha256: 'f'.repeat(64) }), /REFUSED/);
+    assert.equal(seen.length, 0, 'a hash mismatch is refused before any request');
+  } finally {
+    globalThis.fetch = real;
+  }
+});
+test('routingEvidence: keeps guidance and reference fields only', () => {
+  assert.deepEqual(routingEvidence({ guidanceScale: null, prompt: 'x', generation_elements: [] }), { guidanceScale: 'null', generation_elements: '[]' });
 });

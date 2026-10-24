@@ -3,6 +3,7 @@
 // Nothing here makes a call by itself. The key is read at run time (readKey: the LEONARDO_API_KEY environment variable,
 // else the first untracked .env of ENV_FILES that has it) and never printed, logged or written: every response body passes through redact before it is parsed or cut, so a key echoed back by the API,
 // even across a truncation boundary, never reaches a log, stdout, stderr or an error message.
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -190,4 +191,45 @@ export function nightTotal(arts, day = new Date().toISOString().slice(0, 10)) {
     }
   }
   return [...seen.values()].reduce((n, x) => n + x, 0);
+}
+
+/** The `parameters.guidances` block of a v2 generation that carries uploaded init images as image references. */
+export const imageReferenceGuidance = (ids) => ({ image_reference: ids.map((id) => ({ image: { id, type: 'UPLOADED' } })) });
+
+/**
+ * Uploads `file` as a Leonardo init image and returns its id (one POST /v1/init-image for the slot, one multipart POST to
+ * the slot's URL, no credits). With `sha256` set, a file that does not hash to it is refused before any request.
+ */
+export async function uploadInitImage(key, file, { sha256 } = {}) {
+  const buf = fs.readFileSync(file);
+  if (sha256) {
+    const got = crypto.createHash('sha256').update(buf).digest('hex');
+    if (got !== sha256) throw new Error(`REFUSED: ${path.basename(file)} is not the expected image (sha256 ${got})`);
+  }
+  const ext = path.extname(file).slice(1).toLowerCase();
+  if (!['png', 'jpg', 'jpeg', 'webp'].includes(ext)) throw new Error(`reference image extension ${ext} is not png, jpg, jpeg or webp`);
+  const res = await call(key, 'POST', `${API}/v1/init-image`, { extension: ext });
+  const slot = res.uploadInitImage;
+  if (!slot?.id || !slot.url) throw new Error(`no upload slot in the init-image reply: ${JSON.stringify(res).slice(0, 300)}`);
+  const fields = typeof slot.fields === 'string' ? JSON.parse(slot.fields) : slot.fields ?? {};
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) form.append(k, String(v));
+  form.append('file', new Blob([buf], { type: ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg' }), path.basename(file));
+  const put = await fetch(slot.url, { method: 'POST', body: form });
+  if (![200, 201, 204].includes(put.status)) throw new Error(`upload slot answered HTTP ${put.status}`);
+  return slot.id;
+}
+
+/** The guidance, reference and element fields of a finished generation (the proof the reference reached the request). */
+export function routingEvidence(g) {
+  const out = {};
+  const walk = (o, p, depth) => {
+    if (!o || typeof o !== 'object' || depth > 3) return;
+    for (const [k, v] of Object.entries(o)) {
+      if (/guidance|reference|init_?image|controlnet|element/i.test(k)) out[p + k] = JSON.stringify(v ?? null).slice(0, 300);
+      else if (v && typeof v === 'object' && k !== 'generated_images') walk(v, `${p}${k}.`, depth + 1);
+    }
+  };
+  walk(g, '', 0);
+  return out;
 }

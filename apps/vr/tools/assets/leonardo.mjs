@@ -3,6 +3,9 @@
 // Adapted from kiro/bp scripts/lookdev/leonardo.mjs (its call recipe lives in leonardo-client.mjs).
 //
 //   node apps/vr/tools/assets/leonardo.mjs gen [--asset conscript] --view front --seed 101 --quality MEDIUM [--out name.png]
+//   node apps/vr/tools/assets/leonardo.mjs gen --asset mire-maw --view back-ref --seed 7301 --ref <image> --ref-sha256 <hex> --staging <dir>
+//       --ref uploads <image> (sha256-checked when --ref-sha256 is given) and sends it as the call's image_reference;
+//       --staging saves the image and a .sha256 file in <dir> (outside every repo) instead of the asset folder
 //   node apps/vr/tools/assets/leonardo.mjs total [--asset conscript]    the credit total of the asset's cap group from the logs
 //   node apps/vr/tools/assets/leonardo.mjs prompt [--asset conscript] --view front    print the composed prompt, no call
 //   node apps/vr/tools/assets/leonardo.mjs night    the project's credits for today (UTC) from every log, against NIGHT_CAP
@@ -17,10 +20,11 @@
 // request is sent and replaced when the call ends. The logged total of a cap group may never pass its cap,
 // and the project's total for the UTC day (every leonardo-log.json under apps/vr/art/ of this tree, the
 // main checkout and the sibling worktrees, read only, each generation counted once) may never pass NIGHT_CAP.
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { API, COST, MODEL, NIGHT_CAP, balance, call, pollGeneration, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, saveImage, settleCredits, sumCredits, writeLog as writeLogTo } from './leonardo-client.mjs';
+import { API, COST, MODEL, NIGHT_CAP, balance, call, imageReferenceGuidance, pollGeneration, nightArts, nightTotal as nightTotalOf, readKey, redact, reportedCost, routingEvidence, saveImage, settleCredits, sumCredits, uploadInitImage, writeLog as writeLogTo } from './leonardo-client.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 const CHARS = path.join(ROOT, 'apps/vr/art/characters');
@@ -88,6 +92,28 @@ const MIRE_MAW_SUBJECT =
 const MIRE_MAW_POSE =
   'It squats on its short legs in a neutral pose: the mouth closed, the small arms resting on the belly, the feet flat ' +
   'and apart. No reeds, no thin spikes, no water, no splashes, no effects.';
+// The maw's back (2026-10-24, docs/research/MAW-BACK-2026-10-24.md): drawn from the accepted open-gape master sent as an
+// image_reference, so the back is the same creature in the same look. The reference is not content to copy: the back must
+// be a closed shell.
+const MIRE_MAW_BACK_REF = {
+  width: 1376,
+  height: 768,
+  text:
+    'The attached image is the approved identity master of a mire maw seen from the front. Draw the same single creature ' +
+    'seen from directly behind, the camera turned 180 degrees around it to look at its back, with exactly the same ' +
+    'rendering style, mud-brown warty hide with darker brown lumps and blunt pebble-like bumps, lighter tan underside, ' +
+    'the same proportions, the same size, the same camera height, the same framing and the same plain flat light grey ' +
+    'background as the attached image. Seen from behind: the broad, low, heavy rounded back covered with the same warty ' +
+    'lumps, the wide flat back of the head merged into the body with the two small yellow eyes just visible on low bulges ' +
+    'at the top edge, the two thick bowed rear legs with wide flat clawed feet planted on both sides, and the front feet ' +
+    'just visible beyond the sides of the body. The back is one closed, whole, solid shell of continuous hide: no tears, ' +
+    'no holes, no gaps, no open mouth, no teeth and no throat visible, no hollow, no cut-away. The whole creature from ' +
+    'the top of the back to the soles of the feet is fully visible with an empty margin on every side, centred and ' +
+    'filling about 80 percent of the image width. Matte surfaces, one flat colour per material, no fine texture detail, ' +
+    'no outlines, soft even studio light, no cast shadow, no contact shadow. Avoid: scenery, floor, ground plane, sand, ' +
+    'sky, flames, glow, sparks, smoke, steam, water, magic effects, a second creature, a second view, props, labels, ' +
+    'captions, text, grid lines, colour swatches.',
+};
 const BEAST_LOOK_HEAD =
   'Game-ready 3D creature model reference for a modeller: simple large readable shapes, chunky forms, matte surfaces, ' +
   'one flat colour per material with no pattern and no texture detail. Palette blocks: ';
@@ -133,7 +159,7 @@ const ASSETS = {
   },
   'mire-maw': {
     card: 'T15', title: 'Mire maw concept', subject: MIRE_MAW_SUBJECT, pose: MIRE_MAW_POSE,
-    group: ['cinder-hound', 'mire-maw'], cap: 112, views: beastViews([1376, 768], false),
+    group: ['cinder-hound', 'mire-maw'], cap: 112, views: (A) => ({ ...beastViews([1376, 768], false)(A), 'back-ref': MIRE_MAW_BACK_REF }),
     look: `${BEAST_LOOK_HEAD}skin bog olive green-brown, belly lighter muddy tan, moss mat dark mossy green, lips and ` +
       `mouth slot dark mud brown, eyes pale yellow, pebbles grey.${LOOK_TAIL}`,
   },
@@ -199,6 +225,10 @@ async function gen() {
   const quality = opt('quality', 'MEDIUM').toUpperCase();
   if (!(quality in COST)) throw new Error('quality must be LOW, MEDIUM or HIGH');
   if (!Number.isInteger(seed)) throw new Error('seed must be an integer');
+  const refFile = opt('ref');
+  const refSha = opt('ref-sha256');
+  const staging = opt('staging');
+  if (refSha && !refFile) throw new Error('--ref-sha256 needs --ref');
   const outName = opt('out', `concept-${viewId}-s${seed}-${quality.toLowerCase()}`);
   if (path.basename(outName) !== outName) throw new Error('--out is a file name inside the asset folder');
 
@@ -213,20 +243,30 @@ async function gen() {
   }
 
   const key = readKey();
-  const body = {
-    model: MODEL,
-    public: false,
-    parameters: { width: view.width, height: view.height, prompt_enhance: 'OFF', quality, quantity: 1, seed, prompt: view.text },
-  };
+  const parameters = { width: view.width, height: view.height, prompt_enhance: 'OFF', quality, quantity: 1, seed, prompt: view.text };
   const entry = {
     date: new Date().toISOString(), view: viewId, model: MODEL, public: false, prompt: view.text, seed, quality,
     width: view.width, height: view.height, generationId: null, status: 'ERROR', credits: 0, creditsSource: null, file: null,
   };
+  if (refFile) {
+    // the hash is checked before anything is logged or sent
+    const got = crypto.createHash('sha256').update(fs.readFileSync(refFile)).digest('hex');
+    if (refSha && got !== refSha) {
+      console.error(`REFUSED: ${refFile} is not the expected image (sha256 ${got})`);
+      process.exit(2);
+    }
+    entry.refs = [{ file: path.resolve(refFile).split('\\').join('/'), sha256: got, initImageId: null }];
+  }
   // Logged before the first billed request: a run killed mid-call, or one started meanwhile, still counts these credits.
   writeLog([...log, { ...entry, status: 'PENDING', credits: COST[quality], creditsSource: 'reserved' }]);
   const before = await balance(key);
   let reported = null;
   try {
+    if (refFile) {
+      entry.refs[0].initImageId = await uploadInitImage(key, refFile, { sha256: refSha });
+      parameters.guidances = imageReferenceGuidance([entry.refs[0].initImageId]);
+    }
+    const body = { model: MODEL, public: false, parameters };
     const created = await call(key, 'POST', `${API}/v2/generations`, body);
     entry.generationId = created.generate?.generationId ?? created.generationId ?? null;
     reported = reportedCost(created);
@@ -234,12 +274,19 @@ async function gen() {
     const { status, generation: g } = await pollGeneration(
       async (gid) => (await call(key, 'GET', `${API}/v1/generations/${gid}`)).generations_by_pk, entry.generationId);
     entry.status = status;
+    if (refFile) entry.routing = routingEvidence(g);
     reported ??= reportedCost(g);
     const url = (g?.generated_images ?? [])[0]?.url;
     if (entry.status === 'COMPLETE' && url) {
-      const { dest, bytes } = await saveImage(url, DIR, outName);
-      entry.file = path.relative(ROOT, dest).replaceAll('\\', '/');
+      const { dest, bytes } = await saveImage(url, staging ? path.resolve(staging) : DIR, outName);
       entry.bytes = bytes;
+      if (staging) {
+        entry.file = dest.replaceAll('\\', '/');
+        entry.sha256 = crypto.createHash('sha256').update(fs.readFileSync(dest)).digest('hex');
+        fs.writeFileSync(`${dest}.sha256`, `${entry.sha256} *${path.basename(dest)}\n`);
+      } else {
+        entry.file = path.relative(ROOT, dest).replaceAll('\\', '/');
+      }
     }
   } catch (e) {
     entry.error = redact(e.message ?? e, key).slice(0, 500);
