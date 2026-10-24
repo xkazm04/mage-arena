@@ -15,13 +15,18 @@ The same pair is copied into the stress proxy, and the reserved red is hand-type
 - `CLAUDE.md`, `docs/DECISIONS.md` (they outrank this card if they conflict)
 - `docs/ORCHESTRATION.md` role table: only the owner certifies what the eyes judge. This card produces evidence for the owner;
   it does not certify its own colours.
-- Code (symbols are the anchor; line numbers are only where they stood on 2026-10-21):
-  - `Session/SessionPresentation.cpp`: the enemy body builder sets `Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f,
-    0.02f, 0.02f))` and `Created.HpFill = MakePart(TEXT("Cube"), HpColour)` (:215-216); `HpColour(0.65f, 0.08f, 0.05f)` is
-    the file-scope constant (:46). The same `HpColour` also colours the player cuff `HpBar` (:512) - decide on purpose
-    whether that one changes too (Deliverable 1).
-  - `Budget/BudgetStressDriver.cpp`: `HpBackColour(0.02f, 0.02f, 0.02f)` and `HpColour(0.65f, 0.08f, 0.05f)` (:55-56), a
-    verbatim copy used by the stress rig's `HpBack`/`HpFill` (:250-251).
+- Code (symbols are the anchor; line numbers are where they stood at the 2026-10-24 refresh, `d4bbdaf` plus the bead fix):
+  - **2026-10-24 refresh.** Since `6bb7f44` (T46) the HP colours live only in `Session/PresentationLook.cpp`: the
+    file-scope `HpBack(0.02f, 0.02f, 0.02f)` and `HpFill(0.65f, 0.08f, 0.05f)` (:26-27), read through
+    `PresentationLook::HpBackColour()` and `PresentationLook::HpFillColour()` (declared in `Session/PresentationLook.h`
+    :28-30). The colour values did not change; only their home did.
+  - `Session/SessionPresentation.cpp`: the enemy body builder sets `Created.HpBack = MakePart(TEXT("Cube"),
+    PresentationLook::HpBackColour())` and `Created.HpFill = MakePart(TEXT("Cube"), PresentationLook::HpFillColour())`
+    (:191-192). The same `HpFillColour()` also colours the player cuff `HpBar` (:533) - decide on purpose whether that one
+    changes too (Deliverable 1).
+  - `Budget/BudgetStressPlan.cpp`: since T46 the stress plan keeps no copy; its census reads
+    `PresentationLook::HpBackColour()` / `HpFillColour()` (:186-187), and the stress capture draws the real
+    `ASessionPresentation`. The old `BudgetStressDriver.cpp` `HpBackColour` / `HpColour` copy is gone.
   - The reserved pair: `Session/ElementColour.cpp` `Palette.UnblockableBody (0.006995, 0.006995, 0.008023)` and
     `Palette.UnblockableRim (0.745404, 0.014444, 0.009134)` (:51-52), read back through `ActiveElementPalette()`.
   - Other typings of the unblockable red found on 2026-10-21: `apps/vr/data/vr/arena-layout.json` (threat of kind
@@ -36,14 +41,16 @@ The same pair is copied into the stress proxy, and the reserved red is hand-type
 - Tests: `Tests/GreyboxTests.cpp` (`IsBlackCore`, `IsRedRim`, the layout threat checks), `Tests/ColourTests.cpp`.
 
 ## Deliverables (exact paths)
-1. `Session/SessionPresentation.cpp`: the enemy HP bar (back and fill) no longer pairs near-black with red. Pick a scheme that
+1. `Session/PresentationLook.cpp` (the HP colours' one home since the 2026-10-24 refresh; `Session/SessionPresentation.cpp`
+   only reads them): the enemy HP bar (back and fill) no longer pairs near-black with red. Pick a scheme that
    stays a **readable health bar** at the seated viewing distance (the bar is 70 x 8 x 8 cm over the enemy, seen from the
    dais) and that collides with neither the element palette (water turquoise, fire ember orange, air green, earth) nor the
    steel/dodge cue (white/grey). Keep clear contrast between back and fill; the back must not be near-black, and no part of
    the bar may be a red rim on a dark core. State the colours chosen and why in the report. Decide and state whether the
-   player cuff `HpBar` (:512, same constant) keeps its red; it is not a black pair, but check it against the law too.
+   player cuff `HpBar` (`SessionPresentation.cpp` :533, same constant) keeps its red; it is not a black pair, but check it against the law too.
 2. `Budget/BudgetStressDriver.cpp`: the stress proxy's HP colours are the same constants as the game's, not a second copy, so
    they cannot diverge (move them to one shared header, for example next to `ElementColour.h`, or read the game's).
+   (2026-10-24 refresh: already met by T46 - `Budget/BudgetStressPlan.cpp` reads `PresentationLook`; verify, do not redo.)
 3. Single-source the unblockable red: `FElementPalette` (`ElementColour.h/.cpp`) is the one definition in code.
    `BudgetFx.cpp` reads `ActiveElementPalette().UnblockableRim` (or the palette default) instead of `RimRedColour`;
    reconcile 0.8/0.02/0.02 against 0.745404/0.014444/0.009134 in favour of the palette value and say so. For the layout
