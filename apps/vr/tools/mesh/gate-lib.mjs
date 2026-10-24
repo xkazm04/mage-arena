@@ -115,7 +115,7 @@ export function scoreImage(stats, view = 'front', opts = {}) {
   // uncropped within the frame
   if (main) {
     const [x0, y0, x1, y1] = main.bbox;
-    const margins = { left: x0, top: y0, right: 1 - x1, bottom: 1 - y1 };
+    const margins = { left: x0, top: y0, right: Number((1 - x1).toFixed(4)), bottom: Number((1 - y1).toFixed(4)) };
     const least = Math.min(...Object.values(margins));
     const side = Object.keys(margins).find((k) => margins[k] === least);
     if (least < t.minMargin) {
