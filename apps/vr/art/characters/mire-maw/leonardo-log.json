@@ -3,8 +3,8 @@
   "asset": "Mire maw concept",
   "model": "openai/gpt-image-2.5-flare",
   "runCap": 112,
-  "totalCredits": 56,
-  "note": "One entry per Leonardo call, failed calls included. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).",
+  "totalCredits": 72,
+  "note": "One entry per Leonardo call, failed calls included. A PENDING entry (creditsSource reserved) is a call whose run ended before the call did; it counts at the expected cost. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback).",
   "calls": [
     {
       "date": "2026-10-21T12:26:27.597Z",
@@ -39,6 +39,35 @@
       "creditsSource": "api",
       "file": "apps/vr/art/characters/mire-maw/concept-turnaround-s4402-medium.jpg",
       "bytes": 76886
+    },
+    {
+      "date": "2026-10-24T19:19:48.125Z",
+      "view": "back-ref",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "prompt": "The attached image is the approved identity master of a mire maw seen from the front. Draw the same single creature seen from directly behind, the camera turned 180 degrees around it to look at its back, with exactly the same rendering style, mud-brown warty hide with darker brown lumps and blunt pebble-like bumps, lighter tan underside, the same proportions, the same size, the same camera height, the same framing and the same plain flat light grey background as the attached image. Seen from behind: the broad, low, heavy rounded back covered with the same warty lumps, the wide flat back of the head merged into the body with the two small yellow eyes just visible on low bulges at the top edge, the two thick bowed rear legs with wide flat clawed feet planted on both sides, and the front feet just visible beyond the sides of the body. The back is one closed, whole, solid shell of continuous hide: no tears, no holes, no gaps, no open mouth, no teeth and no throat visible, no hollow, no cut-away. The whole creature from the top of the back to the soles of the feet is fully visible with an empty margin on every side, centred and filling about 80 percent of the image width. Matte surfaces, one flat colour per material, no fine texture detail, no outlines, soft even studio light, no cast shadow, no contact shadow. Avoid: scenery, floor, ground plane, sand, sky, flames, glow, sparks, smoke, steam, water, magic effects, a second creature, a second view, props, labels, captions, text, grid lines, colour swatches.",
+      "seed": 7301,
+      "quality": "MEDIUM",
+      "width": 1376,
+      "height": 768,
+      "generationId": "1f1cfdfe-329c-6c60-80ab-4ac4c66851ad",
+      "status": "COMPLETE",
+      "credits": 16,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/maw-back-2026-10-24/maw-back-s7301-medium.jpg",
+      "refs": [
+        {
+          "file": "C:/Users/kazda/mage-art-staging/creature-masters-2026-10-24/maw-open-gape-s7202-medium.jpg",
+          "sha256": "12a569aa7d0b0d16489506cda399c904118078f4b4e23358e71e6d1e9dd3e6a4",
+          "initImageId": "003b0da4-d0e3-4160-9748-889dd9cab353"
+        }
+      ],
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 77184,
+      "sha256": "e5a1c94cdbeee2bb08b0c7309dbe6645d9675303eedd1189cf7c9616fbdf2bcc"
     }
   ]
 }
