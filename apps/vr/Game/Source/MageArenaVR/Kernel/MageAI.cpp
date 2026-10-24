@@ -893,5 +893,10 @@ FInputFrame MageInput(FArenaState& State, FActor& Self, const FVrRuleset* Rules)
 	}
 	ConsiderFireWall(State, Self, Brain, Profile, Result, Rules);
 	Brain.Input.bRoll = false;
+	if (Rules)
+	{
+		// T39 DF-006 B: a rival's phase-break beat holds the brain's frame (null Rules = pinned path).
+		Rules->ApplyRivalBeat(State, Self, Result);
+	}
 	return Result;
 }

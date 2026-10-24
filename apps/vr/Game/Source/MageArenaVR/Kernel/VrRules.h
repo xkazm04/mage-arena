@@ -161,6 +161,8 @@ struct FVrRival
 	FString WaveKind;
 	TArray<FVrRivalPhase> Phases;
 	int32 SurgeTiers = 1;
+	// T39 DF-006 B: seconds of the phase-break beat (warded, no cast). 0: no beat.
+	double PhaseBeatS = 0.0;
 };
 
 // T21: who fights the Tiro final (the last Tiro wave). combat.vr.json tiroFinal. Rival empty: a mage of School with no
@@ -185,6 +187,8 @@ struct FVrRivalRuntime
 	FString GrantSpell;
 	// Tick the granted cast started. -1 until it does.
 	int32 GrantTick = -1;
+	// T39 DF-006 B: the last tick of the current phase-break beat. -1 when no beat has run.
+	int32 BeatUntil = -1;
 };
 
 // True when the segment crosses the arc. OutT is along From -> To. A graze that stays outside does not count.
@@ -279,6 +283,9 @@ struct FVrRuleset
 	bool IsRival(int32 ActorId) const;
 	// Phase breaks for the bound rival. StepArena calls it once per tick, after hits resolve and before the tier clock.
 	void TickRivalPhases(FArenaState& State);
+	// T39 DF-006 B: during a phase-break beat the bound rival's brain input is held: no cast, wall, roll or move.
+	// Input is the frame for the next tick (State.Tick + 1). MageInput calls it last.
+	void ApplyRivalBeat(const FArenaState& State, const FActor& Actor, FInputFrame& Input) const;
 	// Starts the granted signature when the bound rival is free. True when it started.
 	bool TryGrantedCast(FArenaState& State, FActor& Actor, const FSimVec& Aim);
 };

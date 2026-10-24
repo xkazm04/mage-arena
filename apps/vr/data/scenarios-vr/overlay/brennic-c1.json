@@ -1,9 +1,9 @@
 {
   "card": "T54",
   "variant": "live",
-  "overlaySha256": "1107919320ad52220224e3c437b14863cef9cfae317137bf1b90ed5a8a76ff8c",
+  "overlaySha256": "d6a5e96acf9fceb38a39db8c281d176c808d71fcb8de9c242aa0420fbdbbcb03",
   "files": {
-    "combat.vr.json": "b7add58dc4bfa8cccd7d2dcf54bdc8b1c38415ce0ab15fbe71bf977fddc77f0b",
+    "combat.vr.json": "ebff5bee88aa84b0203db94105afb5eb6770d5a187072c1333d3785f692d7e5b",
     "arena-layout.json": "e8230f0f56ebc464b2f69d45bdad556056c7229317c18c034e0d28cdd41b5a3a",
     "collar.json": "2d8885e3d66a5ee5340a39224d835d9ed405af996a7657ad453be7eb6913188a",
     "schools/spells-air.csv": "45df014c42cb414dc6c7be96eb4dbb7a0fe58b40425ea1d8426cd98f1f0657aa"
@@ -16,22 +16,22 @@
   "airFinal": 0,
   "outcome": "loss",
   "phase": "lost",
-  "ticks": 1030,
-  "durationS": 17.166667,
-  "hash": "23ea3b26",
+  "ticks": 1339,
+  "durationS": 22.316667,
+  "hash": "6ece4953",
   "sunfallCast": 0,
   "sunfallRelease": 0,
   "sunfall": 0,
   "hp": 0.000000,
-  "mana": 49.781250,
+  "mana": 40.062500,
   "wavesCleared": 0,
   "wallsRaised": 2,
   "kind": "Ember mage 1",
   "events": {
-    "cast": 85,
+    "cast": 106,
     "down": 1,
     "hit": 17,
-    "miss": 35,
+    "miss": 49,
     "phase": 1,
     "unlock": 2
   }

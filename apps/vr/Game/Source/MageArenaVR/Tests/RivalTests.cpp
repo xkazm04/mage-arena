@@ -243,6 +243,13 @@ TArray<FArenaEvent> EventsAt(const FArenaState& State, int32 Tick, const TCHAR* 
 	return Out;
 }
 
+// T39 DF-006 B: the threshold, surge and grant tests run without the phase-break beat (combat.vr.json
+// rivals.brennic.phaseBeatS 3: a 3 s stage ward with no cast, which holds later hits and the grant). Rivals.PhaseBeat pins it.
+void NoBeat(FRivalRig& Rig)
+{
+	Rig.Rules.Rivals[Rig.Rules.RivalRuntime.RivalIndex].PhaseBeatS = 0.0;
+}
+
 bool PendingSunfall(const FActor& Actor)
 {
 	return Actor.Pending.IsSet() && Actor.Pending->SpellId.IsSet() && Actor.Pending->SpellId.GetValue() == TEXT("fire_sunfall");
@@ -386,6 +393,7 @@ bool FMageArenaRivalsThresholds::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	NoBeat(Rig);
 	bool bPass = true;
 	// 95 - 32.29 = 62.71, above 95 x 0.66 = 62.7: no break.
 	int32 Tick = HitRival(Rig, 32.29);
@@ -434,6 +442,7 @@ bool FMageArenaRivalsDoubleBreak::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	NoBeat(Rig);
 	// 95 - 70 = 25: below both 62.7 and 31.35 in one hit.
 	const int32 Tick = HitRival(Rig, 70.0);
 	bool bPass = TestTrue(TEXT("25 left"), std::abs(RivalOf(Rig).Hp - 25.0) < 1.0e-9);
@@ -509,6 +518,7 @@ bool FMageArenaRivalsGrantedSunfall::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	NoBeat(Rig);
 	const FFireSpell* Sun = FindFireSpell(TEXT("fire_sunfall"));
 	if (!TestNotNull(TEXT("fire_sunfall row"), Sun))
 	{
@@ -565,6 +575,7 @@ bool FMageArenaRivalsOnce::RunTest(const FString& Parameters)
 		{
 			return false;
 		}
+		NoBeat(Rig);
 		// A Sunfall the AI already loosed, with its 25 s cooldown running, does not stop the granted one.
 		RivalOf(Rig).Fire.bSunfallLoosed = true;
 		RivalOf(Rig).Fire.Cooldowns.Add({TEXT("fire_sunfall"), Rig.State.Tick + SimTicks(25.0)});
@@ -594,6 +605,7 @@ bool FMageArenaRivalsOnce::RunTest(const FString& Parameters)
 		{
 			return false;
 		}
+		NoBeat(Rig);
 		// Mid-cast: the rival holds an Ember Dart windup that releases in 30 ticks. The grant waits for it.
 		FPendingCast Dart;
 		Dart.Kind = TEXT("fire");
@@ -615,6 +627,76 @@ bool FMageArenaRivalsOnce::RunTest(const FString& Parameters)
 		bPass &= TestTrue(TEXT("the dart flew"), Rig.State.Projectiles.ContainsByPredicate([&](const FProjectile& Shot) { return Shot.OwnerId == Rig.RivalId; }));
 		bPass &= TestTrue(TEXT("break came first"), Tick < Dart.ReleaseTick);
 	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaRivalsPhaseBeat, "MageArena.Rivals.PhaseBeat",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaRivalsPhaseBeat::RunTest(const FString& Parameters)
+{
+	FRivalRig Rig;
+	if (!OpenRig(*this, Rig))
+	{
+		return false;
+	}
+	// T39 DF-006 B. combat.vr.json rivals.brennic.phaseBeatS 3 at combat.json simStepHz 60 is 180 ticks.
+	const FVrRival* Rival = Rig.Rules.BoundRival();
+	if (!TestNotNull(TEXT("Brennic bound"), Rival))
+	{
+		return false;
+	}
+	bool bPass = TestEqual(TEXT("phaseBeatS 3"), Rival->PhaseBeatS, 3.0);
+	bPass &= TestEqual(TEXT("three seconds is 180 ticks"), SimTicks(3.0), 180);
+	// First break: 95 - 33 = 62 <= 62.7.
+	const int32 Break = HitRival(Rig, 33.0);
+	bPass &= TestEqual(TEXT("the first break"), Rig.Rules.RivalRuntime.PhasesBroken, 1);
+	bPass &= TestEqual(TEXT("the beat runs to the break tick + 180"), Rig.Rules.RivalRuntime.BeatUntil, Break + 180);
+	// The brain's frame is held: no cast, wall, roll, palm ward or step.
+	FInputFrame Wants = SimIdleInput(KernelData().PlayerSpawn);
+	Wants.bCast = true;
+	Wants.bRoll = true;
+	Wants.bAbsorb = true;
+	Wants.bRaiseFireWall = true;
+	Wants.Move = FSimVec{1.0, 0.0};
+	Rig.Rules.ApplyRivalBeat(Rig.State, RivalOf(Rig), Wants);
+	bPass &= TestFalse(TEXT("beat: no cast"), Wants.bCast);
+	bPass &= TestFalse(TEXT("beat: no roll"), Wants.bRoll);
+	bPass &= TestFalse(TEXT("beat: no palm ward (the stage ward costs no mana)"), Wants.bAbsorb);
+	bPass &= TestFalse(TEXT("beat: no fire wall"), Wants.bRaiseFireWall);
+	bPass &= TestTrue(TEXT("beat: no step"), Wants.Move.X == 0.0 && Wants.Move.Y == 0.0);
+	// The player is not held.
+	FInputFrame Player = SimIdleInput();
+	Player.bCast = true;
+	Rig.Rules.ApplyRivalBeat(Rig.State, PlayerOf(Rig), Player);
+	bPass &= TestTrue(TEXT("the player's frame is untouched"), Player.bCast);
+	// Warded: a hit inside the beat does not land.
+	const double Hp = RivalOf(Rig).Hp;
+	const double Mana = RivalOf(Rig).Mana;
+	HitRival(Rig, 10.0);
+	bPass &= TestEqual(TEXT("a hit in the beat does not land"), RivalOf(Rig).Hp, Hp);
+	bPass &= TestEqual(TEXT("the stage ward costs no mana"), RivalOf(Rig).Mana, Mana);
+	while (Rig.State.Tick < Rig.Rules.RivalRuntime.BeatUntil)
+	{
+		StepArena(Rig.State, TMap<int32, FInputFrame>(), &Rig.Rules);
+	}
+	FInputFrame Free = SimIdleInput(KernelData().PlayerSpawn);
+	Free.bCast = true;
+	Rig.Rules.ApplyRivalBeat(Rig.State, RivalOf(Rig), Free);
+	bPass &= TestTrue(TEXT("the frame after the beat is free"), Free.bCast);
+	// After the beat hits land again: 62 - 30 = 32, above 31.35.
+	HitRival(Rig, 30.0);
+	bPass &= TestTrue(TEXT("a hit after the beat lands"), std::abs(RivalOf(Rig).Hp - 32.0) < 1.0e-9);
+	// The last break opens with Sunfall, which waits for its own beat: it starts on the first tick after it.
+	const int32 Last = HitRival(Rig, 1.0);
+	bPass &= TestEqual(TEXT("the last break"), Rig.Rules.RivalRuntime.PhasesBroken, 2);
+	bPass &= TestTrue(TEXT("Sunfall waits for the beat"), Rig.Rules.RivalRuntime.bGrantPending && !PendingSunfall(RivalOf(Rig)));
+	while (Rig.State.Tick < Last + 181)
+	{
+		StepArena(Rig.State, TMap<int32, FInputFrame>(), &Rig.Rules);
+		bPass &= TestTrue(TEXT("no Sunfall inside the beat"), Rig.State.Tick > Last + 180 || !PendingSunfall(RivalOf(Rig)));
+	}
+	bPass &= TestTrue(TEXT("Sunfall starts on the tick after the beat"), PendingSunfall(RivalOf(Rig)) && RivalOf(Rig).Pending->StartTick == Last + 181 && Rig.Rules.RivalRuntime.GrantTick == Last + 181);
 	return bPass;
 }
 

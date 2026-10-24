@@ -411,7 +411,7 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 			return Fail(Error, FString::Printf(TEXT("vr rules: rival %s is not an object"), *Pair.Key));
 		}
 		const FString Where = FString::Printf(TEXT("rival %s"), *Pair.Key);
-		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers")}, *Where, Error))
+		if (!OnlyKnownKeys(*Entry, {TEXT("school"), TEXT("appliesTo"), TEXT("phases"), TEXT("surgeTiers"), TEXT("phaseBeatS")}, *Where, Error))
 		{
 			return false;
 		}
@@ -431,6 +431,11 @@ bool ReadRivals(const FJsonObject& Overlay, TArray<FVrRival>& Out, FString& Erro
 		if (!WholeNumber(Surge, 0.0, static_cast<double>(TierCap - 1), Rival.SurgeTiers))
 		{
 			return Fail(Error, FString::Printf(TEXT("vr rules: %s surgeTiers must be an integer from 0 to %d"), *Where, TierCap - 1));
+		}
+		// T39 DF-006 B. Absent: no beat.
+		if (!ReadOptionalStrictNumber(*Entry, TEXT("phaseBeatS"), Rival.PhaseBeatS, Error, 0.0, 10.0))
+		{
+			return false;
 		}
 		double WaveN = 0.0;
 		if (!OnlyKnownKeys(*Applies, {TEXT("tier"), TEXT("waveN"), TEXT("kind")}, *Where, Error)

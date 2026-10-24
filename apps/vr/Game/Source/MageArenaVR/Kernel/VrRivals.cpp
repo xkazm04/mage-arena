@@ -7,6 +7,8 @@
 #include "Kernel/SimConstants.h"
 #include "MageArenaVR.h"
 
+#include <algorithm>
+
 // DECISIONS 2026-10-07 (DF-003 answered): named rivals fight in HP-gated phases. VR overlay rule until CR-005.
 // Every piece of state here lives in FVrRuleset::RivalRuntime, which the pinned state hash never reads.
 
@@ -86,6 +88,12 @@ void FVrRuleset::TickRivalPhases(FArenaState& State)
 		const int32 Entered = Index + 2;
 		Emit(State, TEXT("phase"), *Actor, Entered, Index);
 		ApplySurge(State, *Actor, Rival->SurgeTiers);
+		if (Rival->PhaseBeatS > 0.0)
+		{
+			// DF-006 B: the stage ward. The pinned i-frame field keeps hits off him; it costs no mana.
+			RivalRuntime.BeatUntil = State.Tick + SimTicks(Rival->PhaseBeatS);
+			Actor->ImmuneUntil = std::max(Actor->ImmuneUntil, RivalRuntime.BeatUntil + 1);
+		}
 		for (FActor& Other : State.Actors)
 		{
 			if (Other.Id == Actor->Id || Other.Team == Actor->Team || Other.bDown || Other.Enemy.IsSet() || Other.bDummy)
@@ -102,16 +110,29 @@ void FVrRuleset::TickRivalPhases(FArenaState& State)
 		UE_LOG(LogMageArena, Verbose, TEXT("rival phase %d/%d actor=%d tick=%d hp=%.3f tier=%d"),
 			Entered, Rival->Phases.Num() + 1, Actor->Id, State.Tick, Actor->Hp, Actor->Tier);
 	}
-	if (bBroke && RivalRuntime.bGrantPending)
+	if (bBroke && RivalRuntime.bGrantPending && State.Tick >= RivalRuntime.BeatUntil)
 	{
 		// The break tick itself, when the rival is free. Otherwise the actor loop starts it once the current action ends.
 		TryGrantedCast(State, *Actor, Actor->LastInput.Aim);
 	}
 }
 
+void FVrRuleset::ApplyRivalBeat(const FArenaState& State, const FActor& Actor, FInputFrame& Input) const
+{
+	if (!IsRival(Actor.Id) || State.Tick + 1 > RivalRuntime.BeatUntil)
+	{
+		return;
+	}
+	Input.bCast = false;
+	Input.bAbsorb = false;
+	Input.bRoll = false;
+	Input.bRaiseFireWall = false;
+	Input.Move = FSimVec{0.0, 0.0};
+}
+
 bool FVrRuleset::TryGrantedCast(FArenaState& State, FActor& Actor, const FSimVec& Aim)
 {
-	if (!RivalRuntime.bGrantPending || !IsRival(Actor.Id) || Actor.bDown)
+	if (!RivalRuntime.bGrantPending || !IsRival(Actor.Id) || Actor.bDown || State.Tick <= RivalRuntime.BeatUntil)
 	{
 		return false;
 	}

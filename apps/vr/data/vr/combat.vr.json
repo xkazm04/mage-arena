@@ -162,7 +162,9 @@
         }
       ],
       "surgeTiers": 1,
-      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. Both the rival and the player rise one tier per break, capped at tier IV (kernel TierCap 4); the surge ignores minimumSecondsBetweenUnlocks."
+      "_surgeTiers": "DECISIONS 2026-10-07: 'each break surges both tier clocks by one tier'. Both the rival and the player rise one tier per break, capped at tier IV (kernel TierCap 4); the surge ignores minimumSecondsBetweenUnlocks.",
+      "phaseBeatS": 3,
+      "_phaseBeatS": "T39 DF-006 option B, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): on each break Brennic is warded and does not cast for 3 s while the crowd swells (audio.json crowdSwell 3.5 s) and the taunt plays. The ward is a stage ward: hits do not land and it costs no mana (a palm ward would drain 81 of his 95). He does not move, cast, raise the wall or roll; the granted Sunfall waits for the beat to end. Absent or 0: no beat."
     },
     "lio": {
       "school": "air",
