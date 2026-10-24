@@ -851,3 +851,140 @@ projectiles.
 2. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix leverb`. No `-ExtraArgs`. Expect
    `MAGEVR_BUDGET_MATERIALS mids=8 colours=8 parts=160`, `DrawCall/Basepass` median 21 and a draw-call median of 70.
 3. Revert: revert `4352581`. The stress driver then builds one material per part again and the row returns to 10.2.
+
+## 12. The row on the shipping presentation (T46, scene parity)
+
+**Label: desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz.** Headline: **draw calls stay
+within ≤150 on the instrument that measures the game, but the number got worse: median 100-101, max 103-104, against
+median 70, max 73-75 on the section 11 proxy.** The stress population did not change; the frame now holds the session
+presentation's own parts, which the proxy never drew. Sections 0-11 are unchanged.
+
+### 12.1 What the instrument now measures
+
+- **Before (sections 0-11).** `UBudgetStressDriver` spawned its own rig and re-implemented the presentation's parts,
+  colours and HP bar from copied constants. The session's `ASessionPresentation` was spawned in the same world but idle:
+  nothing started its bout under `-MageArenaGreyboxCapture`, so it drew zero parts. The copies had drifted (the cinder
+  hound body `0.8, 0.3, 0.05` against the presentation's `HoundBody 0.28, 0.07, 0.02`), and the frame had no translucent
+  presentation part at all. The full side-by-side table is `runs/T46/parity-census.md` (uncommitted).
+- **Now.** The driver starts the session's own bout (`SetBout(2, true)`: Brennic's semifinal, a rival bout), freezes it
+  (`SetFrameHold`) and poses the stress population into its kernel state: the same 20 enemies (5 of each kind, on the 8 m
+  and 15 m rings) and 100 projectiles, each enemy throwing its own attack (25 conscript spears, 25 slinger stones,
+  25 hound embers, 25 maw globs), plus the player's planted staff dome and Brennic's fire wall. The session subsystem
+  syncs its `ASessionPresentation` from that state every frame, as in a bout, so **the measured frame is the shipping
+  presentation's frame plus the stress population**. Hands, the 6 Niagara systems, the arena and the sampling window are
+  as in section 11. The population was not trimmed (7.7).
+- **Scene parity.** At steady state and at the end the presentation's drawn parts are counted by
+  (mesh, colour, base material, pass) and must hold the plan's census (`BudgetStressCensus`): every planned tuple drawn at
+  least its planned count (tolerance zero parts: the population is a deterministic function of the plan), and every
+  planned or required pass drawn (the frame's translucency is required). Drawn parts beyond the plan are the session's
+  own and are listed, not failed. A divergence fails the run with `MAGEVR_BUDGET_FAIL scene parity <what diverged>`, and
+  `capture-budget.ps1` fails on it and on `driver.parity.ok`. The stress plan now takes its body looks from
+  `Session/PresentationLook.h` (the presentation's own home for them) and its shot colours from `ElementColour.h`; no
+  presentation constant or `file:line` reference is left under `Budget/`.
+- **Triangles.** The visible-LOD0 sum is one function, `Greybox::CountVisibleLod0`, behind both captures. The A02
+  `plausibilityOk` field, which compared that sum with itself, is now `trianglesSampled`, with an honest `source`
+  string: the triangle row has **no independent desktop cross-check**. Measured on Wolf: `GNumPrimitivesDrawnRHI` is median
+  155 against a LOD0 sum of 50,320 on the A02 scene, and 1.31-2.30 times the LOD0 sum on this scene (per frame, parity1-3), so no fixed margin makes it a floor or a ceiling. The device number comes from V1 (`apps/vr/tasks/BACKLOG.md:13`).
+
+### 12.2 Provenance
+
+- **Code:** `1ffc919` (one LOD0 sum, `trianglesSampled`), `6bb7f44` (`PresentationLook`), `8591e6c` (the live
+  presentation in the capture, scene parity), on base `6a634d5`. No config line changed; none of the three lines of 9,
+  choice 3, is set anywhere under `apps/vr/Game/Config/`, `apps/vr/tools/` or the source. The greybox stays unlit.
+- **Host and date:** Wolf kaziho, 2026-10-24, launches 06:55-06:59 local. UE 5.8.3 (CL 58210709), D3D12,
+  `-game -RenderOffScreen -ResX=1920 -ResY=1080 -nohmd` as in section 0. Each launch started with no other Unreal editor,
+  build or shader worker on the machine.
+- **Commands and results** (all at `8591e6c`):
+
+  | Step | Command | Result |
+  |---|---|---|
+  | Build | `powershell -NoProfile -File apps/vr/tools/build.ps1` | `Result: Succeeded` |
+  | Capture | `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix parity` | `budget: ok (3 runs)`, exit 0 |
+  | A02 capture | `powershell -NoProfile -File apps/vr/tools/capture-greybox.ps1` | `capture: ok`, `MAGEVR_CAPTURE_DONE shots=6`, `coloursOk` true, `trianglesSampled` true |
+  | Suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArena.;Quit" -nullrhi` | 256/256 pass (252 at `6a634d5` plus the 4 new `MageArena.Budget.Parity.*` and `.Triangles.SingleSourced`) |
+  | Design suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArenaDesign.;Quit" -nullrhi` | 4 pass, 3 fail: `Duel.FireSeated`, `Duel.AirSeated`, `Session.FullSeated`, the DF-011 three with the messages of P2 and P3 |
+  | Negative proof | the same capture before the plan took its colours from `PresentationLook` (`-Runs 1 -Prefix negparity`) | exit 1, `MAGEVR_BUDGET_FAIL scene parity cinder_hound body: planned 5 x Cube (0.800, 0.300, 0.050, 1.000) LevelColorationUnlitMaterial opaque, drawn 0; drawn Cube LevelColorationUnlitMaterial opaque not planned: (0.280, 0.070, 0.020, 1.000) x5, ...` |
+
+  Every launch logged `MAGEVR_BUDGET_SESSION bout=3 phase=active rival=brennic actors=2`, both `MAGEVR_BUDGET_POP` lines
+  at full count (`enemies=20 projectiles=100 hands=2 niagara=6`, 102 hand instances, 8,464 launches at the end),
+  `MAGEVR_BUDGET_PARITY phase=steady ok=1` and `phase=end ok=1` (planned 210 parts in 11 tuples, drawn 885 parts in 23
+  tuples, drawn hash `08ec13ba397057b2e980ef200779c907` in all three), `MAGEVR_BUDGET_MATERIALS mids=26 colours=24
+  parts=1452`, `Set CVar [[r.AllowOcclusionQueries:0]]`, `MAGEVR_BUDGET_DONE` and no `MAGEVR_BUDGET_FAIL`. Warm-up
+  10.0 s; wall times 86, 87 and 86 s.
+- **Summaries:** `runs/DG4/parity1..3/summary.json` (gitignored; the figures below are copied from them and from the CSVs).
+
+### 12.3 Results per run
+
+min / median / p95 / max over every frame of the 60 s window; triangles are the GPU-culled counts of the six `DumpStats`
+frames per run.
+
+| Run | Frames | Draw calls | RHI primitives | GPU-culled BasePass tris | GPU-culled all-pass tris | Frame ms median / p95 | GPU ms median / p95 | Peak WS |
+|---|---|---|---|---|---|---|---|---|
+| parity1 | 33,038 | 77 / 100 / 104 / 104 | 228,963 / 290,553 / 301,233 / 315,361 | 161,272 median, 163,280 max | 423,826 max | 1.69 / 2.50 | 0.79 / 0.87 | 2,794 MB |
+| parity2 | 32,288 | 77 / 101 / 104 / 104 | 228,379 / 290,928 / 300,557 / 318,019 | 161,416 median, 163,280 max | 423,818 max | 1.73 / 2.57 | 0.80 / 0.87 | 2,952 MB |
+| parity3 | 33,232 | 78 / 101 / 103 / 103 | 238,513 / 255,037 / 278,993 / 295,275 | 160,936 median, 163,280 max | 423,810 max | 1.68 / 2.52 | 0.80 / 0.87 | 3,065 MB |
+
+Particles, with the 6 systems as in sections 10-11: live max 1,468 in all three runs (CPU 869, GPU 600), 1 GPU emitter
+(cross-check 1), 6 systems live on every sampled frame, no zero-particle frame, driver verdict pass.
+
+**`DrawCall/*` CSV medians.** "Other" is the total minus the five categories shown.
+
+| Run | Total | Basepass | Translucency | Prepass | RenderVelocities | SlateUI | BeginOcclusionTests | Other |
+|---|---|---|---|---|---|---|---|---|
+| leverb1-3 (11.2, proxy) | 70 | 21 | 21 | 11 | 7 | 3 | 0 | 7 |
+| parity1 / parity2 / parity3 | 101 / 101 / 101 | **31** | **39** | 13 / 13 / 12 | 8 | 3 | 0 | 7 / 7 / 8 |
+
+**What the frame holds now** (the drawn census, identical in all three runs; parts with their visibility on):
+
+| Parts | Kind | Pass | Where from |
+|---|---|---|---|
+| 20 bodies, 20 + 1 HP backs, 20 + 2 HP fills | Cylinder, Cube | opaque | the stress enemies, Brennic, and the cuff's HP bar (same colour as a fill) |
+| 100 shots, 25 spear rings, 25 ember rings | Sphere, Cylinder | opaque | the stress shots and the presentation's ground ring for each spear and ember |
+| 1 Brennic body | Cylinder | opaque | the bout's own rival |
+| 1 dome shell + 42 ribs | Sphere, Cylinder | **translucent** | the planted staff |
+| 8 fire-wall slats | Cylinder | **translucent** | Brennic's fire wall |
+| 1 cuff plane + 3 cuff bars | Plane (pass-through), Cube | **translucent** + opaque | the wrist cuff (mana, stamina, clock; its HP bar is counted with the fills) |
+| 32 crowd-band pieces, 2 Wardstones + 2 crowns | Cube, Sphere | opaque | the rival bout's crowd band and the collar's Wardstones |
+| **580 white cubes** | Cube | opaque | ring beads, by count: 25 spear rings x 20 beads the spear branch never hides (500), and 4 embers x 20 inside the perfect window at the sampled frame (80) |
+
+### 12.4 Change
+
+- **Against leverb1-3 (11.2: median 70, max 73-75).** Draw calls rise by 30-31 at the median and by 29-31 at the max.
+  Translucency carries most of it (+18 at the median: the dome's 43 parts, the 8 curtain slats and the cuff plane are
+  translucent and are not merged the way the opaque parts are), Basepass the rest (+10: the presentation's own opaque
+  kinds, Brennic, the rings and the extra shot colours). Prepass +1-2, velocities +1.
+- **Against fx1-3 (10.2: median 194, max 201).** Still 93-94 draws lower at the median and 97-98 at the max: lever B
+  holds on the real presentation.
+- **Triangles moved up, plainly.** BasePass max 163,280 against 123,792 (+39,488); all-pass max 423,826 against 324,488.
+  RHI median 255-291k against 207-213k. The 580 bead cubes, the dome, the crowd band and the Wardstones are the new
+  geometry.
+- **Materials.** 26 distinct materials over the presentation's 1,452 mesh components (885 visible), 24 of them shared
+  tints; the default run measures the shared path with no flag (T37 already made it the default; `-MageArenaBudgetSharedMaterials`
+  stays a no-op).
+
+### 12.5 Verdicts (desktop proxy, on the shipping presentation)
+
+| Row | Target | Measured on the parity instrument | Verdict |
+|---|---|---|---|
+| Draw calls | ≤150 (one total for the whole frame, DECISIONS 2026-10-16) | median 100-101, max 104 / 104 / 103 (parity1-3); 46 draws under the limit at the worst frame | **pass**, in every sampled frame of all three runs; **worse than the proxy's 73-75** |
+| Visible triangles | ≤350k | GPU-culled BasePass max 163,280 (47%); all passes max 423,826 (18 sampled frames) | **pass** on the plan's reading (BasePass, each opaque triangle once, 8.5); the all-pass figure, which 8.5 put at 92% of the row, is now **over 350k by 21%** |
+| Live particles | ≤2,000 | max 1,468 | **pass** |
+| GPU emitters | ≤1 | 1 (cross-check 1) | **pass** |
+
+- **The verdict that changed is the all-pass triangle figure.** 8.5 judged the row on BasePass and noted the all-pass
+  reading passed by 8%; on the shipping frame that reading fails. The plan's row stays the BasePass reading here, as in
+  8.5, and V1 measures the device number (section 4: the desktop figure has no independent cross-check).
+- **A presentation finding, not changed here.** `ASessionPresentation::RingFor` makes 20 bead cubes for every ring, and
+  the spear branch of `ASessionPresentation::Sync` never hides or places them, so each conscript spear in flight leaves
+  20 visible 1 m white cubes at the presentation actor's origin (it stands at the world origin) until the ring is reused. They are
+  500 of the 885 drawn parts in this frame. Fixing it changes what ships, which is outside this instrument card; it is
+  an ask to the App Master (`runs/T46/REPORT.md`).
+
+### 12.6 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`
+2. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix parity`. No `-ExtraArgs`. Expect
+   `MAGEVR_BUDGET_PARITY phase=steady ok=1`, `drawn=885 parts/23 tuples`, and a draw-call median of 100-101.
+3. Negative proof: put a copy of a colour back into `MakeEnemy` (`Budget/BudgetStressPlan.cpp`), for example the hound's
+   `0.8, 0.3, 0.05`, rebuild and run one capture: `MAGEVR_BUDGET_FAIL scene parity cinder_hound body ...`, exit 1.
+4. Revert: revert `8591e6c`, `6bb7f44` and `1ffc919`. The capture then measures the section 11 proxy again.

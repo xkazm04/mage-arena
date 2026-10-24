@@ -1,7 +1,14 @@
 # T46 - Budget scene parity: D-G4 must measure the shipping scene, and its cross-check must be able to fail
 
-Status: open (needs the build machine: UE 5.8.3 editor and `capture-budget.ps1`; written 2026-10-21 on Lynx, the
-ARM64 laptop, where no Unreal install and no renderer exist - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
+Status: done on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits 1ffc919, 6bb7f44, 8591e6c (after P3, before T49).
+Deliverable 2 reached: the D-G4 capture poses the unchanged population into the session's own frozen bout and its
+`ASessionPresentation` draws the frame; scene parity fails on divergence (`MAGEVR_BUDGET_FAIL scene parity cinder_hound
+body: planned 5 x Cube (0.800, 0.300, 0.050, 1.000) ...` on the pre-fix plan, exit 1); `plausibilityOk` took the honest
+option (`trianglesSampled`; RHI primitives median 155 against a LOD0 sum of 50,320 on A02). `MageArena.` 256/256,
+`MageArenaDesign.` the three DF-011 reds only; `capture-budget.ps1 -Runs 3 -Prefix parity` draw calls median 100-101,
+max 104 / 104 / 103: the <=150 row still passes on the shipping presentation but rose from the proxy's 73-75, and the
+all-pass triangle max is 423,826 (BasePass 163,280). `docs/research/BUDGET-DG4-2026-10.md` section 12. Report:
+runs/T46/REPORT.md. (Was: open, written 2026-10-21 on Lynx, the ARM64 laptop.)
 Max turns: 300
 
 ## Goal
