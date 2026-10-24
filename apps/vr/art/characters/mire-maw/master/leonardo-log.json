@@ -14,7 +14,7 @@
     "credits": 400
   },
   "staging": "C:/Users/kazda/mage-art-staging/creature-masters-2026-10-24",
-  "totalCredits": 18,
+  "totalCredits": 36,
   "note": "One entry per Leonardo generation call, failed calls included; reference uploads (no generation, no credits) are under uploads. A PENDING entry (creditsSource reserved) is a call whose run ended before the call did. credits come from the API response (creditsSource api), else the balance difference, else the expected cost. file is outside every repo; sha256 binds it. latched is set by the first quota or HTTP 402 error.",
   "calls": [
     {
@@ -56,6 +56,47 @@
         "generation_elements": "[]"
       },
       "bytes": 79867
+    },
+    {
+      "date": "2026-10-24T17:22:59.908Z",
+      "id": "maw",
+      "variant": "open-gape",
+      "what": "mire maw identity master, key-art look, front three-quarter view",
+      "model": "openai/gpt-image-2.5-flare",
+      "public": false,
+      "seed": 7202,
+      "quality": "MEDIUM",
+      "width": 1376,
+      "height": 768,
+      "lightSlot": "reference-sheet override",
+      "refs": [
+        {
+          "ref": "still08",
+          "file": "apps/vr/art/key-art/still-08-creatures-s5103-medium.jpg",
+          "sha256": "73741f260556c4d1e1b8928ec3303d6fc68488dd636887cabdc429f011edbdfc",
+          "initImageId": "3a724831-272f-419b-8965-108cb655635c"
+        },
+        {
+          "ref": "S1",
+          "file": "apps/vr/art/key-art/key-art-s5101-medium.jpg",
+          "sha256": "81a487c9be00501d5c211bfcff2c0c95b9cd09d3504d88eb4b01fccf2bcb1de4",
+          "initImageId": "65b5f2ba-348e-4d36-b472-d3ed616cca37"
+        }
+      ],
+      "prompt": "The attached images are references, not content to copy. The first shows the creature look to match: the rendering idiom, the colours and the shapes of its creatures. The second is a style reference only: its rendering idiom, palette roles and finish. Never draw the arena, the stands, the sand, the hands, the water, the sparks, the flames, the sky, the crowd, the camera or the other creatures from them; draw only the single creature described below. Technique: stylised game concept art in the look of a finished low-poly 3D game model, rendered: large readable shapes, chunky heroic proportions, big hands, clean silhouettes that read at six metres. Subject treatment: Roman-era arena world; people and creatures are solid and grounded, with readable faces (clear eyes, brows and mouth at rest), costume built from a few large material blocks, straps and wraps shown as a few broad bands, never fine pattern. Palette with roles: ground: warm ochre sand, warm mid-grey stone; structure accents: deep crimson cloth with gold trim, bronze, iron grey; characters: muted earth reds, charcoal browns, mid-brown leather, warm tan skin; absorb (element colour, reserved for magic): water turquoise #19E0E0, fire vermilion #FF3B1F; dodge: plain steel grey. Black core with a red rim appears only on the one unstoppable spell. Finish: matte surfaces, one flat colour per material with at most soft broad tonal variation, no fine texture detail, no outlines, no halftone, no chalk grain. Light (reference-sheet override): soft even studio light, no cast shadow. Exclusions: no text, letters, numbers, runes that look like letters, logos, watermark, frame border or user interface; no extra or disembodied hands, no extra figures; no sun disc or sun-ray burst; no floating smudges or construction lines; no off-palette purple or green; no photorealism; no VR headset or controllers. Full-body view of a mire maw, a huge squat toad-like bog creature seen from a front three-quarter angle: a broad, low, heavy mud-brown body with a warty, bumpy hide in a few large lumpy blocks, a very wide head merged into the body with a huge wide mouth gaping wide open, showing the dark throat, a pink-tan tongue and rows of large blunt cream-coloured conical teeth on the upper and lower jaw, two small yellow eyes on low bulges on top of the head, short thick bowed front legs with wide flat clawed feet planted on both sides, and a lighter tan belly. It squats low and symmetrical in a neutral pose: the legs apart and clear of the body, the feet flat, the head facing nearly the camera. No moss, no reeds, no spikes, no water. The whole creature from nose to tail (or to the back) and from the top of the body to the soles of the feet is fully visible with an empty margin on every side, centred and filling about 80 percent of the image width, on a plain flat light grey background with no gradient. A single creature. Avoid: scenery, floor, ground plane, sand, contact shadow or any cast shadow, arena, sky, flames, fire effects, glow haze, sparks, embers in the air, smoke, steam, water, magic effects, a second creature, a second view, props, labels, captions, grid lines, colour swatches.",
+      "promptSha256": "57815de93d617bf776ff50817ea2974e35b0b379a789a5a8ab9a66e912f3024a",
+      "out": "maw-open-gape-s7202-medium",
+      "generationId": "1f1cfcf9-04db-6e30-8dd6-c1972b57f659",
+      "status": "COMPLETE",
+      "credits": 18,
+      "creditsSource": "api",
+      "file": "C:/Users/kazda/mage-art-staging/creature-masters-2026-10-24/maw-open-gape-s7202-medium.jpg",
+      "sha256": "12a569aa7d0b0d16489506cda399c904118078f4b4e23358e71e6d1e9dd3e6a4",
+      "routing": {
+        "guidanceScale": "null",
+        "generation_elements": "[]"
+      },
+      "bytes": 83436
     }
   ],
   "uploads": [

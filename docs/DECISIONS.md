@@ -28,6 +28,17 @@ Newest first. Quotes are the owner's words; the lines under them are what the pl
   captured or shipped view.**
 - **Next:** Brennic multi-view master reference (front, side, back, canonical A-pose, plain background) from Leonardo within
   the cap, then the input gate, then local TRELLIS.2 once its setup lane merges, then the mesh card, finishing and rig.
+- **Creature rulings, Athena 2026-10-24 17:04Z (owner delegation: "Athena judges it"),** on `docs/research/CREATURE-MASTERS-2026-10-24.md`:
+  - **Cinder hound s7101 is ACCEPTED as the identity master.** Still-08's leaner, more feral look belongs to the pose and
+    the clips, not to this master. Nothing more is generated for the hound.
+  - **Mire maw s7201 is NOT accepted: the mouth is closed.** The huge open gape is the maw's identity in still-08, and the
+    rig path has no shape keys, so a closed mouth leaves the jaw bone opening onto nothing. **Maw rework lane:** at most 2
+    Leonardo calls (a second only if the first fails the script's gate), same prompt shape, mouth wide open showing the throat
+    and teeth, same front three-quarter pose on a plain background (`creature-masters.mjs --variant open-gape`). Seed 7202
+    ran (1 call, 18 credits, gate pass) and is a **candidate**; whether it is accepted is Athena's call, not recorded here.
+  - **No front/back pairs for creatures yet.** The Brennic mesh lane first proves whether one image is enough for TRELLIS.
+- **Athena, 17:19Z on bf4a34e:** the hound and maw meshes wait for the texture-preserving finish and are **not** built on
+  the flat finish (the Brennic mesh ran finish-only; the critic said rework).
 - **What is therefore NOT touched:** the pinned combat data (no combat number changes), the threat colour language and the
   Quest budgets of `docs/PROJECT-PLAN.md` section 7. The seven rulings of this afternoon below are not repeated here.
 

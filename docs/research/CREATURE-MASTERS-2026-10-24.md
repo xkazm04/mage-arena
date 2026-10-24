@@ -92,3 +92,30 @@ rounder gape; the owner may prefer a retry with an open mouth if the animation c
 Nothing is marked approved: acceptance is the owner's or Athena's. Neither is a multi-view set, only the single
 three-quarter master the brief asked for; a front/back pair would need its own calls (the Brennic doc's Ask 4 applies).
 Lane budget left: 4 calls of 6, day budget 22 images of 30.
+
+## Maw open-gape rework
+
+Ruling (Athena, 2026-10-24 17:04Z, under owner delegation, see DECISIONS "Visual approvals"): maw s7201 is not accepted
+because its mouth is closed; the huge open gape is the maw's identity in still-08, and the rig has no shape keys, so a
+closed mouth leaves the jaw bone opening onto nothing. One call was made; a second was allowed only on a gate failure and
+was not needed.
+
+- **Command:** `node apps/vr/tools/refs/creature-masters.mjs gen --id maw --seed 7202 --variant open-gape` (new
+  `--variant` option; `prompt --id maw --variant open-gape` prints the prompt). Same references (still-08, S1), same frame,
+  same size, same pose, same plain background.
+- **Prompt delta** (one phrase, nothing else): "a huge wide mouth that is closed, showing a row of large blunt
+  cream-coloured conical teeth along the lip line" became "a huge wide mouth gaping wide open, showing the dark throat, a
+  pink-tan tongue and rows of large blunt cream-coloured conical teeth on the upper and lower jaw". Prompt sha256
+  prefix `57815de93d61`.
+- **Result:** seed 7202, 1376x768, MEDIUM, **18 credits** (api), `maw-open-gape-s7202-medium.jpg`, sha256
+  `12a569aa7d0b0d16489506cda399c904118078f4b4e23358e71e6d1e9dd3e6a4`. Staging:
+  `C:/Users/kazda/mage-art-staging/creature-masters-2026-10-24/` (outside every repo, `.sha256` beside it). Logged in
+  `apps/vr/art/characters/mire-maw/master/leonardo-log.json` by the script; `verify` prints OK for all three images. No
+  image is committed.
+- **Budget after:** day 9 of 30 images, 158 credits of 400; lane 3 of 6; no latch, no quota or 402 error.
+- **Gate:** `measure.py`: bg 207 grey, border plain 1.0, height share 0.826, margins 0.083 / 0.091, no edge contact,
+  shadow band 0.002, element share 0.0. Manual criteria I/S/P/L/D 9 / 8 / 8 / 8 / 7, SCORE **8**, no defects, VERDICT
+  **pass**. One toad, front three-quarter, legs apart with clawed feet flat, the jaw wide open onto a dark throat and a
+  red-tan tongue, upper and lower rows of large blunt cream teeth, two yellow eyes, warty mud-brown hide, no water or
+  moss. Detail 7 as before (warts finer than "large blocks"); the open mouth is the wide gape of still-08.
+- **Status: candidate only.** Whether maw-open-gape-s7202 is accepted is Athena's call; nothing is marked approved here.

@@ -6,6 +6,7 @@
 //   node apps/vr/tools/refs/creature-masters.mjs budget
 //   node apps/vr/tools/refs/creature-masters.mjs prompt --id hound
 //   node apps/vr/tools/refs/creature-masters.mjs gen --id hound --seed 7101
+//   node apps/vr/tools/refs/creature-masters.mjs gen --id maw --seed 7202 --variant open-gape
 //   node apps/vr/tools/refs/creature-masters.mjs verify
 //
 // Images go OUTSIDE every repo (STAGING), one log per creature in apps/vr/art/characters/<creature>/master/. The lane is
@@ -119,10 +120,25 @@ const CALLS = {
   },
 };
 
-function compile(id) {
+// Prompt variants: a named replacement of one phrase of an action (the maw's closed mouth is the one so far).
+const VARIANTS = {
+  'open-gape': {
+    id: 'maw',
+    from: 'a huge wide mouth that is closed, showing a row of large blunt cream-coloured conical teeth along the lip line',
+    to: 'a huge wide mouth gaping wide open, showing the dark throat, a pink-tan tongue and rows of large blunt ' +
+      'cream-coloured conical teeth on the upper and lower jaw',
+  },
+};
+function compile(id, variant) {
   const c = CALLS[id];
   if (!c) throw new Error(`unknown id ${id}; known: ${Object.keys(CALLS).join(', ')}`);
-  return `${LEAD}${STYLE_TEXT} ${c.action}${AVOID}`;
+  let action = c.action;
+  if (variant) {
+    const v = VARIANTS[variant];
+    if (!v || v.id !== id || !action.includes(v.from)) throw new Error(`unknown variant ${variant} for ${id}; known: ${Object.keys(VARIANTS).join(', ')}`);
+    action = action.replace(v.from, v.to);
+  }
+  return `${LEAD}${STYLE_TEXT} ${action}${AVOID}`;
 }
 const logPath = (id) => path.join(ROOT, 'apps/vr/art/characters', CALLS[id].creature, 'master/leonardo-log.json');
 
@@ -254,7 +270,8 @@ async function gen() {
     process.exit(2);
   }
   const doc = readLogAt(logPath(id));
-  const name = `${id}-s${seed}-${quality.toLowerCase()}`;
+  const variant = opt('variant');
+  const name = `${id}${variant ? `-${variant}` : ''}-s${seed}-${quality.toLowerCase()}`;
   if (doc.calls.some((x) => x.out === name && x.status === 'COMPLETE')) {
     console.error(`REFUSED: ${name} already exists in the log; pick another seed`);
     process.exit(2);
@@ -267,9 +284,9 @@ async function gen() {
     process.exit(3);
   }
   const refs = ['still08', 'S1'];
-  const prompt = compile(id);
+  const prompt = compile(id, variant);
   const entry = {
-    date: new Date().toISOString(), id, what: c.what, model: MODEL, public: false, seed, quality, width: W, height: H,
+    date: new Date().toISOString(), id, ...(variant ? { variant } : {}), what: c.what, model: MODEL, public: false, seed, quality, width: W, height: H,
     lightSlot: 'reference-sheet override', refs: refs.map((r) => ({ ref: r, file: REFS[r].file, sha256: REFS[r].sha256 })),
     prompt, promptSha256: sha256(Buffer.from(prompt, 'utf8')), out: name,
     generationId: null, status: 'ERROR', credits: 0, creditsSource: null, file: null, sha256: null,
@@ -347,11 +364,11 @@ else if (cmd === 'budget') {
     latched: laneDocs().map((d) => d.doc.latched).find(Boolean) ?? null, blockDrift: blockDrift(),
   }));
 } else if (cmd === 'prompt') {
-  const p = compile(opt('id', 'hound'));
+  const p = compile(opt('id', 'hound'), opt('variant'));
   console.log(p);
   console.log(`\nsha256 ${sha256(Buffer.from(p, 'utf8'))} (${p.length} chars)`);
 } else if (cmd === 'verify') verify();
 else {
-  console.error('usage: budget | prompt --id <hound|maw> | gen --id <hound|maw> --seed <n> | verify (see the header)');
+  console.error('usage: budget | prompt --id <hound|maw> | gen --id <hound|maw> --seed <n> [--variant open-gape] | verify (see the header)');
   process.exit(1);
 }
