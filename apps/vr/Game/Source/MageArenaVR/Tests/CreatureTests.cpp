@@ -267,8 +267,9 @@ bool FMageArenaCreaturesSpitFromHoldLine::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("an ember flew"), bSawShot);
 	bPass &= TestFalse(TEXT("no bite with the spit overlay"), bBite);
 	bPass &= TestTrue(*FString::Printf(TEXT("the hound held outside the hold box (worst gap %.4f m)"), WorstGap), WorstGap >= -1.0e-3);
-	// Pinned bite recoveryS 0.4 plus windup 0.6: one spit a second, ready again on tick 61, 121, ... (tick 1 + 60 k).
-	bPass &= TestTrue(*FString::Printf(TEXT("a spit about every second (%d in 6 s)"), Spits), Spits >= 5 && Spits <= 6);
+	// combat.vr.json cinder_hound spit cadenceS 1.5 (T39 DF-007 B; was the pinned bite recoveryS 0.4 plus windup 0.6, one a
+	// second): ready again 1 + 90 ticks after each spit, so 6 s holds four spits.
+	bPass &= TestTrue(*FString::Printf(TEXT("a spit about every 1.5 s (%d in 6 s)"), Spits), Spits >= 3 && Spits <= 4);
 	return bPass;
 }
 

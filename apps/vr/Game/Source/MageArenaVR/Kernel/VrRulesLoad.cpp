@@ -648,6 +648,19 @@ bool ReadSpit(const FJsonObject& Attack, const FEnemySpec& Hound, const FAttackS
 	{
 		return Fail(Error, TEXT("vr rules: spit speed must be above zero and slower than the pinned sling stone"));
 	}
+	// T39 DF-007 B: an optional spit-to-spit time. It must leave room for the windup and carries its own _why.
+	if (!ReadOptionalStrictNumber(Attack, TEXT("cadenceS"), Mode.CadenceS, Error, 0.0, 10.0))
+	{
+		return false;
+	}
+	if (Attack.HasField(TEXT("cadenceS")))
+	{
+		FString Why;
+		if (!(Mode.CadenceS > Mode.WindupS) || !Attack.TryGetStringField(TEXT("_cadenceS"), Why) || Why.TrimStartAndEnd().IsEmpty())
+		{
+			return Fail(Error, TEXT("vr rules: spit cadenceS must be longer than windupS and carry a _cadenceS line"));
+		}
+	}
 	Mode.bThrow = true;
 	Mode.bSpit = true;
 	Mode.EnemyId = Hound.Id;

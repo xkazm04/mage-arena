@@ -52,6 +52,10 @@ void VrApplyAttackMode(const FVrAttackMode& Mode, FAttackSpec& Attack)
 		Attack.Tier = Mode.Tier;
 		Attack.Damage = Mode.Damage;
 		Attack.WindupS = Mode.WindupS;
+		if (Mode.CadenceS > 0.0)
+		{
+			Attack.CooldownS = Mode.CadenceS;
+		}
 	}
 }
 

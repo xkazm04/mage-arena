@@ -35,6 +35,8 @@ struct FVrAttackMode
 	int32 Tier = 0;
 	double Damage = 0.0;
 	double WindupS = 0.0;
+	// T39 DF-007 B: seconds from one spit to the next, set as the local row's cooldown. 0 keeps windup plus the pinned recovery.
+	double CadenceS = 0.0;
 	// A dying spitter throws one ember with the spit numbers after the pinned onDeath delay.
 	bool bDeathEmber = false;
 };
