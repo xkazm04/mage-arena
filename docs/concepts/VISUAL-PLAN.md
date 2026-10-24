@@ -431,11 +431,13 @@ The mesh is structurally clean and the right size, so this gap is perceptual.
 |---|---|---|---|
 | (1) No real assets in the scene | Engine integration (T38 and its siblings) | Not a modelling problem | Not this plan |
 | (2) Mesh quality | Faces, accessories, colour edges, hands, skinning faults | Defects a gated pipeline catches before UE | Sections c-e |
-| (3) Scene dressing | Light, crowd, VFX, debug text, hand mesh | Presentation work no mesh fixes | Separate cards (owner question 6 in section g) |
+| (3) Scene dressing | Light, crowd, VFX, debug text, hand mesh | Presentation work no mesh fixes | Cards T55-T59 (owner answer 6, section g) |
 
 ## (c) The style contract
 
-### Draft STYLE BLOCK (awaiting owner approval)
+### Draft STYLE BLOCK (approved 2026-10-24 by Athena under owner delegation)
+
+Approval: owner answers 1+2, delegated to Athena, approved as written (`docs/DECISIONS.md`, "2026-10-24 - Visual approvals").
 
 It is written as an attribute grammar (visual-style-locking): fixed slots in plain language, compiled into every call in
 full (style-block-restated-every-call). It is drawn from:
@@ -488,20 +490,22 @@ named, scoped slot change, recorded with the block. When references ride along, 
 references, not content to copy. Grok has no negative field, so exclusions travel as an "Avoid:" clause; the A01-A09
 manifests already did this.
 
-### Proposed APPROVED REFERENCE SHEET (awaiting owner approval)
+### Proposed APPROVED REFERENCE SHEET (approved 2026-10-24 by Athena under owner delegation)
 
-The sheet is made only from existing images. Nothing on it is approved until the owner approves it
+Approval: owner answers 1+2 and 4 (`docs/DECISIONS.md`, "2026-10-24 - Visual approvals"). S1-S5 and the Brennic, Conscript, Slinger and Warden masters are approved; the hound and maw rows are replaced (answer 4).
+
+The sheet is made only from existing images. Nothing on it was approved until a human approved it
 (approved-reference-sheet: "a render becomes a reference the moment a human approves it, and not before").
 
 **Style sheet** (one style, varied subjects; send count 3, the most relevant three per call):
 
 | # | Path | What it carries |
 |---|---|---|
-| S1 | `apps/vr/art/key-art/key-art-s5101-medium.jpg` | The hero look: Brennic, ward VFX, dusk arena, crowd |
-| S2 | `apps/vr/art/key-art/still-06-soldiers-s5102-medium.jpg` | Soldiers, steel-means-dodge, sand and stands |
-| S3 | `apps/vr/art/key-art/still-09-entrance-s5104-medium.jpg` | Gate, braziers on pylons, banners: the prop vocabulary |
-| S4 | `apps/vr/art/key-art/still-10-sunfall-s5105-medium.jpg` | The leave threat and its ground ring |
-| S5 | `apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg` | The "finished game model" rendering idiom on a plain ground |
+| S1 | `apps/vr/art/key-art/key-art-s5101-medium.jpg` | The hero look: Brennic, ward VFX, dusk arena, crowd (approved 2026-10-24 by Athena under owner delegation; S1 is the north-star frame) |
+| S2 | `apps/vr/art/key-art/still-06-soldiers-s5102-medium.jpg` | Soldiers, steel-means-dodge, sand and stands (approved 2026-10-24 by Athena under owner delegation) |
+| S3 | `apps/vr/art/key-art/still-09-entrance-s5104-medium.jpg` | Gate, braziers on pylons, banners: the prop vocabulary (approved 2026-10-24 by Athena under owner delegation) |
+| S4 | `apps/vr/art/key-art/still-10-sunfall-s5105-medium.jpg` | The leave threat and its ground ring (approved 2026-10-24 by Athena under owner delegation) |
+| S5 | `apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg` | The "finished game model" rendering idiom on a plain ground (approved 2026-10-24 by Athena under owner delegation) |
 
 **Identity sheets** (one subject, varied views; character-identity-continuity: identity is carried by an image, never by
 prose). One master per character, approved separately:
@@ -511,12 +515,13 @@ prose). One master per character, approved separately:
 | Brennic | `apps/vr/art/characters/brennic/concept-front-s3801-medium.jpg` | `apps/vr/art/characters/brennic/concept-turnaround-s3802-medium.jpg` |
 | Conscript | `apps/vr/art/characters/conscript/concept-front-s4101-medium.jpg` | `apps/vr/art/characters/conscript/concept-turnaround-s4102-medium.jpg` |
 | Slinger | `apps/vr/art/characters/slinger/concept-front-s4201-medium.jpg` | `apps/vr/art/characters/slinger/concept-turnaround-s4202-medium.jpg` |
-| Cinder hound | `apps/vr/art/characters/cinder-hound/concept-front-s4301-medium.jpg` | `apps/vr/art/characters/cinder-hound/concept-turnaround-s4302-medium.jpg` |
-| Mire maw | `apps/vr/art/characters/mire-maw/concept-front-s4401-medium.jpg` | `apps/vr/art/characters/mire-maw/concept-turnaround-s4402-medium.jpg` |
+| Cinder hound (replaced: key-art look, new Leonardo masters owed (answer 4)) | `apps/vr/art/characters/cinder-hound/concept-front-s4301-medium.jpg` | `apps/vr/art/characters/cinder-hound/concept-turnaround-s4302-medium.jpg` |
+| Mire maw (replaced: key-art look, new Leonardo masters owed (answer 4)) | `apps/vr/art/characters/mire-maw/concept-front-s4401-medium.jpg` | `apps/vr/art/characters/mire-maw/concept-turnaround-s4402-medium.jpg` |
 | Warden | `apps/vr/art/characters/warden/concept-front-s5101-medium.jpg` | none yet (section f) |
 
-- **Hound and maw are provisional.** Their rows stand only if the owner keeps the concept look over the key-art look
-  (section g, question 4).
+- **Hound and maw are replaced.** The owner chose the key-art look (section g, question 4, answered): the rows above are
+  superseded and new Leonardo masters in that look are owed.
+- **Approved 2026-10-24 by Athena under owner delegation:** the Brennic, Conscript, Slinger and Warden masters as listed.
 - **Faces.** A head close-up crop of each master is the only face on its sheet (approved-reference-sheet, "the
   identity-bearing surface appears exactly once, at maximum scale").
 
@@ -713,8 +718,8 @@ names its source.
 | # | Asset | World-scale target | Source of the scale | Requested LOD0 triangles (ceiling) | Source of the triangles |
 |---|---|---|---|---|---|
 | 1 | Brennic (rival) | 1.80 m, band 1.62-1.98 m | `FBody` mage 180 cm (T38 check 8); `metrics.py` check 8 | 24,000 (30,000) | `metrics.py` `TRI_BUDGET_LOD0 = (18000, 30000)`; T38 check 4 "target 18000-30000" |
-| 2 | Conscript | 1.80 m, band 1.62-1.98 m | `metrics.py` Humanoid profile | 8,000 (12,000), **proposed** | `docs/PROJECT-PLAN.md` section 8 P15: "importing a 60k-triangle 'soldier' fails the ceiling (8k)" |
-| 3 | Slinger | 1.80 m, band 1.62-1.98 m | `metrics.py` Humanoid profile | 8,000 (12,000), **proposed** | as the conscript |
+| 2 | Conscript | 1.80 m, band 1.62-1.98 m | `metrics.py` Humanoid profile | 24,000 (30,000), owner answer 5 ("18-30k humanoid band"). Superseded proposal: 8,000 (12,000) | `metrics.py` `TRI_BUDGET_LOD0 = (18000, 30000)`. Old source of the superseded 8k: `docs/PROJECT-PLAN.md` section 8 P15: "importing a 60k-triangle 'soldier' fails the ceiling (8k)" |
+| 3 | Slinger | 1.80 m, band 1.62-1.98 m | `metrics.py` Humanoid profile | 24,000 (30,000), owner answer 5. Superseded proposal: 8,000 (12,000) | as the conscript |
 | 4 | Cinder hound | 1.36 m +-10 % | `metrics.py` `BEASTS['CinderHound']['height']` (A04 sheet scale) | 12,000 | `metrics.py` `BEASTS['CinderHound']['tris']`, "three hounds on screen at once" |
 | 5 | Mire maw | 1.25 m +-10 % | `metrics.py` `BEASTS['MireMaw']['height']` | 20,000 | `metrics.py` `BEASTS['MireMaw']['tris']`, "one maw" |
 | 6 | Warden (ritual NPC, not a combatant) | 1.74 m measured; target band 1.62-1.98 m | `metrics.py` Humanoid profile | 18,000 (30,000) | `metrics.py` `TRI_BUDGET_LOD0` low end |
@@ -724,7 +729,7 @@ names its source.
 | 10 | Seat (x3) | 0.50 x 0.46 x 0.42 m | arena-layout via S7 | 1,500 each | as above |
 | 11 | Dais (x1) | 5.20 x 8.80 x 0.60 m | arena-layout via S7 | 4,000 | as above |
 
-**Why the soldier row is proposed, not settled.**
+**Why the soldier row was proposed, and how it was settled (owner answer 5, `docs/DECISIONS.md`, "2026-10-24 - Visual approvals": "18-30k humanoid band"; the 8k text below is the superseded proposal).**
 
 - `metrics.py` grades every humanoid at 18-30k, and the current conscript and slinger exports sit at 24,086 and 24,108.
 - `docs/PROJECT-PLAN.md` section 7 holds <=350k visible triangles for "hands + arena + 20 actors". Twenty actors at 24k
@@ -747,7 +752,7 @@ names its source.
 - `C:/Users/kazda/kiro/mage-arena/docs/PROVIDER-LEDGER.md` (read only) holds the 450 hard cap. Its latest line (D2S,
   2026-10-24) reads **409/450**, so **41 calls are left**. The operator's "86 left" figure is older than that line.
 - Grok is latched on HTTP 402. agy is the working provider, at 24-50 s per image.
-- Leonardo credits are a separate account and are not in that ledger (section g, question 3).
+- Leonardo credits are a separate account and are not in that ledger. Owner answer 3 ("Leonardo (Recommended)"): Leonardo is the provider for reconstruction inputs under its own cap, **30 images today**, every call logged with provenance, stop at the first quota error. The agy calls above stay for the non-shipping control arm only.
 
 **Most reference inputs already exist.** Six character masters and five turnarounds are RECON or RECON-MV, and the style
 sheet is made of existing images. Cropping views from turnarounds costs no call.
@@ -757,7 +762,7 @@ sheet is made of existing images. Cropping views from turnarounds costs no call.
 | Consistency control arm (step 0): arms B and C | 2 | Arm A is an existing approved image |
 | Warden turnaround (back and profile) | 1 | The only character without a view set |
 | Prop masters: gate arch, brazier, banner, seat, dais, each front and side | 10 | A07 sheets are PREP only (angled, contact shadows, several props per sheet) |
-| Hound and maw re-concept, front and turnaround, **only if** the owner picks the key-art look | 4 | Section (g) question 4; 0 if the concepts stand |
+| Hound and maw re-concept, front and turnaround; the owner picked the key-art look (answer 4), so these are owed, on Leonardo | 4 | Section (g) question 4; 0 if the concepts stand |
 | Retry reserve | 10 | The A01-A09 manifests show regenerations on about a third of assets |
 | **Planned total** | **27** (23 if the concepts stand) | |
 | **Left unallocated** | **14** (18) | For the VFX and dressing cards; nothing above may borrow it without a new line here |
@@ -771,24 +776,24 @@ sheet is made of existing images. Cropping views from turnarounds costs no call.
 
 ## (g) What the owner must approve
 
-1. **The STYLE BLOCK** in section (c), including the proposed combination of the 13/25/30 pool. Approve as written, or
+1. **[ANSWERED 2026-10-24: approved as written by Athena under owner delegation; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **The STYLE BLOCK** in section (c), including the proposed combination of the 13/25/30 pool. Approve as written, or
    name the slot to change.
-2. **The APPROVED REFERENCE SHEET** in section (c): the style sheet S1-S5 and the six identity masters. Each image is
+2. **[ANSWERED 2026-10-24: S1-S5 and the Brennic, Conscript, Slinger, Warden masters approved by Athena under owner delegation; hound and maw replaced; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **The APPROVED REFERENCE SHEET** in section (c): the style sheet S1-S5 and the six identity masters. Each image is
    approved or rejected one by one. A rejected one joins the rejections list with its reason.
 
 The plan also cannot settle these, and asks them here rather than deciding them:
 
-3. **Which provider makes new reference images.** The 2026-10-21 originality ruling covers Leonardo, TRELLIS.2 and
+3. **[ANSWERED 2026-10-24: "Leonardo (Recommended)", cap 30 images today; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **Which provider makes new reference images.** The 2026-10-21 originality ruling covers Leonardo, TRELLIS.2 and
    ElevenLabs, and says the Grok and agy image tools "are not covered". The 41 calls left are agy calls. A mesh
    reconstructed from an agy image would derive from an uncovered tool.
    - **Recommendation:** make new reconstruction inputs with Leonardo (as T38 did, about 14 credits per image), under a
      stated credit count.
    - Use the agy calls only for the control arm, which ships nothing.
-4. **Hound and maw canon.** Choose either the Leonardo concepts (grey hound with clean orange bands; grey frog maw with a
+4. **[ANSWERED 2026-10-24: "Key-art look (Recommended)"; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **Hound and maw canon.** Choose either the Leonardo concepts (grey hound with clean orange bands; grey frog maw with a
    moss cap) or the key-art look (dark-red lava hound; brown toothed toad maw).
    - **Recommendation:** the key-art look, because the ruling says chase the concept the key art shows. It costs 4
      calls.
-5. **The soldier triangle request** (section e): 8,000 requested, 12,000 ceiling, against `metrics.py`'s 18-30k
+5. **[ANSWERED 2026-10-24: "18-30k humanoid band"; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **The soldier triangle request** (section e): 8,000 requested, 12,000 ceiling, against `metrics.py`'s 18-30k
    humanoid band.
-6. **The presentation gap** (section b, shortfall 3): light, crowd visibility, VFX, the debug text and a hand mesh are not
-   asset work. They need their own cards, and this plan does not write them.
+6. **[ANSWERED 2026-10-24: written as cards T55-T59; `docs/DECISIONS.md`, "2026-10-24 - Visual approvals"]** **The presentation gap** (section b, shortfall 3): light, crowd visibility, VFX, the debug text and a hand mesh are not
+   asset work. They need their own cards: `apps/vr/tasks/T55-no-debug-text-in-views.md`, `T56-dusk-lighting.md`, `T57-crowd-visibility.md`, `T58-spell-vfx-toward-key-art.md`, `T59-player-hand-mesh.md`.
