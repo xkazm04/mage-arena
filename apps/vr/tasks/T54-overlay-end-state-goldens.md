@@ -1,7 +1,7 @@
 # T54 - Overlay end-state goldens, recorded before T39
 
-Status: open, **blocking T39** (needs Wolf, the x64 UE host; written 2026-10-22 on Lynx, where none of it runs). Record the goldens on
-today's overlay before T39's first commit. Source: `docs/research/ARCHITECTURE-REVIEW-2026-10-21.md` A1 (and A3b, below);
+Status: done on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709. Five bouts recorded live in `apps/vr/data/scenarios-vr/overlay/*.json` (overlay sha256 d0ee5333..., equal to check-overlay.mjs); red on a one-byte `combat.vr.json` change with `overlay changed since recording`; `MageArena.` 246/246; the boot log prints the overlay sha256 and variant beside the pin SHA1. Not done: the census and design CSV headers do not carry the overlay hash yet. Report: `runs/T54/REPORT.md`. (Was: open, blocking T39; written 2026-10-22 on Lynx.)
+The rule: record the goldens on today's overlay before T39's first commit. Source: `docs/research/ARCHITECTURE-REVIEW-2026-10-21.md` A1 (and A3b, below);
 `docs/concepts/WOLF-PLAN.md` P1.
 Max turns: 120
 

@@ -186,7 +186,7 @@ the end.
   first commit (`apps/vr/tasks/T39-...md`, "Recommended before the first `T39:` commit"). The Claude session orchestrates
   and writes cards (`docs/ORCHESTRATION.md`), so the Wolf session may write the card from A1 and A3(b) as an
   `apps/vr/tasks/T42-...md` (**[verify on Wolf]** the next free id), or skip with a one-line reason here.
-- [ ] Done when: `MageArena.Overlay.Golden` runs about five fixed-seed bouts on the live overlay and writes
+- [x] Wolf kaziho 2026-10-24 (T54 commit) card T54 (already written on Lynx; no new id needed). Red: `overlay changed since recording: combat.vr.json recorded d3f20246... now 210c5934...`; green: `MageArena.` 246/246; boot: `vr overlay sha256 d0ee5333..., variant live` next to `pin SHA1 11F9B16C...`. Done when: `MageArena.Overlay.Golden` runs about five fixed-seed bouts on the live overlay and writes
   `apps/vr/data/scenarios-vr/overlay/*.json` with the overlay sha256; it was seen red on a one-byte change to
   `combat.vr.json`; the boot log prints the overlay sha256 and the variant next to the pin hash.
 - Why before T39: each `T39: DF-00x` commit then re-records the goldens and its diff shows which bouts that DF moved (A1).

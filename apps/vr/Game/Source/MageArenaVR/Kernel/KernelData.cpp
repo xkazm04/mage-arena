@@ -1,5 +1,6 @@
 #include "Kernel/KernelData.h"
 #include "Kernel/KernelDataLoad.h"
+#include "Kernel/VrRules.h"
 
 #include "Dom/JsonObject.h"
 #include "Internationalization/Regex.h"
@@ -717,6 +718,9 @@ const FKernelData& KernelData()
 		if (Data.bReady)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("kernel data: pinned dir %s, %d files, SHA1 %s"), *PinnedDir, Data.PinFileCount, *Data.PinHash);
+			// T54 (review A3b): which overlay rides on that pin, as check-overlay.mjs names it.
+			UE_LOG(LogMageArena, Log, TEXT("kernel data: pin SHA1 %s, vr overlay sha256 %s, variant %s"), *Data.PinHash, *VrOverlaySha256(),
+			    VrOverlayVariant());
 		}
 		else
 		{

@@ -288,6 +288,14 @@ bool ApplyVrCalibrationProposal(FVrRuleset& Out, FString& Error);
 // Test seam: read the overlay files from this directory instead of apps/vr/data/vr. Empty restores the default.
 void SetVrDataDirForTest(const FString& Dir);
 
+// T54 (review A3b): the overlay's identity. VrOverlaySha256 is check-overlay.mjs's "overlay sha256" for the same bytes (every
+// file under the overlay dir, sorted by relative path, CRLF read as LF); VrOverlayFileSha256 is one file's line in its
+// --verbose list ("missing" when absent). VrOverlayVariant is "proposal" when -MageArenaProposal is set, else "live".
+FString VrSha256Hex(const TArray<uint8>& Bytes);
+FString VrOverlaySha256();
+FString VrOverlayFileSha256(const TCHAR* Relative);
+const TCHAR* VrOverlayVariant();
+
 // Opponent telegraph seconds. Identity when gentle is off, including when the multiplier is not 1.
 inline double VrOpponentTelegraph(const FVrRuleset* Rules, int32 Team, double Seconds)
 {
