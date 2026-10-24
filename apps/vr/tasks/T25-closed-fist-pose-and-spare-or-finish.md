@@ -1,7 +1,10 @@
 # T25 - Closed-fist held pose, and spare or finish at missio, writing the arena flag
 
-Status: open (needs the build machine, Wolf, the x64 UE host: UE 5.8.3 editor and the automation suite; written
-2026-10-20 on the ARM64 laptop, where none of it runs)
+Status: **done** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `3ca5590` (fist clips), `3a9f278`
+(FistDetector and pose tests), `f33a77f` (missio phase and flags), `9800cc1` (desktop key G), `b13cbb7` (house format;
+the tested tree). `Result: Succeeded`; `MageArena.Fist` 9/9 (red first, see Result); `MageArena.` 282/282 (45/45
+Conformance); `MageArenaDesign.` 5/7, only DF-011's two accepted reds. See "Result" at the end. (Was: open, written
+2026-10-20 on the ARM64 laptop.)
 Max turns: 160
 
 ## Goal
@@ -64,3 +67,71 @@ Quote the red line of `MageArena.Fist` seen before the detector exists (tests wr
 ## Report
 Write `runs/T25/REPORT.md`: what you built (paths), the flag keys written, each acceptance command with its real output,
 the red line, anything you could not do and the exact error, and decisions the card did not specify.
+
+## Result (Wolf kaziho, 2026-10-24, UE 5.8.3 CL 58210709)
+
+`runs/` is never committed, so the report is here.
+
+**Built.**
+- `Gestures/FistDetector.{h,cpp}`: `FFistDetector`, pure (no actor, no subsystem), fed hand frames, each hand on its own
+  clock. A fist is every finger's summed flexion >= 160 degrees (release < 140) and the thumb tip within 5.5 cm of the
+  index and middle second knuckles (release 6.5 cm), held `FFistThresholds::HoldS` 0.40 s (teach.json `offerHoldS`).
+  One count per hold; a rewind, a frame under confidence 0.2 or the system gesture ends it. `IsOpenHand` (every finger
+  under 60 degrees) is the spare's side. Thresholds are measured off the clipgen hands and cited in the header.
+- `Session/`: the `missio` phase (`EnterMissio`, `AdvanceMissio`, `ResolveMissio` in `DayFlow.cpp`). In the day, a bout
+  won against a bound rival (Brennic, wave n 3; Lio, wave n 4) is recorded, then waits in missio before its
+  intermission or aftermath. An open palm raised toward the arena held 0.40 s spares, a fist held 0.40 s finishes,
+  no choice in 5 s spares. The kernel does not step in missio; no combat number or kernel result changes.
+- Clips: `apps/vr/Game/Clips/fist/fist.{normal,slow,sloppy}.jsonl` and the impostor `fist-loose.normal.jsonl`, from
+  the new `apps/vr/tools/clipgen/fist.mjs --canonical` (writes `Clips/fist/` only). `generate.mjs --check` now
+  regenerates and compares that folder: `clipgen-check: OK, 81 clips byte-identical`. `corpus-manifest.json` lists the
+  four clips; `check-staged-clips.mjs`: `staged clips OK: 115 files`.
+- Desktop: `G` plays the `fist` clip (Shift/Ctrl takes); the spare is the held ward palm (`Space`, RMB).
+  `docs/DESKTOP-INPUT.md` has both rows.
+- `Tests/FistTests.cpp`: `MageArena.Fist.Takes`, `.ImpostorRejected`, `.OpenPalmNeverFist`, `.NeverWard`,
+  `.HoldMatchesStones`, `.MissioSpare`, `.MissioFinish`, `.MissioTimeout`, `.NoChoiceMidBout`.
+
+**Flag keys** (through `FArenaFlags`, the keys this card and `docs/campaign/04-vr-campaign-design.md` section 4 name):
+`arena.tiro.1.w<n>.finish` (bool, true = finish) and `arena.missio.total` (number).
+
+**Red line, before the detector and the phase** (Ingest stub, no missio): `MageArena.Fist` 3/9, e.g.
+`Expected 'fist.normal is one fist held 0.40 s' to be 1, but it was 0.` and
+`Expected 'Brennic falls: missio' to be "missio", but it was "intermission".`
+
+**Acceptance on `b13cbb7`.**
+- `powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/build.ps1`: `Result: Succeeded`.
+- `Automation RunTests MageArena.Fist`: 9/9 green.
+- `Automation RunTests MageArena.`: 282 run, 0 failed (273 before T25 plus the nine), 45/45 `Kernel.Conformance`. Five
+  pass with warnings, all pre-existing negative-path logs (corrupt-save fixtures, an HTTP probe timeout).
+  `Session.DayOrderFirstLaunch`, `Session.DaySaveEachBout` and `Collar.TabletColumns` now pass through missio.
+- `Automation RunTests MageArenaDesign.`: 5/7; red only `Duel.FireSeated` (brennic-c15 reaches 1 of 2 phases) and
+  `Session.FullSeated` (loses bout 3), both accepted under DF-011. FullSeated measured `dayWithTeachS=187.85`: it loses
+  bout 3 before any missio, so T25 adds nothing to that day.
+- `format-check.mjs --base 3350dc5`: `format-check OK: 12 changed C++ file(s)`. `unused-members.mjs`:
+  `unused-members OK: 586 private/protected members in 41 classes`.
+- Node gates: `pin OK: 9 files @ baeac66`, `conformance OK: 45 vectors`, both self-tests detect corruption, agy-guard
+  40/40, `repo-law OK: 4/4`.
+
+**Decisions this card did not specify.**
+- `arena.missio.total` counts the rivals spared (missio granted) this day, recounted from the `.finish` flags, so a
+  replayed bout is not counted twice. A finish adds 0, but the key is written on every choice. The campaign doc's
+  decision 5 ("Missio counts become a flag") may instead mean the player's own defeats. That reading is the owner's.
+- Missio follows only bouts with a bound rival (`BoundRival()`), and only in the day (`BeginArc`). `Start()` bouts are
+  unchanged.
+- The palm is the ward check (height >= 0.20 m, palm within 35 degrees of forward) plus an open hand, on either hand.
+  Each hand counts only after it was seen lowered in missio (a clip's last frame stays the hand's latest). The fist
+  counts on either hand. The fist detector is reset and the hands stopped on entry, so a fist from the bout does not
+  carry over.
+- The 5 s timeout is a named constant (`MissioTimeoutS`, DayFlow.cpp), not data: `apps/vr/data/` was outside this
+  run's paths.
+- The script makes no choice: scripted days spare through the timeout (+5 s per rival won).
+- The fist takes are on the ward hand (left), thumb up, so a fist is never a ward. They are not mirrored (like the
+  stones): either hand may close the fist.
+
+**Not done / open.**
+- No prompt line in missio: `GetPromptText` returns nothing there, because a `strings.json` line
+  (`apps/vr/data/vr/strings.json`) was outside this run's paths. The greybox shows no missio cue yet; presentation is
+  for T27/T28.
+- The staff grip (staff-plant, staff-lift) reads as a fist. Only missio reads the detector, and no staff is held there.
+- A quit during the final's missio replays the final (the save still offers it), as a quit in the intermission
+  replays the bout.

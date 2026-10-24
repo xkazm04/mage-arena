@@ -294,7 +294,7 @@ the end.
 Run in this order; skip any card whose blocker is still open and come back to it. Each one baselines against P2's
 result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 
-- [ ] **T25** `apps/vr/tasks/T25-closed-fist-pose-and-spare-or-finish.md` (no owner blocker). Done when `MageArena.Fist.*`
+- [x] Wolf kaziho 2026-10-24 b13cbb7 UE 5.8.3 CL 58210709 `MageArena.` 282/282 (`MageArena.Fist` 9/9, red first: `Expected 'Brennic falls: missio' to be "missio", but it was "intermission".`); `MageArenaDesign.` 5/7, only DF-011's two; flags `arena.tiro.1.w<n>.finish` and `arena.missio.total`. **T25** `apps/vr/tasks/T25-closed-fist-pose-and-spare-or-finish.md` (no owner blocker). Done when `MageArena.Fist.*`
   green (red line quoted first), `MageArena.` green, `MageArenaDesign.` no new red; flags `arena.tiro.1.w<n>.finish` and
   `arena.missio.total` (or the campaign doc's keys).
 - [ ] **T40** `apps/vr/tasks/T40-two-music-loops.md`. **OWNER:** the source of the two loops; the owner or the App Master
