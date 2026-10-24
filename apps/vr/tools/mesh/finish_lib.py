@@ -184,15 +184,23 @@ def bake_misses(hit, coverage):
     return miss, {'covered': int(coverage.sum()), 'missed': int(miss.sum()), 'missed_interior': int((miss & inner).sum())}
 
 
+def dark_mask(rgb, thresh=1.5 / 255):
+    """Texels with every channel at or below `thresh` (byte 0 or 1): what an unhit bake texel looks like."""
+    return np.asarray(rgb)[..., :3].max(-1) <= thresh
+
+
 def dark_texels(rgb, mask, thresh=1.5 / 255):
-    """Texels inside `mask` with every channel at or below `thresh` (byte 0 or 1): what an unhit bake texel looks like."""
-    return int((mask & (np.asarray(rgb)[..., :3].max(-1) <= thresh)).sum())
+    """How many texels inside `mask` are dark (dark_mask)."""
+    return int((mask & dark_mask(rgb, thresh)).sum())
 
 
-def fill_misses(rgb, miss, max_iter=256):
-    """Fill missed texels from their known 8-neighbours, ring by ring (a dilation). Returns (filled copy, rings used)."""
+def fill_misses(rgb, miss, max_iter=256, known=None):
+    """Fill missed texels from their known 8-neighbours, ring by ring (a dilation), growing only into `miss`. Returns
+    (filled copy, rings used). `known` (default: every texel not missed, the margin Blender paints around the islands
+    included) is what a ring may take colour from; finish.py passes the island texels alone for its second pass, so a
+    texel the margin left black is refilled from the island it belongs to."""
     img = np.asarray(rgb, dtype=np.float64).copy()
-    known = ~miss.copy()
+    known = ~miss.copy() if known is None else known.copy()
     for it in range(max_iter):
         if known.all():
             return img, it
@@ -206,12 +214,21 @@ def fill_misses(rgb, miss, max_iter=256):
                 if dy or dx:
                     acc += pi[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
                     cnt += pk[1 + dy:1 + dy + h, 1 + dx:1 + dx + w]
-        new = ~known & (cnt > 0)
+        new = miss & ~known & (cnt > 0)
         if not new.any():
             return img, it
         img[new] = acc[new] / cnt[new][:, None]
         known |= new
     return img, max_iter
+
+
+def fill_orphans(rgb, orphan, source):
+    """Give orphaned texels (those no island path from a hit texel reaches: a UV island no ray hit at all) the per-channel
+    median of the `source` texels (the hit ones). Returns (copy, colour)."""
+    img = np.asarray(rgb, dtype=np.float64).copy()
+    colour = np.median(img[source], axis=0)
+    img[orphan] = colour
+    return img, colour
 
 
 def texel_density(uv_tris, tris_3d, res):

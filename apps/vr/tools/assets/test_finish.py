@@ -155,6 +155,31 @@ class Bake(unittest.TestCase):
         self.assertGreater(out[miss][:, 0].min(), 0.2)  # no black left
         np.testing.assert_allclose(out[4, 4, 0], 0.5, atol=0.05)
 
+    def test_fill_misses_from_island_texels_only(self):
+        # an island (brown) whose edge texels were missed, next to background Blender left black: the default fill takes
+        # the black margin in, the island-only pass (known = the island's hit texels) does not
+        img = np.zeros((10, 10, 3)); cov = np.zeros((10, 10), bool); cov[2:8, 2:8] = True; img[cov] = (0.4, 0.3, 0.2)
+        miss = np.zeros_like(cov); miss[2:8, 2] = True; img[miss] = 0
+        default, _ = fl.fill_misses(img, miss)
+        self.assertLess(default[miss][:, 0].min(), 0.4)  # pulled toward the black background
+        island, rings = fl.fill_misses(img, miss, known=cov & ~miss)
+        self.assertEqual(rings, 1)
+        np.testing.assert_allclose(island[miss], np.tile((0.4, 0.3, 0.2), (6, 1)))
+        np.testing.assert_array_equal(island[~cov], img[~cov])  # it never grows into the background
+        # a missed island with no hit texel is left for fill_orphans
+        cov2 = cov.copy(); cov2[0, 9] = True; miss2 = miss.copy(); miss2[0, 9] = True
+        out, _ = fl.fill_misses(img, miss2, known=cov2 & ~miss2)
+        self.assertEqual(fl.dark_texels(out, cov2), 1)
+
+    def test_fill_orphans_takes_the_hit_median(self):
+        img = np.zeros((6, 6, 3)); img[:3] = (0.4, 0.3, 0.2); img[3:] = 0  # hit half brown, a missed patch black
+        orphan = np.zeros((6, 6), bool); orphan[3:] = True
+        out, colour = fl.fill_orphans(img, orphan, ~orphan)
+        np.testing.assert_allclose(colour, (0.4, 0.3, 0.2))
+        np.testing.assert_allclose(out[orphan], np.tile((0.4, 0.3, 0.2), (18, 1)))
+        np.testing.assert_array_equal(out[~orphan], img[~orphan])
+        self.assertEqual(fl.dark_texels(out, np.ones((6, 6), bool)), 0)
+
     def test_texel_density(self):
         # one 1 m x 1 m square (two triangles) on the lower-left quarter of the UV square, at 1024: 512 texels per metre
         uv = [[[0, 0], [0.5, 0], [0.5, 0.5]], [[0, 0], [0.5, 0.5], [0, 0.5]]]

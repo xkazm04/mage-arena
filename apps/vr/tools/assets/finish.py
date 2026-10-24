@@ -138,6 +138,10 @@ PALETTES = {
                   ('Belly', 'Skin', 'outside', (0.0, 0.47, 0.40, 0.33)), ('Skin', 'Belly', 'inside', (0.0, 0.47, 0.36, 0.30))],
     },
 }
+# Mire maw from the open-gape master maw-open-gape-s7202 (seed 7, docs/research/CREATURE-MESH-2026-10-24.md): the MireMaw
+# set without SLAB, because this mesh stands on its own feet (SLAB cut 47,679 sole faces from it). FILL stays: its back half
+# is a torn shell the voxel remesh turns hollow. Palette and rules only matter to the flat mode and the clamp anchors.
+PALETTES['MireMawOpenGape'] = {k: v for k, v in PALETTES['MireMaw'].items() if k != 'SLAB'}
 PALETTE, REFERENCE, RULES = (PALETTES[SET][k] for k in ('PALETTE', 'REFERENCE', 'RULES'))
 HEIGHT = PALETTES[SET].get('HEIGHT', HEIGHT)
 R = {'mode': MODE}; T = {}; t0 = time.time()
@@ -280,7 +284,17 @@ def finish_bake():
     cov = FL.uv_coverage(uv[corner], RES)
     miss, counts = FL.bake_misses(hit, cov)
     q = {**counts, 'dark_in_islands_before_fill': FL.dark_texels(rgb, cov), 'dark_where_hit': FL.dark_texels(rgb, cov & ~miss)}
+    unfilled = rgb
     rgb, q['fill_rings'] = FL.fill_misses(rgb, miss) if counts['missed'] else (rgb, 0)
+    # that fill takes colour from Blender's margin too; where the margin was unhit black it leaves black texels and darkens
+    # the rest. Then every miss is filled again from the unfilled bake, from hit island texels alone, and the misses no
+    # island path reaches (islands no ray hit at all) take the median hit colour
+    q['black_after_ring_fill'] = FL.dark_texels(rgb, cov)
+    if q['black_after_ring_fill']:
+        rgb, q['refill_rings'] = FL.fill_misses(unfilled, miss, max_iter=1024, known=cov & ~miss)
+        orphan = miss & FL.dark_mask(rgb); q['orphan_black_filled'] = int(orphan.sum())
+        if orphan.any():
+            rgb, oc = FL.fill_orphans(rgb, orphan, cov & ~miss); q['orphan_fill_colour'] = [round(float(c), 4) for c in oc]
     q['dark_in_islands_after_fill'] = FL.dark_texels(rgb, cov)
     q.update(FL.texel_density(uv[corner], co[lv[corner]], RES))
     q.update({'res': RES, 'cage_extrusion_m': OPT['cage'], 'max_ray_distance_m': OPT['ray'], 'margin_px': OPT['margin']})
