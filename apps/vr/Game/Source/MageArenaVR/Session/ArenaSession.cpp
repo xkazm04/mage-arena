@@ -329,6 +329,7 @@ bool FArenaSession::Start(uint32 Seed)
 	bWardReleased = false;
 	bEmberWard = false;
 	EmberWardUntil = 0.0;
+	EmberOrdinals.Reset();
 	bTideStarted = false;
 	SideToggle = 0;
 	bSawSigilHit = false;
@@ -869,6 +870,13 @@ void FArenaSession::HandleStaffLift()
 	Note(TEXT("gesture staff-lift"));
 }
 
+bool FArenaSession::ScriptWardsEmber(int32 ActivationId) const
+{
+	const int32* Seen = EmberOrdinals.Find(ActivationId);
+	const int32 Ordinal = Seen ? *Seen : EmberOrdinals.Add(ActivationId, EmberOrdinals.Num());
+	return Policy.EmberWardEvery <= 1 || Ordinal % Policy.EmberWardEvery == 0;
+}
+
 void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const
 {
 	MeleeEta = 1.0e6;
@@ -914,6 +922,11 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 			}
 			if (IsEmber(Telegraph.OwnerId, Telegraph.Family) && Telegraph.SpeedMps > 0.1)
 			{
+				// DF-007 A: an ember the script lets land is no threat it answers (it is not steel either).
+				if (!ScriptWardsEmber(Telegraph.ActivationId))
+				{
+					continue;
+				}
 				const double Flight = FMath::Max(0.0, SimDistance(Telegraph.Origin, Player->Pos) - ContactM) / Telegraph.SpeedMps;
 				EmberEta = FMath::Min(EmberEta, UntilResolve + Flight);
 				continue;
@@ -973,6 +986,10 @@ void FArenaSession::ScanThreats(double& MeleeEta, double& ProjectileEta, double&
 		}
 		if (IsEmber(Projectile.OwnerId, Projectile.Family))
 		{
+			if (!ScriptWardsEmber(Projectile.ActivationId))
+			{
+				continue;
+			}
 			EmberEta = FMath::Min(EmberEta, FMath::Max(0.0, Along - Player->Radius - Projectile.Radius) / Speed);
 			continue;
 		}

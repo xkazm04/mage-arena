@@ -26,6 +26,9 @@ struct FSeatedPolicy
 	double WardDropMana = 16.0;
 	double SplitSigilMana = 12.0;
 	double WardHoldS = 1.6;
+	// T39 DF-007 A (owner ruling 2026-10-20): the reference seat wards every n-th hound ember (1st, 3rd, ... at 2) and lets
+	// the others land, a reasonable player rather than a perfectionist. 1 wards every ember (the script before T39).
+	int32 EmberWardEvery = 2;
 };
 class UBlinkDetectorSubsystem;
 class UHandInputSubsystem;
@@ -291,6 +294,8 @@ private:
 	FSimVec ComputeAim(int32 Slot) const;
 	/** EmberEta is a hound ember's time to contact (DF-004 option A). Embers are not in ProjectileEta or MagicEta. */
 	void ScanThreats(double& MeleeEta, double& ProjectileEta, double& MagicEta, double& EmberEta) const;
+	/** DF-007 A: true when the script wards this ember (by its activation id). Numbers each ember on first sight. */
+	bool ScriptWardsEmber(int32 ActivationId) const;
 	/** Stamina, recovery and a blink clip already playing. No side effects. */
 	bool CanBlink(const FActor& Player) const;
 	bool TryScriptBlink();
@@ -433,6 +438,8 @@ private:
 	// DF-004 option A: a ward raised for one hound ember, held until that ember has landed, then dropped.
 	bool bEmberWard = false;
 	double EmberWardUntil = 0.0;
+	// DF-007 A: the order in which the script first saw each hound ember this bout, by activation id.
+	mutable TMap<int32, int32> EmberOrdinals;
 	bool bTideStarted = false;
 	int32 SideToggle = 0;
 	bool bSawSigilHit = false;
