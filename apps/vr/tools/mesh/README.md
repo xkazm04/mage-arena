@@ -10,6 +10,7 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `input-gate.mjs` + `image_stats.py` | gate 1: can this image (or view set) be reconstructed? Verdict JSON with defect codes |
 | `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged, or to `trellis-mv.mjs` with `--back` |
 | `trellis-mv.mjs` + `trellis-mv.test.mjs` | the two-view (front + back) TRELLIS.2 workflow builder and runner, and its offline test |
+| `merge_halves.py` + `halves_lib.py` (+ `test_merge_halves.py`) | split-and-merge: the front half of the front-image mesh and the back half of a back-image mesh, posed in the finish frame and joined into one textured source GLB for `finish.mjs --rot 0` (see "Split and merge") |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
 | `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode bake` (default): the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png`; `--mode flat`: one flat palette colour per material (see "Finish modes") |
 | `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
@@ -148,6 +149,29 @@ ImageCropToMask at pad 1.1) for the back, and replaces `Trellis2Conditioning` (f
 weights, so this averages the views' DINOv3 class and register tokens in the model's global attention mode: the back steers
 the whole object, there is no per-voxel projection. Without `--back` nothing changes. A real run is a GPU job: run it only
 after the Unreal slot is free (see `docs/research/MAW-BACK-2026-10-24.md` for the order).
+
+## Split and merge (front half + back half), for a torn back
+
+When the two-view run does not close the back (on the 2026-10-24 maw it returned a cloud of 2,994 specks), reconstruct the
+back image alone as a single-image job and merge the halves in Blender:
+
+```
+node apps/vr/tools/mesh/comfy.mjs run <back.jpg> <label> <seed> <outdir>      then comfy.mjs free, comfy.mjs stop
+blender -b --factory-startup --python-exit-code 1 -P apps/vr/tools/mesh/merge_halves.py -- <front.glb> <back.glb> <merged.glb> <rot_front> <rot_back> <cut_y> <overlap> <height> [<record.json>]
+node apps/vr/tools/mesh/finish.mjs <merged.glb> <finish> --class <Class> --name <Name> --mode bake --rot 0 ...
+```
+
+- `rot_front` turns the front mesh so its face looks down -Y (the value `--rot` would take); `rot_back` turns the back
+  mesh so its back-image side looks down +Y. Both are turns, never reflections (a mirror would swap the flanks and invert
+  the winding; the script refuses a reflecting pose). Find them from renders: a silhouette match against the image
+  leaves a front/back ambiguity of 180 degrees, so pick the side that shows the image's features.
+- The back mesh is scaled to the front's full height and its 1-99 percentile footprint (`halves_lib.fit_halves`), so a
+  flap at one edge does not set the scale. Each half is bisected at `cut_y +- overlap`, its cut loops are capped, and the
+  halves are joined with both TRELLIS textures. `finish.py`'s voxel remesh (and FILL) is the merge; the finished card is
+  the watertight check. The record (`<merged>_merge.json`) has the fit, the faces kept, the cap faces and a 1 cm voxel trial.
+- Pick `cut_y` behind everything the front half must keep (for the maw: the throat wall at y -0.55, so -0.30). The
+  seam is a straight vertical line on both flanks where the two textures and surfaces meet; the bake does not blend it.
+- `python -m unittest apps/vr/tools/mesh/test_merge_halves.py` (numpy only). First run: docs/research/MAW-MV-2026-10-24.md.
 
 ## Starting and stopping the local ComfyUI
 
