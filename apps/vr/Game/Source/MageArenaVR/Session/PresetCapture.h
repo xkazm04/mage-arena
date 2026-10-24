@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Session/CaptureEvidence.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "PresetCapture.generated.h"
@@ -50,7 +51,6 @@ private:
 	void Advance();
 	void Fail(const TCHAR* Reason);
 	bool RequestShot(const TCHAR* FileName);
-	bool ShotFinished() const;
 	FString RepoPath(const TCHAR* Relative) const;
 	class UArenaSessionSubsystem* SessionSys() const;
 	class AMageArenaPawn* FindPawn() const;
@@ -64,6 +64,7 @@ private:
 	double RunStartWall = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;
+	FCaptureEvidence Evidence;
 	FString RunId = TEXT("T20");
 	FString SaveDir;
 	int32 ShotCount = 0;

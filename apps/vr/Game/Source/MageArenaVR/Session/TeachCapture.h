@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Session/CaptureEvidence.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "TeachCapture.generated.h"
@@ -46,7 +47,6 @@ private:
 	void Advance();
 	void Fail(const TCHAR* Reason);
 	bool RequestShot(const TCHAR* FileName);
-	bool ShotFinished() const;
 	// True once the prompt has been the expected line long enough for the widget to redraw.
 	bool PromptSettled(const FString& Prompt, const TCHAR* Expected);
 	FString RepoPath(const TCHAR* Relative) const;
@@ -62,6 +62,7 @@ private:
 	double RunStartWall = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;
+	FCaptureEvidence Evidence;
 	FString RunId = TEXT("T13");
 	int32 ShotCount = 0;
 };

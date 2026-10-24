@@ -52,6 +52,11 @@ void UCollarCaptureDriver::Start()
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
+	Evidence.Begin(TEXT("Collar"));
+	if (!MageArenaCapture::CanCapture())
+	{
+		Fail(TEXT("no rhi"));
+	}
 }
 
 void UCollarCaptureDriver::Enter(EStep Next)
@@ -94,6 +99,7 @@ void UCollarCaptureDriver::RequestShot(const TCHAR* FileName)
 	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
 	PendingShot = Path;
 	bShotOpen = true;
+	Evidence.Requested(FileName, Path, SessionSys());
 	++ShotCount;
 	const UArenaSessionSubsystem* Session = SessionSys();
 	if (Session)
@@ -104,11 +110,6 @@ void UCollarCaptureDriver::RequestShot(const TCHAR* FileName)
 			FileName, *Bout.GetStage(), Bout.GetSimSeconds(), Collar.GetBoutCracks(), Collar.GetBoutTithe(), Bout.GetDayTithe(),
 			Collar.GetLastCrackSim(), Collar.GetLastTitheSim(), *Collar.Breakdown(), *Path);
 	}
-}
-
-bool UCollarCaptureDriver::ShotFinished() const
-{
-	return !PendingShot.IsEmpty() && !FScreenshotRequest::IsScreenshotRequested() && IFileManager::Get().FileSize(*PendingShot) > 0;
 }
 
 void UCollarCaptureDriver::Fail(const TCHAR* Reason)
@@ -150,12 +151,17 @@ void UCollarCaptureDriver::Tick(float DeltaTime)
 	}
 	if (bShotOpen)
 	{
-		if (!ShotFinished())
+		const ECaptureShotPoll Shot = Evidence.Poll();
+		if (Shot == ECaptureShotPoll::Pending)
 		{
 			return;
 		}
 		bShotOpen = false;
 		PendingShot.Reset();
+		if (Shot == ECaptureShotPoll::Failed)
+		{
+			Fail(*Evidence.GetFailure());
+		}
 	}
 	Advance();
 }
@@ -397,7 +403,15 @@ void UCollarCaptureDriver::Advance()
 	case EStep::Finish:
 		if (ShotCount >= 3)
 		{
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), ShotCount);
+			FString ManifestError;
+			if (Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/shots/manifest.json"), *RunId)), ManifestError))
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), ShotCount);
+			}
+			else
+			{
+				UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *ManifestError);
+			}
 		}
 		else
 		{

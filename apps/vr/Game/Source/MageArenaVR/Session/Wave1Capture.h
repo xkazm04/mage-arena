@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Session/CaptureEvidence.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "Wave1Capture.generated.h"
@@ -48,7 +49,6 @@ private:
 	void Enter(EStep Next);
 	void Advance();
 	bool RequestShot(const TCHAR* FileName, bool bSequence);
-	bool ShotFinished() const;
 	void SampleBudget();
 	void WriteBudgetFile();
 	FString RepoPath(const TCHAR* Relative) const;
@@ -64,6 +64,7 @@ private:
 	int32 SequenceIndex = 0;
 	FString PendingShot;
 	bool bShotOpen = false;
+	FCaptureEvidence Evidence;
 
 	TArray<int32> DrawCalls;
 	TArray<int32> MeasuredTriangles;

@@ -160,6 +160,12 @@ void UWave1CaptureDriver::Start()
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
+	Evidence.Begin(TEXT("Wave1"));
+	if (!MageArenaCapture::CanCapture())
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL no rhi"));
+		Enter(EStep::Quit);
+	}
 }
 
 void UWave1CaptureDriver::Enter(EStep Next)
@@ -201,17 +207,13 @@ bool UWave1CaptureDriver::RequestShot(const TCHAR* FileName, bool bSequence)
 	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
 	PendingShot = Path;
 	bShotOpen = true;
+	Evidence.Requested(FileName, Path, SessionSys());
 	if (!bSequence)
 	{
 		ShotNames.Add(FileName);
 	}
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_SHOT name=%s path=%s"), FileName, *Path);
 	return true;
-}
-
-bool UWave1CaptureDriver::ShotFinished() const
-{
-	return !PendingShot.IsEmpty() && !FScreenshotRequest::IsScreenshotRequested() && IFileManager::Get().FileSize(*PendingShot) > 0;
 }
 
 void UWave1CaptureDriver::SampleBudget()
@@ -248,12 +250,18 @@ void UWave1CaptureDriver::Tick(float DeltaTime)
 	}
 	if (bShotOpen)
 	{
-		if (!ShotFinished())
+		const ECaptureShotPoll Shot = Evidence.Poll();
+		if (Shot == ECaptureShotPoll::Pending)
 		{
 			return;
 		}
 		bShotOpen = false;
 		PendingShot.Reset();
+		if (Shot == ECaptureShotPoll::Failed)
+		{
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *Evidence.GetFailure());
+			Enter(EStep::Quit);
+		}
 	}
 	const double Now = FPlatformTime::Seconds();
 	const bool bWaiting =
@@ -505,7 +513,15 @@ void UWave1CaptureDriver::Advance()
 		const int32 Needed = RunId == TEXT("T12") ? 1 : RunId == TEXT("T11") ? 3 : RunId == TEXT("T10") ? 4 : 5;
 		if (ShotNames.Num() >= Needed)
 		{
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
+			FString ManifestError;
+			if (Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/shots/manifest.json"), *RunId)), ManifestError))
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d samples=%d"), ShotNames.Num(), DrawCalls.Num());
+			}
+			else
+			{
+				UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *ManifestError);
+			}
 		}
 		else
 		{

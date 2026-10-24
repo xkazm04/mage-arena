@@ -33,6 +33,11 @@ void UTeachCaptureDriver::Start()
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
+	Evidence.Begin(TEXT("Teach"));
+	if (!MageArenaCapture::CanCapture())
+	{
+		Fail(TEXT("no rhi"));
+	}
 }
 
 void UTeachCaptureDriver::Enter(EStep Next)
@@ -86,15 +91,11 @@ bool UTeachCaptureDriver::RequestShot(const TCHAR* FileName)
 	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
 	PendingShot = Path;
 	bShotOpen = true;
+	Evidence.Requested(FileName, Path, SessionSys());
 	++ShotCount;
 	const FString Prompt = SessionSys() ? SessionSys()->GetSession().GetPromptText() : FString();
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_SHOT name=%s prompt=%s path=%s"), FileName, *Prompt, *Path);
 	return true;
-}
-
-bool UTeachCaptureDriver::ShotFinished() const
-{
-	return !PendingShot.IsEmpty() && !FScreenshotRequest::IsScreenshotRequested() && IFileManager::Get().FileSize(*PendingShot) > 0;
 }
 
 void UTeachCaptureDriver::Fail(const TCHAR* Reason)
@@ -112,12 +113,17 @@ void UTeachCaptureDriver::Tick(float DeltaTime)
 	}
 	if (bShotOpen)
 	{
-		if (!ShotFinished())
+		const ECaptureShotPoll Shot = Evidence.Poll();
+		if (Shot == ECaptureShotPoll::Pending)
 		{
 			return;
 		}
 		bShotOpen = false;
 		PendingShot.Reset();
+		if (Shot == ECaptureShotPoll::Failed)
+		{
+			Fail(*Evidence.GetFailure());
+		}
 	}
 	Advance();
 }
@@ -353,7 +359,15 @@ void UTeachCaptureDriver::Advance()
 	case EStep::Finish:
 		if (ShotCount >= 6)
 		{
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), ShotCount);
+			FString ManifestError;
+			if (Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/shots/manifest.json"), *RunId)), ManifestError))
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), ShotCount);
+			}
+			else
+			{
+				UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *ManifestError);
+			}
 		}
 		else
 		{

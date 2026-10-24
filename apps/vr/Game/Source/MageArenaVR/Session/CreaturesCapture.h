@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Session/CaptureEvidence.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "CreaturesCapture.generated.h"
@@ -49,7 +50,6 @@ private:
 	void Advance();
 	void Fail(const TCHAR* Reason);
 	bool RequestShot(const TCHAR* FileName);
-	bool ShotFinished() const;
 	bool PromptSettled(const FString& Prompt, const TCHAR* Expected);
 	FString RepoPath(const TCHAR* Relative) const;
 	class UArenaSessionSubsystem* SessionSys() const;
@@ -63,6 +63,7 @@ private:
 	double RunStartWall = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;
+	FCaptureEvidence Evidence;
 	FString RunId = TEXT("T18");
 	int32 ShotCount = 0;
 	int32 EventCursor = 0;
