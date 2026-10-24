@@ -20,9 +20,10 @@ it has to come from the beats this document authors. `T27` and `T28` are both bl
 critical path for the 18 Nov submission. **Section 4 is therefore the load-bearing section**: it is the arithmetic that
 shows the day reaching 7 min, and it is a design constraint on the text, not a report about it.
 
-**Status: draft for the owner's ruling.** Section 11 lists what only the owner can settle. Nothing in this document is
-canon until it is ruled, and **no voice line may be generated before the owner's go** (`T27` Constraints; the
-ElevenLabs approval in `docs/DECISIONS.md` names SFX and music, not voice - see decision **D4**).
+**Status: D1-D4 approved as recommended, owner 2026-10-24** (`docs/DECISIONS.md`, "2026-10-24 - C2 rulings D1-D4
+approved as recommended"). Section 11 records each ruling; D5-D7 stay open there and never blocked work. **No voice line
+is generated yet:** D4 approves the voice and its 14 cues, but its audio production is deferred by the owner's audio
+ruling of the same day (`docs/DECISIONS.md`, "2026-10-24 - Music and audio deferred; the visual side comes first").
 
 ## 1. Scope: this is one Tiro day, not the campaign
 
@@ -548,14 +549,16 @@ specifies the convention and cannot verify it here.
 
 ## 11. What only the owner can settle
 
-C2 is a draft until these are ruled. **D1-D4 block work; D5-D7 do not.**
+**D1-D4 are APPROVED as recommended, owner 2026-10-24** ("Approve the story script rulings"; `docs/DECISIONS.md`,
+"2026-10-24 - C2 rulings D1-D4 approved as recommended"). They no longer block work: `T28` may proceed on its non-audio
+parts. D5-D7 were not part of that ruling and stay open; they never blocked work.
 
 | # | Decision | What C2 assumed, and the cost of the other answer |
 |---|---|---|
-| **D1** | **Is this the voice of the game?** The whole script, in five registers. | Assumed yes. This is the one decision that cannot be delegated: every line above is a creative proposal, and the owner's taste outranks all of it. Rewriting a line is cheap *now* and costs a re-record after D4. |
-| **D2** | **The time budget in section 4.** 213 s of story at natural pace, 54 s floor. | Assumed as tabled, because it is the smallest budget that makes 7 min true at the fast end of the fight band. Shrinking it re-opens DF-010; growing it eats the judge's attention. |
-| **D3** | **Three intermission choices, not one.** Deviates from `04-vr-campaign-design.md` section 2, follows `T28`. | Assumed three. One choice costs ~34 s of the natural day and drops the fast-fight path under 7 min. |
-| **D4** | **Voice: approved, and at what count?** The ElevenLabs approval (`docs/DECISIONS.md`) names SFX and music; `04-vr-campaign-design.md` calls voice its own decision 4. | Assumed **not yet approved**: nothing is generated, and the day is paced to be complete as text. Recommended go: **14 cues, blocks A + B**. If voice is declined outright, the four phase taunts are cut rather than shown as text (section 7) - and that is the real cost of declining, because they are the unblockable warning. |
+| **D1** | **Is this the voice of the game?** The whole script, in five registers. **APPROVED as recommended, owner 2026-10-24** (`docs/DECISIONS.md` 2026-10-24, "C2 rulings D1-D4"). | Assumed yes. This is the one decision that cannot be delegated: every line above is a creative proposal, and the owner's taste outranks all of it. Rewriting a line is cheap *now* and costs a re-record after D4. |
+| **D2** | **The time budget in section 4.** 213 s of story at natural pace, 54 s floor. **APPROVED as recommended, owner 2026-10-24** (`docs/DECISIONS.md` 2026-10-24, "C2 rulings D1-D4"). | Assumed as tabled, because it is the smallest budget that makes 7 min true at the fast end of the fight band. Shrinking it re-opens DF-010; growing it eats the judge's attention. |
+| **D3** | **Three intermission choices, not one.** Deviates from `04-vr-campaign-design.md` section 2, follows `T28`. **APPROVED as recommended, owner 2026-10-24** (`docs/DECISIONS.md` 2026-10-24, "C2 rulings D1-D4"). | Assumed three. One choice costs ~34 s of the natural day and drops the fast-fight path under 7 min. |
+| **D4** | **Voice: approved, and at what count?** The ElevenLabs approval (`docs/DECISIONS.md`) names SFX and music; `04-vr-campaign-design.md` calls voice its own decision 4. **APPROVED as recommended (voice, 14 cues, blocks A + B), owner 2026-10-24** (`docs/DECISIONS.md` 2026-10-24, "C2 rulings D1-D4"). **Its audio production is deferred** by the owner's audio ruling of the same day (`docs/DECISIONS.md` 2026-10-24, "Music and audio deferred"): no cue is generated until that ruling is lifted. | Assumed **not yet approved**: nothing is generated, and the day is paced to be complete as text. Recommended go: **14 cues, blocks A + B**. If voice is declined outright, the four phase taunts are cut rather than shown as text (section 7) - and that is the real cost of declining, because they are the unblockable warning. |
 | **D5** | **The Wardstones line.** Row 12 names it; the Breaking is a Summa ending the slice does not reach. | Assumed **cut from the slice**: no Wardstones line, no knowing written, so the slice promises nothing it cannot pay off. If the owner wants the hook planted for the campaign, it is one Ophel line in intermission 3 and a `knowing` the slice never reads. |
 | **D6** | **`arena.sunfall.blinked`.** The campaign design lists it; the session does not write it. | Assumed **not needed**: no shipping scene uses it. It is the natural `when` for "Ophel notes you read the unstoppable spell", which is the single best use of the flag mechanic in the day. Adding it is small and belongs to `T28`. |
 | **D7** | **CR-008, the four-route framing.** The roadmap assigns it to C2 (`V2-ROADMAP.md:108`). | **Not written.** C2 found no "four routes" defined anywhere in the repo, and would be inventing the concept rather than recording it. The owner should say what the four routes are, or retire CR-008. |
