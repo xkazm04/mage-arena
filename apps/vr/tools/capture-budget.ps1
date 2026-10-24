@@ -8,6 +8,9 @@
 # line. The editor exit code is not the gate.
 # Usage: capture-budget.ps1 [-Runs 3] [-Prefix run] [-ExtraArgs "-csvCategories=MeshDrawCommandStats", ...]
 # Per-pass GPU-culled triangle counts come from r.MeshDrawCommands.DumpStats frames the driver requests every 10 s.
+# Each dump row is one mesh draw command, so the dumps also give the draws per pass and, for every skinned mesh (SK_*,
+# the creatures of -MageArenaCreatureImportScene), its draws and triangles per pass (docs/research/DRAWCALL-BUDGET-2026-10-25.md).
+# The csv profile's DrawCall/* columns (the RHI's draw calls by pass category) are all summarised.
 param(
 	[int]$Runs = 3,
 	# A run folder name under runs/DG4, which each run deletes with -Recurse: no path separators or dots.
@@ -88,34 +91,102 @@ function Read-ProfileCsv([string]$Path) {
 		$Out.columns[$Key] = $(if ($Columns[$Key] -ge 0) { $Header[$Columns[$Key]].Trim() } else { "missing" })
 		$Out[$Key] = Get-Spread $Series[$Key].ToArray()
 	}
+	# Every DrawCall/<category> column, by name: the RHI's draw calls per pass category.
+	$Categories = [ordered]@{}
+	for ($Col = 0; $Col -lt $Header.Count; $Col++) {
+		$Name = $Header[$Col].Trim()
+		if (-not $Name.StartsWith("DrawCall/")) { continue }
+		$Values = New-Object System.Collections.Generic.List[double]
+		for ($Row = 1; $Row -lt $Lines.Count; $Row++) {
+			$Line = $Lines[$Row]
+			if ($Line.StartsWith("[") -or $Line.StartsWith("EVENTS,")) { continue }
+			$Cells = $Line.Split(",")
+			$Value = 0.0
+			if ($Col -lt $Cells.Count -and [double]::TryParse($Cells[$Col], [ref]$Value)) { $Values.Add($Value) }
+		}
+		$Categories[$Name.Substring("DrawCall/".Length)] = Get-Spread $Values.ToArray()
+	}
+	$Out["drawCallsByCategory"] = $Categories
 	return $Out
 }
 
 # r.MeshDrawCommands.DumpStats files: one frame each, a row per visible draw with its pass and GPU-culled primitive count.
+function Add-Sample([hashtable]$Table, [string]$Key, [double]$Value) {
+	if (-not $Table.ContainsKey($Key)) { $Table[$Key] = New-Object System.Collections.Generic.List[double] }
+	$Table[$Key].Add($Value)
+}
+
 function Read-MeshDrawDumps([System.IO.FileInfo[]]$Files) {
 	$PerPass = @{}
+	$DrawsPerPass = @{}
 	$Totals = New-Object System.Collections.Generic.List[double]
+	$DrawTotals = New-Object System.Collections.Generic.List[double]
+	# Skinned mesh (resource) -> "pass" -> per-frame draws and triangles; a resource absent from a frame counts 0 there.
+	$SkinnedDraws = @{}
+	$SkinnedPrims = @{}
+	$SkinnedLods = @{}
+	$SkinnedSegments = @{}
 	foreach ($File in $Files) {
 		$Rows = Import-Csv -Path $File.FullName
 		$Frame = @{}
+		$FrameDraws = @{}
+		$FrameSkinnedDraws = @{}
+		$FrameSkinnedPrims = @{}
 		$Total = 0.0
+		$Draws = 0
 		foreach ($Row in $Rows) {
 			$Count = 0.0
 			if (-not [double]::TryParse($Row.VisiblePrimitiveCount, [ref]$Count)) { continue }
 			$Pass = $Row.Pass
-			if (-not $Frame.ContainsKey($Pass)) { $Frame[$Pass] = 0.0 }
+			if (-not $Frame.ContainsKey($Pass)) { $Frame[$Pass] = 0.0; $FrameDraws[$Pass] = 0 }
 			$Frame[$Pass] += $Count
+			$FrameDraws[$Pass] += 1
 			$Total += $Count
+			$Draws += 1
+			$Resource = "$($Row.ResourceName)"
+			if ($Resource.StartsWith("SK_")) {
+				$Key = "$Resource|$Pass"
+				if (-not $FrameSkinnedDraws.ContainsKey($Key)) { $FrameSkinnedDraws[$Key] = 0; $FrameSkinnedPrims[$Key] = 0.0 }
+				$FrameSkinnedDraws[$Key] += 1
+				$FrameSkinnedPrims[$Key] += $Count
+				if (-not $SkinnedLods.ContainsKey($Resource)) { $SkinnedLods[$Resource] = @{}; $SkinnedSegments[$Resource] = @{} }
+				$SkinnedLods[$Resource]["$($Row.LODIndex)"] = $true
+				$SkinnedSegments[$Resource]["$($Row.SegmentIndex)"] = $true
+			}
 		}
 		$Totals.Add($Total)
+		$DrawTotals.Add($Draws)
 		foreach ($Pass in $Frame.Keys) {
-			if (-not $PerPass.ContainsKey($Pass)) { $PerPass[$Pass] = New-Object System.Collections.Generic.List[double] }
-			$PerPass[$Pass].Add($Frame[$Pass])
+			Add-Sample $PerPass $Pass $Frame[$Pass]
+			Add-Sample $DrawsPerPass $Pass $FrameDraws[$Pass]
+		}
+		foreach ($Key in $FrameSkinnedDraws.Keys) {
+			Add-Sample $SkinnedDraws $Key $FrameSkinnedDraws[$Key]
+			Add-Sample $SkinnedPrims $Key $FrameSkinnedPrims[$Key]
 		}
 	}
 	$Passes = [ordered]@{}
 	foreach ($Pass in ($PerPass.Keys | Sort-Object)) { $Passes[$Pass] = Get-Spread $PerPass[$Pass].ToArray() }
-	return [ordered]@{ frames = $Files.Count; allPasses = (Get-Spread $Totals.ToArray()); perPass = $Passes }
+	$PassDraws = [ordered]@{}
+	foreach ($Pass in ($DrawsPerPass.Keys | Sort-Object)) { $PassDraws[$Pass] = Get-Spread $DrawsPerPass[$Pass].ToArray() }
+	$Skinned = [ordered]@{}
+	foreach ($Key in ($SkinnedDraws.Keys | Sort-Object)) {
+		$Parts = $Key.Split("|")
+		$Resource = $Parts[0]
+		if (-not $Skinned.Contains($Resource)) {
+			$Skinned[$Resource] = [ordered]@{
+				lods = (($SkinnedLods[$Resource].Keys | Sort-Object) -join ",")
+				segments = (($SkinnedSegments[$Resource].Keys | Sort-Object) -join ",")
+				passes = [ordered]@{}
+			}
+		}
+		$Skinned[$Resource].passes[$Parts[1]] = [ordered]@{
+			frames = $SkinnedDraws[$Key].Count
+			draws = (Get-Spread $SkinnedDraws[$Key].ToArray())
+			primitives = (Get-Spread $SkinnedPrims[$Key].ToArray())
+		}
+	}
+	return [ordered]@{ frames = $Files.Count; allPasses = (Get-Spread $Totals.ToArray()); perPass = $Passes; draws = (Get-Spread $DrawTotals.ToArray()); drawsPerPass = $PassDraws; skinned = $Skinned }
 }
 
 function Wait-UnrealLane {
@@ -241,6 +312,9 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 		Write-Host ("  draw calls min/median/p95/max: {0} / {1} / {2} / {3}" -f $Driver.drawCalls.min, $Driver.drawCalls.median, $Driver.drawCalls.p95, $Driver.drawCalls.max)
 		Write-Host ("  RHI primitives (lower bound) median/max: {0} / {1}" -f $Driver.rhiPrimitivesDrawn.median, $Driver.rhiPrimitivesDrawn.max)
 		Write-Host ("  LOD0 in-frustum (estimate) median/max: {0} / {1}" -f $Driver.lod0InFrustumTriangles.median, $Driver.lod0InFrustumTriangles.max)
+		if ($null -ne $Driver.lod0InFrustumSkeletalTriangles) {
+			Write-Host ("  of which skeletal (LOD0, skinned meshes) median/max: {0} / {1}" -f $Driver.lod0InFrustumSkeletalTriangles.median, $Driver.lod0InFrustumSkeletalTriangles.max)
+		}
 		Write-Host ("  frame ms median/p95: {0:N2} / {1:N2}; gpu ms median/p95: {2:N2} / {3:N2}; peak working set {4:N0} MB" -f $Driver.frameMs.median, $Driver.frameMs.p95, $Driver.gpuMs.median, $Driver.gpuMs.p95, $Driver.peakWorkingSetMB)
 	}
 	if ($Driver -and $Driver.parity) {
@@ -256,9 +330,19 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 		Write-Host ("  csv mesh-draw-command visible primitives (all passes) median/max: {0} / {1} [{2}]" -f $Csv.meshDrawCommandVisiblePrimitives.median, $Csv.meshDrawCommandVisiblePrimitives.max, $Csv.columns.meshDrawCommandVisiblePrimitives)
 		Write-Host ("  csv game thread ms median/p95: {0} / {1} [{2}]" -f $Csv.gameThreadMs.median, $Csv.gameThreadMs.p95, $Csv.columns.gameThreadMs)
 	}
+	if ($Csv -and $Csv.drawCallsByCategory) {
+		foreach ($Category in $Csv.drawCallsByCategory.Keys) {
+			Write-Host ("  csv draw calls {0}: median {1} max {2}" -f $Category, $Csv.drawCallsByCategory[$Category].median, $Csv.drawCallsByCategory[$Category].max)
+		}
+	}
 	if ($MeshDraw) {
 		foreach ($Pass in $MeshDraw.perPass.Keys) {
-			Write-Host ("  dump pass {0}: median {1} max {2} (n={3})" -f $Pass, $MeshDraw.perPass[$Pass].median, $MeshDraw.perPass[$Pass].max, $MeshDraw.perPass[$Pass].n)
+			Write-Host ("  dump pass {0}: median {1} max {2} (n={3}); draws median {4}" -f $Pass, $MeshDraw.perPass[$Pass].median, $MeshDraw.perPass[$Pass].max, $MeshDraw.perPass[$Pass].n, $MeshDraw.drawsPerPass[$Pass].median)
+		}
+		foreach ($Resource in $MeshDraw.skinned.Keys) {
+			$Entry = $MeshDraw.skinned[$Resource]
+			$Cells = @($Entry.passes.Keys | ForEach-Object { "{0} {1} draws / {2} tris" -f $_, $Entry.passes[$_].draws.median, $Entry.passes[$_].primitives.median })
+			Write-Host ("  skinned {0} (lod {1}, segments {2}): {3}" -f $Resource, $Entry.lods, $Entry.segments, ($Cells -join "; "))
 		}
 	}
 	foreach ($Line in $FailLines) { Write-Host "  $Line" }
