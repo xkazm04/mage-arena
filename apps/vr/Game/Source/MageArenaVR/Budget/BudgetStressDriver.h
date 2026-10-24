@@ -3,44 +3,30 @@
 #include "Async/Future.h"
 #include "Budget/BudgetFx.h"
 #include "Budget/BudgetStressPlan.h"
+#include "Budget/SceneCensus.h"
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
-#include "Greybox/GreyboxUtil.h"
 #include "Tickable.h"
 #include "UObject/Object.h"
 #include "BudgetStressDriver.generated.h"
 
-class UMaterialInstanceDynamic;
-class UMaterialInterface;
+class ASessionPresentation;
 class UNiagaraComponent;
-class UStaticMeshComponent;
-
-/** Owns the stress population's parts. Each part is one basic-shape component whose material is the shared tint of its colour
- * (Greybox::SharedTint), as SessionPresentation::MakePart builds them since T37. */
-UCLASS()
-class MAGEARENAVR_API ABudgetStressRig : public AActor
-{
-	GENERATED_BODY()
-
-public:
-	ABudgetStressRig();
-
-private:
-	UPROPERTY()
-	TObjectPtr<USceneComponent> SceneRoot;
-
-	friend class UBudgetStressDriver;
-};
+struct FMinimalViewInfo;
 
 /**
  * D-G4 stress capture. Started by -MageArenaGreyboxCapture -MageArenaBudgetStress (apps/vr/tools/capture-budget.ps1).
- * Waits for a stable frame, spawns 20 enemy proxies and 100 projectiles, loops a two-hand clip, warms up,
- * then samples 60 s of draw calls, triangles and frame times into runs/DG4/<run>/.
+ * Waits for a stable frame, starts the session's own bout (BudgetStress::SessionBout) and freezes it, then poses the
+ * stress population into it as kernel actors: 20 enemies and 100 projectiles, with the staff dome planted and a fire wall
+ * up. The session's ASessionPresentation draws all of it, its own parts included (T46: the measured frame is the shipping
+ * presentation's, not a copy of it). Loops a two-hand clip, warms up, then samples 60 s of draw calls, triangles and frame
+ * times into runs/DG4/<run>/.
  * Also spawns the six NS_Budget_ Niagara systems (Budget/BudgetFx.h, docs/research/NIAGARA-PROXY-2026-10.md) and counts
  * their live particles and GPU emitters on every frame of the window.
+ * Scene parity (Budget/SceneCensus.h): at steady state and at the end the presentation's drawn parts must hold the plan's
+ * (BudgetStressCensus); a divergence fails the run with MAGEVR_BUDGET_FAIL scene parity <what diverged>.
  * Logs MAGEVR_BUDGET_POP twice and ends with MAGEVR_BUDGET_DONE or MAGEVR_BUDGET_FAIL.
- * The parts of one colour share one material, as the shipping presentation does since T37 (D-G4 lever B, BUDGET-DG4 7.7).
- * -MageArenaBudgetSharedMaterials, the diagnostic switch that did this before, is now a no-op alias of the default.
+ * The presentation's parts of one colour share one material (T37, D-G4 lever B), so the default run measures the shared
+ * path. -MageArenaBudgetSharedMaterials, the diagnostic switch that did this before T37, is a no-op.
  */
 UCLASS()
 class MAGEARENAVR_API UBudgetStressDriver : public UObject, public FTickableGameObject
@@ -59,6 +45,9 @@ public:
 
 	static constexpr double WarmupS = 10.0;
 	static constexpr double SampleS = 60.0;
+
+	/** T46: the call site of the shared visible-LOD0 sum (Greybox::CountVisibleLod0) that SampleFrame reads. */
+	static int32 VisibleLod0(UWorld* World, const FMinimalViewInfo& View);
 
 private:
 	enum class EStep : uint8
@@ -83,8 +72,11 @@ private:
 	void Enter(EStep Next);
 	void Fail(const FString& Why);
 	bool SpawnPopulation();
+	bool StartSession();
+	void PoseSession(double Seconds);
+	void CheckParity(const TCHAR* Phase);
 	bool SpawnFx(UWorld* World, const FArenaLayout& Layout, const FVector& PadCm);
-	void UpdateFx();
+	void UpdateFx(double Seconds);
 	void SampleFx();
 	void JudgeParticles();
 	int32 CountLiveFx() const;
@@ -94,7 +86,6 @@ private:
 	void LogPopulation(const TCHAR* Phase, const FPopulation& Population) const;
 	bool PopulationFull(const FPopulation& Population) const;
 	void SampleFrame();
-	int32 CountVisibleLod0() const;
 	void BeginCsv();
 	void EndCsv();
 	void WriteResults();
@@ -116,22 +107,28 @@ private:
 	int64 Launches = 0;
 	int32 MinLiveShots = TNumericLimits<int32>::Max();
 	FString RunName;
-	UPROPERTY()
-	FGreyboxTintCache PartTints;
 
 	int32 SharedMaterialParts = 0;
 	int32 SharedMaterialDistinct = 0;
+	int32 SharedMaterialTints = 0;
 
 	FBudgetStressPlan Plan;
 
+	/** The session's own presentation (UArenaSessionSubsystem spawns it); the capture draws through it. */
 	UPROPERTY()
-	TObjectPtr<ABudgetStressRig> Rig;
+	TObjectPtr<ASessionPresentation> Presentation;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UStaticMeshComponent>> EnemyParts;
+	/** Kernel ids of the posed enemies and projectiles, in plan order. */
+	TArray<int32> EnemyActorIds;
+	TArray<int32> ShotIds;
+	FString SessionNote;
+	bool bDomePosed = false;
+	bool bWallPosed = false;
 
-	UPROPERTY()
-	TArray<TObjectPtr<UStaticMeshComponent>> ShotParts;
+	FSceneParity Parity;
+	FSceneCensus PlannedCensus;
+	FSceneCensus DrawnCensus;
+	bool bParityChecked = false;
 
 	/** The six NS_Budget_ systems, in BudgetStress::FxRows() order. */
 	UPROPERTY()

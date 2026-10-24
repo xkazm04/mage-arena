@@ -1,8 +1,11 @@
-# Runs the D-G4 stress scene (docs/PROJECT-PLAN.md D-G4): greybox arena, 20 enemy proxies, 100 projectiles,
+# Runs the D-G4 stress scene (docs/PROJECT-PLAN.md D-G4): greybox arena, 20 enemies, 100 projectiles,
 # both hands from a looping clip. Real RHI, offscreen 1920x1080, -nohmd, the project's forward renderer.
+# Since T46 the population is posed into the session's own frozen bout and drawn by its ASessionPresentation, so the
+# frame is the shipping presentation's (cuff, Wardstones, crowd band, staff dome, fire wall included).
 # Each launch samples 60 s after a warm-up and writes runs/DG4/<run>/ (gitignored).
-# Success per launch is MAGEVR_BUDGET_DONE, both MAGEVR_BUDGET_POP lines at full count (niagara=6 included) and
-# driver.particlesExercised. The editor exit code is not the gate.
+# Success per launch is MAGEVR_BUDGET_DONE, both MAGEVR_BUDGET_POP lines at full count (niagara=6 included),
+# driver.particlesExercised, driver.parity.ok (the scene-parity check, Budget/SceneCensus.h) and no MAGEVR_BUDGET_FAIL
+# line. The editor exit code is not the gate.
 # Usage: capture-budget.ps1 [-Runs 3] [-Prefix run] [-ExtraArgs "-csvCategories=MeshDrawCommandStats", ...]
 # Per-pass GPU-culled triangle counts come from r.MeshDrawCommands.DumpStats frames the driver requests every 10 s.
 param(
@@ -204,13 +207,16 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 	if ($Dumps.Count -gt 0) { $MeshDraw = Read-MeshDrawDumps $Dumps }
 
 	# A zero is never a pass: the run counts only when the six systems were live and their particles were counted.
-	$Ok = $Done -and $PopOk -and $Driver -and $Driver.ok -and ($Driver.particlesExercised -eq $true)
+	# T46: the scene-parity check must have run and passed, and no failure line may be in the log.
+	$ParityOk = $Driver -and $Driver.parity -and ($Driver.parity.checked -eq $true) -and ($Driver.parity.ok -eq $true)
+	$Ok = $Done -and $PopOk -and $Driver -and $Driver.ok -and ($Driver.particlesExercised -eq $true) -and $ParityOk -and ($FailLines.Count -eq 0)
 	if (-not $Ok) { $AllOk = $false }
 	$Summary = [ordered]@{
 		run = $Run
 		label = "desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz"
 		ok = [bool]$Ok
 		doneMarker = [bool]$Done
+		parityOk = [bool]$ParityOk
 		populationLines = $PopLines
 		failLines = $FailLines
 		started = $Started.ToString("s")
@@ -236,6 +242,10 @@ for ($Index = 1; $Index -le $Runs; $Index++) {
 		Write-Host ("  RHI primitives (lower bound) median/max: {0} / {1}" -f $Driver.rhiPrimitivesDrawn.median, $Driver.rhiPrimitivesDrawn.max)
 		Write-Host ("  LOD0 in-frustum (estimate) median/max: {0} / {1}" -f $Driver.lod0InFrustumTriangles.median, $Driver.lod0InFrustumTriangles.max)
 		Write-Host ("  frame ms median/p95: {0:N2} / {1:N2}; gpu ms median/p95: {2:N2} / {3:N2}; peak working set {4:N0} MB" -f $Driver.frameMs.median, $Driver.frameMs.p95, $Driver.gpuMs.median, $Driver.gpuMs.p95, $Driver.peakWorkingSetMB)
+	}
+	if ($Driver -and $Driver.parity) {
+		Write-Host ("  scene parity ok={0}: planned {1} parts / {2} tuples, drawn {3} parts / {4} tuples, drawn hash {5}" -f $Driver.parity.ok, $Driver.parity.planned.parts, $Driver.parity.planned.tuples, $Driver.parity.drawn.parts, $Driver.parity.drawn.tuples, $Driver.parity.drawn.hash)
+		Write-Host ("  materials: {0} distinct over {1} presentation parts, {2} shared tints" -f $Driver.sharedMaterials.mids, $Driver.sharedMaterials.parts, $Driver.sharedMaterials.colours)
 	}
 	if ($Driver -and $null -ne $Driver.liveParticlesSpread) {
 		Write-Host ("  live particles min/median/p95/max: {0} / {1} / {2} / {3}" -f $Driver.liveParticlesSpread.min, $Driver.liveParticlesSpread.median, $Driver.liveParticlesSpread.p95, $Driver.liveParticlesSpread.max)

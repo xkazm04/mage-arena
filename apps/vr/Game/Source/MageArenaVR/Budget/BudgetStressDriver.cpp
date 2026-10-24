@@ -1,19 +1,18 @@
 #include "Budget/BudgetStressDriver.h"
 
 #include "Async/Future.h"
+#include "Camera/CameraTypes.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "ConvexVolume.h"
 #include "Dom/JsonObject.h"
 #include "DynamicRHI.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
-#include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
-#include "Greybox/GreyboxUtil.h"
 #include "Greybox/HandPresentationComponent.h"
+#include "Greybox/VisibleLod0.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformMemory.h"
 #include "HAL/PlatformMisc.h"
@@ -22,9 +21,10 @@
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
 #include "HeadMountedDisplayTypes.h"
-#include "Kismet/GameplayStatics.h"
+#include "Kernel/KernelData.h"
+#include "Kernel/SimMath.h"
 #include "MageArenaVR.h"
-#include "Materials/MaterialInstanceDynamic.h"
+#include "Materials/MaterialInterface.h"
 #include "Misc/App.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
@@ -41,28 +41,22 @@
 #include "RHIStats.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
+#include "Session/ArenaSession.h"
+#include "Session/PresentationLook.h"
+#include "Session/SessionPresentation.h"
 #include "ShaderCompiler.h"
-#include "StaticMeshResources.h"
 
 namespace
 {
 constexpr double RunTimeoutS = 330.0;
 constexpr double WarmupCapS = 150.0;
 constexpr double DumpEveryS = 10.0;
-constexpr double SphereDiameterCm = 30.0;
-constexpr double SpearRadiusM = 0.11;
-constexpr double SpearLengthM = 1.7;
-const FLinearColor HpBackColour(0.02f, 0.02f, 0.02f);
-const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
-
-int32 MeshLod0Triangles(const UStaticMesh* Mesh)
-{
-	if (!Mesh || !Mesh->GetRenderData() || Mesh->GetRenderData()->LODResources.Num() == 0)
-	{
-		return 0;
-	}
-	return Mesh->GetRenderData()->LODResources[0].GetNumTriangles();
-}
+// Kernel ids of the posed population, far above anything a bout spawns. The presentation keys bodies, shots and rings in
+// one set (ASessionPresentation::HideUnused), so the two ranges must not meet either.
+constexpr int32 PosedEnemyIdBase = 900000;
+constexpr int32 PosedShotIdBase = 910000;
+constexpr double PosedEnemyMaxHp = 100.0;
+constexpr int32 PosedForever = TNumericLimits<int32>::Max();
 
 double Percentile(TArray<double> Values, double Fraction)
 {
@@ -127,16 +121,18 @@ bool SaveJson(const TSharedRef<FJsonObject>& Root, const FString& Path)
 	return FFileHelper::SaveStringToFile(Text, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM);
 }
 
-UStaticMeshComponent* MakePart(AActor* Owner, UObject* Outer, const TCHAR* Shape, const FLinearColor& Colour, FGreyboxTintCache& Tints)
+// The kernel point under a layout point: the session draws kernel Pos at its centre pad plus (Pos - PlayerSpawn)
+// (FArenaSession::KernelToUnrealCm), so this is that mapping backwards.
+FSimVec KernelAt(const FArenaSession& Bout, const FVector& PointM)
 {
-	// SessionPresentation::MakePart: one component per part, and the parts of one colour share one material (T37, lever B),
-	// so dynamic instancing can merge them.
-	UStaticMesh* Mesh = Greybox::LoadShape(Shape);
-	if (!Mesh)
-	{
-		return nullptr;
-	}
-	return Greybox::MakeMesh(Owner, Mesh, Greybox::SharedTint(Tints, Outer, Colour));
+	const FSimVec Spawn = KernelData().PlayerSpawn;
+	const FVector OriginM = Bout.KernelToUnrealCm(Spawn) / 100.0;
+	return FSimVec{Spawn.X + (PointM.X - OriginM.X), Spawn.Y + (PointM.Y - OriginM.Y)};
+}
+
+UArenaSessionSubsystem* SessionsOf(UWorld* World)
+{
+	return World ? World->GetSubsystem<UArenaSessionSubsystem>() : nullptr;
 }
 
 AMageArenaPawn* FindPawn(UWorld* World)
@@ -150,13 +146,6 @@ AMageArenaPawn* FindPawn(UWorld* World)
 	TActorIterator<AMageArenaPawn> It(World);
 	return It ? *It : nullptr;
 }
-}
-
-ABudgetStressRig::ABudgetStressRig()
-{
-	PrimaryActorTick.bCanEverTick = false;
-	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
-	SetRootComponent(SceneRoot);
 }
 
 UBudgetStressDriver::UBudgetStressDriver()
@@ -210,74 +199,27 @@ bool UBudgetStressDriver::SpawnPopulation()
 	UWorld* World = GetWorld();
 	FArenaLayout Layout;
 	FString Error;
-	if (!World || !Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error) || !BuildBudgetStressPlan(Layout, Plan, Error))
+	if (!World || !Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error))
 	{
 		Fail(FString::Printf(TEXT("plan: %s"), Error.IsEmpty() ? TEXT("no world") : *Error));
 		return false;
 	}
-	FActorSpawnParameters Params;
-	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	Rig = World->SpawnActor<ABudgetStressRig>(ABudgetStressRig::StaticClass(), FTransform::Identity, Params);
-	if (!Rig)
+	if (!StartSession())
 	{
-		Fail(TEXT("rig did not spawn"));
 		return false;
 	}
+	UArenaSessionSubsystem* Sessions = SessionsOf(World);
+	PresentationLook::LoadStyleFromCommandLine();
+	if (!BuildBudgetStressPlan(Layout, Plan, Error, Sessions->GetSession().GetVrRules()))
+	{
+		Fail(FString::Printf(TEXT("plan: %s"), *Error));
+		return false;
+	}
+	PlannedCensus = BudgetStressCensus(Plan);
+	PoseSession(0.0);
 
 	const FRunePad* Pad = Layout.FindPadById(TEXT("centre"));
 	const FVector PadCm = Pad ? Pad->PositionM * 100.0 : FVector::ZeroVector;
-	for (int32 Index = 0; Index < Plan.Enemies.Num(); ++Index)
-	{
-		const FBudgetEnemy& Enemy = Plan.Enemies[Index];
-		UStaticMeshComponent* Body = MakePart(Rig, this, Enemy.bCube ? TEXT("Cube") : TEXT("Cylinder"), Enemy.Colour, PartTints);
-		UStaticMeshComponent* HpBack = MakePart(Rig, this, TEXT("Cube"), HpBackColour, PartTints);
-		UStaticMeshComponent* HpFill = MakePart(Rig, this, TEXT("Cube"), HpColour, PartTints);
-		const FVector GroundCm = Enemy.GroundM * 100.0;
-		const FVector Centre = GroundCm + FVector(0.0, 0.0, Enemy.BodySizeCm.Z * 0.5);
-		if (Body)
-		{
-			FVector Facing = PadCm - GroundCm;
-			Facing.Z = 0.0;
-			if (!Facing.IsNearlyZero())
-			{
-				Body->SetWorldRotation(FRotationMatrix::MakeFromX(Facing).Rotator());
-			}
-			Body->SetWorldLocation(Centre);
-			Greybox::SetSized(Body, Enemy.BodySizeCm);
-		}
-		// SessionPresentation's HP bar: 70 x 8 x 8 cm, 18 cm above the body, fill shrinking from the right.
-		const double Fraction = static_cast<double>(Index % 5 + 1) / 5.0;
-		const FVector Bar = Centre + FVector(0.0, 0.0, Enemy.BodySizeCm.Z * 0.5 + 18.0);
-		if (HpBack)
-		{
-			HpBack->SetWorldLocation(Bar);
-			Greybox::SetSized(HpBack, FVector(70.0, 8.0, 8.0));
-		}
-		if (HpFill)
-		{
-			HpFill->SetWorldLocation(Bar + FVector((Fraction - 1.0) * 35.0, 0.0, 0.0));
-			Greybox::SetSized(HpFill, FVector(FMath::Max(4.0, 70.0 * Fraction), 8.0, 8.0));
-		}
-		EnemyParts.Add(Body);
-		EnemyParts.Add(HpBack);
-		EnemyParts.Add(HpFill);
-	}
-	for (const FBudgetShot& Shot : Plan.Shots)
-	{
-		UStaticMeshComponent* Part = MakePart(Rig, this, Shot.bSpear ? TEXT("Cylinder") : TEXT("Sphere"), Shot.Colour, PartTints);
-		if (Part)
-		{
-			if (Shot.bSpear)
-			{
-				Greybox::SetSized(Part, FVector(SpearRadiusM * 200.0, SpearRadiusM * 200.0, SpearLengthM * 100.0));
-			}
-			else
-			{
-				Greybox::SetSized(Part, FVector(SphereDiameterCm));
-			}
-		}
-		ShotParts.Add(Part);
-	}
 	if (!SpawnFx(World, Layout, PadCm))
 	{
 		return false;
@@ -285,10 +227,164 @@ bool UBudgetStressDriver::SpawnPopulation()
 	PopulationStartWall = FPlatformTime::Seconds();
 	UpdateShots(0.0);
 	KeepHandsLooping();
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_PLAN enemies=%d parts_per_enemy=3 projectiles=%d spears=%d near=%.1fm arc=+/-%.1fdeg far=%.1fm arc=+/-%.1fdeg clip=%s.normal"),
-		Plan.Enemies.Num(), Plan.Shots.Num(), Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot) { return Shot.bSpear; }).Num(),
-		Plan.NearDistanceM, Plan.NearArcDeg, Plan.FarDistanceM, Plan.FarArcDeg, BudgetStress::HandClipAction);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_PLAN enemies=%d parts_per_enemy=3 projectiles=%d spears=%d embers=%d near=%.1fm arc=+/-%.1fdeg far=%.1fm arc=+/-%.1fdeg clip=%s.normal"),
+	    Plan.Enemies.Num(), Plan.Shots.Num(), Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot)
+	{ return Shot.bSpear; }).Num(),
+	    Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot)
+	{ return Shot.bEmber; })
+	        .Num(),
+	    Plan.NearDistanceM, Plan.NearArcDeg, Plan.FarDistanceM, Plan.FarArcDeg, BudgetStress::HandClipAction);
 	return true;
+}
+
+bool UBudgetStressDriver::StartSession()
+{
+	// T46: the measured frame is the session's own. Its subsystem spawned the one ASessionPresentation of this world (and
+	// left it idle under the capture flag); start that session's bout and freeze it, and the subsystem keeps syncing the
+	// presentation from the posed state every frame, as in a bout.
+	UArenaSessionSubsystem* Sessions = SessionsOf(GetWorld());
+	Presentation = Sessions ? Sessions->GetPresentation() : nullptr;
+	if (!Sessions || !Presentation)
+	{
+		Fail(TEXT("no live session presentation: UArenaSessionSubsystem spawned none"));
+		return false;
+	}
+	FArenaSession& Bout = Sessions->GetSession();
+	Bout.SetSaveDirectory(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("budget-capture")));
+	Bout.SetBout(BudgetStress::SessionBout, true);
+	if (!Sessions->Start(1, true))
+	{
+		Fail(TEXT("the session bout did not start"));
+		return false;
+	}
+	Bout.SetFrameHold(true);
+	const FVrRuleset* Rules = Bout.GetVrRules();
+	const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
+	SessionNote = FString::Printf(TEXT("bout=%d phase=%s rival=%s actors=%d"), BudgetStress::SessionBout + 1, *Bout.GetGames().Phase,
+	    Rival ? *Rival->Id : TEXT("-"), Bout.GetGames().State.Actors.Num());
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_SESSION %s"), *SessionNote);
+	return true;
+}
+
+void UBudgetStressDriver::PoseSession(double Seconds)
+{
+	UArenaSessionSubsystem* Sessions = SessionsOf(GetWorld());
+	if (!Sessions)
+	{
+		return;
+	}
+	FArenaSession& Bout = Sessions->GetSession();
+	// The bout is frozen (SetFrameHold), so the kernel never steps again and the capture owns its state, as the other
+	// capture drivers do when they pose a still.
+	FGames& Games = const_cast<FGames&>(Bout.GetGames());
+	FArenaState& State = Games.State;
+	const FActor* Player = SimFindActor(State, Games.PlayerId);
+	const FSimVec Seat = Player ? Player->Pos : KernelData().PlayerSpawn;
+	if (EnemyActorIds.Num() == 0)
+	{
+		for (int32 Index = 0; Index < Plan.Enemies.Num(); ++Index)
+		{
+			const FBudgetEnemy& Planned = Plan.Enemies[Index];
+			FActor& Enemy = State.Actors.AddDefaulted_GetRef();
+			Enemy.Id = PosedEnemyIdBase + Index;
+			Enemy.Team = 1;
+			Enemy.Label = Planned.EnemyId;
+			Enemy.Pos = KernelAt(Bout, Planned.GroundM);
+			Enemy.PreviousPos = Enemy.Pos;
+			Enemy.Facing = SimUnit(SimSub(Seat, Enemy.Pos));
+			Enemy.Radius = 0.4;
+			Enemy.MaxHp = PosedEnemyMaxHp;
+			Enemy.Hp = PosedEnemyMaxHp * Planned.HpFraction;
+			FEnemyBrain Brain;
+			Brain.Id = Planned.EnemyId;
+			Enemy.Enemy = Brain;
+			EnemyActorIds.Add(Enemy.Id);
+		}
+		for (int32 Index = 0; Index < Plan.Shots.Num(); ++Index)
+		{
+			const FBudgetShot& Planned = Plan.Shots[Index];
+			FProjectile& Shot = State.Projectiles.AddDefaulted_GetRef();
+			Shot.Id = PosedShotIdBase + Index;
+			Shot.ActivationId = Shot.Id;
+			Shot.OwnerId = EnemyActorIds.IsValidIndex(Planned.EnemyIndex) ? EnemyActorIds[Planned.EnemyIndex] : 0;
+			Shot.Family = Planned.Family;
+			Shot.Radius = KernelData().ProjectileRadiusM;
+			Shot.OriginPos = KernelAt(Bout, Planned.StartM);
+			Shot.AimedAt = KernelAt(Bout, Planned.EndM);
+			// A spear and an ember fly from a telegraph with a target; the presentation draws their ground ring from it.
+			Shot.bHasAim = Planned.bSpear || Planned.bEmber;
+			ShotIds.Add(Shot.Id);
+		}
+	}
+	for (int32 Index = 0; Index < Plan.Shots.Num(); ++Index)
+	{
+		const int32 Id = PosedShotIdBase + Index;
+		FProjectile* Shot = State.Projectiles.FindByPredicate([Id](const FProjectile& Each)
+		{ return Each.Id == Id; });
+		if (!Shot)
+		{
+			continue;
+		}
+		const FBudgetShot& Planned = Plan.Shots[Index];
+		const FSimVec At = KernelAt(Bout, BudgetShotPositionM(Planned, Seconds));
+		const FSimVec Lane = SimSub(Shot->AimedAt, Shot->OriginPos);
+		Shot->Velocity = SimScale(SimUnit(Lane), SimLength(Lane) / FMath::Max(Planned.FlightS, 1.0e-3));
+		Shot->PreviousPos = Shot->Pos;
+		Shot->Pos = At;
+		Shot->RemainingM = SimDistance(At, Shot->AimedAt);
+	}
+	// The heaviest defences a bout shows at once: the player's staff dome and the rival's fire wall, both translucent.
+	if (Games.VrRules.IsSet())
+	{
+		FVrRuleset& Rules = Games.VrRules.GetValue();
+		bDomePosed = Rules.Staff.bEnabled;
+		if (bDomePosed)
+		{
+			Rules.StaffRuntime.bPlanted = true;
+			Rules.StaffRuntime.ActorId = Games.PlayerId;
+			Rules.StaffRuntime.UntilTick = PosedForever;
+		}
+		bWallPosed = Rules.FireWall.bEnabled;
+		if (bWallPosed && Rules.Walls.Num() == 0)
+		{
+			const FActor* Rival = SimFindActor(State, Rules.RivalRuntime.ActorId);
+			FVrWall& Wall = Rules.Walls.AddDefaulted_GetRef();
+			Wall.Id = 1;
+			Wall.OwnerId = Rival ? Rival->Id : -1;
+			Wall.Centre = Rival ? Rival->Pos : KernelAt(Bout, FVector::ZeroVector);
+			Wall.Facing = SimUnit(SimSub(Seat, Wall.Centre));
+			Wall.DistanceM = Rules.FireWall.DistanceM;
+			Wall.ArcDeg = Rules.FireWall.ArcDeg;
+			Wall.UntilTick = PosedForever;
+		}
+	}
+}
+
+void UBudgetStressDriver::CheckParity(const TCHAR* Phase)
+{
+	DrawnCensus = FSceneCensus();
+	if (Presentation)
+	{
+		AddDrawnParts(DrawnCensus, *Presentation);
+	}
+	Parity = CompareSceneCensus(PlannedCensus, DrawnCensus);
+	bParityChecked = true;
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_PARITY phase=%s ok=%d planned=%d parts/%d tuples drawn=%d parts/%d tuples extras=%d tuples plannedHash=%s drawnHash=%s"),
+	    Phase, Parity.bOk ? 1 : 0, PlannedCensus.Parts(), PlannedCensus.Rows.Num(), DrawnCensus.Parts(), DrawnCensus.Rows.Num(), Parity.Extras.Num(),
+	    *PlannedCensus.Hash(), *DrawnCensus.Hash());
+	for (const FCensusRow& Row : DrawnCensus.Rows)
+	{
+		UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_CENSUS phase=%s drawn=%d planned=%d %s"), Phase, Row.Count, PlannedCensus.CountOf(Row.Key), *Row.Key.ToString());
+	}
+	for (const FString& Line : Parity.Divergences)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_PARITY_DIVERGENCE phase=%s %s"), Phase, *Line);
+	}
+	if (!Parity.bOk)
+	{
+		const FString More = Parity.Divergences.Num() > 1 ? FString::Printf(TEXT(" (+%d more)"), Parity.Divergences.Num() - 1) : FString();
+		Fail(FString::Printf(TEXT("scene parity %s%s"), *Parity.Divergences[0], *More));
+	}
 }
 
 bool UBudgetStressDriver::SpawnFx(UWorld* World, const FArenaLayout& Layout, const FVector& PadCm)
@@ -319,12 +415,6 @@ bool UBudgetStressDriver::SpawnFx(UWorld* World, const FArenaLayout& Layout, con
 			return false;
 		}
 		UNiagaraComponent* Component = nullptr;
-		if (Row.Name == TEXT("NS_Budget_BoltTrail") && ShotParts.Num() > 0 && ShotParts[0])
-		{
-			Component = UNiagaraFunctionLibrary::SpawnSystemAttached(System, ShotParts[0], NAME_None, FVector::ZeroVector, FRotator::ZeroRotator,
-				EAttachLocation::SnapToTarget, false);
-		}
-		else
 		{
 			FVector At = PalmCm;
 			if (Row.Name == TEXT("NS_Budget_Telegraph"))
@@ -334,6 +424,11 @@ bool UBudgetStressDriver::SpawnFx(UWorld* World, const FArenaLayout& Layout, con
 			else if (Row.Name == TEXT("NS_Budget_Motes"))
 			{
 				At = MotesCm;
+			}
+			else if (Row.Name == TEXT("NS_Budget_BoltTrail") && Plan.Shots.Num() > 0)
+			{
+				// It rides the first shot (UpdateFx moves it along that lane).
+				At = BudgetShotPositionM(Plan.Shots[0], 0.0) * 100.0;
 			}
 			Component = UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, System, At, FRotator::ZeroRotator, FVector::OneVector, false);
 		}
@@ -348,23 +443,28 @@ bool UBudgetStressDriver::SpawnFx(UWorld* World, const FArenaLayout& Layout, con
 	return true;
 }
 
-void UBudgetStressDriver::UpdateFx()
+void UBudgetStressDriver::UpdateFx(double Seconds)
 {
+	// The bolt trail (row 0) rides the first shot's lane.
+	constexpr int32 TrailIndex = 0;
+	if (FxComponents.IsValidIndex(TrailIndex) && FxComponents[TrailIndex] && Plan.Shots.Num() > 0 && BudgetStress::FxRows()[TrailIndex].Name == TEXT("NS_Budget_BoltTrail"))
+	{
+		FxComponents[TrailIndex]->SetWorldLocation(BudgetShotPositionM(Plan.Shots[0], Seconds) * 100.0);
+	}
 	// The sigil trail (row 1) follows the right index fingertip; joints are local to the hand presentation component.
 	constexpr int32 SigilIndex = 1;
 	UWorld* World = GetWorld();
 	UGameInstance* Instance = World ? World->GetGameInstance() : nullptr;
 	const UHandInputSubsystem* Hands = Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr;
 	AMageArenaPawn* Pawn = FindPawn(World);
-	UHandPresentationComponent* Presentation = Pawn ? Pawn->FindComponentByClass<UHandPresentationComponent>() : nullptr;
+	UHandPresentationComponent* HandView = Pawn ? Pawn->FindComponentByClass<UHandPresentationComponent>() : nullptr;
 	FHandFrame Frame;
-	if (!FxComponents.IsValidIndex(SigilIndex) || !FxComponents[SigilIndex] || !Hands || !Presentation || !Hands->GetLatest(EControllerHand::Right, Frame)
-		|| !Frame.Joints.IsValidIndex(static_cast<int32>(EHandKeypoint::IndexTip)))
+	if (!FxComponents.IsValidIndex(SigilIndex) || !FxComponents[SigilIndex] || !Hands || !HandView || !Hands->GetLatest(EControllerHand::Right, Frame) || !Frame.Joints.IsValidIndex(static_cast<int32>(EHandKeypoint::IndexTip)))
 	{
 		return;
 	}
 	const FVector Local = Frame.Joints[static_cast<int32>(EHandKeypoint::IndexTip)].Location;
-	FxComponents[SigilIndex]->SetWorldLocation(Presentation->GetComponentTransform().TransformPosition(Local));
+	FxComponents[SigilIndex]->SetWorldLocation(HandView->GetComponentTransform().TransformPosition(Local));
 }
 
 int32 UBudgetStressDriver::CountLiveFx() const
@@ -455,30 +555,15 @@ void UBudgetStressDriver::JudgeParticles()
 
 void UBudgetStressDriver::UpdateShots(double Seconds)
 {
+	// The shots move in PoseSession; this counts the launches. Each wrap of a lane is one arrival and an immediate
+	// respawn at the source.
 	int64 TotalLaunches = 0;
-	for (int32 Index = 0; Index < Plan.Shots.Num() && Index < ShotParts.Num(); ++Index)
+	for (const FBudgetShot& Shot : Plan.Shots)
 	{
-		const FBudgetShot& Shot = Plan.Shots[Index];
 		int32 ShotLaunches = 0;
-		const FVector AtCm = BudgetShotPositionM(Shot, Seconds, &ShotLaunches) * 100.0;
+		BudgetShotPositionM(Shot, Seconds, &ShotLaunches);
 		TotalLaunches += ShotLaunches;
-		UStaticMeshComponent* Part = ShotParts[Index];
-		if (!Part)
-		{
-			continue;
-		}
-		Part->SetWorldLocation(AtCm);
-		if (Shot.bSpear)
-		{
-			const FVector Ahead = BudgetShotPositionM(Shot, Seconds + 0.02) * 100.0;
-			const FVector Direction = (Ahead - AtCm).GetSafeNormal();
-			if (!Direction.IsNearlyZero())
-			{
-				Part->SetWorldRotation(FRotationMatrix::MakeFromZ(Direction).Rotator());
-			}
-		}
 	}
-	// Each wrap of a lane is one arrival and an immediate respawn at the source.
 	Launches = TotalLaunches;
 }
 
@@ -500,22 +585,14 @@ void UBudgetStressDriver::KeepHandsLooping()
 UBudgetStressDriver::FPopulation UBudgetStressDriver::CountPopulation() const
 {
 	FPopulation Population;
-	for (int32 Index = 0; Index + 2 < EnemyParts.Num(); Index += 3)
+	// What the presentation drew of the posed population: an enemy counts with its body and both HP bar parts visible.
+	for (const int32 Id : EnemyActorIds)
 	{
-		bool bWhole = true;
-		for (int32 Part = 0; Part < 3; ++Part)
-		{
-			const UStaticMeshComponent* Component = EnemyParts[Index + Part];
-			bWhole &= Component && Component->IsRegistered() && Component->IsVisible() && Component->GetStaticMesh();
-		}
-		Population.Enemies += bWhole ? 1 : 0;
+		Population.Enemies += Presentation && Presentation->IsBodyDrawn(Id) ? 1 : 0;
 	}
-	for (const UStaticMeshComponent* Component : ShotParts)
+	for (const int32 Id : ShotIds)
 	{
-		if (Component && Component->IsRegistered() && Component->IsVisible() && Component->GetStaticMesh())
-		{
-			++Population.Projectiles;
-		}
+		Population.Projectiles += Presentation && Presentation->IsShotDrawn(Id) ? 1 : 0;
 	}
 
 	UWorld* World = GetWorld();
@@ -565,65 +642,9 @@ void UBudgetStressDriver::LogPopulation(const TCHAR* Phase, const FPopulation& P
 		Population.Enemies, Population.Projectiles, Population.Hands, Population.Niagara, Phase, Population.HandInstances, Launches);
 }
 
-int32 UBudgetStressDriver::CountVisibleLod0() const
+int32 UBudgetStressDriver::VisibleLod0(UWorld* World, const FMinimalViewInfo& View)
 {
-	// The A02 estimate (GreyboxCapture.cpp CountVisibleLod0): LOD0 triangles of every visible
-	// static mesh component and instance whose bounds touch the view frustum. No occlusion.
-	UWorld* World = GetWorld();
-	APlayerController* Controller = World ? World->GetFirstPlayerController() : nullptr;
-	if (!Controller || !Controller->PlayerCameraManager)
-	{
-		return 0;
-	}
-	const FMinimalViewInfo View = Controller->PlayerCameraManager->GetCameraCacheView();
-	FMatrix ViewMatrix;
-	FMatrix ProjectionMatrix;
-	FMatrix ViewProjection;
-	UGameplayStatics::GetViewProjectionMatrix(View, ViewMatrix, ProjectionMatrix, ViewProjection);
-	FConvexVolume Frustum;
-	GetViewFrustumBounds(Frustum, ViewProjection, false);
-
-	int32 Total = 0;
-	for (TActorIterator<AActor> It(World); It; ++It)
-	{
-		TArray<UStaticMeshComponent*> Components;
-		It->GetComponents<UStaticMeshComponent>(Components);
-		for (UStaticMeshComponent* Component : Components)
-		{
-			if (!Component || !Component->IsVisible())
-			{
-				continue;
-			}
-			UStaticMesh* Mesh = Component->GetStaticMesh();
-			const int32 Tris = MeshLod0Triangles(Mesh);
-			if (Tris <= 0)
-			{
-				continue;
-			}
-			if (UInstancedStaticMeshComponent* Instances = Cast<UInstancedStaticMeshComponent>(Component))
-			{
-				const int32 Count = Instances->GetInstanceCount();
-				for (int32 Index = 0; Index < Count; ++Index)
-				{
-					FTransform InstanceTransform;
-					if (!Instances->GetInstanceTransform(Index, InstanceTransform, true))
-					{
-						continue;
-					}
-					const FBoxSphereBounds WorldBounds = Mesh->GetBounds().TransformBy(InstanceTransform);
-					if (Frustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))
-					{
-						Total += Tris;
-					}
-				}
-			}
-			else if (Frustum.IntersectBox(Component->Bounds.Origin, Component->Bounds.BoxExtent))
-			{
-				Total += Tris;
-			}
-		}
-	}
-	return Total;
+	return Greybox::CountVisibleLod0(World, View);
 }
 
 void UBudgetStressDriver::SampleFrame()
@@ -631,7 +652,8 @@ void UBudgetStressDriver::SampleFrame()
 	const double Milliseconds = static_cast<double>(FApp::GetDeltaTime()) * 1000.0;
 	DrawCalls.Add(GNumDrawCallsRHI[0]);
 	RhiPrimitives.Add(GNumPrimitivesDrawnRHI[0]);
-	Lod0Triangles.Add(CountVisibleLod0());
+	FMinimalViewInfo View;
+	Lod0Triangles.Add(Greybox::FirstPlayerView(GetWorld(), View) ? VisibleLod0(GetWorld(), View) : 0);
 	FrameMs.Add(Milliseconds);
 	GpuMs.Add(FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles(0)));
 	const FPopulation Population = CountPopulation();
@@ -687,10 +709,11 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 		EndCsv();
 		Enter(EStep::WaitCsv);
 	}
-	if (Rig && (Step == EStep::Warmup || Step == EStep::Sample))
+	if (Presentation && (Step == EStep::Warmup || Step == EStep::Sample))
 	{
+		PoseSession(Now - PopulationStartWall);
 		UpdateShots(Now - PopulationStartWall);
-		UpdateFx();
+		UpdateFx(Now - PopulationStartWall);
 		KeepHandsLooping();
 	}
 
@@ -737,9 +760,13 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 			SteadyPopulation = CountPopulation();
 			LogPopulation(TEXT("steady"), SteadyPopulation);
 			LogSharedMaterials();
+			CheckParity(TEXT("steady"));
 			if (!PopulationFull(SteadyPopulation))
 			{
 				Fail(TEXT("population short at steady state"));
+			}
+			if (bFailed)
+			{
 				Enter(EStep::WaitCsv);
 				break;
 			}
@@ -762,6 +789,7 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 		{
 			EndPopulation = CountPopulation();
 			LogPopulation(TEXT("end"), EndPopulation);
+			CheckParity(TEXT("end"));
 			if (!PopulationFull(EndPopulation))
 			{
 				Fail(TEXT("population short at the end"));
@@ -805,12 +833,13 @@ void UBudgetStressDriver::Tick(float DeltaTime)
 
 void UBudgetStressDriver::LogSharedMaterials()
 {
-	// Read back from the parts themselves, not only the cache: the materials the renderer will actually see.
+	// Read back from the presentation's parts, not only its caches: the materials the renderer will actually see.
 	TSet<const UMaterialInterface*> Materials;
 	SharedMaterialParts = 0;
-	for (const TArray<TObjectPtr<UStaticMeshComponent>>* Parts : { &EnemyParts, &ShotParts })
+	if (Presentation)
 	{
-		for (const UStaticMeshComponent* Component : *Parts)
+		TInlineComponentArray<UStaticMeshComponent*> Parts(Presentation.Get());
+		for (const UStaticMeshComponent* Component : Parts)
 		{
 			if (Component)
 			{
@@ -818,9 +847,10 @@ void UBudgetStressDriver::LogSharedMaterials()
 				++SharedMaterialParts;
 			}
 		}
+		SharedMaterialTints = Presentation->GetSharedTintCount();
 	}
 	SharedMaterialDistinct = Materials.Num();
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_MATERIALS mids=%d colours=%d parts=%d"), SharedMaterialDistinct, PartTints.Tints.Num(), SharedMaterialParts);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_BUDGET_MATERIALS mids=%d colours=%d parts=%d"), SharedMaterialDistinct, SharedMaterialTints, SharedMaterialParts);
 }
 
 void UBudgetStressDriver::WriteResults()
@@ -847,6 +877,12 @@ void UBudgetStressDriver::WriteResults()
 	Scene->SetNumberField(TEXT("partsPerEnemy"), 3);
 	Scene->SetNumberField(TEXT("projectiles"), Plan.Shots.Num());
 	Scene->SetNumberField(TEXT("spears"), Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot) { return Shot.bSpear; }).Num());
+	Scene->SetNumberField(TEXT("embers"), Plan.Shots.FilterByPredicate([](const FBudgetShot& Shot)
+	{ return Shot.bEmber; }).Num());
+	Scene->SetStringField(TEXT("drawnBy"), TEXT("the session's ASessionPresentation (T46), posed into a frozen bout"));
+	Scene->SetStringField(TEXT("session"), SessionNote);
+	Scene->SetBoolField(TEXT("domePosed"), bDomePosed);
+	Scene->SetBoolField(TEXT("fireWallPosed"), bWallPosed);
 	Scene->SetNumberField(TEXT("partsPerProjectile"), 1);
 	Scene->SetNumberField(TEXT("hands"), Plan.Hands);
 	Scene->SetStringField(TEXT("handClip"), FString::Printf(TEXT("Game/Clips/%s.normal.jsonl, looped"), BudgetStress::HandClipAction));
@@ -858,9 +894,24 @@ void UBudgetStressDriver::WriteResults()
 	Root->SetObjectField(TEXT("scene"), Scene);
 	TSharedRef<FJsonObject> Shared = MakeShared<FJsonObject>();
 	Shared->SetNumberField(TEXT("mids"), SharedMaterialDistinct);
-	Shared->SetNumberField(TEXT("colours"), PartTints.Tints.Num());
+	Shared->SetNumberField(TEXT("colours"), SharedMaterialTints);
 	Shared->SetNumberField(TEXT("parts"), SharedMaterialParts);
+	Shared->SetStringField(TEXT("scope"), TEXT("every mesh component of the session presentation"));
 	Root->SetObjectField(TEXT("sharedMaterials"), Shared);
+	TSharedRef<FJsonObject> ParityJson = MakeShared<FJsonObject>();
+	ParityJson->SetBoolField(TEXT("checked"), bParityChecked);
+	ParityJson->SetBoolField(TEXT("ok"), bParityChecked && Parity.bOk);
+	ParityJson->SetStringField(TEXT("rule"),
+	    TEXT("every planned (mesh, colour, material, pass) row drawn at least its planned count, tolerance 0 parts; every planned or required pass drawn; drawn rows beyond the plan are the session's own parts (runs/T46/parity-census.md section 4)"));
+	TArray<TSharedPtr<FJsonValue>> Divergences;
+	for (const FString& Line : Parity.Divergences)
+	{
+		Divergences.Add(MakeShared<FJsonValueString>(Line));
+	}
+	ParityJson->SetArrayField(TEXT("divergences"), Divergences);
+	ParityJson->SetObjectField(TEXT("planned"), PlannedCensus.ToJson());
+	ParityJson->SetObjectField(TEXT("drawn"), DrawnCensus.ToJson());
+	Root->SetObjectField(TEXT("parity"), ParityJson);
 
 	auto PopulationJson = [](const FPopulation& Population)
 	{

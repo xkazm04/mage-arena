@@ -1,49 +1,48 @@
 #include "Budget/BudgetStressPlan.h"
 
+#include "Budget/SceneCensus.h"
+#include "Kernel/KernelData.h"
+#include "Kernel/VrRules.h"
+#include "Session/ElementColour.h"
+#include "Session/PresentationLook.h"
+
 namespace
 {
-// SessionPresentation's colours and body sizes (Session/SessionPresentation.cpp:34-41, :1094-1101).
-const FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
-const FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
-const FLinearColor HoundColour(0.8f, 0.3f, 0.05f);
-const FLinearColor MawColour(0.15f, 0.35f, 0.1f);
-const FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
-const FLinearColor SteelColour(0.68f, 0.68f, 0.68f);
-
 constexpr double ChestM = 1.35;
 constexpr double SphereSpeedMps = 12.0;
 constexpr double SpearSpeedMps = 9.0;
 constexpr double SpearApexM = 0.75;
 constexpr int32 PerRing = BudgetStress::EnemyCount / 2;
 
+// The kinds take turns (5 of each). The body is the one ASessionPresentation draws (PresentationLook::Body): the stress
+// plan keeps no copy of a presentation colour or size (T46).
 FBudgetEnemy MakeEnemy(int32 Index)
 {
+	static const TCHAR* const Kinds[] = {TEXT("conscript"), TEXT("slinger"), TEXT("cinder_hound"), TEXT("mire_maw")};
 	FBudgetEnemy Enemy;
-	switch (Index % 4)
-	{
-	case 0:
-		Enemy.EnemyId = TEXT("conscript");
-		Enemy.BodySizeCm = FVector(48.0, 48.0, 176.0);
-		Enemy.Colour = ConscriptColour;
-		break;
-	case 1:
-		Enemy.EnemyId = TEXT("slinger");
-		Enemy.BodySizeCm = FVector(42.0, 42.0, 150.0);
-		Enemy.Colour = SlingerColour;
-		break;
-	case 2:
-		Enemy.EnemyId = TEXT("cinder_hound");
-		Enemy.BodySizeCm = FVector(120.0, 40.0, 40.0);
-		Enemy.Colour = HoundColour;
-		Enemy.bCube = true;
-		break;
-	default:
-		Enemy.EnemyId = TEXT("mire_maw");
-		Enemy.BodySizeCm = FVector(150.0, 150.0, 80.0);
-		Enemy.Colour = MawColour;
-		break;
-	}
+	Enemy.EnemyId = Kinds[Index % 4];
+	const FBodyLook Look = PresentationLook::Body(Enemy.EnemyId);
+	Enemy.Shape = Look.Shape;
+	Enemy.Colour = Look.Colour;
+	Enemy.BodySizeCm = Look.SizeCm;
 	return Enemy;
+}
+
+// The family of an enemy's own shot: the overlay spit's for a spitter (DF-004), else the pinned first attack's.
+FString ShotFamily(const FString& EnemyId, const FVrRuleset* Rules)
+{
+	if (const FVrAttackMode* Spit = Rules ? Rules->FindSpit(EnemyId) : nullptr)
+	{
+		return Spit->Family;
+	}
+	for (const FEnemySpec& Spec : KernelData().Enemies)
+	{
+		if (Spec.Id == EnemyId && Spec.Attacks.Num() > 0)
+		{
+			return Spec.Attacks[0].Family;
+		}
+	}
+	return FString();
 }
 
 FVector OnRing(const FVector& PadM, const FVector& Forward, double DistanceM, double BearingDeg)
@@ -82,7 +81,7 @@ bool BudgetPointOnFloor(const FArenaLayout& Layout, const FVector& PointM, doubl
 	return Dx * Dx + Dy * Dy <= 1.0;
 }
 
-bool BuildBudgetStressPlan(const FArenaLayout& Layout, FBudgetStressPlan& OutPlan, FString& OutError)
+bool BuildBudgetStressPlan(const FArenaLayout& Layout, FBudgetStressPlan& OutPlan, FString& OutError, const FVrRuleset* Rules)
 {
 	OutPlan = FBudgetStressPlan();
 	const FRunePad* Pad = Layout.FindPadById(TEXT("centre"));
@@ -124,6 +123,7 @@ bool BuildBudgetStressPlan(const FArenaLayout& Layout, FBudgetStressPlan& OutPla
 		Enemy.BearingDeg = -Arc + 2.0 * Arc * static_cast<double>(Slot) / static_cast<double>(PerRing - 1);
 		Enemy.GroundM = OnRing(Pad->PositionM, Forward, Enemy.DistanceM, Enemy.BearingDeg);
 		Enemy.GroundM.Z = Layout.SurfaceHeightM(Enemy.GroundM.X, Enemy.GroundM.Y);
+		Enemy.HpFraction = static_cast<double>(Index % 5 + 1) / 5.0;
 		OutPlan.Enemies.Add(Enemy);
 	}
 
@@ -133,9 +133,18 @@ bool BuildBudgetStressPlan(const FArenaLayout& Layout, FBudgetStressPlan& OutPla
 	{
 		FBudgetShot Shot;
 		Shot.EnemyIndex = Index % BudgetStress::EnemyCount;
-		Shot.bSpear = (Index % BudgetStress::SpearEvery) == BudgetStress::SpearEvery - 1;
-		Shot.Colour = Shot.bSpear ? SteelColour : WaterColour;
 		const FBudgetEnemy& Source = OutPlan.Enemies[Shot.EnemyIndex];
+		// Each enemy throws its own attack, drawn as the presentation draws it: a conscript's aimed shot is a spear (every
+		// 4th shot), a spitter's an ember, and the colour is the threat language's for the owner's school and the family.
+		Shot.Family = ShotFamily(Source.EnemyId, Rules);
+		if (Shot.Family.IsEmpty())
+		{
+			OutError = FString::Printf(TEXT("no attack family for %s (kernel data not ready?)"), *Source.EnemyId);
+			return false;
+		}
+		Shot.bSpear = Source.EnemyId == TEXT("conscript");
+		Shot.bEmber = Rules && Rules->FindSpit(Source.EnemyId) != nullptr && Shot.Family == TEXT("magic");
+		Shot.Colour = ThreatLook(ActiveElementPalette(), CreatureElement(Source.EnemyId).Get(EElement::Water), Shot.Family).Body;
 		const FVector ToPad = (FVector(Pad->PositionM.X, Pad->PositionM.Y, 0.0) - FVector(Source.GroundM.X, Source.GroundM.Y, 0.0)).GetSafeNormal();
 		Shot.StartM = Source.GroundM + ToPad * 0.5;
 		Shot.StartM.Z = Source.GroundM.Z + ChestM;
@@ -166,4 +175,27 @@ FVector BudgetShotPositionM(const FBudgetShot& Shot, double Seconds, int32* OutL
 		At.Z += 4.0 * SpearApexM * Progress * (1.0 - Progress);
 	}
 	return At;
+}
+
+FSceneCensus BudgetStressCensus(const FBudgetStressPlan& Plan)
+{
+	FSceneCensus Census;
+	for (const FBudgetEnemy& Enemy : Plan.Enemies)
+	{
+		Census.Add(OpaquePartKey(*Enemy.Shape, Enemy.Colour), 1, Enemy.EnemyId + TEXT(" body"));
+		Census.Add(OpaquePartKey(TEXT("Cube"), PresentationLook::HpBackColour()), 1, TEXT("HP back"));
+		Census.Add(OpaquePartKey(TEXT("Cube"), PresentationLook::HpFillColour()), 1, TEXT("HP fill"));
+	}
+	for (const FBudgetShot& Shot : Plan.Shots)
+	{
+		const FString& Owner = Plan.Enemies.IsValidIndex(Shot.EnemyIndex) ? Plan.Enemies[Shot.EnemyIndex].EnemyId : FString();
+		Census.Add(OpaquePartKey(Shot.bSpear ? TEXT("Cylinder") : TEXT("Sphere"), Shot.Colour), 1,
+		    Owner + (Shot.bSpear ? TEXT(" spear") : (Shot.bEmber ? TEXT(" ember") : TEXT(" shot"))));
+		if (Shot.bSpear || Shot.bEmber)
+		{
+			Census.Add(OpaquePartKey(TEXT("Cylinder"), Shot.Colour), 1, Owner + TEXT(" ground ring"));
+		}
+	}
+	Census.RequiredPasses.Add(ECensusPass::Translucent);
+	return Census;
 }
