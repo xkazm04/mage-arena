@@ -2,6 +2,35 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - Visual approvals: Leonardo for new inputs, key-art creature canon, 18-30k soldiers, style delegated to Athena
+
+> Owner, 2026-10-24 evening, on `docs/concepts/VISUAL-PLAN.md` section (g). Chosen options, verbatim:
+> answer 3 (provider) "Leonardo (Recommended)"; answer 4 (creature canon) "Key-art look (Recommended)";
+> answer 5 (soldier triangles) "18-30k humanoid band". Answers 1 and 2 (style block, reference sheet) were delegated by
+> the owner to Athena. Answer 6 (presentation gap) is the owner's direction to write it as cards.
+
+- **Answer 3, provider: "Leonardo (Recommended)".** New reconstruction inputs come from Leonardo, covered by the
+  2026-10-21 originality ruling. agy calls are for a non-shipping control arm only. **Leonardo cap today: at most 30
+  images**, every call logged with provenance (ASSET-LEDGER and the provider ledger), and the wave **stops at the first
+  quota error**.
+- **Answer 4, creature canon: "Key-art look (Recommended)".** The cinder hound is dark-red and lava-cracked; the mire maw
+  is a brown, toothed toad. Their identity rows on the reference sheet are **replaced** by new Leonardo masters in that
+  look (about 4 calls); the earlier grey-hound and moss-frog concepts no longer stand as canon.
+- **Answer 5, soldier triangles: "18-30k humanoid band".** Conscript and Slinger use the same 18-30k humanoid band as every
+  other humanoid. The 8,000 (12,000 ceiling) soldier request is **superseded**.
+- **Answers 1 and 2, delegated by the owner to Athena.** Athena **approves** the VISUAL-PLAN section (c) style block as
+  written (it matches the key art: stylised finished-game-model rendering, warm golden-hour dusk, crimson, gold and bronze
+  structure, element colours reserved for magic, no letters, halftone or chalk on 3D); **key art S1 as the north-star
+  frame**; **style sheet S1-S5**; and the identity masters **Brennic, Conscript, Slinger and Warden** as listed. Hound and
+  maw masters are replaced per answer 4. Recorded as "approved 2026-10-24 by Athena under owner delegation".
+- **Answer 6, presentation gap.** Lighting, crowd visibility, spell VFX, debug text over the view and the hand mesh become
+  cards (T55-T59, `apps/vr/tasks/`). **The debug overlay text (for example "Last: cast (Actor 1)") must not appear in any
+  captured or shipped view.**
+- **Next:** Brennic multi-view master reference (front, side, back, canonical A-pose, plain background) from Leonardo within
+  the cap, then the input gate, then local TRELLIS.2 once its setup lane merges, then the mesh card, finishing and rig.
+- **What is therefore NOT touched:** the pinned combat data (no combat number changes), the threat colour language and the
+  Quest budgets of `docs/PROJECT-PLAN.md` section 7. The seven rulings of this afternoon below are not repeated here.
+
 ## 2026-10-24 - P4 style: no single style is locked; the direction is visual quality, chasing the art concept
 
 > Owner, 2026-10-24 afternoon, on the P4 style pick (13, 25 or 30 from `apps/vr/art/style-pick/`): "You can combine the
