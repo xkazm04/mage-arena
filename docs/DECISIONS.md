@@ -2,6 +2,22 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - Athena 20:13Z: Brennic and the cinder hound ACCEPTED as working in-engine assets
+
+> Athena, 2026-10-24 20:13Z (owner delegation), on bc630e0 (`docs/research/CREATURE-UE-IMPORT-2026-10-24.md`: Brennic and
+> the cinder hound imported into UE under the T56 dusk).
+
+- **bc630e0 is ACCEPTED as working in-engine assets** (working, not final).
+  - **Brennic reads as a person at duel distance.**
+  - **The hound's ember cracks read at 5 m, and weakly at 8 m.**
+- **Budget:** 124 of 150 draw calls, 173k of 350k BasePass.
+- **Two notes for later lanes** (not now):
+  - **Hound glow at 8 m:** raise it through `EmberIntensity`, a rim, or a soft crack bloom.
+  - **Brennic's flat olive back cloak:** the normal-map pass.
+- **Next:** the maw two-view run, then the maw UE import in a separate lane, **never at the same time** (the RAM order of
+  19:11Z: Unreal first, then TRELLIS and Blender). The two-view run is `docs/research/MAW-MV-2026-10-24.md`.
+- Nothing ships: the DINOv3 hold stands. No signed number or pinned band changes.
+
 ## 2026-10-24 - Athena 19:11Z: the maw needs a back view; the multi-view ban is lifted for it
 
 > Athena, 2026-10-24 19:11Z (owner delegation), on `docs/research/CREATURE-MESH-2026-10-24.md`.
