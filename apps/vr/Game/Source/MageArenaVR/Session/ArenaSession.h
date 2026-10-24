@@ -591,6 +591,8 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UDayCaptureDriver> DayCapture;
+
+	UPROPERTY()
 	TObjectPtr<UAirCaptureDriver> AirCapture;
 
 	UPROPERTY()
