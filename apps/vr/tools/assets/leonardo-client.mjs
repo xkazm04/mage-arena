@@ -1,12 +1,13 @@
 // The Leonardo call recipe shared by apps/vr/tools/assets/leonardo.mjs and apps/vr/tools/keyart/leonardo-keyart.mjs:
 // key read, one HTTP call, balance, reported cost, log write and the nightly credit total. Dependency-free (Node's fetch and fs only).
-// Nothing here makes a call by itself. The key is read at run time from bp's untracked .env and never printed, logged or
-// written: every response body passes through redact before it is parsed or cut, so a key echoed back by the API,
+// Nothing here makes a call by itself. The key is read at run time (readKey: the LEONARDO_API_KEY environment variable,
+// else the first untracked .env of ENV_FILES that has it) and never printed, logged or written: every response body passes through redact before it is parsed or cut, so a key echoed back by the API,
 // even across a truncation boundary, never reaches a log, stdout, stderr or an error message.
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const ENV_FILE = 'C:/Users/kazda/kiro/bp/.env';
+// Where readKey looks after the environment, in order: personas' .env (owner, 2026-10-24), then bp's, the legacy source.
+export const ENV_FILES = ['C:/Users/kazda/kiro/personas/.env', 'C:/Users/kazda/kiro/bp/.env'];
 export const API = 'https://cloud.leonardo.ai/api/rest';
 export const MODEL = 'openai/gpt-image-2.5-flare';
 export const COST = { LOW: 6, MEDIUM: 14, HIGH: 60 }; // LOW and MEDIUM measured by bp on 2026-10-20 (1376x768); HIGH a high guess
@@ -20,10 +21,22 @@ export const sumCredits = (calls) => calls.reduce((n, e) => n + (Number(e.credit
 /** `text` with every copy of the key replaced: whatever goes to the log or stdout passes through here. */
 export const redact = (text, key) => (key ? String(text).replaceAll(key, '[redacted]') : String(text));
 
-export function readKey() {
-  const m = fs.readFileSync(ENV_FILE, 'utf8').match(/^\s*LEONARDO_API_KEY\s*=\s*(.+?)\s*$/m);
-  if (!m) throw new Error(`LEONARDO_API_KEY not found in ${ENV_FILE}`);
-  return m[1].replace(/^['"]|['"]$/g, '');
+/**
+ * The Leonardo key, read at call time and never cached: LEONARDO_API_KEY from `env` if set, else the first of `files`
+ * holding a LEONARDO_API_KEY line. An error names the places it tried, never a value.
+ */
+export function readKey({ env = process.env, files = ENV_FILES } = {}) {
+  const fromEnv = String(env.LEONARDO_API_KEY ?? '').trim();
+  if (fromEnv) return fromEnv;
+  for (const file of files) {
+    let text;
+    try { text = fs.readFileSync(file, 'utf8'); } catch { continue; }
+    // [^\S\n] keeps an empty value from reaching into the next line
+    const m = text.match(/^[^\S\n]*LEONARDO_API_KEY[^\S\n]*=[^\S\n]*(.+?)\s*$/m);
+    const key = m ? m[1].replace(/^['"]|['"]$/g, '') : '';
+    if (key) return key;
+  }
+  throw new Error(`LEONARDO_API_KEY is not set in the environment and not found in ${files.join(', ')}`);
 }
 
 export async function call(key, method, url, body) {
@@ -139,18 +152,30 @@ export function findLogs(dir, out = []) {
   return out;
 }
 
-// Other checkouts of this repo whose logs count against the night (read only, never written).
-const NIGHT_ROOTS = ['C:/Users/kazda/kiro/mage-arena', 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena'];
+// Other checkouts of this repo whose logs count against the night (read only, never written): main checkouts, and
+// worktree roots whose every folder is a checkout. The -vr pair is the VR repo's (owner, 2026-10-24).
+export const NIGHT_ROOTS = {
+  checkouts: ['C:/Users/kazda/kiro/mage-arena', 'C:/Users/kazda/kiro/mage-arena-vr'],
+  worktrees: ['C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena', 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena-vr'],
+};
 
-/** The apps/vr/art folders the night cap counts: `root`'s, the main checkout's and every sibling worktree's. */
-export function nightArts(root) {
-  const arts = [path.join(root, 'apps/vr/art'), path.join(NIGHT_ROOTS[0], 'apps/vr/art')];
-  try {
-    for (const e of fs.readdirSync(NIGHT_ROOTS[1], { withFileTypes: true })) {
-      if (e.isDirectory()) arts.push(path.join(NIGHT_ROOTS[1], e.name, 'apps/vr/art'));
-    }
-  } catch { /* no sibling worktrees */ }
-  return arts;
+/**
+ * The apps/vr/art folders the night cap counts: `root`'s, every main checkout's and every sibling worktree's, each
+ * folder once (`root` is itself one of the sibling worktrees when it runs in one).
+ */
+export function nightArts(root, roots = NIGHT_ROOTS) {
+  const checkouts = [root, ...roots.checkouts];
+  for (const dir of roots.worktrees) {
+    try {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) checkouts.push(path.join(dir, e.name));
+    } catch { /* no sibling worktrees */ }
+  }
+  const arts = new Map();
+  for (const c of checkouts) {
+    const art = path.resolve(c, 'apps/vr/art');
+    if (!arts.has(art.toLowerCase())) arts.set(art.toLowerCase(), art);
+  }
+  return [...arts.values()];
 }
 
 /** The credits for the UTC day `day` (YYYY-MM-DD) in every leonardo-log.json under the `arts` folders, each generation once. */

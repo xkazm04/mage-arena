@@ -22,8 +22,9 @@
 // a quota or HTTP 402 error (the log latches it). The day is counted over every leonardo-log.json of this tree, the
 // client's night roots and the VR checkout and its sibling worktrees (read only), each generation once.
 //
-// The key is LEONARDO_API_KEY, read at run time by the client from bp's untracked .env; it is never printed, logged
-// or written. Every call is "public": false. The presigned upload POST carries no credentials.
+// The key is LEONARDO_API_KEY, read at run time by the client (the environment, else personas' untracked .env, else
+// bp's); it is never printed, logged or written. Every call is "public": false. The presigned upload POST carries
+// no credentials.
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,8 +38,8 @@ const PLAN = path.join(ROOT, 'docs/concepts/VISUAL-PLAN.md');
 const STAGING = 'C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24';
 const LANE_CAP = 12; // this lane's images (brief of run d444ae02, 2026-10-24)
 const DAY_CAP = 30; // the owner's Leonardo images for 2026-10-24 (say-mage-visual-approvals.md, answer 3)
-// The client's night roots name kiro/mage-arena and worktrees/mage-arena; this repo's main checkout and its sibling
-// worktrees live under the -vr names, so they are added here (read only, never written).
+// This repo's main checkout and its sibling worktrees (read only, never written). The client's night roots hold them
+// too since 2026-10-24; dayArts still names them, and dayCount reads each log file and each generation once.
 const VR_MAIN = 'C:/Users/kazda/kiro/mage-arena-vr';
 const VR_TREES = 'C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena-vr';
 const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
