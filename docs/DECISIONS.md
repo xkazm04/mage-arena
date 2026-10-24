@@ -39,6 +39,19 @@ Newest first. Quotes are the owner's words; the lines under them are what the pl
   - **No front/back pairs for creatures yet.** The Brennic mesh lane first proves whether one image is enough for TRELLIS.
 - **Athena, 17:19Z on bf4a34e:** the hound and maw meshes wait for the texture-preserving finish and are **not** built on
   the flat finish (the Brennic mesh ran finish-only; the critic said rework).
+- **Athena, 17:24Z (owner delegation), on the maw rework candidate:** "mire maw s7202 ACCEPTED as the maw identity
+  master, replacing s7201 (closed mouth); matches still-08: open gape, dark throat, tongue, cream teeth on both jaws,
+  brown warted toad body; throat-capping risk noted for the mesh lane". The maw master is
+  `maw-open-gape-s7202-medium.jpg` (sha256 `12a569aa...e6a4`, `docs/research/CREATURE-MASTERS-2026-10-24.md`); s7201
+  stays on record as rejected.
+- **Athena, 17:56Z (owner delegation), on bf7262a (the Brennic rework):**
+  - **The bake finish is ADOPTED as the pipeline default for characters and creatures.** `finish.mjs` defaults to
+    `--mode bake`; the flat mode stays an option (`--mode flat` builds exactly the pre-bake argument list).
+  - **Brennic LOD0 is a working asset** (seed 7, bake finish), not a final one.
+  - **Her critic reading of the Brennic face is PARTIAL**, not the fresh critic's "no".
+  - **Planned order:** the hound s7101 and maw s7202 meshes on the bake finish (run 2026-10-24,
+    `docs/research/CREATURE-MESH-2026-10-24.md`), then the UE import of Brennic once the Unreal slot frees, then a later
+    normal-map detail pass.
 - **What is therefore NOT touched:** the pinned combat data (no combat number changes), the threat colour language and the
   Quest budgets of `docs/PROJECT-PLAN.md` section 7. The seven rulings of this afternoon below are not repeated here.
 
