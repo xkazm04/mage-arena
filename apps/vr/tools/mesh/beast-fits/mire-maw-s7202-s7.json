@@ -1,0 +1,24 @@
+{
+ "_doc": "Beast fit (beast_fit.py) for the mire maw from master maw-open-gape-s7202 (sha256 12a569aa...e6a4), TRELLIS.2 seed 7, finish.mjs --mode bake --rot -50 --palette MireMawOpenGape. Metres in the finish.py character frame at the finished height 1.249 m, measured 2026-10-24 from a front depth probe, a section at x 0.08 through the gape and 5 cm leg columns (docs/research/CREATURE-MESH-2026-10-24.md). The gape, teeth, eyes and a tongue lump are in the TRELLIS mesh, so nothing is cut and no eyes are added; the one part is a capsule tongue lying on the mouth floor for the Attack lash (the rig stretches only Tongue-material faces). Each foot bone runs along its side from the front paw to the back paw, so both paws stay planted (the 11-bone skeleton has one foot per side).",
+ "style": "Maw",
+ "refHeightM": 1.249,
+ "bones": [
+  ["root", [0, 0, 0], [0, 0, 0.15], null],
+  ["foot_l", [0.80, -0.76, 0.12], [0.78, 0.37, 0.12], "root"],
+  ["foot_r", [-0.78, -0.76, 0.12], [-0.62, 0.42, 0.12], "root"],
+  ["body", [0, 0.05, 0.30], [0, 0.0, 0.62], "root"],
+  ["body_upper", null, [0, -0.05, 0.88], "body"],
+  ["head", [0, -0.45, 0.86], [0, -0.95, 1.05], "body_upper"],
+  ["jaw", [0, -0.50, 0.71], [0, -0.97, 0.56], "body_upper"],
+  ["tongue_01", [0, -0.45, 0.67], [0, -0.54, 0.67], "jaw"],
+  ["tongue_02", null, [0, -0.63, 0.67], "tongue_01"],
+  ["tongue_03", null, [0, -0.72, 0.67], "tongue_02"],
+  ["tongue_04", null, [0, -0.81, 0.67], "tongue_03"]
+ ],
+ "rules": {"tongueRootY": -0.45, "tongueStep": 0.09, "backWallY": -0.55, "backRamp": 0.15, "lipZ": 0.74,
+           "bellyZ": 0.32, "bellyRamp": 0.13, "jawX": 0.0, "halfWidth": 0.42, "xRamp": 0.10},
+ "parts": [
+  {"label": "tongue", "shape": "capsule", "op": "UNION", "part": "Tongue",
+   "p0": [0, -0.42, 0.67], "p1": [0, -0.80, 0.67], "rx": 0.10, "rz": 0.02}
+ ]
+}

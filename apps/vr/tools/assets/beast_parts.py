@@ -5,20 +5,25 @@
 #   MireMaw:     a wide lens-shaped mouth slot across the front (Mouth), a flat tongue lying in it, rooted in the slot's back
 #                wall (Tongue), and two eyes with pupils on the brow (Eye, Pupil). TRELLIS lost the face on every seed, so
 #                the face is made here.
-# Positions are metres in the finish.py character frame (front -Y, left +X, feet at z = 0), measured on the meshes of
-# 2026-10-21 (hound seed 7 at 1.36 m, maw seed 42 at 1.25 m); they scale with the mesh height.
-#   blender -b -P beast_parts.py -- <finish.blend> <outdir> <name> <CinderHound | MireMaw>
-import bpy, bmesh, sys, json, math
+# Positions are metres in the finish.py character frame (front -Y, left +X, feet at z = 0) and scale with the mesh height.
+# They come from the beast fit (../mesh/beast_fit.py): without a fit file, the parts measured on the meshes of 2026-10-21
+# (hound seed 7 at 1.36 m, maw seed 42 at 1.25 m); a fit file gives a mesh with other proportions its own parts.
+#   blender -b -P beast_parts.py -- <finish.blend> <outdir> <name> <CinderHound | MireMaw> [<beast fit.json>]
+import bpy, bmesh, sys, os, json, math
 from mathutils import Matrix, Vector
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'mesh'))
+import beast_fit
 
 a = sys.argv[sys.argv.index('--') + 1:]; blend, out, name, KIND = a[:4]
-REF_H = {'CinderHound': 1.36, 'MireMaw': 1.25}[KIND]
-COLOURS = {'Ember': (0.96, 0.45, 0.10), 'Mouth': (0.24, 0.16, 0.12), 'Tongue': (0.55, 0.24, 0.24),
-           'Eye': (0.86, 0.80, 0.42), 'Pupil': (0.05, 0.05, 0.05)}
+FIT_PATH = a[4] if len(a) > 4 else ''
+FIT = beast_fit.load(FIT_PATH, beast_fit.KIND_STYLE[KIND])
+REF_H = FIT['refHeightM']
+COLOURS = beast_fit.COLOURS
 bpy.ops.wm.open_mainfile(filepath=blend)
 ob = bpy.data.objects['SM_' + name]; me = ob.data
 co = [v.co.z for v in me.vertices]; S = (max(co) - min(co)) / REF_H
-R = {'scale_from_reference': round(S, 4), 'tris_before': sum(len(p.vertices) - 2 for p in me.polygons), 'parts': []}
+R = {'scale_from_reference': round(S, 4), 'tris_before': sum(len(p.vertices) - 2 for p in me.polygons), 'parts': [],
+     'fit': os.path.abspath(FIT_PATH) if FIT_PATH else None}
 
 
 def material(part):
@@ -63,20 +68,12 @@ def boolean(cutter, op, part):
     R['parts'].append({'part': part, 'op': op, 'tris_after': sum(len(p.vertices) - 2 for p in me.polygons)})
 
 
-if KIND == 'CinderHound':
-    # mouth slit: the muzzle runs from the nose tip (y -0.964, z 1.09-1.14) back to the cheek (y -0.80); the slit is 1.4 cm
-    # tall at the lip line z 1.115 and closes towards the cheek, where the jaw stays joined to the skull
-    boolean(ellipsoid((0, -0.97, 1.115), (0.12, 0.17, 0.007), 'Ember'), 'DIFFERENCE', 'mouth slit (Ember lining)')
-else:
-    # mouth slot: a lens across the front at z 0.86 (the sphere's front is y -0.56 there), 9 cm tall at the centre, 46 cm deep,
-    # opening over about +-0.42 m of the front
-    boolean(ellipsoid((0, -0.45, 0.86), (0.45, 0.35, 0.045), 'Mouth', 48, 16), 'DIFFERENCE', 'mouth slot')
-    # tongue: rooted 20 cm inside the slot's back wall (y -0.10) so a thick section crosses it, lying in the slot, tip
-    # short of the lips (y -0.50)
-    boolean(capsule((0, 0.10, 0.858), (0, -0.50, 0.858), 0.085, 0.017, 'Tongue'), 'UNION', 'tongue')
-    for sg in (1, -1):  # eyes on the brow, half sunk into the skin, each with a pupil in front
-        boolean(ellipsoid((sg * 0.22, -0.36, 1.05), (0.066, 0.066, 0.066), 'Eye', 20, 10), 'UNION', 'eye')
-        boolean(ellipsoid((sg * 0.226, -0.418, 1.056), (0.028, 0.016, 0.03), 'Pupil', 16, 8), 'UNION', 'pupil')
+for p in FIT['parts']:  # in order: each joined to the body with an EXACT boolean
+    if p['shape'] == 'ellipsoid':
+        cutter = ellipsoid(p['centre'], p['radii'], p['part'], p.get('segs', 24), p.get('rings', 12))
+    else:
+        cutter = capsule(p['p0'], p['p1'], p['rx'], p['rz'], p['part'], p.get('segs', 16), p.get('rings', 10))
+    boolean(cutter, p['op'], p['label'])
 bpy.context.view_layer.objects.active = ob; ob.select_set(True)
 bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT'); bpy.ops.mesh.quads_convert_to_tris()
 bpy.ops.mesh.remove_doubles(threshold=1e-6); bpy.ops.mesh.normals_make_consistent(inside=False); bpy.ops.object.mode_set(mode='OBJECT')

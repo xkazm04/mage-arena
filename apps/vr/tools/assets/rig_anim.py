@@ -5,15 +5,17 @@
 # The mesh comes from finish.py facing -Y. Everything here is authored in that character frame and mapped through C
 # (+90 degrees about Z) so the export faces +X with Z up, origin at the feet, metres (FBX_SCALE_ALL -> UE centimetres).
 # Clips sit on NLA strips named exactly Idle, Cast, Hit, Death; the FBX exporter names each take after its strip.
-#   blender -b -P rig_anim.py -- <finish.blend> <outdir> <name> <fbx path> [<attack style>]
+#   blender -b -P rig_anim.py -- <finish.blend> <outdir> <name> <fbx path> [<attack style>] [<beast fit.json>]
 # Attack style: Cast (default, Brennic: clips Idle, Cast, Hit, Death) | Thrust | Sling (the Bout 2 soldiers: clips Idle, Attack, Hit, Death)
 # | Hound | Maw (the Bout 2 beasts, run on beast_parts.py's <name>_parts.blend: their own skeletons, a quadruped chain for the
 # hound and a body, jaw and tongue chain for the maw, rule weights for the jaw and tongue, clips Idle, Attack, Hit, Death).
-import bpy, sys, json, time, math, numpy as np
+# Beast fit (../mesh/beast_fit.py): the joints and the weight rules; without a fit file, the 2026-10-21 tables.
+import bpy, sys, os, json, time, math, numpy as np
 from mathutils import Vector, Quaternion, Matrix, kdtree
 
 a = sys.argv[sys.argv.index('--') + 1:]; blend, out, name, fbx = a[:4]
 STYLE = a[4] if len(a) > 4 else 'Cast'; ATTACK = 'Cast' if STYLE == 'Cast' else 'Attack'
+FIT_PATH = a[5] if len(a) > 5 else ''
 t0 = time.time(); R = {}
 FPS = 30
 C = Matrix.Rotation(math.radians(90), 4, 'Z'); C3 = C.to_3x3(); Ci3 = C3.inverted()
@@ -27,6 +29,12 @@ co = np.empty(len(me.vertices) * 3); me.vertices.foreach_get('co', co); co = co.
 H = float(co[:, 2].max() - co[:, 2].min()); R['height_m'] = round(H, 4)
 
 BEAST = STYLE in ('Hound', 'Maw')  # the Bout 2 beasts: their own skeletons, weights rules and clips
+if FIT_PATH and not BEAST: raise SystemExit(f'a beast fit needs STYLE Hound or Maw, not {STYLE}')
+if BEAST:
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'mesh'))
+    import beast_fit
+    FIT = beast_fit.load(FIT_PATH, STYLE); FR = FIT['rules']
+    R['fit'] = {'file': os.path.abspath(FIT_PATH) if FIT_PATH else None, 'ref_height_m': FIT['refHeightM']}
 
 arm = bpy.data.objects.new('Armature', bpy.data.armatures.new('Armature')); bpy.context.scene.collection.objects.link(arm)
 bpy.context.view_layer.objects.active = arm; bpy.ops.object.mode_set(mode='EDIT'); E = arm.data.edit_bones
@@ -41,41 +49,21 @@ def bone(n, h, t, p=None):
 
 MOVER = 'pelvis'; PROXY_VOX = 0.016
 if BEAST:
-    # ---- the Bout 2 beasts. Joints are metres in the character frame (front -Y, left +X, feet at z = 0), placed from the
-    # profiles of the finished meshes of 2026-10-21 (hound seed 7 at 1.36 m, maw seed 42 at 1.25 m) and scaled with H.
+    # ---- the Bout 2 beasts. Joints are metres in the character frame (front -Y, left +X, feet at z = 0), from the fit
+    # (by default the profiles of the finished meshes of 2026-10-21, hound seed 7 at 1.36 m, maw seed 42 at 1.25 m),
+    # scaled with H against the fit's reference height.
     # Rotations in the clips: X+ turns a forward-pointing bone's tip down (opens a jaw, lowers a head) and a down-pointing
     # bone's tip back; Y+ rolls the body onto its left side; Z+ turns a forward-pointing bone's tip to the right.
     # ('SY', k) stretches a bone k times along its length (the maw's tongue).
-    S = H / {'Hound': 1.36, 'Maw': 1.25}[STYLE]
+    S = H / FIT['refHeightM']
     P = lambda x, y, zz: V(x * S, y * S, zz * S)
     MOVER = 'pelvis' if STYLE == 'Hound' else 'body'
     PROXY_VOX = 0.010 if STYLE == 'Hound' else 0.016  # the hound's legs and tail are 2-5 cm thick
 
     def beast_bones():
-        bone('root', P(0, 0, 0), P(0, 0, 0.15))
-        if STYLE == 'Hound':  # quadruped: spine, neck, head, jaw, four legs, tail
-            chain = [('pelvis', (0, 0.38, 0.84), (0, 0.18, 0.88), 'root'), ('spine_01', None, (0, -0.06, 0.89), 'pelvis'),
-                     ('spine_02', None, (0, -0.28, 0.89), 'spine_01'), ('spine_03', None, (0, -0.48, 0.90), 'spine_02'),
-                     ('neck_01', None, (0, -0.60, 1.02), 'spine_03'), ('neck_02', None, (0, -0.70, 1.13), 'neck_01'),
-                     ('head', None, (0, -0.96, 1.13), 'neck_02'), ('jaw', (0, -0.76, 1.10), (0, -0.95, 1.105), 'head'),
-                     ('tail_01', (0, 0.46, 0.88), (0, 0.62, 0.875), 'pelvis'), ('tail_02', None, (0, 0.78, 0.87), 'tail_01'),
-                     ('tail_03', None, (0, 0.96, 0.87), 'tail_02')]
-            for sfx, sg in (('_l', 1), ('_r', -1)):
-                chain += [('front_upper' + sfx, (sg * 0.10, -0.50, 0.80), (sg * 0.09, -0.46, 0.56), 'spine_03'),
-                          ('front_lower' + sfx, None, (sg * 0.085, -0.485, 0.14), 'front_upper' + sfx),
-                          ('front_paw' + sfx, None, (sg * 0.095, -0.60, 0.01), 'front_lower' + sfx),
-                          ('back_thigh' + sfx, (sg * 0.09, 0.36, 0.80), (sg * 0.06, 0.22, 0.60), 'pelvis'),
-                          ('back_shin' + sfx, None, (sg * 0.058, 0.49, 0.18), 'back_thigh' + sfx),
-                          ('back_hock' + sfx, None, (sg * 0.07, 0.46, 0.04), 'back_shin' + sfx),
-                          ('back_paw' + sfx, None, (sg * 0.08, 0.37, 0.01), 'back_hock' + sfx)]
-        else:  # mound: feet, body, head, jaw and a tongue chain lying in the mouth slot
-            chain = [('foot_l', (0.30, -0.05, 0.25), (0.30, -0.05, 0.02), 'root'), ('foot_r', (-0.29, 0.05, 0.25), (-0.29, 0.05, 0.02), 'root'),
-                     ('body', (0, 0, 0.25), (0, 0, 0.58), 'root'), ('body_upper', None, (0, 0, 0.84), 'body'),
-                     ('head', (0, 0, 0.88), (0, 0, 1.22), 'body_upper'), ('jaw', (0, -0.10, 0.84), (0, -0.56, 0.80), 'body_upper'),
-                     ('tongue_01', (0, -0.10, 0.858), (0, -0.20, 0.858), 'jaw'), ('tongue_02', None, (0, -0.30, 0.858), 'tongue_01'),
-                     ('tongue_03', None, (0, -0.40, 0.858), 'tongue_02'), ('tongue_04', None, (0, -0.50, 0.858), 'tongue_03')]
-        for n, h, t, par in chain:
-            bone(n, E[par].tail.copy() if h is None else P(*h), P(*t), par)
+        for n, h, t, par in FIT['bones']:  # root first; a head of None starts at the parent's tail
+            if par is None: bone(n, P(*h), P(*t))
+            else: bone(n, E[par].tail.copy() if h is None else P(*h), P(*t), par)
 
     def beast_weights():
         """Rules over the heat weights where a beast needs a clean split: the jaw below the mouth, the maw's tongue."""
@@ -89,18 +77,19 @@ if BEAST:
         for v in me.vertices:
             i = v.index
             if STYLE == 'Hound':
-                if y[i] > -0.74 or zz[i] < 1.0: continue  # only the muzzle
-                below = zz[i] < 1.115 + 0.12 * max(0.0, y[i] + 0.96)  # the lip line, rising slightly to the cheek
-                wj = (1.0 if below else 0.0) * min(1.0, max(0.0, (-0.74 - y[i]) / 0.05))
+                if y[i] > FR['muzzleY'] or zz[i] < FR['minZ']: continue  # only the muzzle
+                below = zz[i] < FR['lipZ'] + FR['lipRise'] * max(0.0, y[i] - FR['noseY'])  # the lip line, rising slightly to the cheek
+                wj = (1.0 if below else 0.0) * min(1.0, max(0.0, (FR['muzzleY'] - y[i]) / FR['ramp']))
                 own = {'jaw': wj, 'head': 1.0 - wj}
             elif i in tongue:  # each tongue vertex to its tongue bone, by its place along the tongue
-                k = min(4, max(1, int((-0.10 - y[i]) / 0.10) + 1))
+                k = min(4, max(1, int((FR['tongueRootY'] - y[i]) / FR['tongueStep']) + 1))
                 own = {f'tongue_{k:02d}': 1.0}
             else:  # the maw's lower lip (in front of the slot's back wall, under the slot, above the belly); no other
                 # vertex keeps a jaw or tongue weight, or the roof would swing up with the jaw and the lash stretch the head
                 wj = 0.0
-                if zz[i] <= 0.86 and y[i] <= -0.12:
-                    wj = min(1.0, max(0.0, (-0.12 - y[i]) / 0.18)) * min(1.0, max(0.0, (zz[i] - 0.58) / 0.14))
+                if zz[i] <= FR['lipZ'] and y[i] <= FR['backWallY']:
+                    wj = min(1.0, max(0.0, (FR['backWallY'] - y[i]) / FR['backRamp'])) * min(1.0, max(0.0, (zz[i] - FR['bellyZ']) / FR['bellyRamp']))
+                    wj *= min(1.0, max(0.0, (FR['halfWidth'] - abs(x[i] - FR['jawX'])) / FR['xRamp']))  # not the front legs
                 own = {'jaw': wj, **{f'tongue_{k:02d}': 0.0 for k in range(1, 5)}}  # set outright: no stray heat jaw weight
                 if wj <= 0 and not any(ob.vertex_groups[g.group].name in own for g in v.groups): continue
             n_rule += 1
