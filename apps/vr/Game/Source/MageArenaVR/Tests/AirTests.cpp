@@ -1306,6 +1306,37 @@ bool FMageArenaAirRivalMomentumUnchanged::RunTest(const FString& Parameters)
 
 // T50. The seated-momentum guard. The seated Momentum reading is the owner's open decision (BACKLOG owner item,
 // SCHOOL-DEFENCES.md); these tests pin the guard around it and the reason it exists, they do not choose a reading.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaAirPlayerAirWithoutSeatedReadingFails, "MageArena.Air.PlayerAirWithoutSeatedReadingFails",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaAirPlayerAirWithoutSeatedReadingFails::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	FArenaState State = CreateArena(50);
+	const FSimVec Centre = KernelData().ArenaCentre;
+	const int32 PlayerId = AddMage(State, 0, Centre, TEXT("Seated")).Id;
+	const int32 RivalId = AddMage(State, 1, FSimVec{Centre.X + 6.0, Centre.Y}, TEXT("Rival")).Id;
+	bool bPass = TestEqual(TEXT("a new actor declares no seated reading"), Live(State, PlayerId).Air.SeatedReading, EAirSeatedReading::None);
+
+	AddExpectedError(TEXT("air school: player-castable without a seated momentum reading"), EAutomationExpectedErrorFlags::Contains, 1);
+	bPass &= TestFalse(TEXT("a player-side actor with no declared reading is refused"), GrantAirSchool(Live(State, PlayerId)));
+	bPass &= TestFalse(TEXT("and stays a non-air mage"), Live(State, PlayerId).Air.bSchool);
+
+	bPass &= TestTrue(TEXT("a declared reading is accepted"), GrantAirSchool(Live(State, PlayerId), EAirSeatedReading::Declared));
+	bPass &= TestTrue(TEXT("and switches the school on"), Live(State, PlayerId).Air.bSchool);
+	bPass &= TestEqual(TEXT("and keeps the declaration"), Live(State, PlayerId).Air.SeatedReading, EAirSeatedReading::Declared);
+	ResetAir(Live(State, PlayerId));
+	bPass &= TestEqual(TEXT("a reset keeps the declaration"), Live(State, PlayerId).Air.SeatedReading, EAirSeatedReading::Declared);
+
+	bPass &= TestTrue(TEXT("a rival walks, so it needs no seated reading"), GrantAirSchool(Live(State, RivalId)));
+	bPass &= TestTrue(TEXT("and is an air mage"), Live(State, RivalId).Air.bSchool);
+	bPass &= TestEqual(TEXT("with nothing declared"), Live(State, RivalId).Air.SeatedReading, EAirSeatedReading::None);
+	return bPass;
+}
+
 // Why the guard exists. A seated player is pinned to the pad (ArenaSession SeatOnActivePad, every tick), so the Pos -
 // PreviousPos that UpdateAirResource reads is zero and Momentum can only decay, which leaves Air Form uncastable.
 // The fixture hands the school to a player-side actor directly; no production path does that.

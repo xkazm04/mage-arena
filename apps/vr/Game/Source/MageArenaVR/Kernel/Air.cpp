@@ -3,6 +3,7 @@
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Geometry.h"
 #include "Kernel/VrRules.h"
+#include "MageArenaVR.h"
 
 #include <algorithm>
 #include <cmath>
@@ -590,8 +591,16 @@ void ResetAir(FActor& Actor)
 	Actor.Air.SeatedReading = Reading;
 }
 
+// Every production grant goes through here (Games.cpp, the rival branch, is the only one today). A hand-set bSchool in a
+// test fixture bypasses it on purpose; UpdateAirResource is not a second check because the characterisation test needs
+// a player-side actor that simply has the school.
 bool GrantAirSchool(FActor& Actor, EAirSeatedReading Reading)
 {
+	if (Actor.Team == 0 && Reading == EAirSeatedReading::None)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("air school: player-castable without a seated momentum reading (BACKLOG owner item, SCHOOL-DEFENCES.md)"));
+		return false;
+	}
 	Actor.Air.bSchool = true;
 	Actor.Air.SeatedReading = Reading;
 	return true;
