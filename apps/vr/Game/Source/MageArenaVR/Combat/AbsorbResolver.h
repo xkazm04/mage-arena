@@ -55,6 +55,8 @@ struct FAbsorbRules
 	TArray<FString> NotAgainst;
 
 	bool LoadFromPinnedFile(FString& OutError);
+	/** The parse behind LoadFromPinnedFile. Path only names the source in errors, so a test can hand in a fixture. */
+	bool LoadFromText(const FString& Text, const FString& Path, FString& OutError);
 	double ReductionFor(EAbsorbHitKind Kind) const;
 	bool BlocksPerfect(EAbsorbHitKind Kind) const;
 	double ManaForPerfect(int32 IncomingTier, double NerveRank) const;

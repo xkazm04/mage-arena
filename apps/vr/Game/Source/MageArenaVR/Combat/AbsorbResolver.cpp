@@ -176,6 +176,11 @@ bool FAbsorbRules::LoadFromPinnedFile(FString& OutError)
 	{
 		return Fail(OutError, FString::Printf(TEXT("absorb rules: cannot read %s"), *Path));
 	}
+	return LoadFromText(Text, Path, OutError);
+}
+
+bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FString& OutError)
+{
 	TSharedPtr<FJsonObject> Root;
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Text);
 	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())

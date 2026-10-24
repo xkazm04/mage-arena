@@ -10,13 +10,6 @@
 
 #include <limits>
 
-namespace
-{
-bool HitListContains(const TArray<int32>& Ids, int32 Id)
-{
-	return Ids.Contains(Id);
-}
-
 EAbsorbHitKind KindFromFamily(const FString& Family)
 {
 	if (Family == TEXT("physical"))
@@ -28,6 +21,13 @@ EAbsorbHitKind KindFromFamily(const FString& Family)
 		return EAbsorbHitKind::Unblockable;
 	}
 	return EAbsorbHitKind::Magic;
+}
+
+namespace
+{
+bool HitListContains(const TArray<int32>& Ids, int32 Id)
+{
+	return Ids.Contains(Id);
 }
 
 // T22 collar events. They exist on the ruleset path only: conformance runs without a ruleset and its pinned event logs
