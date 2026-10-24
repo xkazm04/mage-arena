@@ -291,6 +291,12 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 		}
 		WinBout(Session);
 		Log.Note(Session);
+		if (Bout >= 2)
+		{
+			// T25: Brennic and Lio fall into missio. The script makes no choice, so the 5 s timeout spares them.
+			bPass &= TestEqual(*FString::Printf(TEXT("missio after bout %d"), Bout + 1), Session.GetStage(), FString(TEXT("missio")));
+			RunLogged(Session, Log, [&Session]() { return Session.GetStage() != TEXT("missio"); }, 6.0);
+		}
 		if (Bout < 3)
 		{
 			bPass &= TestEqual(*FString::Printf(TEXT("intermission after bout %d"), Bout + 1), Session.GetStage(), FString(TEXT("intermission")));
@@ -304,8 +310,8 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 		TEXT("cold"), TEXT("prologue"), TEXT("teach"), TEXT("ritual"),
 		TEXT("intro"), TEXT("active"), TEXT("intermission"),
 		TEXT("intro"), TEXT("active"), TEXT("intermission"),
-		TEXT("intro"), TEXT("active"), TEXT("intermission"),
-		TEXT("intro"), TEXT("active"), TEXT("aftermath"), TEXT("closed")};
+		TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("intermission"),
+		TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("aftermath"), TEXT("closed")};
 	bPass &= TestEqual(TEXT("first-launch phase order"), FString::Join(Log.Stages, TEXT(" > ")), FString::Join(Expected, TEXT(" > ")));
 	bPass &= TestEqual(TEXT("bout 1 intro line"), Intro1, FString(TEXT("Legion soldiers. Hold the dais.")));
 	bPass &= TestTrue(TEXT("the final was won"), Session.WasFinalWon());
@@ -313,6 +319,8 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("closing line"), Session.GetPromptText(), FString(TEXT("Rest, Cassia. The Games resume tomorrow.")));
 	bPass &= TestEqual(TEXT("the prologue was skipped on the stone"), CountLines(Session.GetChain(), TEXT("day prologue skipped")), 1);
 	bPass &= TestEqual(TEXT("the ritual was offered, not timed out"), CountLines(Session.GetChain(), TEXT("day ritual offered")), 1);
+	double Spared = 0.0;
+	bPass &= TestTrue(TEXT("both rivals spared by the timeout"), Session.GetFlags().GetNumber(TEXT("arena.missio.total"), Spared) && Spared == 2.0);
 	Rig.Close(Session);
 	return bPass;
 }
@@ -670,6 +678,14 @@ bool FMageArenaDaySaveEachBout::RunTest(const FString& Parameters)
 		Session.NotifyQuit();
 		bPass &= TestEqual(*(Label + TEXT(" quit mid-bout keeps the bout")), Rig.ReadSave(), Saved);
 		WinBout(Session);
+		if (Bout >= 2)
+		{
+			// T25: a rival's bout waits on missio first. A quit there keeps the bout, as a quit in the intermission does.
+			bPass &= TestEqual(*(Label + TEXT(" missio")), Session.GetStage(), FString(TEXT("missio")));
+			Session.NotifyQuit();
+			bPass &= TestEqual(*(Label + TEXT(" quit in missio keeps the bout")), Rig.ReadSave(), Saved);
+			RunWhileStage(Session, TEXT("missio"), 6.0);
+		}
 		if (Bout < 3)
 		{
 			bPass &= TestEqual(*(Label + TEXT(" intermission")), Session.GetStage(), FString(TEXT("intermission")));

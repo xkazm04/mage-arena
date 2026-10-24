@@ -851,6 +851,9 @@ bool FMageArenaCollarTablet::RunTest(const FString& Parameters)
 	Script(Session, TEXT("miss"), 2, 1.0);
 	Session.Advance(kCollarTick, true);
 	WinNow(Session);
+	// T25: Lio falls into missio; no choice spares at 5 s and the day goes on to the aftermath.
+	bPass &= TestEqual(TEXT("missio after the final"), Session.GetStage(), FString(TEXT("missio")));
+	RunWhile(Session, TEXT("missio"), 6.0);
 	bPass &= TestEqual(TEXT("aftermath"), Session.GetStage(), FString(TEXT("aftermath")));
 	const FString Tablet = Session.GetTabletText();
 	UE_LOG(LogTemp, Log, TEXT("Collar tablet:\n%s"), *Tablet);

@@ -2,10 +2,12 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
-// T25: the closed fist held 0.40 s. Literals and their sources:
+// T25: the closed fist held 0.40 s, and the missio choice after a rival falls. Literals and their sources:
 // - apps/vr/Game/Clips/fist/: fist.{normal,slow,sloppy} and the fist-loose impostor (apps/vr/tools/clipgen/fist.mjs).
 // - apps/vr/Game/Clips/stones/: the palm held over each stone; ward-raise and both-palms are open palms too.
 // - teach.json offerHoldS 0.40 (the stone hold, the fist hold and the palm hold at missio).
+// - The card: no choice in 5 s spares. Brennic is the semifinal rival (Tiro wave n 3), Lio the final's (n 4).
+// - Flags: arena.tiro.1.w<n>.finish (true = finish) and arena.missio.total (rivals spared this day).
 
 #include "Dom/JsonObject.h"
 #include "Engine/GameInstance.h"
@@ -28,6 +30,9 @@
 
 namespace
 {
+const double kMissioTick = 1.0 / 60.0;
+const double kMissioTimeoutS = 5.0;
+
 bool LoadFistClip(FAutomationTestBase& Test, const TCHAR* Action, EClipVariant Variant, FHandClip& Out)
 {
 	FString Error;
@@ -57,6 +62,127 @@ int32 FeedFist(FFistDetector& Detector, const FHandClip& Clip, int32* OutClosedF
 		*OutClosedFrames = Closed;
 	}
 	return Detector.GetHeldCount();
+}
+
+struct FMissioRig
+{
+	UGameInstance* Instance = nullptr;
+	UHandInputSubsystem* Hands = nullptr;
+	USigilRecognizerSubsystem* Sigils = nullptr;
+	UWardDetectorSubsystem* Wards = nullptr;
+	UBlinkDetectorSubsystem* Blinks = nullptr;
+	UStaffDetectorSubsystem* Staff = nullptr;
+	FString Dir;
+
+	bool Open(FAutomationTestBase& Test)
+	{
+		Instance = NewObject<UGameInstance>(GetTransientPackage());
+		Instance->AddToRoot();
+		Hands = NewObject<UHandInputSubsystem>(Instance);
+		Sigils = NewObject<USigilRecognizerSubsystem>(Instance);
+		Sigils->LoadTemplatesFromDirectory(FPaths::Combine(FPaths::ProjectDir(), TEXT("Clips"), TEXT("templates")));
+		Wards = NewObject<UWardDetectorSubsystem>(Instance);
+		FString Error;
+		if (!Wards->InitDetector(Error))
+		{
+			Test.AddError(Error);
+			return false;
+		}
+		Blinks = NewObject<UBlinkDetectorSubsystem>(Instance);
+		Staff = NewObject<UStaffDetectorSubsystem>(Instance);
+		// Never Saved/MageArena: that is the desktop playthrough's save.
+		Dir = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("missio"), FGuid::NewGuid().ToString());
+		IFileManager::Get().MakeDirectory(*Dir, true);
+		return true;
+	}
+
+	void Close(FArenaSession& Session)
+	{
+		Session.Unbind();
+		IFileManager::Get().DeleteDirectory(*Dir, false, true);
+		if (Instance)
+		{
+			Instance->RemoveFromRoot();
+			Instance->MarkAsGarbage();
+			Instance = nullptr;
+		}
+	}
+};
+
+double MissioRunUntil(FArenaSession& Session, TFunctionRef<bool()> Done, double LimitS)
+{
+	double Elapsed = 0.0;
+	while (Elapsed < LimitS && !Done())
+	{
+		Session.Advance(kMissioTick, true);
+		Elapsed += kMissioTick;
+	}
+	return Elapsed;
+}
+
+double MissioRunWhile(FArenaSession& Session, const TCHAR* Stage, double LimitS)
+{
+	return MissioRunUntil(Session, [&Session, Stage]() { return Session.GetStage() != Stage; }, LimitS);
+}
+
+// Every opponent down, nothing of theirs in flight, until the bout leaves active (MageArena.Session.DayFlags does the same).
+void MissioWinBout(FArenaSession& Session)
+{
+	for (int32 Step = 0; Step < 120 && Session.GetStage() == TEXT("active"); ++Step)
+	{
+		FArenaState& State = const_cast<FArenaState&>(Session.GetGames().State);
+		for (FActor& Actor : State.Actors)
+		{
+			if (Actor.Id != Session.GetGames().PlayerId)
+			{
+				Actor.bDown = true;
+			}
+		}
+		State.Projectiles.Reset();
+		State.Telegraphs.Reset();
+		Session.Advance(kMissioTick, true);
+	}
+}
+
+// A saved day at Bout (0-based), through the offer, the ritual's both palms and the intro, into the live bout.
+bool MissioReachBout(FAutomationTestBase& Test, FMissioRig& Rig, FArenaSession& Session, int32 Bout)
+{
+	FFileHelper::SaveStringToFile(FString::Printf(TEXT("bout=%d\n"), Bout), *FPaths::Combine(Rig.Dir, TEXT("bout.txt")));
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+	Session.SetSaveDirectory(Rig.Dir);
+	Session.SetScripted(false);
+	bool bPass = Test.TestTrue(TEXT("day begins"), Session.BeginArc(1));
+	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+	Session.Advance(kMissioTick, true);
+	MissioRunUntil(Session, [&Session]() { return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
+	MissioRunWhile(Session, TEXT("ritual"), 5.0);
+	MissioRunWhile(Session, TEXT("intro"), 5.0);
+	bPass &= Test.TestEqual(TEXT("the bout is live"), Session.GetStage(), FString(TEXT("active")));
+	bPass &= Test.TestEqual(TEXT("the saved bout"), Session.GetGames().Wave, Bout);
+	return bPass;
+}
+
+bool HasFinish(const FArenaSession& Session, int32 WaveN, bool& bOut)
+{
+	return Session.GetFlags().GetBool(FArenaFlags::TiroKey(WaveN, TEXT("finish")), bOut);
+}
+
+double MissioTotal(const FArenaSession& Session)
+{
+	double Total = -1.0;
+	Session.GetFlags().GetNumber(TEXT("arena.missio.total"), Total);
+	return Total;
+}
+
+int32 CountChain(const FArenaSession& Session, const TCHAR* Prefix)
+{
+	int32 Count = 0;
+	for (const FString& Line : Session.GetChain())
+	{
+		Count += Line.StartsWith(Prefix) ? 1 : 0;
+	}
+	return Count;
 }
 }
 
@@ -255,6 +381,174 @@ bool FMageArenaFistHold::RunTest(const FString& Parameters)
 		Gated.Ingest(Frame);
 	}
 	bPass &= TestEqual(TEXT("a system gesture every 20 frames cuts every hold short"), Gated.GetHeldCount(), 0);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioSpare, "MageArena.Fist.MissioSpare",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFistMissioSpare::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	FMissioRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	FArenaSession Session;
+	bool bPass = MissioReachBout(*this, Rig, Session, 2);
+	MissioWinBout(Session);
+	bPass &= TestEqual(TEXT("Brennic falls: missio"), Session.GetStage(), FString(TEXT("missio")));
+	bool bWon = false;
+	bPass &= TestTrue(TEXT("the bout is recorded won first"), Session.GetFlags().GetBool(TEXT("arena.tiro.1.w3.won"), bWon) && bWon);
+	bool bFinish = true;
+	bPass &= TestFalse(TEXT("no choice yet"), HasFinish(Session, 3, bFinish));
+	// The open palm toward him, held: the ward hold rises from the lap and stays up.
+	Rig.Hands->SetWardHeld(true, EClipVariant::Normal);
+	const double Took = MissioRunWhile(Session, TEXT("missio"), kMissioTimeoutS + 1.0);
+	bPass &= TestEqual(TEXT("the spare leads to the intermission"), Session.GetStage(), FString(TEXT("intermission")));
+	bPass &= TestTrue(*FString::Printf(TEXT("the palm chose in %.2f s, before the timeout"), Took), Took < 2.0);
+	bPass &= TestTrue(TEXT("w3.finish is false"), HasFinish(Session, 3, bFinish) && !bFinish);
+	bPass &= TestEqual(TEXT("arena.missio.total counts the spare"), MissioTotal(Session), 1.0);
+	bPass &= TestEqual(TEXT("chain: spared by the palm"), CountChain(Session, TEXT("day missio bout=3 spare palm")), 1);
+	FArenaFlags Saved;
+	bPass &= TestTrue(TEXT("flags file loads"), Saved.Load(Session.FlagsFilePath()));
+	bPass &= TestTrue(TEXT("the file holds w3.finish"), Saved.GetBool(TEXT("arena.tiro.1.w3.finish"), bFinish) && !bFinish);
+	Rig.Hands->SetWardHeld(false, EClipVariant::Normal);
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioFinish, "MageArena.Fist.MissioFinish",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFistMissioFinish::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	bool bPass = true;
+	// The semifinal (Brennic, then the intermission) and the final (Lio, then the aftermath), each with the fist.
+	struct FCase
+	{
+		int32 Bout;
+		const TCHAR* Next;
+	};
+	for (const FCase& Case : {FCase{2, TEXT("intermission")}, FCase{3, TEXT("aftermath")}})
+	{
+		const int32 WaveN = Case.Bout + 1;
+		const FString Label = FString::Printf(TEXT("bout %d"), WaveN);
+		FMissioRig Rig;
+		if (!Rig.Open(*this))
+		{
+			return false;
+		}
+		FArenaSession Session;
+		bPass &= MissioReachBout(*this, Rig, Session, Case.Bout);
+		MissioWinBout(Session);
+		bPass &= TestEqual(*(Label + TEXT(" missio")), Session.GetStage(), FString(TEXT("missio")));
+		Rig.Hands->PlayQuickAction(TEXT("fist"), EClipVariant::Normal);
+		const double Took = MissioRunWhile(Session, TEXT("missio"), kMissioTimeoutS + 1.0);
+		bPass &= TestEqual(*(Label + TEXT(" the finish leads on")), Session.GetStage(), FString(Case.Next));
+		bPass &= TestTrue(*FString::Printf(TEXT("%s the fist chose in %.2f s, before the timeout"), *Label, Took), Took < 2.0);
+		bool bFinish = false;
+		bPass &= TestTrue(*(Label + TEXT(" finish is true")), HasFinish(Session, WaveN, bFinish) && bFinish);
+		bPass &= TestEqual(*(Label + TEXT(" a finish spares no one")), MissioTotal(Session), 0.0);
+		bPass &= TestEqual(*(Label + TEXT(" chain: finished by the fist")),
+			CountChain(Session, *FString::Printf(TEXT("day missio bout=%d finish fist"), WaveN)), 1);
+		if (Case.Bout == 3)
+		{
+			bPass &= TestTrue(TEXT("the final is still won"), Session.WasFinalWon());
+			FString Save;
+			FFileHelper::LoadFileToString(Save, *FPaths::Combine(Rig.Dir, TEXT("bout.txt")));
+			bPass &= TestEqual(TEXT("the day over saves a new day"), Save, FString(TEXT("bout=0\n")));
+		}
+		Rig.Close(Session);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioTimeout, "MageArena.Fist.MissioTimeout",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFistMissioTimeout::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	FMissioRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	FArenaSession Session;
+	bool bPass = MissioReachBout(*this, Rig, Session, 2);
+	MissioWinBout(Session);
+	bPass &= TestEqual(TEXT("missio"), Session.GetStage(), FString(TEXT("missio")));
+	// The impostor, then nothing: the half-curl does not finish, and the default spares at 5 s.
+	Rig.Hands->PlayQuickAction(TEXT("fist-loose"), EClipVariant::Normal);
+	const double Took = MissioRunWhile(Session, TEXT("missio"), kMissioTimeoutS + 1.0);
+	bPass &= TestEqual(TEXT("the timeout leads to the intermission"), Session.GetStage(), FString(TEXT("intermission")));
+	bPass &= TestTrue(*FString::Printf(TEXT("chosen at %.3f s, the 5 s timeout"), Took), FMath::Abs(Took - kMissioTimeoutS) <= 2.0 * kMissioTick);
+	bool bFinish = true;
+	bPass &= TestTrue(TEXT("w3.finish is false"), HasFinish(Session, 3, bFinish) && !bFinish);
+	bPass &= TestEqual(TEXT("arena.missio.total counts the spare"), MissioTotal(Session), 1.0);
+	bPass &= TestEqual(TEXT("chain: spared by the timeout"), CountChain(Session, TEXT("day missio bout=3 spare timeout")), 1);
+	Rig.Close(Session);
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistNoFlagMidBout, "MageArena.Fist.NoChoiceMidBout",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaFistNoFlagMidBout::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	FMissioRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	FArenaSession Session;
+	bool bPass = MissioReachBout(*this, Rig, Session, 2);
+	// Mid-bout against Brennic: a fist held, then an open palm held, change nothing but the fight.
+	bool bSawMissio = false;
+	Rig.Hands->PlayQuickAction(TEXT("fist"), EClipVariant::Slow);
+	MissioRunUntil(Session, [&Session, &bSawMissio]()
+	{
+		bSawMissio |= Session.GetStage() == TEXT("missio");
+		return Session.GetStage() != TEXT("active");
+	}, 2.0);
+	Rig.Hands->SetWardHeld(true, EClipVariant::Normal);
+	MissioRunUntil(Session, [&Session, &bSawMissio]()
+	{
+		bSawMissio |= Session.GetStage() == TEXT("missio");
+		return Session.GetStage() != TEXT("active");
+	}, 1.0);
+	Rig.Hands->SetWardHeld(false, EClipVariant::Normal);
+	bPass &= TestEqual(TEXT("still fighting"), Session.GetStage(), FString(TEXT("active")));
+	bPass &= TestFalse(TEXT("no missio during the bout"), bSawMissio);
+	bPass &= TestFalse(TEXT("no w3.finish mid-bout"), Session.GetFlags().Has(TEXT("arena.tiro.1.w3.finish")));
+	bPass &= TestFalse(TEXT("no arena.missio.total mid-bout"), Session.GetFlags().Has(TEXT("arena.missio.total")));
+	bPass &= TestEqual(TEXT("no missio line in the chain"), CountChain(Session, TEXT("day missio")), 0);
+	// The fist held before the rival fell does not carry into missio: it needs a fresh 0.40 s there.
+	Rig.Hands->PlayQuickAction(TEXT("fist"), EClipVariant::Slow);
+	MissioRunUntil(Session, [&Session]() { return Session.GetStage() != TEXT("active"); }, 0.8);
+	MissioWinBout(Session);
+	bPass &= TestEqual(TEXT("missio after the fall"), Session.GetStage(), FString(TEXT("missio")));
+	MissioRunUntil(Session, [&Session]() { return Session.GetStage() != TEXT("missio"); }, 1.0);
+	bPass &= TestEqual(TEXT("the bout's fist chose nothing in missio's first second"), Session.GetStage(), FString(TEXT("missio")));
+	bPass &= TestFalse(TEXT("no finish from the bout's fist"), Session.GetFlags().Has(TEXT("arena.tiro.1.w3.finish")));
+	// Bouts without a rival (Bout 1, the soldiers) go straight to the intermission, with no missio and no flag.
+	FMissioRig Plain;
+	if (!Plain.Open(*this))
+	{
+		Rig.Close(Session);
+		return false;
+	}
+	FArenaSession First;
+	bPass &= MissioReachBout(*this, Plain, First, 0);
+	MissioWinBout(First);
+	bPass &= TestEqual(TEXT("no rival, no missio"), First.GetStage(), FString(TEXT("intermission")));
+	bPass &= TestFalse(TEXT("no w1.finish"), First.GetFlags().Has(TEXT("arena.tiro.1.w1.finish")));
+	Plain.Close(First);
+	Rig.Close(Session);
 	return bPass;
 }
 

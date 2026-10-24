@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Gestures/BlinkDetector.h"
+#include "Gestures/FistDetector.h"
 #include "Greybox/ArenaLayout.h"
 #include "Hands/HandFrame.h"
 #include "Kernel/Games.h"
@@ -151,6 +152,8 @@ public:
 	 *   resume (bout.txt names the next bout): offer -> ritual (palm) or offer -> teach -> ritual (both palms)
 	 *   then for each bout: intro -> active -> intermission (after bouts 1-3; the T20 pick after Bout 1 only)
 	 *   defeat: lost -> intro of the same bout (palm); in the final also lost -> aftermath (centre stone)
+	 *   T25, a bout won against a bound rival (Brennic, Lio): active -> missio -> intermission or aftermath. An open palm
+	 *   held offerHoldS spares, a fist held FFistThresholds::HoldS finishes, and no choice in 5 s spares.
 	 *   after the final, won or lost: aftermath -> closed (centre stone)
 	 * prologue: story.prologue.tableau for up to day.json prologueMaxS, skipped by a palm held over the centre stone.
 	 * ritual: Septima's line for ritualLineS, then the offer line; both palms held for teach.json offerHoldS lock the
@@ -336,6 +339,12 @@ private:
 	bool AdvanceDay(double DeltaSeconds);
 	/** Palm held over the centre stone for offerHoldS. */
 	bool HoldCentreStone(double DeltaSeconds);
+	/** T25: after the kernel settled a bout won against a bound rival, before its intermission or aftermath. */
+	void EnterMissio();
+	/** Writes arena.tiro.1.w<n>.finish and arena.missio.total, then goes where the bout was going. */
+	void ResolveMissio(bool bFinish, const TCHAR* How);
+	/** An open hand raised toward the arena, as one palm of the both-palms offer. */
+	bool MissioPalmRaised(EControllerHand Hand) const;
 	void RecordBout(bool bWon);
 	void SaveFlags() const;
 	void ResetBoutScript();
@@ -481,6 +490,14 @@ private:
 	int32 StaffPlantsAtBout = 0;
 	FArenaFlags Flags;
 	FCollarLedger Collar;
+	// T25: fed every hand frame, read only in missio (reset on entry, so a fist from the bout does not count).
+	FFistDetector Fist;
+	// The kernel phase the bout settled on (intermission or complete), restored when the missio choice is made.
+	FString MissioNext;
+	double MissioHold = 0.0;
+	// Per hand (left, right): a palm counts once it was seen down in missio. A palm still raised from the bout, or a
+	// clip's last frame that stays the hand's latest, is not a choice.
+	bool bMissioPalmArmed[2] = {false, false};
 	FString StartOverPhase;
 	bool bStartOverArmed = false;
 	TMap<FString, FString> Strings;

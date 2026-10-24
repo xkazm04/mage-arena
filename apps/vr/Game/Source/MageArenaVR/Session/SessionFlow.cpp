@@ -460,6 +460,7 @@ void FArenaSession::HoldPause(const TCHAR* Reason)
 
 void FArenaSession::NoteHandFrame(const FHandFrame& Frame)
 {
+	Fist.Ingest(Frame);
 	const bool bTracked = Frame.Confidence > 0.0f;
 	if (Frame.Hand == EControllerHand::Left)
 	{

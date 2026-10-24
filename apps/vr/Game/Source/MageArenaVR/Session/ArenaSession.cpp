@@ -795,8 +795,9 @@ void FArenaSession::HandleWardRaised(double OnsetTime, FVector Facing)
 		return;
 	}
 	// T21: no single-palm choice in the prologue, the ritual (both palms), a bout intro or the aftermath (stones).
+	// T25: missio reads the palm as a held pose (MissioPalmRaised), not as a raise edge.
 	if (Games.Phase == TEXT("prologue") || Games.Phase == TEXT("ritual") || Games.Phase == TEXT("intro")
-		|| Games.Phase == TEXT("aftermath") || Games.Phase == TEXT("closed"))
+		|| Games.Phase == TEXT("aftermath") || Games.Phase == TEXT("closed") || Games.Phase == TEXT("missio"))
 	{
 		return;
 	}
@@ -1786,7 +1787,12 @@ void FArenaSession::CheckEnd()
 		if (bDay)
 		{
 			RecordBout(true);
-			if (Games.Phase == TEXT("complete"))
+			// T25: a fallen rival waits on the missio choice; the other bouts go straight on.
+			if (GetVrRules() && GetVrRules()->BoundRival())
+			{
+				EnterMissio();
+			}
+			else if (Games.Phase == TEXT("complete"))
 			{
 				EnterAftermath(true);
 			}

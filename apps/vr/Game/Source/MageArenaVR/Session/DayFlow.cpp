@@ -22,6 +22,8 @@
 namespace
 {
 constexpr int32 CentreStone = 1;
+// T25 card: no choice in 5 s spares the rival, so the default never blocks the day.
+constexpr double MissioTimeoutS = 5.0;
 
 const FArenaTier* Tiro()
 {
@@ -34,7 +36,7 @@ bool FArenaSession::IsArcPhase(const FString& Phase)
 {
 	return Phase == TEXT("cold") || Phase == TEXT("prologue") || Phase == TEXT("offer") || Phase == TEXT("teach")
 		|| Phase == TEXT("ritual") || Phase == TEXT("intro") || Phase == TEXT("intermission") || Phase == TEXT("lost")
-		|| Phase == TEXT("aftermath") || Phase == TEXT("closed");
+		|| Phase == TEXT("aftermath") || Phase == TEXT("closed") || Phase == TEXT("missio");
 }
 
 bool FArenaSession::LoadDayData()
@@ -368,6 +370,64 @@ void FArenaSession::RecordBout(bool bWon)
 		Collar.GetBoutTithe(), Collar.GetLifetimeCracks(), Collar.GetLifetimeTithe()));
 }
 
+void FArenaSession::EnterMissio()
+{
+	MissioNext = Games.Phase;
+	Games.Phase = TEXT("missio");
+	PhaseClock = 0.0;
+	MissioHold = 0.0;
+	bMissioPalmArmed[0] = false;
+	bMissioPalmArmed[1] = false;
+	if (Hands)
+	{
+		Hands->StopAll();
+	}
+	Fist.Reset();
+	const FVrRival* Rival = GetVrRules() ? GetVrRules()->BoundRival() : nullptr;
+	Note(FString::Printf(TEXT("day missio open bout=%d rival=%s"), Games.Wave + 1, Rival ? *Rival->Id : TEXT("-")));
+}
+
+bool FArenaSession::MissioPalmRaised(EControllerHand Hand) const
+{
+	FHandFrame Frame;
+	if (!Hands || !Hands->GetLatest(Hand, Frame))
+	{
+		return false;
+	}
+	const FVector Forward(1.0, 0.0, 0.0);
+	return FFistDetector::IsOpenHand(Frame) && FWardDetector::PalmHeightMetres(Frame) >= FWardThresholds::RaiseHeightM
+		&& FWardDetector::AngleToFacingDeg(FWardDetector::PalmNormal(Frame), Forward) <= FWardThresholds::RaiseAngleDeg;
+}
+
+void FArenaSession::ResolveMissio(bool bFinish, const TCHAR* How)
+{
+	const FArenaTier* Tier = Tiro();
+	const int32 WaveN = Tier && Tier->Waves.IsValidIndex(Games.Wave) ? Tier->Waves[Games.Wave].N : Games.Wave + 1;
+	Flags.SetBool(FArenaFlags::TiroKey(WaveN, TEXT("finish")), bFinish);
+	// arena.missio.total is the rivals granted missio (spared) this day, counted from the .finish flags so a bout
+	// replayed after a quit is not counted twice.
+	int32 Spared = 0;
+	if (Tier)
+	{
+		for (const FArenaWave& Wave : Tier->Waves)
+		{
+			bool bFinished = false;
+			Spared += Flags.GetBool(FArenaFlags::TiroKey(Wave.N, TEXT("finish")), bFinished) && !bFinished ? 1 : 0;
+		}
+	}
+	Flags.SetNumber(TEXT("arena.missio.total"), static_cast<double>(Spared));
+	SaveFlags();
+	Note(FString::Printf(TEXT("day missio bout=%d %s %s t=%.2f total=%d"), WaveN, bFinish ? TEXT("finish") : TEXT("spare"), How,
+		PhaseClock, Spared));
+	MissioHold = 0.0;
+	Games.Phase = MissioNext;
+	MissioNext.Reset();
+	if (Games.Phase == TEXT("complete"))
+	{
+		EnterAftermath(true);
+	}
+}
+
 void FArenaSession::EnterAftermath(bool bWon)
 {
 	bFinalWon = bWon;
@@ -515,7 +575,7 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 	const FArenaTier* Tier = Tiro();
 	const bool bFinalLost = Phase == TEXT("lost") && bDay && Tier && Games.Wave == Tier->Waves.Num() - 1;
 	if (Phase != TEXT("prologue") && Phase != TEXT("ritual") && Phase != TEXT("intro") && Phase != TEXT("aftermath")
-		&& Phase != TEXT("closed") && !bFinalLost)
+		&& Phase != TEXT("closed") && Phase != TEXT("missio") && !bFinalLost)
 	{
 		return false;
 	}
@@ -580,6 +640,39 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 			Note(FString::Printf(TEXT("day ritual timeout t=%.2f"), PhaseClock));
 			OfferHold = 0.0;
 			StartDayBout(BoutWave);
+		}
+		return true;
+	}
+	if (Phase == TEXT("missio"))
+	{
+		// The fist is timed by the detector on the hand clock, the palm by the session as the stone holds are. The script
+		// makes no choice, so a scripted day goes on through the timeout's spare.
+		if (Fist.GetHeldCount() > 0)
+		{
+			ResolveMissio(true, TEXT("fist"));
+			return true;
+		}
+		bool bPalm = false;
+		for (int32 Index = 0; Index < 2; ++Index)
+		{
+			if (!MissioPalmRaised(Index == 0 ? EControllerHand::Left : EControllerHand::Right))
+			{
+				bMissioPalmArmed[Index] = true;
+			}
+			else
+			{
+				bPalm |= bMissioPalmArmed[Index];
+			}
+		}
+		MissioHold = bPalm ? MissioHold + DeltaSeconds : 0.0;
+		if (bPalm && MissioHold + 1.0e-9 >= Tuning.OfferHoldS)
+		{
+			ResolveMissio(false, TEXT("palm"));
+			return true;
+		}
+		if (PhaseClock + 1.0e-9 >= MissioTimeoutS)
+		{
+			ResolveMissio(false, TEXT("timeout"));
 		}
 		return true;
 	}
