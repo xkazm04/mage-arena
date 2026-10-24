@@ -17,11 +17,17 @@ namespace CreatureImport
 {
 namespace
 {
+// Scene spots at 8 m: the near-centre spawn marker's post stands on the centre line, so nobody stands there. Brennic
+// (1.03 m across) 1.4 m left, the hound (2.59 m long, toward the player) 1.4 m right, and the maw (2.38 x 2.23 m, turned
+// about 27 deg to face the player, so 3.1 m across) 4.0 m left: 0.5 m clear of Brennic, 1.3 m of the near-left post.
 const FCreatureSpec GSpecs[] = {
     // docs/research/BRENNIC-MESH-REWORK-2026-10-24.md: 23 bones, 1.7992 m, 23,990 tris.
-    {TEXT("Brennic"), 1.7992, false},
+    {TEXT("Brennic"), 1.7992, false, -1.4},
     // docs/research/CREATURE-MESH-2026-10-24.md: 26 bones, 1.3569 m, 11,796 tris after parts and rig.
-    {TEXT("CinderHound"), 1.3569, true},
+    {TEXT("CinderHound"), 1.3569, true, 1.4},
+    // docs/research/MAW-MV-2026-10-24.md and CREATURE-CAST-UE-2026-10-24.md: 11 bones, 1.2509 m, 17,752 tris after the
+    // tongue part. Slots M_MireMaw (the seam-fixed bake) and M_MireMaw_Tongue (a capsule, flat dark red).
+    {TEXT("MireMaw"), 1.2509, false, -4.0, TEXT("Tongue"), FLinearColor(0.20f, 0.012f, 0.012f)},
 };
 
 double SmoothStep(double Low, double High, double X)
@@ -118,6 +124,11 @@ FString MaterialObjectPath(const FString& Name)
 	return FString::Printf(TEXT("%s/M_%s.M_%s"), *FolderPath(Name), *Name, *Name);
 }
 
+FString FlatMaterialObjectPath(const FString& Name)
+{
+	return FString::Printf(TEXT("%s/M_%s_Flat.M_%s_Flat"), *FolderPath(Name), *Name, *Name);
+}
+
 const FEmberParams& DefaultEmber()
 {
 	static const FEmberParams Params;
@@ -176,6 +187,44 @@ const TCHAR* EmberHlsl()
 	    "float TintLum = max(dot(BodyTint, Lum), 1e-4);\n"
 	    "float3 Body = lerp(C, BodyTint * (dot(C, Lum) / TintLum) * BodyGain, BodyTintAmount);\n"
 	    "return float4(lerp(Body, C, Mask), Mask);\n");
+}
+
+const TCHAR* EmberSoftHlsl()
+{
+	// Tex is the base colour texture object (its sampler is TexSampler), UV the mesh's UV. The key is EmberHlsl's, on
+	// pow(C, 1/2.2), over 12 taps: 6 on the ring SoftRadiusUv and 6 on half of it, offset by 30 deg. Returns the mean.
+	return TEXT(
+	    "float Acc = 0.0;\n"
+	    "for (int I = 0; I < 12; I++)\n"
+	    "{\n"
+	    "    float A = I * 0.5235988;\n"
+	    "    float R = (I % 2 == 0) ? SoftRadiusUv : SoftRadiusUv * 0.5;\n"
+	    "    float3 S = pow(saturate(Texture2DSampleLevel(Tex, TexSampler, UV + R * float2(cos(A), sin(A)), 0).rgb), 1.0 / 2.2);\n"
+	    "    float Mx = max(S.r, max(S.g, S.b));\n"
+	    "    float Dl = Mx - min(S.r, min(S.g, S.b));\n"
+	    "    float Sat = Mx > 0.0 ? Dl / Mx : 0.0;\n"
+	    "    float Hue = 0.0;\n"
+	    "    if (Dl > 1e-5)\n"
+	    "    {\n"
+	    "        if (Mx == S.r) { Hue = fmod((S.g - S.b) / Dl + 6.0, 6.0); }\n"
+	    "        else if (Mx == S.g) { Hue = (S.b - S.r) / Dl + 2.0; }\n"
+	    "        else { Hue = (S.r - S.g) / Dl + 4.0; }\n"
+	    "    }\n"
+	    "    Hue *= 60.0;\n"
+	    "    float HueKey = 1.0 - smoothstep(HueWidthDeg * 0.5, HueWidthDeg, abs(Hue - HueCentreDeg));\n"
+	    "    Acc += HueKey * smoothstep(SatLow, SatHigh, Sat) * smoothstep(ValLow, ValHigh, Mx);\n"
+	    "}\n"
+	    "return Acc / 12.0;\n");
+}
+
+double EmberSoftMask(TConstArrayView<FLinearColor> SrgbTaps, const FEmberParams& Params)
+{
+	double Sum = 0.0;
+	for (const FLinearColor& Tap : SrgbTaps)
+	{
+		Sum += EmberMask(Tap, Params);
+	}
+	return SrgbTaps.Num() > 0 ? Sum / SrgbTaps.Num() : 0.0;
 }
 
 bool IsSceneRequested()
@@ -251,13 +300,12 @@ TArray<ASkeletalMeshActor*> SpawnScene(UWorld& World, const FArenaLayout& Layout
 {
 	TArray<ASkeletalMeshActor*> Spawned;
 	const double Distance = OpponentDistanceM();
-	if (ASkeletalMeshActor* Brennic = SpawnCreature(World, Layout, TEXT("Brennic"), StandPointCm(Layout, Distance, -SceneHalfSpacingM)))
+	for (const FCreatureSpec& Spec : GSpecs)
 	{
-		Spawned.Add(Brennic);
-	}
-	if (ASkeletalMeshActor* Hound = SpawnCreature(World, Layout, TEXT("CinderHound"), StandPointCm(Layout, Distance, SceneHalfSpacingM)))
-	{
-		Spawned.Add(Hound);
+		if (ASkeletalMeshActor* Actor = SpawnCreature(World, Layout, Spec.Name, StandPointCm(Layout, Distance, Spec.SceneLateralM)))
+		{
+			Spawned.Add(Actor);
+		}
 	}
 	return Spawned;
 }

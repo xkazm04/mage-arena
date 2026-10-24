@@ -17,11 +17,16 @@
 #include "Factories/FbxSkeletalMeshImportData.h"
 #include "IAssetTools.h"
 #include "Materials/Material.h"
+#include "Materials/MaterialExpressionAdd.h"
 #include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionCustom.h"
+#include "Materials/MaterialExpressionFresnel.h"
 #include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionOneMinus.h"
 #include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionTextureCoordinate.h"
+#include "Materials/MaterialExpressionTextureObjectParameter.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
 #include "Misc/SecureHash.h"
@@ -78,9 +83,10 @@ void AddCustomInput(UMaterialExpressionCustom& Custom, const TCHAR* Name, UMater
 }
 
 /**
- * The plain material (Brennic): base colour from the texture, roughness 0.8, metallic 0, as the Blender M_Brennic.
+ * The plain material (Brennic, the maw): base colour from the texture, roughness 0.8, metallic 0, as the Blender M_Brennic.
  * The ember material (the hound): the same texture through the crack key (CreatureImport::EmberHlsl) gives the shaded
- * body colour and a mask; the mask x EmberColour x EmberIntensity is the emissive.
+ * body colour and a mask; the emissive is (mask x EmberIntensity + soft bloom x (1 - mask) x SoftIntensity + Fresnel rim x
+ * RimIntensity) x EmberColour (CreatureImport::FEmberParams).
  */
 UMaterial* BuildMaterial(const FString& Name, UTexture2D& Texture, bool bEmber)
 {
@@ -112,12 +118,15 @@ UMaterial* BuildMaterial(const FString& Name, UTexture2D& Texture, bool bEmber)
 		Key->Code = CreatureImport::EmberHlsl();
 		Key->Inputs.Reset();
 		AddCustomInput(*Key, TEXT("C"), Sample, 0);
-		AddCustomInput(*Key, TEXT("HueCentreDeg"), AddScalar(*Material, TEXT("HueCentreDeg"), Ember.HueCentreDeg, 100));
-		AddCustomInput(*Key, TEXT("HueWidthDeg"), AddScalar(*Material, TEXT("HueWidthDeg"), Ember.HueWidthDeg, 160));
-		AddCustomInput(*Key, TEXT("SatLow"), AddScalar(*Material, TEXT("SatLow"), Ember.SatLow, 220));
-		AddCustomInput(*Key, TEXT("SatHigh"), AddScalar(*Material, TEXT("SatHigh"), Ember.SatHigh, 280));
-		AddCustomInput(*Key, TEXT("ValLow"), AddScalar(*Material, TEXT("ValLow"), Ember.ValLow, 340));
-		AddCustomInput(*Key, TEXT("ValHigh"), AddScalar(*Material, TEXT("ValHigh"), Ember.ValHigh, 400));
+		// The key's window, shared by the crack key and the soft bloom below (one parameter expression each).
+		const TPair<const TCHAR*, double> Window[] = {{TEXT("HueCentreDeg"), Ember.HueCentreDeg}, {TEXT("HueWidthDeg"), Ember.HueWidthDeg},
+		    {TEXT("SatLow"), Ember.SatLow}, {TEXT("SatHigh"), Ember.SatHigh}, {TEXT("ValLow"), Ember.ValLow}, {TEXT("ValHigh"), Ember.ValHigh}};
+		TArray<UMaterialExpressionScalarParameter*> WindowParameters;
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Window); ++Index)
+		{
+			WindowParameters.Add(AddScalar(*Material, Window[Index].Key, Window[Index].Value, 100 + 60 * Index));
+			AddCustomInput(*Key, Window[Index].Key, WindowParameters.Last());
+		}
 		AddCustomInput(*Key, TEXT("BodyTint"), AddVector(*Material, TEXT("BodyTint"), Ember.BodyTint, 460), 0);
 		AddCustomInput(*Key, TEXT("BodyTintAmount"), AddScalar(*Material, TEXT("BodyTintAmount"), Ember.BodyTintAmount, 560));
 		AddCustomInput(*Key, TEXT("BodyGain"), AddScalar(*Material, TEXT("BodyGain"), Ember.BodyGain, 620));
@@ -130,15 +139,73 @@ UMaterial* BuildMaterial(const FString& Name, UTexture2D& Texture, bool bEmber)
 		Mask->Input.Connect(0, Key);
 		Mask->R = Mask->G = Mask->B = 0;
 		Mask->A = 1;
-		UMaterialExpressionMultiply* Tinted = AddExpression<UMaterialExpressionMultiply>(*Material, 0, 100);
-		Tinted->A.Connect(0, Mask);
-		Tinted->B.Connect(0, AddVector(*Material, TEXT("EmberColour"), Ember.EmberColour, 700));
-		UMaterialExpressionMultiply* Emissive = AddExpression<UMaterialExpressionMultiply>(*Material, 150, 100);
-		Emissive->A.Connect(0, Tinted);
-		Emissive->B.Connect(0, AddScalar(*Material, TEXT("EmberIntensity"), Ember.EmberIntensity, 800));
+		// The glow at duel distance: crack mask x EmberIntensity + soft bloom x (1 - mask) x SoftIntensity + rim x RimIntensity, all
+		// x EmberColour (FEmberParams). The soft bloom is the same key averaged over a ring of taps (EmberSoftHlsl).
+		UMaterialExpressionTextureObjectParameter* TextureObject = AddExpression<UMaterialExpressionTextureObjectParameter>(*Material, -1000, 900);
+		TextureObject->ParameterName = TEXT("BaseColorObject");
+		TextureObject->Texture = &Texture;
+		UMaterialExpressionCustom* Soft = AddExpression<UMaterialExpressionCustom>(*Material, -400, 900);
+		Soft->Description = TEXT("EmberSoft");
+		Soft->OutputType = CMOT_Float1;
+		Soft->Code = CreatureImport::EmberSoftHlsl();
+		Soft->Inputs.Reset();
+		AddCustomInput(*Soft, TEXT("Tex"), TextureObject);
+		AddCustomInput(*Soft, TEXT("UV"), AddExpression<UMaterialExpressionTextureCoordinate>(*Material, -700, 960));
+		AddCustomInput(*Soft, TEXT("SoftRadiusUv"), AddScalar(*Material, TEXT("SoftRadiusUv"), Ember.SoftRadiusUv, 1020));
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Window); ++Index)
+		{
+			AddCustomInput(*Soft, Window[Index].Key, WindowParameters[Index]);
+		}
+		UMaterialExpressionFresnel* Fresnel = AddExpression<UMaterialExpressionFresnel>(*Material, -400, 1200);
+		Fresnel->ExponentIn.Connect(0, AddScalar(*Material, TEXT("RimExponent"), Ember.RimExponent, 1200));
+		Fresnel->BaseReflectFraction = 0.0f;
+
+		UMaterialExpressionMultiply* Crack = AddExpression<UMaterialExpressionMultiply>(*Material, 0, 100);
+		Crack->A.Connect(0, Mask);
+		Crack->B.Connect(0, AddScalar(*Material, TEXT("EmberIntensity"), Ember.EmberIntensity, 800));
+		// The bloom lights the hide around a crack, not the crack again: x (1 - mask), so a crack's core keeps the base
+		// orange (with the bloom added on top the cores went yellow, G 192 of 255 at 8 m; CREATURE-CAST-UE section 4).
+		UMaterialExpressionOneMinus* Around = AddExpression<UMaterialExpressionOneMinus>(*Material, -150, 900);
+		Around->Input.Connect(0, Mask);
+		UMaterialExpressionMultiply* Halo = AddExpression<UMaterialExpressionMultiply>(*Material, -50, 900);
+		Halo->A.Connect(0, Soft);
+		Halo->B.Connect(0, Around);
+		UMaterialExpressionMultiply* Bloom = AddExpression<UMaterialExpressionMultiply>(*Material, 0, 900);
+		Bloom->A.Connect(0, Halo);
+		Bloom->B.Connect(0, AddScalar(*Material, TEXT("SoftIntensity"), Ember.SoftIntensity, 1140));
+		UMaterialExpressionMultiply* Rim = AddExpression<UMaterialExpressionMultiply>(*Material, 0, 1200);
+		Rim->A.Connect(0, Fresnel);
+		Rim->B.Connect(0, AddScalar(*Material, TEXT("RimIntensity"), Ember.RimIntensity, 1260));
+		UMaterialExpressionAdd* CrackBloom = AddExpression<UMaterialExpressionAdd>(*Material, 150, 500);
+		CrackBloom->A.Connect(0, Crack);
+		CrackBloom->B.Connect(0, Bloom);
+		UMaterialExpressionAdd* Glow = AddExpression<UMaterialExpressionAdd>(*Material, 300, 500);
+		Glow->A.Connect(0, CrackBloom);
+		Glow->B.Connect(0, Rim);
+		UMaterialExpressionMultiply* Emissive = AddExpression<UMaterialExpressionMultiply>(*Material, 450, 500);
+		Emissive->A.Connect(0, Glow);
+		Emissive->B.Connect(0, AddVector(*Material, TEXT("EmberColour"), Ember.EmberColour, 700));
 		Editor->BaseColor.Connect(0, Body);
 		Editor->EmissiveColor.Connect(0, Emissive);
 	}
+	Material->PreEditChange(nullptr);
+	Material->PostEditChange();
+	Material->MarkPackageDirty();
+	return Material;
+}
+
+/** A flat base colour material (the maw's tongue capsule, which has no baked texels): M_<Name>_Flat. */
+UMaterial* BuildFlatMaterial(const FString& Name, const FLinearColor& Colour)
+{
+	const FString AssetName = FString::Printf(TEXT("M_%s_Flat"), *Name);
+	UPackage* Package = CreatePackage(*(CreatureImport::FolderPath(Name) / AssetName));
+	UMaterial* Material = NewObject<UMaterial>(Package, FName(*AssetName), RF_Public | RF_Standalone | RF_Transactional);
+	Material->SetUsageByFlag(MATUSAGE_SkeletalMesh, true);
+	UMaterialEditorOnlyData* Editor = Material->GetEditorOnlyData();
+	Editor->BaseColor.Connect(0, AddVector(*Material, TEXT("FlatColour"), Colour, 0));
+	UMaterialExpressionConstant* Roughness = AddExpression<UMaterialExpressionConstant>(*Material, -300, 200);
+	Roughness->R = 0.6f;
+	Editor->Roughness.Connect(0, Roughness);
 	Material->PreEditChange(nullptr);
 	Material->PostEditChange();
 	Material->MarkPackageDirty();
@@ -211,7 +278,7 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	const CreatureImport::FCreatureSpec* Spec = CreatureImport::FindSpec(Name);
 	if (!Spec || !FPaths::FileExists(Fbx) || !FPaths::FileExists(TexturePath))
 	{
-		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail usage: -name=<Brennic|CinderHound> -fbx=<existing file> -texture=<existing file> (got name=%s fbx=%s texture=%s)"),
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail usage: -name=<Brennic|CinderHound|MireMaw> -fbx=<existing file> -texture=<existing file> (got name=%s fbx=%s texture=%s)"),
 		    *Name, *Fbx, *TexturePath);
 		return 1;
 	}
@@ -264,10 +331,20 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	}
 
 	UMaterial* Material = BuildMaterial(Name, *Texture, Spec->bEmber);
+	UMaterial* Flat = Spec->FlatSlot ? BuildFlatMaterial(Name, Spec->FlatColour) : nullptr;
 	TArray<FSkeletalMaterial>& Slots = Mesh->GetMaterials();
+	int32 FlatSlots = 0;
 	for (FSkeletalMaterial& Slot : Slots)
 	{
-		Slot.MaterialInterface = Material;
+		const bool bFlat = Flat && (Slot.MaterialSlotName.ToString().Contains(Spec->FlatSlot) || Slot.ImportedMaterialSlotName.ToString().Contains(Spec->FlatSlot));
+		Slot.MaterialInterface = bFlat ? Flat : Material;
+		FlatSlots += bFlat ? 1 : 0;
+		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT slot %s -> %s"), *Slot.MaterialSlotName.ToString(), *Slot.MaterialInterface->GetName());
+	}
+	if (Flat && FlatSlots == 0)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s has no slot named *%s* for the flat material"), *Name, Spec->FlatSlot);
+		return 1;
 	}
 	Mesh->PostEditChange();
 	Mesh->MarkPackageDirty();
@@ -315,6 +392,10 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	// Compile the texture and the material's shaders here, so the derived data is in the DDC before the -game capture
 	// loads them (the first capture run spent 120 s at about 1 fps compiling and never took a shot).
 	Material->ForceRecompileForRendering();
+	if (Flat)
+	{
+		Flat->ForceRecompileForRendering();
+	}
 	FAssetCompilingManager::Get().FinishAllCompilation();
 	if (GShaderCompilingManager)
 	{

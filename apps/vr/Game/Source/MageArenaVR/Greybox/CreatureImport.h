@@ -7,11 +7,12 @@ class UWorld;
 struct FArenaLayout;
 
 /**
- * The creature UE import (docs/research/CREATURE-UE-IMPORT-2026-10-24.md): Brennic (LOD0, bake finish) and the cinder
- * hound s7101, imported by Tools/ImportCreatureMeshCommandlet into a scratch Content folder that the capture script
- * deletes before it ends. Nothing here is committed content: the DINOv3 licence hold stands, so no TRELLIS asset ships.
- * -MageArenaCreatureImportScene places both in the greybox arena at opponent distance (the D-G4 budget re-run passes it
- * through capture-budget.ps1 -ExtraArgs); -MageArenaCreatureImportCapture takes the stills (CreatureImportCapture.h).
+ * The creature UE import (docs/research/CREATURE-UE-IMPORT-2026-10-24.md, CREATURE-CAST-UE-2026-10-24.md): Brennic (LOD0,
+ * bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed), imported by
+ * Tools/ImportCreatureMeshCommandlet into a scratch Content folder that the capture script deletes before it ends.
+ * Nothing here is committed content: the DINOv3 licence hold stands, so no TRELLIS asset ships.
+ * -MageArenaCreatureImportScene places all three in the greybox arena at opponent distance (the D-G4 budget re-run passes
+ * it through capture-budget.ps1 -ExtraArgs); -MageArenaCreatureImportCapture takes the stills (CreatureImportCapture.h).
  */
 namespace CreatureImport
 {
@@ -24,8 +25,17 @@ struct FCreatureSpec
 	const TCHAR* Name;
 	/** The research doc's measured height (m): the import is refused when the mesh bounds miss it by more than 5 %. */
 	double HeightM;
-	/** The hound takes the ember material; Brennic the plain base-colour one. */
+	/** The hound takes the ember material; Brennic and the maw the plain base-colour one. */
 	bool bEmber;
+	/** Where the scene stands it (m to the seated player's right, at opponent distance): apart, and off the centre post. */
+	double SceneLateralM;
+	/**
+	 * A slot whose name contains this takes a flat FlatColour material instead (the maw's tongue: beast_parts.py's capsule
+	 * has no baked texels of its own). Null: every slot takes the one material.
+	 */
+	const TCHAR* FlatSlot = nullptr;
+	/** Linear base colour of the flat slot. */
+	FLinearColor FlatColour = FLinearColor::Black;
 };
 
 TConstArrayView<FCreatureSpec> Specs();
@@ -37,6 +47,8 @@ FString FolderPath(const FString& Name);
 FString MeshObjectPath(const FString& Name);
 FString TextureObjectPath(const FString& Name);
 FString MaterialObjectPath(const FString& Name);
+/** The flat slot's material (M_<Name>_Flat). */
+FString FlatMaterialObjectPath(const FString& Name);
 
 /**
  * The ember key's parameter values, shared by the material the commandlet builds and the C++ mirror below.
@@ -60,6 +72,19 @@ struct FEmberParams
 	// the cracks clipped to pale yellow. Green stays near 0.4 here, so the cracks read orange.
 	FLinearColor EmberColour = FLinearColor(1.0f, 0.25f, 0.03f);
 	double EmberIntensity = 1.6;
+	/**
+	 * The glow at duel distance (Athena 20:13Z: the cracks read weakly at 8 m). Three terms add to the emissive, each
+	 * x EmberColour: the crack mask x EmberIntensity; a soft crack bloom, the key averaged over a ring of taps SoftRadiusUv
+	 * around the texel (EmberSoftHlsl), x (1 - mask) x SoftIntensity, so a crack's glow spreads onto the hide beside it
+	 * while its core keeps the base orange; and a rim, the Fresnel term ^ RimExponent x RimIntensity on the whole body.
+	 * The tonemapper and the exposure are not touched. The soft bloom is the one chosen
+	 * (docs/research/CREATURE-CAST-UE-2026-10-24.md section 4): more intensity turns the crack cores yellow, and the rim
+	 * lights the whole hide brown-orange and loses the dark body the cracks read against.
+	 */
+	double SoftIntensity = 1.2;
+	double SoftRadiusUv = 0.008;
+	double RimIntensity = 0.0;
+	double RimExponent = 3.0;
 	/** The body (1 - mask) moves toward BodyTint at the texel's own luminance x BodyGain, by BodyTintAmount. */
 	FLinearColor BodyTint = FLinearColor(0.32f, 0.03f, 0.025f);
 	double BodyTintAmount = 0.7;
@@ -72,6 +97,10 @@ const FEmberParams& DefaultEmber();
 double EmberMask(const FLinearColor& Srgb, const FEmberParams& Params);
 /** The HLSL of the ember Custom node; its inputs are named as the FEmberParams fields. */
 const TCHAR* EmberHlsl();
+/** The soft crack bloom: the same key, averaged over 12 taps on two rings (SoftRadiusUv and half of it) of texture Tex. */
+const TCHAR* EmberSoftHlsl();
+/** The soft bloom's C++ mirror: the mean of EmberMask over the tap colours. */
+double EmberSoftMask(TConstArrayView<FLinearColor> SrgbTaps, const FEmberParams& Params);
 
 /** -MageArenaCreatureImportScene or -MageArenaCreatureImportCapture is on the command line. */
 bool IsSceneRequested();
@@ -91,10 +120,9 @@ ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, con
  */
 void PlaceCreature(ASkeletalMeshActor& Actor, const FArenaLayout& Layout, const FVector& PointCm, double YawOffsetDeg);
 
-/** Both creatures side by side at opponent distance: the budget scene and the capture's last still. */
+/** Every spec'd creature at opponent distance, each at its SceneLateralM, in Specs() order: the budget scene and the cast still. */
 TArray<ASkeletalMeshActor*> SpawnScene(UWorld& World, const FArenaLayout& Layout);
 
-/** Opponent distance (m) and the side-by-side half spacing (m). -MageArenaCreatureDistanceM= overrides the first. */
+/** Opponent distance (m). -MageArenaCreatureDistanceM= overrides it. */
 double OpponentDistanceM();
-constexpr double SceneHalfSpacingM = 1.4;
 }

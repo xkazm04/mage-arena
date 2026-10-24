@@ -1,24 +1,31 @@
-# The creature UE import (docs/research/CREATURE-UE-IMPORT-2026-10-24.md): imports Brennic (LOD0, bake finish) and the
-# cinder hound s7101 into the scratch folder apps/vr/Game/Content/CreatureImportScratch through the ImportCreatureMesh
-# commandlet (Tools/ImportCreatureMeshCommandlet.cpp), takes the stills (-MageArenaCreatureImportCapture, the greybox
-# arena under the T56 dusk) into runs/<Run>/shots, optionally re-runs the D-G4 budget with both meshes in the scene
-# (capture-budget.ps1 -ExtraArgs -MageArenaCreatureImportScene), copies the imported .uasset files, the shots and the logs
-# to -Staging, and deletes the scratch folder before it exits, success or not. The DINOv3 licence hold stands: none of
-# the imported assets is ever committed.
-# Success is the eight pngs, MAGEVR_CAPTURE_DONE and, with -Budget, capture-budget.ps1's own ok.
-# Usage: capture-creature-import.ps1 [-Run creature-import] [-Budget] [-BudgetRuns 2] [-BaselineRuns 0]
-#        [-EmberIntensity <n>] [-Staging <dir>]
+# The creature cast in UE (docs/research/CREATURE-UE-IMPORT-2026-10-24.md, CREATURE-CAST-UE-2026-10-24.md): imports
+# Brennic (LOD0, bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed) into the scratch
+# folder apps/vr/Game/Content/CreatureImportScratch through the ImportCreatureMesh commandlet
+# (Tools/ImportCreatureMeshCommandlet.cpp), takes the stills (-MageArenaCreatureImportCapture, the greybox arena under the
+# T56 dusk) into runs/<Run>/shots, optionally re-runs the D-G4 budget with all three in the scene (capture-budget.ps1
+# -ExtraArgs -MageArenaCreatureImportScene), copies the imported .uasset files, the shots and the logs to -Staging, and
+# deletes the scratch folder before it exits, success or not. The DINOv3 licence hold stands: none of the imported
+# assets is ever committed.
+# Success is the seventeen pngs, MAGEVR_CAPTURE_DONE and, with -Budget, capture-budget.ps1's own ok.
+# Usage: capture-creature-import.ps1 [-Run creature-cast] [-Budget] [-BudgetRuns 2] [-BaselineRuns 0]
+#        [-EmberIntensity <n>] [-GlowIntensity <n>] [-GlowRim <n>] [-GlowSoft <n>] [-Staging <dir>]
+# -EmberIntensity overrides the chosen glow's crack intensity; the -Glow* values override the intensity, rim and soft
+# candidates (CreatureImportCapture.cpp), so a candidate is tuned without a rebuild. A negative value keeps the default.
 # One Unreal process at a time: every launch waits for the lane, and the script refuses to start beside Blender or
 # ComfyUI (port 8188).
 param(
-	[ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Run = "creature-import",
+	[ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Run = "creature-cast",
 	[switch]$Budget,
 	[int]$BudgetRuns = 2,
 	[int]$BaselineRuns = 0,
 	[double]$EmberIntensity = -1,
-	[string]$Staging = "C:\Users\kazda\mage-art-staging\creature-ue-import-2026-10-24",
+	[double]$GlowIntensity = -1,
+	[double]$GlowRim = -1,
+	[double]$GlowSoft = -1,
+	[string]$Staging = "C:\Users\kazda\mage-art-staging\creature-cast-ue-2026-10-24",
 	[string]$BrennicDir = "C:\Users\kazda\mage-art-staging\brennic-mesh-rework-2026-10-24\rig",
-	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig"
+	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig",
+	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-2026-10-24\rig"
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,12 +39,15 @@ $Scratch = Join-Path $VrDir "Game\Content\CreatureImportScratch"
 $RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 
-# The inputs and the sha256 their research docs record (BRENNIC-MESH-REWORK-2026-10-24, CREATURE-MESH-2026-10-24).
+# The inputs and the sha256 their research docs record (BRENNIC-MESH-REWORK-2026-10-24, CREATURE-MESH-2026-10-24,
+# CREATURE-CAST-UE-2026-10-24 for the maw: the s7 fit re-rig of the 17,490-tri merge and its seam-fixed texture).
 $Sources = @(
 	@{ Name = "Brennic"; Fbx = (Join-Path $BrennicDir "Brennic.fbx"); FbxSha = "dc0a4f38eef1b8486f72e1ec81859bcba1605be3df412c4c6c72368b203967b0";
 		Texture = (Join-Path $BrennicDir "T_Brennic_BaseColor.png"); TextureSha = "024d4aaa888d94b2f257be993a96e8ed7a80176cedffaa5b0735620b031facae" },
 	@{ Name = "CinderHound"; Fbx = (Join-Path $HoundDir "CinderHound.fbx"); FbxSha = "a650bc3e0ad23abc34291bd3da0dba35698598c430484c095aafc711d07e5449";
-		Texture = (Join-Path $HoundDir "T_CinderHound_BaseColor.png"); TextureSha = "b36529c7f1c79e093cde253ba59087f5120e391eec9169b480a33fbb73ece08d" }
+		Texture = (Join-Path $HoundDir "T_CinderHound_BaseColor.png"); TextureSha = "b36529c7f1c79e093cde253ba59087f5120e391eec9169b480a33fbb73ece08d" },
+	@{ Name = "MireMaw"; Fbx = (Join-Path $MawDir "MireMaw.fbx"); FbxSha = "6498f40c8ca4efd7da32abc903f2f537bd1e155e8b4756b9fbfb255ea8bbdcfd";
+		Texture = (Join-Path $MawDir "T_MireMaw_BaseColor.png"); TextureSha = "d46f288fb31ab978e3ba033d044d6ee7184fec6a88e49cf42459a9dd27ed6e1c" }
 )
 
 function Wait-UnrealLane {
@@ -115,6 +125,9 @@ try {
 		"-MageArenaRun=$Run"
 	)
 	if ($EmberIntensity -ge 0) { $ArgumentList += "-MageArenaEmberIntensity=$EmberIntensity" }
+	if ($GlowIntensity -ge 0) { $ArgumentList += "-MageArenaGlowIntensity=$GlowIntensity" }
+	if ($GlowRim -ge 0) { $ArgumentList += "-MageArenaGlowRim=$GlowRim" }
+	if ($GlowSoft -ge 0) { $ArgumentList += "-MageArenaGlowSoft=$GlowSoft" }
 	Write-Host "creature-import: starting the capture run=$Run"
 	$Process = Start-Process -FilePath $Editor -ArgumentList $ArgumentList -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $RunDir "capture.stdout.log") -RedirectStandardError (Join-Path $RunDir "capture.stderr.log")
 	if (-not $Process.WaitForExit(780000)) {
@@ -123,14 +136,23 @@ try {
 		Start-Sleep -Seconds 2
 	}
 	$ShotNames = @(
-		"01-brennic-front.png",
-		"02-brennic-three-quarter.png",
-		"03-brennic-back.png",
-		"04-hound-front.png",
-		"05-hound-three-quarter.png",
-		"06-hound-back.png",
-		"07-hound-glow-near.png",
-		"08-both-duel.png"
+		"00-plate.png",
+		"01-maw-front.png",
+		"02-maw-three-quarter.png",
+		"03-maw-back.png",
+		"04-hound-mask-front.png",
+		"05-hound-glow-base-front.png",
+		"06-hound-glow-intensity-front.png",
+		"07-hound-glow-rim-front.png",
+		"08-hound-glow-soft-front.png",
+		"09-hound-glow-chosen-front.png",
+		"10-hound-mask-three-quarter.png",
+		"11-hound-glow-base-three-quarter.png",
+		"12-hound-glow-intensity-three-quarter.png",
+		"13-hound-glow-rim-three-quarter.png",
+		"14-hound-glow-soft-three-quarter.png",
+		"15-hound-glow-chosen-three-quarter.png",
+		"16-cast-duel.png"
 	)
 	$Missing = @($ShotNames | Where-Object { -not (Test-Path (Join-Path $ShotDir $_)) -or (Get-Item (Join-Path $ShotDir $_)).Length -le 0 })
 	$LogText = $(if (Test-Path $LogPath) { Get-Content -Raw -Path $LogPath } else { "" })

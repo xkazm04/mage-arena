@@ -440,7 +440,7 @@ void UArenaGreyboxSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	}
 	else if (CreatureImport::IsSceneRequested())
 	{
-		// -MageArenaCreatureImportScene: both imported meshes at opponent distance for the D-G4 budget re-run.
+		// -MageArenaCreatureImportScene: every imported mesh at opponent distance for the D-G4 budget re-run.
 		FArenaLayout SceneLayout;
 		FString Error;
 		if (SceneLayout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error))
