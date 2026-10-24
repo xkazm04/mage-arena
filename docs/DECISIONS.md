@@ -2,6 +2,105 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - P4 style: no single style is locked; the direction is visual quality, chasing the art concept
+
+> Owner, 2026-10-24 afternoon, on the P4 style pick (13, 25 or 30 from `apps/vr/art/style-pick/`): "You can combine the
+> style, arenas and pallettes, you can pick all 4. But the visual side is in tragic state. If it helps pick Greybox and
+> focus on chasing the asset and graphical quality drawn in art concept."
+
+- **No single style is locked.** Styles 13, 25 and 30 are a **pool** of palettes and arena treatments to combine freely,
+  not a pick. Greybox stays the **base** the game is built on.
+- **The direction is visual quality: chase the art concept.** The target is the assets and graphics the concept already
+  shows (`apps/vr/art/index.html`: the A01-A09 studies, the model and kit sheets, the key art, the character concepts).
+  `docs/concepts/VISUAL-PLAN.md` turns that into a measured target: an inventory of the concept, the observed gap, a
+  draft style block and reference sheet for the owner's approval, and a gated per-asset pipeline.
+- **The P4 OWNER item is answered by this ruling** (WOLF-PLAN P4, "picks 13, 25 or 30 from the page"). T38's "The owner
+  decision" (greybox look until the pick) is answered the same way: greybox base, concept as the quality target.
+- **What is therefore NOT touched:** the threat colour language (`CLAUDE.md`: element colour = absorb, steel = dodge,
+  black core with a red rim = leave). Every combined palette keeps it. The style JSONs under `apps/vr/data/vr/styles/`
+  stay as they are until a card changes them.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - P5/P9 deferred: no headset build at this stage
+
+> Owner, 2026-10-24 afternoon, on P5 (first APK and the Quest 3 simulator boot): "No need to resolve headset build in this
+> stage"
+
+- **P5 and P9 are deferred.** No APK, no simulator boot proof and no device bring-up (V1-V3) are worked on now.
+- **B3 (Android target support in the Epic launcher) is not needed now.** It stays an open OWNER item, parked, not asked.
+- **What is therefore NOT touched:** the Quest budgets in `docs/PROJECT-PLAN.md` section 7 (<=150 draw calls, <=350k
+  visible triangles, <=2,000 particles). The desktop build keeps being measured against them, because every asset made
+  now must still fit the headset later.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - Models are built on this machine, along the ai-registry golden paths
+
+> Owner, 2026-10-24 afternoon, on where the 3D models come from: "Creating models is why we are on this device with all
+> tooling and resources, consult with ai-registry the right direction"
+
+- **This machine builds the character and prop models** (RTX 4090 24 GB, CUDA 12.4, Blender 4.2 at
+  `C:/Program Files/Blender Foundation/Blender 4.2`, UE 5.8.3). No local image-to-3D model is installed yet. Open-weight
+  local tools may be installed in a dedicated folder outside every repo. TRELLIS.2 is the one the 2026-10-21 asset
+  ruling names; any other tool needs its licence read and recorded before an asset made with it can ship.
+- **The route is the ai-registry golden paths**, resolved through
+  `C:/Users/kazda/kiro/ai-registry/knowledge/<domain>/index.json`: visual-style-locking (a style block and an approved
+  reference sheet first), image-to-3d-input-gating, generated-mesh-acceptance, mesh-finishing-for-engine-readiness,
+  generated-asset-world-scale, asset-class-poly-budgeting, animatable-character-design, character-identity-continuity
+  and production-pipeline-phasing (downstream cost is never spent on an upstream defect). `docs/concepts/VISUAL-PLAN.md`
+  is the plan that applies them, with the resolved file of each.
+- **Order:** Brennic first (T38: rig and the four clips Idle, Cast, Hit, Death), then the other rivals, then arena props.
+- **Spend:** paid image calls stay inside the day's caps and their ledgers. **Every shipped asset needs an ASSET-LEDGER
+  row** (`docs/submission/ASSET-LEDGER.md`, the 2026-10-21 ruling); an asset with no row does not ship.
+- **What is therefore NOT touched:** the T38 Wolf pre-import checks and the D-G4 triangle row (<=350k). The Lynx-made
+  exports under `apps/vr/art/characters/*/export/` stay as the current baseline until a rebuilt asset passes every gate.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - T41 cold-tester sessions deferred; the protocol stays
+
+> Owner, 2026-10-24 afternoon, on T41 (two cold desktop testers): "No need testers for the current state we have now"
+
+- **T41 sessions are deferred.** No tester is recruited and no `PLAYTEST-*` record is written now.
+- **The protocol stays** (`docs/research/PLAYTEST-PROTOCOL.md`, `apps/vr/tasks/T41-cold-desktop-playtests.md`), ready
+  for when the visual state is worth testing. K3 row 12 stays "not met"; no session is invented.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - C2 rulings D1-D4 approved as recommended
+
+> Owner, 2026-10-24 afternoon, on `docs/campaign/05-c2-slice-story-bible-and-script.md` section 11: "Approve the story
+> script rulings"
+
+- **D1-D4 are approved as recommended:** D1 the script is the voice of the game; D2 the 213 s story time budget of
+  section 4 (54 s floor); D3 three intermission choices, not one; D4 voice approved at the recommended 14 cues, blocks
+  A + B. The C2 document records each as approved, citing this section.
+- **T28 (intermission scenes) may proceed on its non-audio parts.** D1-D3 were what it waited on.
+- **D4's audio production is deferred** by the audio ruling below: the voice is approved as content, but no cue is
+  generated now. T27 can build its importer and wiring against the manifest only.
+- **What is therefore NOT touched:** D5-D7 (not part of this ruling; they never blocked work), every combat number and
+  pinned band (C2 section 12), and DF-010's condition for restating the day's length.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - Music and audio deferred; the visual side comes first
+
+> Owner, 2026-10-24 afternoon, on the audio cards: "Delay music and audio until to focus on visual side"
+
+- **Deferred:** T40 (the two music loops), T27's voice and chorus generation, and the PC audio branch `935a3a33`.
+- **No audio spend.** No ElevenLabs call is made for music, voice or chorus while this ruling stands.
+- **What is therefore NOT touched:** the 20 SFX already imported (A05) and the ElevenLabs approval and ledger conditions
+  of 2026-10-21. D4 (above) stays approved; only its production waits.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
+## 2026-10-24 - T49 colour sign-off deferred until the visual direction settles
+
+> Owner, 2026-10-24 afternoon, on the T49 HP-bar colours: "Defer healthbar colors after we resolve the visual side of
+> game, they will relate to overall theme"
+
+- **T49's colour sign-off is deferred** until the visual direction (the first ruling above, `docs/concepts/VISUAL-PLAN.md`)
+  settles. The builder work on Wolf (branch `autopilot/accepted-idea-delivery-ec553e8a`) stays as evidence; the card is
+  not closed and no WOLF-PLAN box is ticked.
+- **What is therefore NOT touched:** the 2026-10-21 ruling that the near-black-with-red HP bar violates the threat
+  language. That still stands; only the choice of the replacement colours waits for the theme.
+- WOLF-PLAN row marks follow in the next WOLF-PLAN change (the file is held by T50 today).
+
 ## 2026-10-24 - D-G4 triangles: the BasePass reading is the verdict
 
 > Owner, 2026-10-24 day standup, asked which triangle reading judges the D-G4 visible-triangle row
