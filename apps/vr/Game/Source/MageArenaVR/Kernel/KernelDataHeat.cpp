@@ -655,12 +655,7 @@ bool LoadFireSpells(FKernelData& Data)
 		const TCHAR* const Sheet = TEXT("spells-fire.csv");
 		FString Error;
 		double Tier = 0.0;
-		if (!CellNumber(Values[2], Sheet, TEXT("tier"), Spell.Id, Tier, Error)
-			|| !CellNumber(Values[4], Sheet, TEXT("cast_s"), Spell.Id, Spell.CastS, Error)
-			|| !CellNumber(Values[5], Sheet, TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error)
-			|| !CellNumber(Values[6], Sheet, TEXT("mana"), Spell.Id, Spell.Mana, Error)
-			|| !CellNumber(Values[9], Sheet, TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error)
-			|| !CellNumber(Values[10], Sheet, TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
+		if (!CellNumber(Values[2], Sheet, TEXT("tier"), Spell.Id, Tier, Error) || !CellNumber(Values[4], Sheet, TEXT("cast_s"), Spell.Id, Spell.CastS, Error) || !CellNumber(Values[5], Sheet, TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error) || !CellNumber(Values[6], Sheet, TEXT("mana"), Spell.Id, Spell.Mana, Error) || !CellNumber(Values[9], Sheet, TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error) || !CellNumber(Values[10], Sheet, TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
 		{
 			return Fail(Data, TEXT("kernel data: ") + Error);
 		}

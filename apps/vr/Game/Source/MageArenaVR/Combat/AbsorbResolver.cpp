@@ -218,8 +218,7 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	}
 	if (Parsed.RaiseCostMana < 0.0 || Parsed.MoveSpeedWhileHeldMult < 0.0)
 	{
-		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: raiseCostMana %g and moveSpeedWhileHeldMult %g must not be negative"), *Path,
-			Parsed.RaiseCostMana, Parsed.MoveSpeedWhileHeldMult));
+		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: raiseCostMana %g and moveSpeedWhileHeldMult %g must not be negative"), *Path, Parsed.RaiseCostMana, Parsed.MoveSpeedWhileHeldMult));
 	}
 	if (!Absorb.TryGetStringField(TEXT("drainPerSecond"), Parsed.DrainFormula))
 	{
@@ -243,10 +242,7 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	{
 		return false;
 	}
-	if (!RequireFraction(Parsed.ReductionMagic, TEXT("reduction.magic"), Path, OutError)
-		|| !RequireFraction(Parsed.ReductionPhysical, TEXT("reduction.physical"), Path, OutError)
-		|| !RequireFraction(Parsed.ReductionUnblockable, TEXT("reduction.unblockable"), Path, OutError)
-		|| !RequireFraction(Parsed.ReductionOutsideArc, TEXT("reduction.outsideArc"), Path, OutError))
+	if (!RequireFraction(Parsed.ReductionMagic, TEXT("reduction.magic"), Path, OutError) || !RequireFraction(Parsed.ReductionPhysical, TEXT("reduction.physical"), Path, OutError) || !RequireFraction(Parsed.ReductionUnblockable, TEXT("reduction.unblockable"), Path, OutError) || !RequireFraction(Parsed.ReductionOutsideArc, TEXT("reduction.outsideArc"), Path, OutError))
 	{
 		return false;
 	}
@@ -315,8 +311,7 @@ bool FAbsorbRules::LoadFromText(const FString& Text, const FString& Path, FStrin
 	}
 	if (Physical != 1 || Unblockable != 1)
 	{
-		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: perfect.notAgainst must be exactly physical and unblockable: [%s]"), *Path,
-			*FString::Join(Parsed.NotAgainst, TEXT(", "))));
+		return Fail(OutError, FString::Printf(TEXT("absorb rules: %s: perfect.notAgainst must be exactly physical and unblockable: [%s]"), *Path, *FString::Join(Parsed.NotAgainst, TEXT(", "))));
 	}
 
 	*this = MoveTemp(Parsed);

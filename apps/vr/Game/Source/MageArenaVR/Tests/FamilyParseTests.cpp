@@ -77,8 +77,7 @@ bool MutatedRoster(FAutomationTestBase& Test, TFunctionRef<bool(FJsonObject&)> M
 {
 	FString Text;
 	TSharedPtr<FJsonObject> Root;
-	if (!ReadPinned(Test, RosterFile, Text) || !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Root) || !Root.IsValid()
-		|| !Mutate(*Root))
+	if (!ReadPinned(Test, RosterFile, Text) || !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Root) || !Root.IsValid() || !Mutate(*Root))
 	{
 		return false;
 	}
@@ -113,20 +112,14 @@ TArray<TSharedPtr<FJsonValue>> Names(std::initializer_list<const TCHAR*> List)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelDataUnknownFamilyFailsLoad, "MageArena.KernelData.UnknownFamilyFailsLoad",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaKernelDataUnknownFamilyFailsLoad::RunTest(const FString& Parameters)
 {
 	// The trailing space is the realistic typo: it is invisible in a sheet and used to read as magic.
-	bool bPass = RunCellCase(*this, {TEXT("water blockable with a trailing space"), WaterFile,
-		TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,10,7,absorbable,"), TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,10,7,absorbable ,"),
-		{TEXT("spells-water.csv"), TEXT("tide_orb:1:base"), TEXT("blockable"), TEXT("'absorbable '")}});
-	bPass &= RunCellCase(*this, {TEXT("water blockable in the wrong case"), WaterFile,
-		TEXT("Drown Coil,grab 2.5 m; root 1.5 s,0.40,16.0,40,25,UNBLOCKABLE,"), TEXT("Drown Coil,grab 2.5 m; root 1.5 s,0.40,16.0,40,25,unblockable,"),
-		{TEXT("spells-water.csv"), TEXT("lash:4:base"), TEXT("blockable"), TEXT("'unblockable'")}});
-	bPass &= RunCellCase(*this, {TEXT("fire blockable with a trailing space"), FireFile,
-		TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,12,20,absorbable,"), TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,12,20,absorbable ,"),
-		{TEXT("spells-fire.csv"), TEXT("fire_flick"), TEXT("blockable"), TEXT("'absorbable '")}});
+	bool bPass = RunCellCase(*this, {TEXT("water blockable with a trailing space"), WaterFile, TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,10,7,absorbable,"), TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,10,7,absorbable ,"), {TEXT("spells-water.csv"), TEXT("tide_orb:1:base"), TEXT("blockable"), TEXT("'absorbable '")}});
+	bPass &= RunCellCase(*this, {TEXT("water blockable in the wrong case"), WaterFile, TEXT("Drown Coil,grab 2.5 m; root 1.5 s,0.40,16.0,40,25,UNBLOCKABLE,"), TEXT("Drown Coil,grab 2.5 m; root 1.5 s,0.40,16.0,40,25,unblockable,"), {TEXT("spells-water.csv"), TEXT("lash:4:base"), TEXT("blockable"), TEXT("'unblockable'")}});
+	bPass &= RunCellCase(*this, {TEXT("fire blockable with a trailing space"), FireFile, TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,12,20,absorbable,"), TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,12,20,absorbable ,"), {TEXT("spells-fire.csv"), TEXT("fire_flick"), TEXT("blockable"), TEXT("'absorbable '")}});
 
 	// The roster's two family sites: an attack and the onDeath burst.
 	FString Attack;
@@ -163,8 +156,8 @@ bool FMageArenaKernelDataUnknownFamilyFailsLoad::RunTest(const FString& Paramete
 		const FString& Text;
 		TArray<const TCHAR*> Named;
 	} RosterCases[] = {
-		{TEXT("roster attack family with a trailing space"), Attack, {TEXT("enemies.json"), TEXT("conscript.spear_lunge"), TEXT("family"), TEXT("'physical '")}},
-		{TEXT("roster onDeath family unknown"), Death, {TEXT("enemies.json"), TEXT("cinder_hound"), TEXT("ember_burst"), TEXT("family"), TEXT("'arcane'")}},
+	    {TEXT("roster attack family with a trailing space"), Attack, {TEXT("enemies.json"), TEXT("conscript.spear_lunge"), TEXT("family"), TEXT("'physical '")}},
+	    {TEXT("roster onDeath family unknown"), Death, {TEXT("enemies.json"), TEXT("cinder_hound"), TEXT("ember_burst"), TEXT("family"), TEXT("'arcane'")}},
 	};
 	for (const auto& Case : RosterCases)
 	{
@@ -181,28 +174,20 @@ bool FMageArenaKernelDataUnknownFamilyFailsLoad::RunTest(const FString& Paramete
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelDataGarbageNumberFailsLoad, "MageArena.KernelData.GarbageNumberFailsLoad",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaKernelDataGarbageNumberFailsLoad::RunTest(const FString& Parameters)
 {
 	// FCString::Atod reads "x" as 0: a free cooldown. A number cell that is not a number must refuse the load instead.
-	bool bPass = RunCellCase(*this, {TEXT("water cooldown_s not a number"), WaterFile,
-		TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,"), TEXT("Bubble Shot,projectile 12 m/s,0.15,x,"),
-		{TEXT("spells-water.csv"), TEXT("tide_orb:1:base"), TEXT("cooldown_s"), TEXT("'x'")}});
-	bPass &= RunCellCase(*this, {TEXT("water mana with a unit"), WaterFile,
-		TEXT("Tide Lash,cone 90 deg x 3 m,0.10,2.0,8,"), TEXT("Tide Lash,cone 90 deg x 3 m,0.10,2.0,8mp,"),
-		{TEXT("spells-water.csv"), TEXT("lash:1:base"), TEXT("mana"), TEXT("'8mp'")}});
-	bPass &= RunCellCase(*this, {TEXT("fire cooldown_s not a number"), FireFile,
-		TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,"), TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,x,"),
-		{TEXT("spells-fire.csv"), TEXT("fire_flick"), TEXT("cooldown_s"), TEXT("'x'")}});
-	bPass &= RunCellCase(*this, {TEXT("fire tier empty"), FireFile,
-		TEXT("fire_lance,Brand Lance,2,"), TEXT("fire_lance,Brand Lance,,"),
-		{TEXT("spells-fire.csv"), TEXT("fire_lance"), TEXT("tier"), TEXT("''")}});
+	bool bPass = RunCellCase(*this, {TEXT("water cooldown_s not a number"), WaterFile, TEXT("Bubble Shot,projectile 12 m/s,0.15,2.5,"), TEXT("Bubble Shot,projectile 12 m/s,0.15,x,"), {TEXT("spells-water.csv"), TEXT("tide_orb:1:base"), TEXT("cooldown_s"), TEXT("'x'")}});
+	bPass &= RunCellCase(*this, {TEXT("water mana with a unit"), WaterFile, TEXT("Tide Lash,cone 90 deg x 3 m,0.10,2.0,8,"), TEXT("Tide Lash,cone 90 deg x 3 m,0.10,2.0,8mp,"), {TEXT("spells-water.csv"), TEXT("lash:1:base"), TEXT("mana"), TEXT("'8mp'")}});
+	bPass &= RunCellCase(*this, {TEXT("fire cooldown_s not a number"), FireFile, TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,3.0,"), TEXT("fire_flick,Flick Flame,1,cone 60 deg x 4 m,0.15,x,"), {TEXT("spells-fire.csv"), TEXT("fire_flick"), TEXT("cooldown_s"), TEXT("'x'")}});
+	bPass &= RunCellCase(*this, {TEXT("fire tier empty"), FireFile, TEXT("fire_lance,Brand Lance,2,"), TEXT("fire_lance,Brand Lance,,"), {TEXT("spells-fire.csv"), TEXT("fire_lance"), TEXT("tier"), TEXT("''")}});
 	return bPass;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelDataAbsorbRulesRejectBadNotAgainst, "MageArena.KernelData.AbsorbRulesRejectBadNotAgainst",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaKernelDataAbsorbRulesRejectBadNotAgainst::RunTest(const FString& Parameters)
 {
@@ -224,17 +209,28 @@ bool FMageArenaKernelDataAbsorbRulesRejectBadNotAgainst::RunTest(const FString& 
 		FMutate Mutate;
 		const TCHAR* Named;
 	} Cases[] = {
-		{TEXT("an empty notAgainst"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetArrayField(TEXT("notAgainst"), Names({})); }, TEXT("notAgainst")},
-		{TEXT("notAgainst with magic added"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable"), TEXT("physical"), TEXT("magic")})); }, TEXT("magic")},
-		{TEXT("notAgainst with magic for physical"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable"), TEXT("magic")})); }, TEXT("magic")},
-		{TEXT("notAgainst with physical twice"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("physical"), TEXT("physical")})); }, TEXT("notAgainst")},
-		{TEXT("notAgainst with a trailing space"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable "), TEXT("physical")})); }, TEXT("'unblockable '")},
-		{TEXT("reduction.magic above one"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction) { Reduction.SetNumberField(TEXT("magic"), 1.5); }, TEXT("reduction.magic")},
-		{TEXT("reduction.physical below zero"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction) { Reduction.SetNumberField(TEXT("physical"), -0.1); }, TEXT("reduction.physical")},
-		{TEXT("reduction.outsideArc above one"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction) { Reduction.SetNumberField(TEXT("outsideArc"), 2.0); }, TEXT("reduction.outsideArc")},
-		{TEXT("perfect.reduction above one"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&) { Perfect.SetNumberField(TEXT("reduction"), 1.2); }, TEXT("perfect.reduction")},
-		{TEXT("a negative raise cost"), [](FJsonObject& Absorb, FJsonObject&, FJsonObject&) { Absorb.SetNumberField(TEXT("raiseCostMana"), -5.0); }, TEXT("raiseCostMana")},
-		{TEXT("a negative held-move multiplier"), [](FJsonObject& Absorb, FJsonObject&, FJsonObject&) { Absorb.SetNumberField(TEXT("moveSpeedWhileHeldMult"), -0.5); }, TEXT("moveSpeedWhileHeldMult")},
+	    {TEXT("an empty notAgainst"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetArrayField(TEXT("notAgainst"), Names({})); }, TEXT("notAgainst")},
+	    {TEXT("notAgainst with magic added"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable"), TEXT("physical"), TEXT("magic")})); }, TEXT("magic")},
+	    {TEXT("notAgainst with magic for physical"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable"), TEXT("magic")})); }, TEXT("magic")},
+	    {TEXT("notAgainst with physical twice"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("physical"), TEXT("physical")})); }, TEXT("notAgainst")},
+	    {TEXT("notAgainst with a trailing space"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetArrayField(TEXT("notAgainst"), Names({TEXT("unblockable "), TEXT("physical")})); }, TEXT("'unblockable '")},
+	    {TEXT("reduction.magic above one"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction)
+	{ Reduction.SetNumberField(TEXT("magic"), 1.5); }, TEXT("reduction.magic")},
+	    {TEXT("reduction.physical below zero"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction)
+	{ Reduction.SetNumberField(TEXT("physical"), -0.1); }, TEXT("reduction.physical")},
+	    {TEXT("reduction.outsideArc above one"), [](FJsonObject&, FJsonObject&, FJsonObject& Reduction)
+	{ Reduction.SetNumberField(TEXT("outsideArc"), 2.0); }, TEXT("reduction.outsideArc")},
+	    {TEXT("perfect.reduction above one"), [](FJsonObject&, FJsonObject& Perfect, FJsonObject&)
+	{ Perfect.SetNumberField(TEXT("reduction"), 1.2); }, TEXT("perfect.reduction")},
+	    {TEXT("a negative raise cost"), [](FJsonObject& Absorb, FJsonObject&, FJsonObject&)
+	{ Absorb.SetNumberField(TEXT("raiseCostMana"), -5.0); }, TEXT("raiseCostMana")},
+	    {TEXT("a negative held-move multiplier"), [](FJsonObject& Absorb, FJsonObject&, FJsonObject&)
+	{ Absorb.SetNumberField(TEXT("moveSpeedWhileHeldMult"), -0.5); }, TEXT("moveSpeedWhileHeldMult")},
 	};
 	for (const auto& Case : Cases)
 	{
@@ -255,7 +251,7 @@ bool FMageArenaKernelDataAbsorbRulesRejectBadNotAgainst::RunTest(const FString& 
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaKernelDataPinnedDataStillLoads, "MageArena.KernelData.PinnedDataStillLoads",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaKernelDataPinnedDataStillLoads::RunTest(const FString& Parameters)
 {
@@ -289,7 +285,7 @@ bool FMageArenaKernelDataPinnedDataStillLoads::RunTest(const FString& Parameters
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaThreatsUnknownFamilyIsNotAbsorbable, "MageArena.Threats.UnknownFamilyIsNotAbsorbable",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaThreatsUnknownFamilyIsNotAbsorbable::RunTest(const FString& Parameters)
 {

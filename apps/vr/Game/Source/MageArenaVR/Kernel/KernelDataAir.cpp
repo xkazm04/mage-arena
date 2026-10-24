@@ -362,12 +362,7 @@ bool ParseAirSpellsCsv(const FString& Text, TArray<FAirSpell>& OutSpells, TArray
 			return AirFail(Error, FString::Printf(TEXT("air spells: bad id or name in row: %s"), *Line));
 		}
 		double Tier = 0.0;
-		if (!CellNumber(Values[2], TEXT("air"), TEXT("tier"), Spell.Id, Tier, Error)
-			|| !CellNumber(Values[4], TEXT("air"), TEXT("cast_s"), Spell.Id, Spell.CastS, Error)
-			|| !CellNumber(Values[5], TEXT("air"), TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error)
-			|| !CellNumber(Values[6], TEXT("air"), TEXT("mana"), Spell.Id, Spell.Mana, Error)
-			|| !CellNumber(Values[9], TEXT("air"), TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error)
-			|| !CellNumber(Values[10], TEXT("air"), TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
+		if (!CellNumber(Values[2], TEXT("air"), TEXT("tier"), Spell.Id, Tier, Error) || !CellNumber(Values[4], TEXT("air"), TEXT("cast_s"), Spell.Id, Spell.CastS, Error) || !CellNumber(Values[5], TEXT("air"), TEXT("cooldown_s"), Spell.Id, Spell.CooldownS, Error) || !CellNumber(Values[6], TEXT("air"), TEXT("mana"), Spell.Id, Spell.Mana, Error) || !CellNumber(Values[9], TEXT("air"), TEXT("telegraph_s"), Spell.Id, Spell.TelegraphS, Error) || !CellNumber(Values[10], TEXT("air"), TEXT("range_m"), Spell.Id, Spell.RangeM, Error))
 		{
 			return false;
 		}

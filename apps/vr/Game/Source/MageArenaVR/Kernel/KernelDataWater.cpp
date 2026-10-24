@@ -53,12 +53,7 @@ bool SpellFromRow(const TMap<FString, FString>& Row, FSpell& Spell, FKernelData&
 	const FString RowId = FString::Printf(TEXT("%s:%s:%s"), *Line, *TierText, BranchId);
 	FString Error;
 	double Tier = 0.0;
-	if (!CellNumber(TierText, Sheet, TEXT("tier"), RowId, Tier, Error)
-		|| !CellNumber(*Cell(Row, TEXT("cast_s")), Sheet, TEXT("cast_s"), RowId, Spell.CastS, Error)
-		|| !CellNumber(*Cell(Row, TEXT("cooldown_s")), Sheet, TEXT("cooldown_s"), RowId, Spell.CooldownS, Error)
-		|| !CellNumber(*Cell(Row, TEXT("mana")), Sheet, TEXT("mana"), RowId, Spell.Mana, Error)
-		|| !CellNumber(*Cell(Row, TEXT("telegraph_s")), Sheet, TEXT("telegraph_s"), RowId, Spell.TelegraphS, Error)
-		|| !CellNumber(*Cell(Row, TEXT("range_m")), Sheet, TEXT("range_m"), RowId, Spell.RangeM, Error))
+	if (!CellNumber(TierText, Sheet, TEXT("tier"), RowId, Tier, Error) || !CellNumber(*Cell(Row, TEXT("cast_s")), Sheet, TEXT("cast_s"), RowId, Spell.CastS, Error) || !CellNumber(*Cell(Row, TEXT("cooldown_s")), Sheet, TEXT("cooldown_s"), RowId, Spell.CooldownS, Error) || !CellNumber(*Cell(Row, TEXT("mana")), Sheet, TEXT("mana"), RowId, Spell.Mana, Error) || !CellNumber(*Cell(Row, TEXT("telegraph_s")), Sheet, TEXT("telegraph_s"), RowId, Spell.TelegraphS, Error) || !CellNumber(*Cell(Row, TEXT("range_m")), Sheet, TEXT("range_m"), RowId, Spell.RangeM, Error))
 	{
 		return Fail(Data, TEXT("kernel data: ") + Error);
 	}

@@ -40,10 +40,7 @@ bool NeedFamily(const FJsonObject& Object, FString& Out, const FString& Path, FK
 
 bool ParseAttack(const FJsonObject& Object, FAttackSpec& Attack, const FString& Path, FKernelData& Data)
 {
-	if (!NeedString(Object, TEXT("id"), Attack.Id, Path, Data)
-		|| !NeedFamily(Object, Attack.Family, Path, Data)
-		|| !NeedNumber(Object, TEXT("damage"), Attack.Damage, Path, Data)
-		|| !NeedNumber(Object, TEXT("windupS"), Attack.WindupS, Path, Data))
+	if (!NeedString(Object, TEXT("id"), Attack.Id, Path, Data) || !NeedFamily(Object, Attack.Family, Path, Data) || !NeedNumber(Object, TEXT("damage"), Attack.Damage, Path, Data) || !NeedNumber(Object, TEXT("windupS"), Attack.WindupS, Path, Data))
 	{
 		return false;
 	}
@@ -130,12 +127,7 @@ bool ParseEnemy(const FJsonObject& Object, FEnemySpec& Spec, const FString& Path
 	if (Object.TryGetObjectField(TEXT("onDeath"), Death) && Death && Death->IsValid())
 	{
 		FDeathSpec SpecDeath;
-		if (!NeedString(**Death, TEXT("id"), SpecDeath.Id, Path, Data)
-			|| !NeedFamily(**Death, SpecDeath.Family, Path + TEXT(".onDeath.") + SpecDeath.Id, Data)
-			|| !NeedInt(**Death, TEXT("tier"), SpecDeath.Tier, Path, Data)
-			|| !NeedNumber(**Death, TEXT("damage"), SpecDeath.Damage, Path, Data)
-			|| !NeedNumber(**Death, TEXT("radiusM"), SpecDeath.RadiusM, Path, Data)
-			|| !NeedNumber(**Death, TEXT("delayS"), SpecDeath.DelayS, Path, Data))
+		if (!NeedString(**Death, TEXT("id"), SpecDeath.Id, Path, Data) || !NeedFamily(**Death, SpecDeath.Family, Path + TEXT(".onDeath.") + SpecDeath.Id, Data) || !NeedInt(**Death, TEXT("tier"), SpecDeath.Tier, Path, Data) || !NeedNumber(**Death, TEXT("damage"), SpecDeath.Damage, Path, Data) || !NeedNumber(**Death, TEXT("radiusM"), SpecDeath.RadiusM, Path, Data) || !NeedNumber(**Death, TEXT("delayS"), SpecDeath.DelayS, Path, Data))
 		{
 			return false;
 		}
