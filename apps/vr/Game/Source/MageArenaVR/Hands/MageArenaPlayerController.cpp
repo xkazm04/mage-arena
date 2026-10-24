@@ -402,21 +402,22 @@ void AMageArenaPlayerController::PressWard(bool bFromCursor)
 	}
 }
 
+void ApplyWardAim(UHandInputSubsystem* Hands, UWardDetectorSubsystem* Wards, const FVector& Aim)
+{
+	if (Hands)
+	{
+		Hands->SetAimYaw(FMath::Atan2(Aim.Y, Aim.X));
+	}
+	if (Wards)
+	{
+		Wards->SetAimFacing(Aim);
+	}
+}
+
 void AMageArenaPlayerController::AimWard(bool bFromCursor)
 {
-	const FVector Aim = WardAimDirection(bFromCursor);
-	const double Yaw = FMath::Atan2(Aim.Y, Aim.X);
-	if (UHandInputSubsystem* Hands = HandsOrNull())
-	{
-		Hands->SetAimYaw(Yaw);
-	}
-	if (UGameInstance* Instance = GetGameInstance())
-	{
-		if (UWardDetectorSubsystem* Wards = Instance->GetSubsystem<UWardDetectorSubsystem>())
-		{
-			Wards->SetAimFacing(Aim);
-		}
-	}
+	UGameInstance* Instance = GetGameInstance();
+	ApplyWardAim(HandsOrNull(), Instance ? Instance->GetSubsystem<UWardDetectorSubsystem>() : nullptr, WardAimDirection(bFromCursor));
 }
 
 FVector AMageArenaPlayerController::WardAimDirection(bool bFromCursor) const
