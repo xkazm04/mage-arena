@@ -3,13 +3,16 @@
 #include "Camera/CameraTypes.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Components/SkinnedMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ConvexVolume.h"
+#include "Engine/SkinnedAsset.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Rendering/SkeletalMeshRenderData.h"
 #include "StaticMeshResources.h"
 
 int32 Greybox::MeshLod0Triangles(const UStaticMesh* Mesh)
@@ -19,6 +22,16 @@ int32 Greybox::MeshLod0Triangles(const UStaticMesh* Mesh)
 		return 0;
 	}
 	return Mesh->GetRenderData()->LODResources[0].GetNumTriangles();
+}
+
+int32 Greybox::SkinnedLod0Triangles(const USkinnedAsset* Asset)
+{
+	const FSkeletalMeshRenderData* RenderData = Asset ? Asset->GetResourceForRendering() : nullptr;
+	if (!RenderData || RenderData->LODRenderData.Num() == 0)
+	{
+		return 0;
+	}
+	return RenderData->LODRenderData[0].GetTotalFaces();
 }
 
 bool Greybox::FirstPlayerView(UWorld* World, FMinimalViewInfo& OutView)
@@ -32,11 +45,12 @@ bool Greybox::FirstPlayerView(UWorld* World, FMinimalViewInfo& OutView)
 	return true;
 }
 
-int32 Greybox::CountVisibleLod0(UWorld* World, const FMinimalViewInfo& View)
+Greybox::FVisibleLod0 Greybox::CountVisibleLod0Split(UWorld* World, const FMinimalViewInfo& View)
 {
+	FVisibleLod0 Out;
 	if (!World)
 	{
-		return 0;
+		return Out;
 	}
 	FMatrix ViewMatrix;
 	FMatrix ProjectionMatrix;
@@ -45,7 +59,6 @@ int32 Greybox::CountVisibleLod0(UWorld* World, const FMinimalViewInfo& View)
 	FConvexVolume Frustum;
 	GetViewFrustumBounds(Frustum, ViewProjection, false);
 
-	int32 Total = 0;
 	for (TActorIterator<AActor> It(World); It; ++It)
 	{
 		TArray<UStaticMeshComponent*> Components;
@@ -75,15 +88,36 @@ int32 Greybox::CountVisibleLod0(UWorld* World, const FMinimalViewInfo& View)
 					const FBoxSphereBounds WorldBounds = Mesh->GetBounds().TransformBy(InstanceTransform);
 					if (Frustum.IntersectBox(WorldBounds.Origin, WorldBounds.BoxExtent))
 					{
-						Total += Tris;
+						Out.StaticTriangles += Tris;
 					}
 				}
 			}
 			else if (Frustum.IntersectBox(Component->Bounds.Origin, Component->Bounds.BoxExtent))
 			{
-				Total += Tris;
+				Out.StaticTriangles += Tris;
+			}
+		}
+		// The creatures (Greybox/CreatureImport): LOD0 of the skinned asset, the same estimate as a static mesh's. A hidden
+		// actor (SetActorHiddenInGame) or component is not drawn and not counted.
+		TArray<USkinnedMeshComponent*> Skinned;
+		It->GetComponents<USkinnedMeshComponent>(Skinned);
+		for (USkinnedMeshComponent* Component : Skinned)
+		{
+			if (!Component || !Component->IsVisible() || It->IsHidden())
+			{
+				continue;
+			}
+			const int32 Tris = SkinnedLod0Triangles(Component->GetSkinnedAsset());
+			if (Tris > 0 && Frustum.IntersectBox(Component->Bounds.Origin, Component->Bounds.BoxExtent))
+			{
+				Out.SkeletalTriangles += Tris;
 			}
 		}
 	}
-	return Total;
+	return Out;
+}
+
+int32 Greybox::CountVisibleLod0(UWorld* World, const FMinimalViewInfo& View)
+{
+	return CountVisibleLod0Split(World, View).Total();
 }

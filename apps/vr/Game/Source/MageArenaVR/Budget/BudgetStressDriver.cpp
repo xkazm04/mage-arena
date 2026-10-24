@@ -653,7 +653,9 @@ void UBudgetStressDriver::SampleFrame()
 	DrawCalls.Add(GNumDrawCallsRHI[0]);
 	RhiPrimitives.Add(GNumPrimitivesDrawnRHI[0]);
 	FMinimalViewInfo View;
-	Lod0Triangles.Add(Greybox::FirstPlayerView(GetWorld(), View) ? VisibleLod0(GetWorld(), View) : 0);
+	const Greybox::FVisibleLod0 Lod0 = Greybox::FirstPlayerView(GetWorld(), View) ? Greybox::CountVisibleLod0Split(GetWorld(), View) : Greybox::FVisibleLod0();
+	Lod0Triangles.Add(Lod0.Total());
+	Lod0SkeletalTriangles.Add(Lod0.SkeletalTriangles);
 	FrameMs.Add(Milliseconds);
 	GpuMs.Add(FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles(0)));
 	const FPopulation Population = CountPopulation();
@@ -932,6 +934,9 @@ void UBudgetStressDriver::WriteResults()
 	Root->SetObjectField(TEXT("drawCalls"), Spread(DrawCalls));
 	Root->SetObjectField(TEXT("rhiPrimitivesDrawn"), Spread(RhiPrimitives));
 	Root->SetObjectField(TEXT("lod0InFrustumTriangles"), Spread(Lod0Triangles));
+	// The skinned share of lod0InFrustumTriangles (the creatures). A row from before it counted static meshes only, so it
+	// compares with lod0InFrustumTriangles minus this field.
+	Root->SetObjectField(TEXT("lod0InFrustumSkeletalTriangles"), Spread(Lod0SkeletalTriangles));
 	Root->SetObjectField(TEXT("frameMs"), Spread(FrameMs));
 	Root->SetObjectField(TEXT("gpuMs"), Spread(GpuMs));
 	Root->SetNumberField(TEXT("peakWorkingSetMB"), static_cast<double>(PeakWorkingSetBytes) / (1024.0 * 1024.0));
@@ -985,6 +990,7 @@ void UBudgetStressDriver::WriteResults()
 	Samples->SetArrayField(TEXT("drawCalls"), Series(DrawCalls));
 	Samples->SetArrayField(TEXT("rhiPrimitivesDrawn"), Series(RhiPrimitives));
 	Samples->SetArrayField(TEXT("lod0InFrustumTriangles"), Series(Lod0Triangles));
+	Samples->SetArrayField(TEXT("lod0InFrustumSkeletalTriangles"), Series(Lod0SkeletalTriangles));
 	Samples->SetArrayField(TEXT("frameMs"), Series(FrameMs));
 	Samples->SetArrayField(TEXT("gpuMs"), Series(GpuMs));
 	Samples->SetArrayField(TEXT("liveProjectiles"), Series(LiveShots));

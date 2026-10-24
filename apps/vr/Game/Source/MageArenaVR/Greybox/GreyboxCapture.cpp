@@ -383,7 +383,8 @@ void UGreyboxCaptureDriver::SampleBudget()
 	// The published triangle count is the in-view LOD0 sum. That includes GPU-scene indirect draws, which
 	// GNumPrimitivesDrawnRHI misses. Nothing on the desktop checks it independently (T46): the device number is V1's.
 	FMinimalViewInfo View;
-	const int32 Lod0 = Greybox::FirstPlayerView(GetWorld(), View) ? VisibleLod0(GetWorld(), View) : 0;
+	const Greybox::FVisibleLod0 Split = Greybox::FirstPlayerView(GetWorld(), View) ? Greybox::CountVisibleLod0Split(GetWorld(), View) : Greybox::FVisibleLod0();
+	const int32 Lod0 = Split.Total();
 	const int32 RhiPrimitivesDrawn = GNumPrimitivesDrawnRHI[0];
 	if (Lod0 <= 0 && Draws <= 0)
 	{
@@ -395,6 +396,7 @@ void UGreyboxCaptureDriver::SampleBudget()
 	}
 	DrawCalls.Add(Draws);
 	VisibleLod0Triangles.Add(Lod0);
+	VisibleLod0SkeletalTriangles.Add(Split.SkeletalTriangles);
 	RhiPrimitives.Add(RhiPrimitivesDrawn);
 	FrameMs.Add(Milliseconds);
 }
@@ -827,8 +829,8 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
 	Root->SetStringField(TEXT("label"), TEXT("desktop proxy - not Quest truth"));
 	Root->SetStringField(TEXT("source"),
-	    TEXT("triangles (visibleLod0Triangles) sums LOD0 triangles of visible static mesh components and instances whose bounds touch the view frustum: an estimate with no occlusion and no GPU culling. It has no independent desktop cross-check: trianglesSampled is true when at least one sampled frame had in-frustum geometry, and says nothing about the figure. The device number comes from V1. rhiPrimitivesDrawn is GNumPrimitivesDrawnRHI and is not the budget, because it misses GPU-scene indirect draws. drawCalls are GNumDrawCallsRHI."));
-	Root->SetStringField(TEXT("triangleMethod"), TEXT("LOD0 sum of visible in-frustum spawned static meshes"));
+	    TEXT("triangles (visibleLod0Triangles) sums LOD0 triangles of visible static mesh components and instances, and of visible skinned mesh components (their share is lod0InFrustumSkeletalTriangles), whose bounds touch the view frustum: an estimate with no occlusion and no GPU culling. It has no independent desktop cross-check: trianglesSampled is true when at least one sampled frame had in-frustum geometry, and says nothing about the figure. The device number comes from V1. rhiPrimitivesDrawn is GNumPrimitivesDrawnRHI and is not the budget, because it misses GPU-scene indirect draws. drawCalls are GNumDrawCallsRHI."));
+	Root->SetStringField(TEXT("triangleMethod"), TEXT("LOD0 sum of visible in-frustum spawned static and skinned meshes"));
 	Root->SetStringField(TEXT("colourMetric"), TEXT("CIEDE2000"));
 	Root->SetNumberField(TEXT("colourThreshold"), 10.0);
 	Root->SetNumberField(TEXT("sampleCount"), DrawCalls.Num());
@@ -846,6 +848,8 @@ void UGreyboxCaptureDriver::WriteBudgetFile()
 	Root->SetObjectField(TEXT("drawCalls"), Draws);
 	Root->SetObjectField(TEXT("triangles"), Visible);
 	Root->SetObjectField(TEXT("visibleLod0Triangles"), Visible);
+	// The skinned share of the sum: a row from before the skinned count compares with the difference.
+	Root->SetObjectField(TEXT("lod0InFrustumSkeletalTriangles"), SpanInt(VisibleLod0SkeletalTriangles));
 	Root->SetObjectField(TEXT("rhiPrimitivesDrawn"), Rhi);
 	Root->SetObjectField(TEXT("frameTimeMs"), SpanTime(FrameMs));
 

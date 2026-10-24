@@ -140,6 +140,8 @@ private:
 	TArray<int32> DrawCalls;
 	TArray<int32> RhiPrimitives;
 	TArray<int32> Lod0Triangles;
+	/** The skinned share of Lod0Triangles (Greybox::FVisibleLod0::SkeletalTriangles). */
+	TArray<int32> Lod0SkeletalTriangles;
 	TArray<double> FrameMs;
 	TArray<double> GpuMs;
 	TArray<int32> LiveShots;

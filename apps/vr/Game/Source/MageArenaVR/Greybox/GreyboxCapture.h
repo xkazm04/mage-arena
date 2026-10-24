@@ -104,6 +104,8 @@ private:
 
 	TArray<int32> DrawCalls;
 	TArray<int32> VisibleLod0Triangles;
+	/** The skinned share of VisibleLod0Triangles. */
+	TArray<int32> VisibleLod0SkeletalTriangles;
 	TArray<int32> RhiPrimitives;
 	TArray<double> FrameMs;
 	TArray<FString> ShotNames;
