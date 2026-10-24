@@ -1,0 +1,615 @@
+﻿{
+    "run":  "parity2",
+    "label":  "desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz",
+    "ok":  true,
+    "doneMarker":  true,
+    "parityOk":  true,
+    "populationLines":  [
+                            "MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1209",
+                            "MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464"
+                        ],
+    "failLines":  [
+
+                  ],
+    "started":  "2026-10-24T07:22:57",
+    "wallSeconds":  88.1,
+    "timedOut":  false,
+    "editorExitCode":  null,
+    "command":  "\"C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe\" \u003crepo\u003e\\apps\\vr\\Game\\MageArenaVR.uproject -game -RenderOffScreen -ResX=1920 -ResY=1080 -unattended -nosplash -nohmd -stdout -FullStdOutLogOutput -log -abslog=\u003crepo\u003e\\runs\\DG4\\parity2\\capture.log -MageArenaGreyboxCapture -MageArenaBudgetStress -MageArenaBudgetRun=parity2 -csvprofile",
+    "driver":  {
+                   "label":  "desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz",
+                   "run":  "parity2",
+                   "ok":  true,
+                   "failReason":  "",
+                   "commandLine":  "-RenderOffScreen -ResX=1920 -ResY=1080 -unattended -nosplash -nohmd -stdout -FullStdOutLogOutput -log -abslog=<repo>\\runs\\DG4\\parity2\\capture.log -MageArenaGreyboxCapture -MageArenaBudgetStress -MageArenaBudgetRun=parity2 -csvprofile -game",
+                   "rhi":  "D3D12",
+                   "gpu":  "NVIDIA GeForce RTX 4090",
+                   "cpu":  "AMD Ryzen 7 7800X3D 8-Core Processor",
+                   "warmupS":  10.001336298882961,
+                   "sampleWindowS":  60,
+                   "scene":  {
+                                 "enemies":  20,
+                                 "partsPerEnemy":  3,
+                                 "projectiles":  100,
+                                 "spears":  25,
+                                 "embers":  25,
+                                 "drawnBy":  "the session\u0027s ASessionPresentation (T46), posed into a frozen bout",
+                                 "session":  "bout=3 phase=active rival=brennic actors=2",
+                                 "domePosed":  true,
+                                 "fireWallPosed":  true,
+                                 "partsPerProjectile":  1,
+                                 "hands":  2,
+                                 "handClip":  "Game/Clips/both-palms.normal.jsonl, looped",
+                                 "nearDistanceM":  8,
+                                 "nearArcDeg":  66,
+                                 "farDistanceM":  15,
+                                 "farArcDeg":  36.5,
+                                 "niagaraSystems":  6
+                             },
+                   "sharedMaterials":  {
+                                           "mids":  26,
+                                           "colours":  24,
+                                           "parts":  1452,
+                                           "scope":  "every mesh component of the session presentation"
+                                       },
+                   "parity":  {
+                                  "checked":  true,
+                                  "ok":  true,
+                                  "rule":  "every planned (mesh, colour, material, pass) row drawn at least its planned count, tolerance 0 parts; every planned or required pass drawn; drawn rows beyond the plan are the session\u0027s own parts (runs/T46/parity-census.md section 4)",
+                                  "divergences":  [
+
+                                                  ],
+                                  "planned":  {
+                                                  "parts":  210,
+                                                  "tuples":  11,
+                                                  "hash":  "56b0d2bd85dfa8cf3c457ea17b0aeb51",
+                                                  "rows":  [
+                                                               {
+                                                                   "mesh":  "Cylinder",
+                                                                   "colour":  "(0.450, 0.480, 0.520, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  5,
+                                                                   "role":  "conscript body"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cube",
+                                                                   "colour":  "(0.020, 0.020, 0.020, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  20,
+                                                                   "role":  "HP back"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cube",
+                                                                   "colour":  "(0.650, 0.080, 0.050, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  20,
+                                                                   "role":  "HP fill"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cylinder",
+                                                                   "colour":  "(0.550, 0.280, 0.050, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  5,
+                                                                   "role":  "slinger body"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cube",
+                                                                   "colour":  "(0.280, 0.070, 0.020, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  5,
+                                                                   "role":  "cinder_hound body"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cylinder",
+                                                                   "colour":  "(0.150, 0.350, 0.100, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  5,
+                                                                   "role":  "mire_maw body"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cylinder",
+                                                                   "colour":  "(0.680, 0.680, 0.680, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  50,
+                                                                   "role":  "conscript spear, conscript ground ring"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Sphere",
+                                                                   "colour":  "(0.680, 0.680, 0.680, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  25,
+                                                                   "role":  "slinger shot"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Sphere",
+                                                                   "colour":  "(0.900, 0.260, 0.020, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  25,
+                                                                   "role":  "cinder_hound ember"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Cylinder",
+                                                                   "colour":  "(0.900, 0.260, 0.020, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  25,
+                                                                   "role":  "cinder_hound ground ring"
+                                                               },
+                                                               {
+                                                                   "mesh":  "Sphere",
+                                                                   "colour":  "(0.010, 0.745, 0.745, 1.000)",
+                                                                   "material":  "LevelColorationUnlitMaterial",
+                                                                   "pass":  "opaque",
+                                                                   "count":  25,
+                                                                   "role":  "mire_maw shot"
+                                                               }
+                                                           ]
+                                              },
+                                  "drawn":  {
+                                                "parts":  385,
+                                                "tuples":  23,
+                                                "hash":  "6c2bc088d2fa91fb05583f022a8e0aa0",
+                                                "rows":  [
+                                                             {
+                                                                 "mesh":  "Sphere",
+                                                                 "colour":  "(0.010, 0.745, 0.745, 0.100)",
+                                                                 "material":  "M_SimpleUnlitTranslucent",
+                                                                 "pass":  "translucent",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.010, 0.745, 0.745, 0.800)",
+                                                                 "material":  "M_SimpleUnlitTranslucent",
+                                                                 "pass":  "translucent",
+                                                                 "count":  42
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.900, 0.260, 0.020, 0.880)",
+                                                                 "material":  "M_SimpleUnlitTranslucent",
+                                                                 "pass":  "translucent",
+                                                                 "count":  8
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.300, 0.060, 0.030, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.020, 0.020, 0.020, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  21
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.650, 0.080, 0.050, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  22
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.450, 0.480, 0.520, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  5
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.550, 0.280, 0.050, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  5
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.280, 0.070, 0.020, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  5
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.150, 0.350, 0.100, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  5
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.680, 0.680, 0.680, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  50
+                                                             },
+                                                             {
+                                                                 "mesh":  "Sphere",
+                                                                 "colour":  "(0.680, 0.680, 0.680, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  25
+                                                             },
+                                                             {
+                                                                 "mesh":  "Sphere",
+                                                                 "colour":  "(0.900, 0.260, 0.020, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  25
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cylinder",
+                                                                 "colour":  "(0.900, 0.260, 0.020, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  25
+                                                             },
+                                                             {
+                                                                 "mesh":  "Sphere",
+                                                                 "colour":  "(0.010, 0.745, 0.745, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  25
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(1.000, 1.000, 1.000, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  80
+                                                             },
+                                                             {
+                                                                 "mesh":  "Plane",
+                                                                 "colour":  "(0.000, 0.000, 0.000, 0.000)",
+                                                                 "material":  "Widget3DPassThrough",
+                                                                 "pass":  "translucent",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.080, 0.250, 0.750, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.150, 0.550, 0.180, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.750, 0.550, 0.120, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  1
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.200, 0.180, 0.150, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  32
+                                                             },
+                                                             {
+                                                                 "mesh":  "Cube",
+                                                                 "colour":  "(0.100, 0.095, 0.120, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  2
+                                                             },
+                                                             {
+                                                                 "mesh":  "Sphere",
+                                                                 "colour":  "(0.200, 0.136, 0.327, 1.000)",
+                                                                 "material":  "LevelColorationUnlitMaterial",
+                                                                 "pass":  "opaque",
+                                                                 "count":  2
+                                                             }
+                                                         ]
+                                            }
+                              },
+                   "populationSteady":  {
+                                            "enemies":  20,
+                                            "projectiles":  100,
+                                            "hands":  2,
+                                            "handInstances":  102,
+                                            "niagara":  6
+                                        },
+                   "populationEnd":  {
+                                         "enemies":  20,
+                                         "projectiles":  100,
+                                         "hands":  2,
+                                         "handInstances":  102,
+                                         "niagara":  6
+                                     },
+                   "minLiveProjectiles":  100,
+                   "projectileLaunches":  8464,
+                   "frames":  31564,
+                   "drawCalls":  {
+                                     "n":  31564,
+                                     "min":  79,
+                                     "median":  100,
+                                     "p95":  103,
+                                     "max":  104
+                                 },
+                   "rhiPrimitivesDrawn":  {
+                                              "n":  31564,
+                                              "min":  184995,
+                                              "median":  222003,
+                                              "p95":  253893,
+                                              "max":  261493
+                                          },
+                   "lod0InFrustumTriangles":  {
+                                                  "n":  31564,
+                                                  "min":  107922,
+                                                  "median":  146450,
+                                                  "p95":  149170,
+                                                  "max":  152338
+                                              },
+                   "frameMs":  {
+                                   "n":  31564,
+                                   "min":  1.272100955247879,
+                                   "median":  1.7670989036560059,
+                                   "p95":  2.6089996099472046,
+                                   "max":  1114.7170029580593
+                               },
+                   "gpuMs":  {
+                                 "n":  31564,
+                                 "min":  0.69359999895095825,
+                                 "median":  0.75819998979568481,
+                                 "p95":  0.83780002593994141,
+                                 "max":  2.4353001117706299
+                             },
+                   "peakWorkingSetMB":  2751.875,
+                   "liveParticles":  1468,
+                   "gpuEmitters":  1,
+                   "liveParticlesSpread":  {
+                                               "n":  31564,
+                                               "min":  1131,
+                                               "median":  1399,
+                                               "p95":  1461,
+                                               "max":  1468
+                                           },
+                   "liveParticlesCpu":  {
+                                            "n":  31564,
+                                            "min":  568,
+                                            "median":  803,
+                                            "p95":  864,
+                                            "max":  869
+                                        },
+                   "liveParticlesGpu":  {
+                                            "n":  31564,
+                                            "min":  561,
+                                            "median":  597,
+                                            "p95":  599,
+                                            "max":  600
+                                        },
+                   "gpuEmittersCrossCheck":  1,
+                   "niagaraSystemsLive":  {
+                                              "min":  6,
+                                              "max":  6
+                                          },
+                   "zeroParticleFrames":  0,
+                   "particlesExercised":  true,
+                   "particlesVerdict":  "pass",
+                   "particlesNote":  "exercised",
+                   "gpuCountNote":  "GPU counts are a delayed upper bound (instance-count readback)",
+                   "niagara":  {
+                                   "allowGpuParticles":  true,
+                                   "systems":  [
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_BoltTrail",
+                                                       "authoredPeak":  300,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_SigilTrail",
+                                                       "authoredPeak":  90,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_WardAbsorb",
+                                                       "authoredPeak":  120,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_PerfectFlash",
+                                                       "authoredPeak":  60,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_Telegraph",
+                                                       "authoredPeak":  300,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "cpu"
+                                                                      ]
+                                                   },
+                                                   {
+                                                       "asset":  "/Game/Budget/NS_Budget_Motes",
+                                                       "authoredPeak":  600,
+                                                       "emitters":  1,
+                                                       "simTargets":  [
+                                                                          "gpu"
+                                                                      ]
+                                                   }
+                                               ]
+                               },
+                   "meshDrawCommandDumpsRequested":  6,
+                   "csv":  "<repo>/runs/DG4/parity2/dg4-parity2.csv"
+               },
+    "csvProfile":  {
+                       "columns":  {
+                                       "drawCalls":  "RHI/DrawCalls",
+                                       "drawCallsBasePass":  "DrawCall/Basepass",
+                                       "drawCallsPrepass":  "DrawCall/Prepass",
+                                       "drawCallsOcclusionTests":  "DrawCall/BeginOcclusionTests",
+                                       "drawCallsSlateUI":  "DrawCall/SlateUI",
+                                       "rhiPrimitivesDrawn":  "RHI/PrimitivesDrawn",
+                                       "meshDrawCommandVisiblePrimitives":  "missing",
+                                       "frameTimeMs":  "FrameTime",
+                                       "gameThreadMs":  "GameThreadTime",
+                                       "renderThreadMs":  "RenderThreadTime",
+                                       "gpuMs":  "GPUTime",
+                                       "physicalUsedMB":  "PhysicalUsedMB"
+                                   },
+                       "drawCalls":  {
+                                         "n":  31564,
+                                         "min":  79,
+                                         "median":  100,
+                                         "p95":  103,
+                                         "max":  104
+                                     },
+                       "drawCallsBasePass":  {
+                                                 "n":  31564,
+                                                 "min":  0,
+                                                 "median":  31,
+                                                 "p95":  62,
+                                                 "max":  93
+                                             },
+                       "drawCallsPrepass":  {
+                                                "n":  31564,
+                                                "min":  0,
+                                                "median":  12,
+                                                "p95":  24,
+                                                "max":  38
+                                            },
+                       "drawCallsOcclusionTests":  {
+                                                       "n":  31564,
+                                                       "min":  0,
+                                                       "median":  0,
+                                                       "p95":  0,
+                                                       "max":  0
+                                                   },
+                       "drawCallsSlateUI":  {
+                                                "n":  31564,
+                                                "min":  0,
+                                                "median":  3,
+                                                "p95":  6,
+                                                "max":  9
+                                            },
+                       "rhiPrimitivesDrawn":  {
+                                                  "n":  31564,
+                                                  "min":  184995,
+                                                  "median":  222003,
+                                                  "p95":  253893,
+                                                  "max":  262373
+                                              },
+                       "meshDrawCommandVisiblePrimitives":  {
+                                                                "n":  0,
+                                                                "min":  0,
+                                                                "median":  0,
+                                                                "p95":  0,
+                                                                "max":  0
+                                                            },
+                       "frameTimeMs":  {
+                                           "n":  31564,
+                                           "min":  1.2722,
+                                           "median":  1.767,
+                                           "p95":  2.6091,
+                                           "max":  1114.7218
+                                       },
+                       "gameThreadMs":  {
+                                            "n":  31564,
+                                            "min":  1.267,
+                                            "median":  1.7806,
+                                            "p95":  2.4182,
+                                            "max":  22.5677
+                                        },
+                       "renderThreadMs":  {
+                                              "n":  31564,
+                                              "min":  1.1307,
+                                              "median":  1.4891,
+                                              "p95":  1.9068,
+                                              "max":  1115.4854
+                                          },
+                       "gpuMs":  {
+                                     "n":  31564,
+                                     "min":  0.6753,
+                                     "median":  0.75885,
+                                     "p95":  0.8441,
+                                     "max":  11.3298
+                                 },
+                       "physicalUsedMB":  {
+                                              "n":  31564,
+                                              "min":  2717.4336,
+                                              "median":  2749.2422,
+                                              "p95":  2751.6562,
+                                              "max":  2751.6797
+                                          }
+                   },
+    "meshDrawCommandDumps":  {
+                                 "frames":  6,
+                                 "allPasses":  {
+                                                   "n":  6,
+                                                   "min":  306870,
+                                                   "median":  368552,
+                                                   "p95":  376518,
+                                                   "max":  376518
+                                               },
+                                 "perPass":  {
+                                                 "BasePass":  {
+                                                                  "n":  6,
+                                                                  "min":  105200,
+                                                                  "median":  136624,
+                                                                  "p95":  139280,
+                                                                  "max":  139280
+                                                              },
+                                                 "DepthPass":  {
+                                                                   "n":  6,
+                                                                   "min":  105200,
+                                                                   "median":  136624,
+                                                                   "p95":  139280,
+                                                                   "max":  139280
+                                                               },
+                                                 "TranslucencyAfterDOF":  {
+                                                                              "n":  6,
+                                                                              "min":  12060,
+                                                                              "median":  12736,
+                                                                              "p95":  12742,
+                                                                              "max":  12742
+                                                                          },
+                                                 "TranslucentVelocity":  {
+                                                                             "n":  6,
+                                                                             "min":  2904,
+                                                                             "median":  2910,
+                                                                             "p95":  2916,
+                                                                             "max":  2916
+                                                                         },
+                                                 "Velocity":  {
+                                                                  "n":  6,
+                                                                  "min":  78576,
+                                                                  "median":  80696,
+                                                                  "p95":  82304,
+                                                                  "max":  82304
+                                                              }
+                                             }
+                             }
+}

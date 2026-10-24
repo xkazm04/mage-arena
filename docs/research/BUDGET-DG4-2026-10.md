@@ -988,3 +988,89 @@ Particles, with the 6 systems as in sections 10-11: live max 1,468 in all three 
 3. Negative proof: put a copy of a colour back into `MakeEnemy` (`Budget/BudgetStressPlan.cpp`), for example the hound's
    `0.8, 0.3, 0.05`, rebuild and run one capture: `MAGEVR_BUDGET_FAIL scene parity cinder_hound body ...`, exit 1.
 4. Revert: revert `8591e6c`, `6bb7f44` and `1ffc919`. The capture then measures the section 11 proxy again.
+
+## 13. The bead fix
+
+**Label: desktop proxy, synthetic clip-driven hands, not Quest truth; cannot prove 72 Hz.** Headline: **the 500 stray
+spear beads are gone (drawn parts 885 to 385); draw calls are unchanged (max 104, still ≤150); triangles fell by about
+24k on BasePass and 47k on all passes, and the all-pass reading is still over 350k.** Sections 0-12 are unchanged.
+
+### 13.1 The bug and the fix
+
+- **Bug (found by T46, 12.5).** `ASessionPresentation::RingFor` made a ring's 20 bead cubes visible (only the glow was
+  born hidden), and the spear branch of `ASessionPresentation::Sync` never placed or hid them. Every conscript spear in
+  flight therefore drew 20 white 1 m cubes at the presentation actor's origin, which stands at the world origin, until
+  `HideUnused` freed the ring. In the stress frame: 25 spears x 20 = 500 of the 885 drawn parts.
+- **Fix: `57b5e52`** (`fix(session): spear rings draw no perfect beads`). The beads are born hidden, as the glow is,
+  and the spear branch hides the beads and the glow explicitly, so a ring a magic threat held before (the same id, or a
+  freed slot) carries no lit bead into a spear. When and where beads show for a magic threat (combat.json
+  `absorb.perfect.windowS`, `InsidePerfectWindow`) did not change; no combat number, timing, colour or pinned file changed.
+- **Regression tests.** `MageArena.Presentation.Beads.SpearRingHasNone` (a spear inside the perfect window, three
+  frames) and `.RingReusedFromMagicHasNone` (an ember shows its beads, then the same ring is carried into a spear, then a
+  spear takes a ring an ember freed), in `Tests/SpearBeadTests.cpp`, through a new read-only probe
+  `ASessionPresentation::CountRingBeadsDrawn`. Red with the fix reverted (`Expected 'frame 0: no bead of the spear ring
+  is visible' to be 0, but it was 20.`, and `... the ring carried from the ember into a spear shows no bead' to be 0,
+  but it was 20.`), green with it. The freed-slot case was green before the fix too (`HideUnused` hides a freed ring's
+  beads); it stays as a guard.
+
+### 13.2 Provenance
+
+- **Code:** `57b5e52` on base `d4bbdaf`. Host and date: Wolf kaziho, 2026-10-24, launches 07:21-07:25 local. UE 5.8.3
+  (CL 58210709), D3D12, the section 0 launch line. Each launch started with no other Unreal process on the machine.
+- **Commands and results:**
+
+  | Step | Command | Result |
+  |---|---|---|
+  | Build | `powershell -NoProfile -File apps/vr/tools/build.ps1` | `Result: Succeeded` |
+  | Suite | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArena.;Quit" -nullrhi` | 258/258 pass (256 at `d4bbdaf` plus the 2 `MageArena.Presentation.Beads.*`; 5 of them with the warnings they had before) |
+  | Capture | `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix parity` (script unchanged) | `budget: ok (3 runs)`, exit 0 |
+
+  Every launch logged `MAGEVR_BUDGET_SESSION bout=3 phase=active rival=brennic actors=2`, both `MAGEVR_BUDGET_POP`
+  lines at full count (`enemies=20 projectiles=100 hands=2 niagara=6`, 102 hand instances, 8,464 launches at the end),
+  `MAGEVR_BUDGET_PARITY phase=steady ok=1` and `phase=end ok=1` (planned 210 parts in 11 tuples, **drawn 385 parts in 23
+  tuples**, drawn hash `6c2bc088d2fa91fb05583f022a8e0aa0` in all three), `MAGEVR_BUDGET_MATERIALS mids=26 colours=24
+  parts=1452`, `MAGEVR_BUDGET_DONE` and no `MAGEVR_BUDGET_FAIL`. Warm-up 10.0 s; wall times 88, 88 and 87 s.
+- **Summaries:** `docs/research/budget-dg4/parity1..3.summary.json` (copied from `runs/DG4/parity1..3/summary.json`).
+
+### 13.3 Before and after
+
+Same instrument, same counting as 12.3: min / median / p95 / max over every frame of the 60 s window; triangles are the
+GPU-culled counts of the six `DumpStats` frames per run.
+
+| Run | Frames | Draw calls | RHI primitives median / max | GPU-culled BasePass tris | GPU-culled all-pass tris | Frame ms median / p95 | GPU ms median / p95 |
+|---|---|---|---|---|---|---|---|
+| parity1-3 before (12.3) | 32,288-33,232 | 77-78 / 100-101 / 103-104 / 103-104 | 255,037-290,928 / 295,275-318,019 | 160,936-161,416 median, 163,280 max | 423,810-423,826 max | 1.68-1.73 / 2.50-2.57 | 0.79-0.80 / 0.87 |
+| parity1 after | 32,143 | 78 / 100 / 103 / 104 | 226,785 / 261,075 | 136,624 median, 139,280 max | 376,274 max | 1.73 / 2.52 | 0.76 / 0.85 |
+| parity2 after | 31,564 | 79 / 100 / 103 / 104 | 222,003 / 262,373 | 136,624 median, 139,280 max | 376,518 max | 1.77 / 2.61 | 0.76 / 0.84 |
+| parity3 after | 29,128 | 76 / 99 / 102 / 104 | 256,133 / 272,021 | 136,624 median, 139,280 max | 376,498 max | 1.90 / 2.82 | 0.76 / 0.85 |
+
+- **Drawn parts:** 885 before, 385 after, in the same 23 tuples (the white-cube tuple stays: the 80 beads of the 4
+  embers inside the perfect window at the sampled frame are the magic cue, and are meant to show).
+- **Draw calls barely move** (median 100-101 to 99-100, max 103-104 to 104). The 500 beads were one mesh in one shared
+  colour, so dynamic instancing (lever B, section 11) had already merged them into a handful of draws. `DrawCall/Basepass`
+  median stays 31; Prepass 12-13 to 11-12.
+- **Triangles fall:** BasePass max 163,280 to 139,280 (-24,000, which is 500 parts x 48), all-pass max about 423,820 to
+  about 376,500 (-47,300 to -47,550). RHI primitives median 222-256k against 255-291k before; that counter varies run to run and has no fixed relation to the LOD0 sum (12.1).
+- Live particles max 1,468, GPU emitters 1 (cross-check 1), 6 systems live on every frame: unchanged.
+
+### 13.4 Verdicts (desktop proxy, on the shipping presentation)
+
+| Row | Target | After the bead fix | Verdict |
+|---|---|---|---|
+| Draw calls | ≤150 | median 99-100, max 104 / 104 / 104; 46 under the limit at the worst frame | **pass**, still ≤150 in every sampled frame |
+| Visible triangles, BasePass reading | ≤350k | max 139,280 (40%) | **under 350k** (before: 163,280, 47%) |
+| Visible triangles, all-pass reading | ≤350k | max 376,518 (108%) | **over 350k by 7.6%** (before: 423,826, over by 21%) |
+| Live particles | ≤2,000 | max 1,468 | **pass** |
+| GPU emitters | ≤1 | 1 | **pass** |
+
+- **Which triangle reading is the verdict is an OWNER question, and this section does not decide it.** 8.5 judged the
+  row on BasePass (each opaque triangle once); on that reading the row passes. On the all-pass reading it still fails,
+  by 7.6% instead of 21%. Section 4 stands: neither desktop reading has an independent cross-check, and V1 measures the
+  device number.
+
+### 13.5 Reproduce
+
+1. `powershell -NoProfile -File apps/vr/tools/build.ps1`, then `MageArena.Presentation.Beads` green.
+2. `powershell -NoProfile -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix parity`. Expect
+   `MAGEVR_BUDGET_PARITY phase=steady ok=1 ... drawn=385 parts/23 tuples` and BasePass `max 139280`.
+3. Revert `57b5e52`: the capture draws 885 parts again and both bead tests fail with 20 visible beads.
