@@ -23,6 +23,7 @@
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "Session/ArenaSession.h"
+#include "Tests/DesignMeasure.h"
 
 #include <cmath>
 
@@ -89,6 +90,16 @@ struct FRivalSummary
 	bool bMedianTarget = false;
 	bool bWinTarget = false;
 };
+
+// T47: the census medians and win rates, each printed beside the target it is measured against (DECISIONS 2026-10-07,
+// DF-003 answered). Reported, never asserted: the windows are the ones Summarise judges, unchanged.
+void ReportRivalSummary(const TCHAR* Test, const FRivalSummary& Summary)
+{
+	const FString Key = FString::Printf(TEXT("%s.c%.1f"), *Summary.Set, Summary.Competence);
+	MageArenaMeasure::Report(Test, Key + TEXT(".medianS"), Summary.MedianS, 45.0, 80.0);
+	const bool bAtOne = Summary.Competence < 1.25;
+	MageArenaMeasure::Report(Test, Key + TEXT(".winRate"), Summary.WinRate, bAtOne ? 0.70 : 0.40, bAtOne ? 1.00 : 0.60);
+}
 
 FString RivalCensusDir(const TCHAR* Run = TEXT("T19"))
 {
@@ -438,6 +449,7 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 			*Summary.Set, Summary.Competence, Summary.N, Summary.MedianS, Summary.WinRate, Summary.ReachPhase2, Summary.ReachPhase3,
 			Summary.SignatureInLast, Summary.ReachedLast, Summary.AnySunfall, Summary.Loosed, Summary.Blinked, Summary.Hit, Summary.Missed,
 			Summary.bSignatureTarget ? 1 : 0, Summary.bMedianTarget ? 1 : 0, Summary.bWinTarget ? 1 : 0);
+		ReportRivalSummary(TEXT("Census.Rivals.brennic"), Summary);
 	}
 	Root->SetArrayField(TEXT("sets"), Values);
 	FString Text;
@@ -484,6 +496,7 @@ bool FMageArenaCensusRivals::RunTest(const FString& Parameters)
 					*Summary.Set, Summary.Competence, Summary.N, Summary.MedianS, Summary.WinRate, Summary.ReachPhase2, Summary.ReachPhase3,
 					Summary.SignatureInLast, Summary.ReachedLast, Summary.AnySunfall, Summary.Loosed, Summary.Blinked, Summary.Hit, Summary.Missed,
 					Summary.bSignatureTarget ? 1 : 0, Summary.bMedianTarget ? 1 : 0, Summary.bWinTarget ? 1 : 0);
+				ReportRivalSummary(TEXT("Census.Rivals.lio"), Summary);
 			}
 		}
 		LioRoot->SetArrayField(TEXT("sets"), LioValues);

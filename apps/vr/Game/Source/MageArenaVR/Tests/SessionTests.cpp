@@ -19,6 +19,7 @@
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Session/ArenaSession.h"
+#include "Tests/DesignMeasure.h"
 
 namespace
 {
@@ -153,7 +154,7 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 	const FActor* Player = SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId);
 	const double Measured = Session.GetSimSeconds();
 	const bool bWon = Session.GetGames().Phase == TEXT("intermission");
-	const bool bInsideWindow = bWon && Measured >= PinnedWindowLo && Measured <= PinnedWindowHi;
+	const bool bInsideWindow = MageArenaMeasure::Report(TEXT("Session.Wave1Seated"), TEXT("victoryS"), Measured, PinnedWindowLo, PinnedWindowHi, bWon);
 	const double DamageTaken = Player ? Player->Metrics.DamageTaken : -1.0;
 	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted end phase=%s t=%.2f waves=%d hp=%.1f dealt=%.1f taken=%.1f blinks=%d perfects=%d chain=%d"),
 		*Session.GetGames().Phase, Measured, Session.GetGames().WavesCleared,
@@ -163,10 +164,10 @@ bool FMageArenaWave1Scripted::RunTest(const FString& Parameters)
 		Session.GetBlinkAccepts(),
 		Player ? Player->Metrics.Perfects : -1,
 		Session.GetChain().Num());
-	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f offPad=%.4f"),
-		Measured, PinnedWindowLo, PinnedWindowHi,
-		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
-		DamageTaken, WorstOffPad);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_MEASURE Session.Wave1Seated Wave1Scripted seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f offPad=%.4f"),
+	    Measured, PinnedWindowLo, PinnedWindowHi,
+	    bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
+	    DamageTaken, WorstOffPad);
 	UE_LOG(LogMageArena, Log, TEXT("Wave1Scripted defence splitCasts=%d staff=%d"), Session.GetSplitCasts(), Session.GetStaffPlants());
 
 	bool bPass = true;
@@ -220,8 +221,9 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 	const double Measured = Session.GetSimSeconds();
 	const bool bWon = Session.GetGames().Phase == TEXT("intermission") || Session.GetGames().Phase == TEXT("complete");
 	const bool bInsideWindow = bWon && Measured >= PinnedWindowLo && Measured <= PinnedWindowHi;
+	const bool bReportedInside = MageArenaMeasure::Report(TEXT("Session.CreaturesSeated"), TEXT("victoryS"), Measured, PinnedWindowLo, PinnedWindowHi, bWon);
 	const double DamageTaken = Player ? Player->Metrics.DamageTaken : -1.0;
-	
+
 	const int32 Perfects = Player ? Player->Metrics.Perfects : -1;
 	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated end phase=%s t=%.2f hp=%.1f dealt=%.1f taken=%.1f blinks=%d perfects=%d"),
 		*Session.GetGames().Phase, Measured,
@@ -234,10 +236,10 @@ bool FMageArenaCreaturesSeated::RunTest(const FString& Parameters)
 	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated collar %s cracks=%d tithe=%d %s"),
 		FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal")) ? TEXT("proposal") : TEXT("live"),
 		Session.GetCollar().GetBoutCracks(), Session.GetCollar().GetBoutTithe(), *Session.GetCollar().Breakdown());
-	UE_LOG(LogMageArena, Log, TEXT("CreaturesSeated seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f"),
-		Measured, PinnedWindowLo, PinnedWindowHi,
-		bInsideWindow ? TEXT("INSIDE") : TEXT("OUTSIDE"),
-		DamageTaken);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_MEASURE Session.CreaturesSeated CreaturesSeated seated measured=%.2fs pinned-window=%.0f-%.0f %s damageTaken=%.1f"),
+	    Measured, PinnedWindowLo, PinnedWindowHi,
+	    bReportedInside ? TEXT("INSIDE") : TEXT("OUTSIDE"),
+	    DamageTaken);
 
 	bool bPass = true;
 	bPass &= TestTrue(TEXT("won bout 2"), bWon);
@@ -339,6 +341,8 @@ bool FMageArenaFireSeated::RunTest(const FString& Parameters)
 			Player ? Player->Hp : -1.0, Player ? Player->Metrics.DamageDealt : -1.0,
 			Session.GetWallsRaised(), Session.GetSplitCasts(), Session.GetStaffPlants(),
 			Player ? Player->Metrics.Perfects : -1, Reflects);
+		MageArenaMeasure::Report(TEXT("Duel.FireSeated"), FString::Printf(TEXT("%s.lengthS"), Label), Measured, Lo, Hi, Session.GetGames().Phase != TEXT("active"));
+		MageArenaMeasure::Report(TEXT("Duel.FireSeated"), FString::Printf(TEXT("%s.won"), Label), bWon ? 1.0 : 0.0, 1.0, 1.0);
 		bool bOne = true;
 		bOne &= TestTrue(*FString::Printf(TEXT("%s Brennic bound"), Label), bBound);
 		bOne &= TestTrue(*FString::Printf(TEXT("%s length %.2fs in %.0f-%.0f"), Label, Measured, Lo, Hi), bBand);
@@ -476,6 +480,8 @@ bool FMageArenaAirSeated::RunTest(const FString& Parameters)
 	}
 	UE_LOG(LogMageArena, Log, TEXT("AirSeated lio-c15 windup casts: %s(zero-windup rows release on the press and are not listed) shots=%d lioCastEvents=%d lioDealt=%.1f lioPerfects=%d lioBlocks=%d"),
 		*Rows, LioShots.Num(), Lio ? Lio->Metrics.Casts : -1, Lio ? Lio->Metrics.DamageDealt : -1.0, Lio ? Lio->Metrics.Perfects : -1, Lio ? Lio->Metrics.Blocks : -1);
+	MageArenaMeasure::Report(TEXT("Duel.AirSeated"), TEXT("lio-c15.lengthS"), Measured, Lo, Hi, Games.Phase != TEXT("active"));
+	MageArenaMeasure::Report(TEXT("Duel.AirSeated"), TEXT("lio-c15.won"), bWon ? 1.0 : 0.0, 1.0, 1.0);
 	bool bPass = TestTrue(TEXT("Lio bound in the final"), bBound);
 	bPass &= TestTrue(TEXT("Lio is the air mage"), Lio && Lio->Air.bSchool);
 	bPass &= TestTrue(*FString::Printf(TEXT("length %.2fs in %.0f-%.0f"), Measured, Lo, Hi), bBand);
@@ -780,9 +786,10 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 	UE_LOG(LogMageArena, Log, TEXT("FullSeated phases ritual=%.2f intro=%.2f active=%.2f intermission=%.2f aftermath=%.2f lost=%.2f"),
 		PhaseS.FindRef(TEXT("ritual")), PhaseS.FindRef(TEXT("intro")), PhaseS.FindRef(TEXT("active")), PhaseS.FindRef(TEXT("intermission")),
 		PhaseS.FindRef(TEXT("aftermath")), PhaseS.FindRef(TEXT("lost")));
-	UE_LOG(LogMageArena, Log, TEXT("FullSeated day %s: stage=%s won=%d/4 fights=%.2f s day=%.2f s (%.2f min) with teach=%.2f s (%.2f min) plan=7-10 min %s"),
-		bProposal ? TEXT("proposal") : TEXT("live"), *Session.GetStage(), Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
-		WithTeachS >= PlanLoS && WithTeachS <= PlanHiS ? TEXT("INSIDE") : TEXT("OUTSIDE"));
+	const bool bDayInside = MageArenaMeasure::Report(TEXT("Session.FullSeated"), TEXT("dayWithTeachS"), WithTeachS, PlanLoS, PlanHiS);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_MEASURE Session.FullSeated FullSeated day %s: stage=%s won=%d/4 fights=%.2f s day=%.2f s (%.2f min) with teach=%.2f s (%.2f min) plan=7-10 min %s"),
+	    bProposal ? TEXT("proposal") : TEXT("live"), *Session.GetStage(), Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
+	    bDayInside ? TEXT("INSIDE") : TEXT("OUTSIDE"));
 
 	bool bPass = true;
 	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 72 * 1800);
