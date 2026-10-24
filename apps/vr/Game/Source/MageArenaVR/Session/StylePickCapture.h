@@ -73,6 +73,4 @@ private:
 
 	FString StyleId = TEXT("greybox");
 	FCaptureEvidence Evidence;
-	UPROPERTY()
-	TObjectPtr<class UTextRenderComponent> OverlayText;
 };

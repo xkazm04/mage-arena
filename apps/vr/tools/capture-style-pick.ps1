@@ -56,7 +56,7 @@ foreach ($Style in $Styles) {
 		"-MageArenaStyle=$Style",
 		"-usefixedtimestep",
 		"-fps=60",
-		"-ExecCmds=`"t.MaxFPS 60; sg.PostProcessQuality 3`""
+		"-ExecCmds=`"DisableAllScreenMessages; t.MaxFPS 60; sg.PostProcessQuality 3`""
 	)
 	if ($ExtraArgs) { $ArgumentList += $ExtraArgs }
 

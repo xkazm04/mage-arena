@@ -1808,10 +1808,6 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
 		const FString Line = FString::Printf(TEXT("Phase %.0f/%d"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 3);
 		UE_LOG(LogMageArena, Log, TEXT("presentation %s rival=%s actor=%d"), *Line, Rival ? *Rival->Id : TEXT("-"), Event.ActorId);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor(236, 232, 220), Line);
-		}
 	}
 	SyncPhaseVisuals(Session, Now);
 	SyncCollarVisuals(Session);

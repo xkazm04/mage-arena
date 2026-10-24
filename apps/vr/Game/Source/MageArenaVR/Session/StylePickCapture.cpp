@@ -2,8 +2,6 @@
 
 #include "Session/ArenaSession.h"
 
-#include "Camera/CameraComponent.h"
-#include "Components/TextRenderComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -161,17 +159,6 @@ void UStylePickCaptureDriver::Tick(float DeltaTime)
 			{
 				GEngine->Exec(World, TEXT("r.MotionBlurQuality 0"));
 			}
-			if (UCameraComponent* Camera = Pawn->FindComponentByClass<UCameraComponent>())
-			{
-				OverlayText = NewObject<UTextRenderComponent>(Pawn);
-				OverlayText->RegisterComponent();
-				OverlayText->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
-				OverlayText->SetRelativeLocation(FVector(200.0, 0.0, -50.0)); // 2m ahead, slightly down
-				OverlayText->SetRelativeRotation(FRotator(0.0, 180.0, 0.0)); // face camera
-				OverlayText->SetHorizontalAlignment(EHTA_Center);
-				OverlayText->SetTextRenderColor(FColor::White);
-				OverlayText->SetWorldSize(15.0f);
-			}
 			StartDuel();
 		}
 		break;
@@ -267,14 +254,11 @@ void UStylePickCaptureDriver::Record()
 		{
 			LastEventKind = MappedKind;
 			LastEventActorId = E.ActorId;
+			// The sim clock and last event go to the log, not onto the screen (T55): no debug text in a captured view.
+			UE_LOG(LogMageArena, Log, TEXT("capture sim=%.2fs last=%s actor=%d"), Session.GetSimSeconds(), *LastEventKind, LastEventActorId);
 		}
 	}
 	LastTick = Games.State.Events.Num();
-
-	if (OverlayText)
-	{
-		OverlayText->SetText(FText::FromString(FString::Printf(TEXT("Sim: %.2fs | Last: %s (Actor %d)"), Session.GetSimSeconds(), *LastEventKind, LastEventActorId)));
-	}
 
 	if (SequenceIndex >= SequenceEnd || Session.GetStage() != TEXT("active"))
 	{
