@@ -69,7 +69,7 @@ First Wolf evidence: **Wolf = hostname `kaziho`** (x64; not literally `Wolf`), e
   section 6 risk 7). Epic Games Launcher, Unreal Engine, Library, the 5.8 tile: turn auto-update off. **[verify on Wolf]**
   the exact menu item in the current launcher. Proof: B1's `Build.version` still reads 5.8.3 at every later phase; check
   it before each phase.
-- [ ] parked: OWNER, not attempted by the Wolf builder 2026-10-24. Read only: both `Test-Path` lines print False (Android not installed). **B3. Android target support in the Epic launcher** (OWNER, open since 2026-10-03, `docs/XR-TOOLCHAIN.md` "Owner
+- [ ] DEFERRED 2026-10-24, ruling 2 (not needed now; stays parked). parked: OWNER, not attempted by the Wolf builder 2026-10-24. Read only: both `Test-Path` lines print False (Android not installed). **B3. Android target support in the Epic launcher** (OWNER, open since 2026-10-03, `docs/XR-TOOLCHAIN.md` "Owner
   steps" 1-2). Library, the 5.8 tile, the drop-down next to Launch, Options, enable Android, Apply. It is a large
   download (**[verify on Wolf]** the size). Proof:
   ```powershell
@@ -239,14 +239,15 @@ the end.
 - [x] Wolf kaziho 2026-10-24 3f6c5bd 4 MP4s + 16 PNGs in `apps/vr/art/style-pick/`, all 20 LFS pointers under the
   existing repo-wide `*.mp4`/`*.png` rules (`git check-attr`: `filter: lfs`; `.gitattributes` unchanged); linked from
   `apps/vr/art/index.html`. `apps/vr/art/style-pick/index.html` with the copied videos and stills (LFS rules checked in `.gitattributes`).
-- [ ] **OWNER:** picks 13, 25 or 30 from the page. Record the pick in `docs/DECISIONS.md` (the owner's words) before any
+- [x] **OWNER** ANSWERED 2026-10-24, ruling 1 (`docs/DECISIONS.md`, "P4 style: no single style is locked"): no single style is locked; greybox stays the base; the direction is visual quality toward the art concept; 13/25/30 is a combinable pool, not a pick. Original text: picks 13, 25 or 30 from the page. Record the pick in `docs/DECISIONS.md` (the owner's words) before any
   style-dependent work. Until then, T38 uses the greybox look (T38 "The owner decision").
 - Moves K3 row 1 (and unblocks row 3, the P15 asset ceilings, which belong to pof, `docs/PROJECT-PLAN.md` section 8 P15;
   no local P15 tool exists in `apps/vr/tools/` **[verify on Wolf]** whether pof can run it here).
 - T35 waits for T16 (`apps/vr/tasks/T35-input-clock.md`, "Read first").
 
-### P5. First APK and the Quest 3 simulator boot on 5.8.3 (soft: Wed 28 Oct; effort 0.5-1.5 days, unknowns likely)
+### P5. [DEFERRED 2026-10-24, ruling 2, `docs/DECISIONS.md` "P5/P9 deferred"] First APK and the Quest 3 simulator boot on 5.8.3 (soft: Wed 28 Oct; effort 0.5-1.5 days, unknowns likely)
 
+- Status: deferred, ruling 2 ("No need to resolve headset build in this stage").
 - Depends on: B3 (**OWNER**: Android component), B5, B7. Can run between other phases on a clean master; it only needs
   one Unreal process at a time.
 - [ ] **Simulator boot on 5.8.3** (K3 row 14, K5 step 4; not re-proven since 5.8.2, `docs/XR-TOOLCHAIN.md:197`):
@@ -274,6 +275,8 @@ the end.
 
 ### P6. T38: the first animated opponent, Brennic (soft: Wed 28 - Fri 30 Oct; effort 1.5-2 days after the asset lands)
 
+- Asset source moved 2026-10-24 (ruling 3, `docs/DECISIONS.md` "Models are built on this machine"; `docs/concepts/VISUAL-PLAN.md` (d)): this machine (RTX 4090), with local TRELLIS.2 under setup by run b83e357f, replaces the Lynx hand-off as the mesh source. Leonardo supplies the multi-view master (visual approvals of 2026-10-24, answer 3).
+
 - Card: `apps/vr/tasks/T38-first-animated-opponent.md`. Source: Claude + owner authoring; the Lynx TRELLIS and Blender
   rigging pipeline may produce the mesh (DECISIONS 2026-10-20 "T38 asset source").
 - Depends on: P3 (the figure's materials follow the shared-material rule); the Lynx hand-off (section e, H1). The R0
@@ -297,7 +300,7 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - [x] Wolf kaziho 2026-10-24 b13cbb7 UE 5.8.3 CL 58210709 `MageArena.` 282/282 (`MageArena.Fist` 9/9, red first: `Expected 'Brennic falls: missio' to be "missio", but it was "intermission".`); `MageArenaDesign.` 5/7, only DF-011's two; flags `arena.tiro.1.w<n>.finish` and `arena.missio.total`. **T25** `apps/vr/tasks/T25-closed-fist-pose-and-spare-or-finish.md` (no owner blocker). Done when `MageArena.Fist.*`
   green (red line quoted first), `MageArena.` green, `MageArenaDesign.` no new red; flags `arena.tiro.1.w<n>.finish` and
   `arena.missio.total` (or the campaign doc's keys).
-- [ ] **T40** `apps/vr/tasks/T40-two-music-loops.md`. **OWNER:** the source of the two loops; the owner or the App Master
+- [ ] DEFERRED 2026-10-24, ruling 6 (audio delayed; no audio spend). **T40** `apps/vr/tasks/T40-two-music-loops.md`. **OWNER:** the source of the two loops; the owner or the App Master
   (on the owner's go, generation count 2, ElevenLabs) commits them to `apps/vr/art/audio/music/` with `SOURCE.md`. The
   builder never reads `ELEVENLABS_API_KEY`. Done when `import-sfx.ps1 -Run T40` imports both and a second run writes
   nothing, `MageArena.Audio.*` green including Music, and `capture-colour-audio.ps1 -Run T40 -SkipStills` prints
@@ -305,12 +308,12 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - [ ] **T24** `apps/vr/tasks/T24-mudra-seal-detector.md`. **OWNER (C1):** the seal shape, Claude + owner
   (`docs/design/V2-ROADMAP.md` lane B row 8). Start only when C1 is committed. Done when `MageArena.Mudra.*` green (red line
   quoted first; seal at 1.4 s casts, at 1.6 s does not), `MageArena.` green, no new design red.
-- [ ] **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story
+- [ ] DEFERRED 2026-10-24, ruling 6 (the audio half: voice and chorus generation; no audio spend). **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story
   bible and cue sheet (roadmap row 12),
   and the owner's go for generation with the count stated on the card. Without committed WAVs, build the importer,
   wiring and tests against the manifest and report the wiring as unproven end to end. Done when `MageArena.Voice.*` and
   `MageArena.` green and `capture-colour-audio.ps1 -Run T27 -SkipStills` prints `MAGEVR_CAPTURE_DONE`.
-- [ ] **T28** `apps/vr/tasks/T28-intermission-scenes.md`. **OWNER (C2) - now on the critical path, see H3.** Done when
+- [ ] UNBLOCKED 2026-10-24 for its non-audio parts (ruling 5, C2 D1-D4 approved; its audio stays deferred, ruling 6). **T28** `apps/vr/tasks/T28-intermission-scenes.md`. **OWNER (C2) - now on the critical path, see H3.** Done when
   `MageArena.Intermission.*` and `MageArena.` green, and `MageArenaDesign.` shows no new red with the
   `Session.FullSeated` time **reported** against 7-10 min (after T47 it is a logged measurement, not a gate: DF-010
   ruled E on 2026-10-21).
@@ -320,7 +323,7 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
   (`docs/DECISIONS.md:308-309`). With the prologue tableau (<= 60 s) and a victory card, these two cards carry every
   minute the day is missing. If C2 does not land, the day stays at about 3 min and that is the submission.
 
-### P8. T41 cold testers and the desktop core gate record (soft: Fri 30 - Sat 31 Oct; effort 0.5 day Wolf, plus owner hosting)
+### P8. [T41 sessions DEFERRED 2026-10-24, ruling 4, `docs/DECISIONS.md` "T41 cold-tester sessions deferred"; the protocol stays] T41 cold testers and the desktop core gate record (soft: Fri 30 - Sat 31 Oct; effort 0.5 day Wolf, plus owner hosting)
 
 - Card: `apps/vr/tasks/T41-cold-desktop-playtests.md`. Depends on: P2, P4, P6 (the card's status line). The protocol
   `docs/research/PLAYTEST-PROTOCOL.md` can be written on any host first.
@@ -333,7 +336,7 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
   the K3 table in `docs/research/KPI-2026-10-20.md`), each with its Wolf evidence or "not met". Row 15 is the owner's
   (felt). The gate date is soft; the record is what releases the device decision (section g).
 
-### P9. Device: V1 bring-up, V2 hands, V3 beta and RC (soft: V1 Sun 1 - Wed 4 Nov, V2 Thu 5 - Sun 8 Nov, V3 Mon 9 - Fri 13 Nov)
+### P9. [DEFERRED 2026-10-24, ruling 2, `docs/DECISIONS.md` "P5/P9 deferred"] Device: V1 bring-up, V2 hands, V3 beta and RC (soft: V1 Sun 1 - Wed 4 Nov, V2 Thu 5 - Sun 8 Nov, V3 Mon 9 - Fri 13 Nov)
 
 - Depends on: P5 (an APK with `MARKER_RESULT=PASS`) and **OWNER:** the device order (`docs/PROJECT-PLAN.md` section 12 Q2;
   R14) and the dashboard app with the "Competition" channel (R12). The plan's gates and owner hours are in
@@ -376,11 +379,16 @@ These do not get their own slot in the critical path - **they attach to the phas
 | **T47** split design gates | **new, between P2 (T39) and P3 (T37)**, 0.5-1 day | **Hard precondition: P2 must land in full first** - T39 and T47 both rewrite `SessionTests.cpp`, and some invariants only go green after T39. Running them concurrently needs a hand-merge. One assertion stays red until DF-010 is ruled (section g). **Done on Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, 69b349a / 086854e / f64c685** (precondition: P2 landed by owner ruling DF-011 2026-10-24): `Result: Succeeded`; `MageArena.Invariants` 5/5 (played sigil/bolt/blink/ward clips reach `kernel cast` / `kernel roll actor=` / the kernel ward; the no-sigil and no-bolt mutations turn them red); `MageArena.` 266/266 (Conformance 45/45); `MageArenaDesign.` 5/7, FireSeated (brennic-c15 reached the last phase, 1 of 2) and FullSeated (lost bout 3) red as DF-011's accepted reds, AirSeated green after its band left `bPass`; under `-MageArenaMeasureSelfTest` all 36 `MAGEVR_MEASURE` lines read OUTSIDE and the verdicts are identical. The day-length assertion left `bPass` per DF-010 E. |
 | **T44** threat-family hard-fail | **before P11's T33, or rebased onto it** | Both touch `KernelData*.cpp`. Its constraint is that the 45 vectors stay byte-identical, so `check-pin.mjs` is the detector. **Done on Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, before T33, `a982baf` ... `e81a946` (tested tree `e81a946`):** `Result: Succeeded`; `check-pin.mjs` `pin OK: 9 files @ baeac66` / `conformance OK: 45 vectors`, `apps/vr/data` untouched, no pinned cell rejected; `MageArena.` 289/289 (284 + UnknownFamilyFailsLoad, GarbageNumberFailsLoad, AbsorbRulesRejectBadNotAgainst, PinnedDataStillLoads, Threats.UnknownFamilyIsNotAbsorbable; red first, e.g. `Expected 'water blockable with a trailing space: the load fails' to be false.`; Conformance 45/45); `MageArenaDesign.` 5/7, only DF-011's FireSeated and FullSeated, MAGEVR_MEASURE lines identical. One `EThreatFamily` / `ParseFamily` / `ParseBlockable` in `KernelDataLoad.h`; `KindFromFamily` fails safe to Unblockable with a logged error; the notAgainst rule now lives once, in `FAbsorbRules::LoadFromText`. For T33: `FAbsorbResolver::Init` still reads the pinned absorb block itself. |
 | **T46** budget scene parity | **with P3 (T37) or straight after** | T37 is lever B; T46 is the **instrument** that measures it. Without T46, a lever-B pass can be declared green on a proxy scene that is not the shipping one - and `plausibilityOk` cannot fail today. **Run T46 before T49**: both edit `BudgetStressDriver.cpp`. Done on Wolf kaziho 2026-10-24 at `8591e6c`, straight after P3 (P3 line above). |
-| **T49** threat-colour single-source | **after T46, before P4 (T16)** | So the style-pick frames the owner judges use the corrected HP bar. Re-running `create-budget-fx.ps1 -Force` is one of its deliverables. |
+| **T49** threat-colour single-source | DEFERRED 2026-10-24, ruling 7 (colour sign-off waits until the visual direction settles). Original slot: **after T46, before P4 (T16)** | So the style-pick frames the owner judges use the corrected HP bar. Re-running `create-budget-fx.ps1 -Force` is one of its deliverables. |
 | **T45** capture evidence integrity | **before P4 (T16)**; its **audio half before P7 (T40)** | P4's checklist currently expects `capture-style-pick.ps1` to work as-is, and it does not: the driver writes no DONE/FAIL marker and the launcher substitutes the run's first frame for a missing one. The audio half gates T40's music evidence. **Done on Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, `9e42cbe` / `1612780` / `191cad0` / `f92230e` / `197412c`:** `Result: Succeeded`; `MageArena.` 272/272 with the six `MageArena.Capture.*` (FailsWithoutSession red first: `Expected 'fail markers logged by a driver with no session' to be 1, but it was 0.`); `MageArenaDesign.` 5/7, only DF-011's FireSeated and FullSeated; style-pick greybox launch `MAGEVR_CAPTURE_DONE shots=1870`, frames now show the synced duel (before: the empty arena); negative proofs `MAGEVR_CAPTURE_FAIL session did not start bout=99`, `MAGEVR_CAPTURE_FAIL short run seq=180 stage=active`, and the audio launcher fails a header-only and a 20.8 s WAV. Finding for P4: the event log for the same seed and script changed (`1572878c...` -> `7b0715c8...`; the old driver stepped the hands twice a frame) and is now identical across runs and styles. |
 | **T43** ward aim side-channel | **before P9 (V1 device bring-up)**, after P2/P3 | The desktop arc gate cannot fail today and the VR path never sets facing, so it must be real before hands reach a headset. Its head/seat facing is the transform MOONSHOT **M2** will own - if no usable facing exists yet, the card says stop and report rather than half-build M2. **Done on Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, `110f5f9` / `20fdeea` / `2324143`:** `Result: Succeeded`; `MageArena.Ward` 14/14 with ArcGateRejectsOffAxis, ArcGateAcceptsOnAxis and ReferenceFacingHasAProducer (red first on master's behaviour: `Expected 'raises from a palm aimed 40 deg off the seat facing' to be 0, but it was 1.`); `MageArena.` 284/284 (Conformance 45/45); `MageArenaDesign.` 5/7, only DF-011's FireSeated and FullSeated, MAGEVR_MEASURE lines identical. The reference is the head in the seat frame, written by the session (`ApplyWardReference`); SetThreatFacing deleted with ElevatedThreatFacing. For P9: on a headset the head source is still the control rotation until M2. |
 | **T50** seated-momentum guard | any time; **design half blocked** on the owner's Footing reading (section g) | Guard only. Harmless today because the player has no Air school. **Guard half done on Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709, `dc81bae` ... `bb53109` (tested tree `bb53109`):** `Result: Succeeded`; `check-pin.mjs` `pin OK: 9 files @ baeac66` / `conformance OK: 45 vectors`, pinned and conformance paths untouched; `MageArena.Air.` 16/16 and `MageArena.` 292/292 (289 + PlayerAirWithoutSeatedReadingFails, SeatedPlayerMomentumOnlyDecays, RivalMomentumUnchanged; Conformance 45/45, Overlay.Golden green); red first: `Expected 'a player-side actor with no declared reading is refused' to be false.`; `MageArenaDesign.` 5/7, only FireSeated and FullSeated, 36 MAGEVR_MEASURE lines identical to baseline (Duel.AirSeated lio-c15 lengthS=23.12 won=1.00 before and after). Option (b): `EAirSeatedReading` on `FAirState`, default `None`; `GrantAirSchool` is the one grant site. Design half (the reading) stays open. |
 | **T48** earth school | **not scheduled - see section f** | The card itself recommends cutting it past 18 Nov. |
+| **T55** no debug text in views | **before any further capture; Unreal lane** | Visual approvals 2026-10-24, answer 6: the overlay text must not appear in any captured or shipped view. In flight, Unreal lane dispatched at wake bb6753ed. |
+| **T56** dusk lighting | Unreal lane, after T55 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
+| **T57** crowd visibility | Unreal lane, after T56 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
+| **T58** spell VFX toward the key art | Unreal lane, after T57 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
+| **T59** player hand mesh | Unreal lane, after T58 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
 
 ## d. Gates before every merge on Wolf
 
@@ -428,7 +436,7 @@ gates green, `git fetch` and rebase (or merge) first, never force-push. GitHub i
 |---|---|---|---|---|
 | H1 | T38 rigged mesh (FBX or GLB) with four clips `Idle`, `Cast`, `Hit`, `Death`, plus a `SOURCE.md` draft (tool versions, prompts, seed, date) | Lynx: TRELLIS and Blender rigging (PoF 3D rounds); Claude + owner author | `C:\Users\kazda\kiro\mage-arena-archive\T38\Brennic\` on Lynx, outside git (T38 "Hand-off") | Copy to the same path on Wolf (shared drive or copy, operator's choice, not decided). Wolf runs the T38 checks, imports to `Content/Characters/Brennic/` and commits only the import (LFS) |
 | H2 | C1, the mudra seal shape | Claude + owner (on Lynx or anywhere) | a committed design doc (C1 states the path; roadmap lane B row 8) | `git pull`, then P7 T24. Its path is the first line of the T24 report |
-| H3 | **C2, story bible and slice script with the cue sheet - the critical path for the day's length. DRAFTED 2026-10-21** at `docs/campaign/05-c2-slice-story-bible-and-script.md`, with the authored data at `apps/vr/data/vr/story/slice.json`. DF-010 ruled E + B, so T27 and T28 are the only route to 7-10 min. **What Wolf still waits on is the owner's ruling of C2 decisions D1-D4, not the writing** - D4 (voice approval, recommended 14 cues) gates T27; D1-D3 gate both | Claude + owner | committed: the doc above plus `apps/vr/data/vr/story/slice.json` | `git pull`, then P7 T27 and T28 |
+| H3 | **RULED 2026-10-24 (ruling 5): D1-D4 approved as recommended, commit 19aa8ee; Wolf no longer waits on the owner for C2 (D4 audio production stays deferred, ruling 6).** **C2, story bible and slice script with the cue sheet - the critical path for the day's length. DRAFTED 2026-10-21** at `docs/campaign/05-c2-slice-story-bible-and-script.md`, with the authored data at `apps/vr/data/vr/story/slice.json`. DF-010 ruled E + B, so T27 and T28 are the only route to 7-10 min. **What Wolf still waits on is the owner's ruling of C2 decisions D1-D4, not the writing** - D4 (voice approval, recommended 14 cues) gates T27; D1-D3 gate both | Claude + owner | committed: the doc above plus `apps/vr/data/vr/story/slice.json` | `git pull`, then P7 T27 and T28 |
 | H4 | Two music loops and their `SOURCE.md` | the owner, or the App Master on the owner's go (ElevenLabs, count 2) | `apps/vr/art/audio/music/` (LFS) | `git pull`, `git lfs pull`, then P7 T40 |
 | H5 | Voice WAVs, `manifest.json`, `SOURCE.md` | the owner or the App Master after the owner's go | `apps/vr/art/audio/voice/` (LFS) | `git pull`, `git lfs pull`, then P7 T27 |
 | H6 | Card amendments, new cards, DECISIONS entries, Node tooling | Lynx (App Master) | `apps/vr/tasks/`, `docs/`, `apps/vr/tools/*.mjs` | `git pull` before each phase; re-read the card and DECISIONS |
