@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "Greybox/ArenaLayout.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
 #include "Hands/MageArenaPawn.h"
@@ -68,6 +69,18 @@ void UStylePickCaptureDriver::Start()
 	{
 		Fail(TEXT("no rhi"));
 		return;
+	}
+	if (StyleId != TEXT("greybox"))
+	{
+		// A style whose file is missing or names no arena colour would record the greybox under the style's name.
+		FArenaLayout Styled;
+		FString Error;
+		if (!Styled.LoadFromFile(FArenaLayout::DefaultFilePath(), Error) || Styled.StyleColours == 0)
+		{
+			Fail(FString::Printf(TEXT("style %s applied no arena colours (%s)"), *StyleId, *FArenaLayout::StyleFilePathFromCommandLine()));
+			return;
+		}
+		Evidence.Note(TEXT("styleColours"), FString::FromInt(Styled.StyleColours));
 	}
 	if (!FApp::UseFixedTimeStep() || !FMath::IsNearlyEqual(FApp::GetFixedDeltaTime(), 1.0 / 60.0, 1.0e-6))
 	{
