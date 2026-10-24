@@ -998,8 +998,8 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	// full Flow), so older overlay files still load. A wrong type or range fails the load.
 	double LatchClearIdleS = -1.0;
 	bool bBoltAtFullFlow = false;
-	if (!ReadOptionalStrictNumber(*Split, TEXT("latchClearIdleS"), LatchClearIdleS, Error, 0.0, 5.0)
-		|| !ReadOptionalStrictBool(*Split, TEXT("boltAtFullFlow"), bBoltAtFullFlow, Error))
+	bool bRearmOnClear = false;
+	if (!ReadOptionalStrictNumber(*Split, TEXT("latchClearIdleS"), LatchClearIdleS, Error, 0.0, 5.0) || !ReadOptionalStrictBool(*Split, TEXT("boltAtFullFlow"), bBoltAtFullFlow, Error) || !ReadOptionalStrictBool(*Split, TEXT("rearmOnClear"), bRearmOnClear, Error))
 	{
 		return false;
 	}
@@ -1008,6 +1008,7 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.Split.MaxTier = static_cast<int32>(TierRounded);
 	Out.Split.LatchClearIdleS = LatchClearIdleS;
 	Out.Split.bBoltAtFullFlow = bBoltAtFullFlow;
+	Out.Split.bRearmOnClear = bRearmOnClear;
 	Out.Staff.bEnabled = true;
 	Out.Staff.DurationS = DurationS;
 	Out.Staff.ManaUpFront = ManaUpFront;

@@ -100,7 +100,9 @@
     "_maxTier": "Proposal. Tier III and IV lines, and a Crest, are refused while the ward is held and the staff is not planted. Bolt is tier 0 and stays legal. Both hands free, or the staff planted, lifts the gate.",
     "latchClearIdleS": 0.3,
     "boltAtFullFlow": true,
+    "rearmOnClear": true,
     "_latchClearIdleS": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'the perfect latch clears after the casting hand is idle about 0.3 s'. The kernel rounds up to whole ticks: 0.3 s at 60 Hz is 18. A ward drop still clears the latch at once. Absent means the latch holds until the ward drops.",
+    "_rearmOnClear": "T39 DF-005 option A, owner ruling 2026-10-20 (docs/DECISIONS.md, adopt each DF recommendation): when the latch clears on an idle casting hand, the held ward counts as freshly raised, so it can perfect for one combat.json absorb.perfect.windowS. Without it the clear (18 ticks after the last cast) always falls outside the 9-tick window and brings no perfect back (DF-005). The 18-tick wait bounds the cast and re-arm rhythm. Absent or false keeps the old rule.",
     "_boltAtFullFlow": "Why: docs/DECISIONS.md 2026-10-07 'v2 vision accepted', split hands: 'a split Bolt at Flow 5 is allowed and does not spend the Crest'. The Bolt resolves at oneHandPower and leaves Flow and Crests as they are. Every other split cast at full Flow is still refused for crest. Absent or false keeps the refusal."
   },
 

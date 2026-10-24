@@ -565,6 +565,63 @@ bool FMageArenaDefencesSplitLatchClearsOnIdle::RunTest(const FString& Parameters
 	return bPass;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitLatchClearRearms, "MageArena.Defences.SplitLatchClearRearms",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaDefencesSplitLatchClearRearms::RunTest(const FString& Parameters)
+{
+	if (!Ready(*this))
+	{
+		return false;
+	}
+	// T39 DF-005 A, combat.vr.json splitHands.rearmOnClear true. The split Bolt is cast on tick 1 and the hand idles from tick 2,
+	// so the 18-tick latch clears on tick 19. A hit on tick 23 is 4 ticks later, inside combat.json absorb.perfect.windowS
+	// 0.15 (9 ticks); the ward was raised on tick 1, 22 ticks before. No fresh tick is forced here (HoldThenHit forces one).
+	const auto HitOnTick23 = [](FDuel& Duel)
+	{
+		while (Duel.State.Tick < 22)
+		{
+			FInputFrame Held = AimAt(Duel);
+			Held.bAbsorb = true;
+			StepPlayer(Duel, Held, &Duel.Rules);
+		}
+		SpawnIncoming(Duel.State, Duel.Foe, FSimVec{10.55, 10.0}, FSimVec{-1.0, 0.0}, 20.0, TEXT("magic"));
+		FInputFrame Held = AimAt(Duel);
+		Held.bAbsorb = true;
+		StepPlayer(Duel, Held, &Duel.Rules);
+	};
+	bool bPass = true;
+	{
+		FDuel Duel;
+		if (!OpenSplitBolt(*this, Duel))
+		{
+			return false;
+		}
+		bPass &= TestTrue(TEXT("rearmOnClear is live"), Duel.Rules.Split.bRearmOnClear);
+		HitOnTick23(Duel);
+		bPass &= TestEqual(TEXT("re-arm: hit tick"), Duel.State.Tick, 23);
+		bPass &= TestFalse(TEXT("re-arm: latch cleared"), Duel.Rules.IsSplitCasting(Duel.Player));
+		bPass &= TestEqual(TEXT("re-arm: the clear marked the ward fresh on tick 19"), PlayerOf(Duel).AbsorbFreshTick, 19);
+		bPass &= TestEqual(TEXT("re-arm: one perfect"), PlayerOf(Duel).Metrics.Perfects, 1);
+		bPass &= Near(*this, TEXT("re-arm: perfect takes nothing"), PlayerOf(Duel).Metrics.DamageTaken, 0.0);
+	}
+	{
+		// The rule before DF-005: the clear leaves the raise tick alone, so the same hit is only warded.
+		FDuel Duel;
+		if (!OpenSplitBolt(*this, Duel))
+		{
+			return false;
+		}
+		Duel.Rules.Split.bRearmOnClear = false;
+		HitOnTick23(Duel);
+		bPass &= TestFalse(TEXT("no re-arm: latch cleared"), Duel.Rules.IsSplitCasting(Duel.Player));
+		bPass &= TestEqual(TEXT("no re-arm: no perfect"), PlayerOf(Duel).Metrics.Perfects, 0);
+		// combat.json absorb.reduction.magic 0.85: 20 * 0.15 = 3.
+		bPass &= Near(*this, TEXT("no re-arm: warded hit is 3"), PlayerOf(Duel).Metrics.DamageTaken, 3.0);
+	}
+	return bPass;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaDefencesSplitLatchStillOnWhileCasting, "MageArena.Defences.SplitLatchStillOnWhileCasting",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 

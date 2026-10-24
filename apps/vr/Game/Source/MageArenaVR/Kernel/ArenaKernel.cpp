@@ -503,7 +503,7 @@ void StepArena(FArenaState& State, const TMap<int32, FInputFrame>& Inputs, FVrRu
 		}
 		if (Rules)
 		{
-			Rules->TickSplitLatch(Actor);
+			Rules->TickSplitLatch(Actor, State.Tick);
 		}
 		if (Rules)
 		{

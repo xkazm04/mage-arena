@@ -53,6 +53,8 @@ struct FVrSplitHands
 	double LatchClearIdleS = -1.0;
 	// DECISIONS 2026-10-07 (split hands). False: every split cast at full Flow is refused for "crest".
 	bool bBoltAtFullFlow = false;
+	// T39 DF-005 A. True: an idle clear of the latch marks the held ward fresh for one perfect window.
+	bool bRearmOnClear = false;
 };
 
 struct FVrPlantedStaff
@@ -251,7 +253,8 @@ struct FVrRuleset
 	// Ticks of casting-hand idle that clear the latch. -1 when the latch only clears on a ward drop.
 	int32 SplitLatchIdleTicks() const;
 	// Once per actor tick, after the ward update. Counts idle ticks and clears the latch at SplitLatchIdleTicks.
-	void TickSplitLatch(const FActor& Actor);
+	// T39 DF-005 A: with Split.bRearmOnClear, the clear marks the held ward fresh on Tick, so it can perfect again.
+	void TickSplitLatch(FActor& Actor, int32 Tick);
 	// Null when a split cast of Spell is legal now, else the refusal reason ("tier" or "crest").
 	// The kernel and the session both ask this, so they cannot disagree.
 	const TCHAR* SplitRefusal(const FActor& Actor, const FSpell& Spell) const;

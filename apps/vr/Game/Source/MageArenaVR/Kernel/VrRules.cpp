@@ -466,7 +466,7 @@ int32 FVrRuleset::SplitLatchIdleTicks() const
 	return std::max(1, SimTicks(Split.LatchClearIdleS));
 }
 
-void FVrRuleset::TickSplitLatch(const FActor& Actor)
+void FVrRuleset::TickSplitLatch(FActor& Actor, int32 Tick)
 {
 	const int32 Threshold = SplitLatchIdleTicks();
 	if (Threshold < 0 || !IsSplitCasting(Actor.Id))
@@ -485,6 +485,11 @@ void FVrRuleset::TickSplitLatch(const FActor& Actor)
 	{
 		SetSplitCasting(Actor.Id, false);
 		UE_LOG(LogMageArena, Log, TEXT("defence split latch clear idle actor=%d ticks=%d"), Actor.Id, Threshold);
+		if (Split.bRearmOnClear && Actor.bAbsorb)
+		{
+			// DF-005 A: the ward counts as raised now, for one perfect window.
+			Actor.AbsorbFreshTick = Tick;
+		}
 	}
 }
 
