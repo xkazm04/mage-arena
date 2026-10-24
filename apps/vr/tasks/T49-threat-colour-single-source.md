@@ -255,6 +255,24 @@ capture-driver change I later reverted (below). It does not touch any drawn colo
 
 Pixels sampled on the bar over Lio: before (43, 43, 43); after (97, 59, 89). Both are the **back** colour (see the first finding).
 
+**Update 2026-10-24 (the fill-fix branch).** The frames above are **lost**. `runs/T49/shots/` lived in the T49 worktree,
+and the settle removed that worktree. The fill-visibility fix (finding 1 below) has landed on the fill-fix branch, at
+`c84a5fe` (fix) and `ae237c8` (test `MageArena.Presentation.HpBarFillProud`, red on the old sizing, green on the fix).
+The enemy HP fill is now 1 cm thicker than the back, so it shows. The frames were re-captured on `ae237c8` with
+`capture-air.ps1` unmodified (`-Run T49-hpfill`). Same log line as above, then `MAGEVR_CAPTURE_DONE shots=5`. They are
+kept outside every repo, in `C:/Users/kazda/.personas/standup/2026-10-24/T49-shots/`:
+
+| File | What |
+|---|---|
+| `after-ae237c8-05-tempest-lance-line.png` | the owner frame: Lio with the HP bar, the fill now visible, and the Tempest Lance line (black core, red rim) |
+| `after-ae237c8-01-lio-on-the-floor.png` ... `after-ae237c8-04-air-form.png` | the other four T23 stills from the same run |
+
+"Before" is the pre-T49 look recorded above, with no new frame: the sampled bar pixel was the back colour (43, 43, 43).
+Pixels on the bar over Lio in `after-ae237c8-05`: fill (230, 65, 201) at (950, 126), which is sRGB of the magenta fill
+(0.80, 0.05, 0.60) = (231, 63, 203). Back (99, 65, 94) at (1003, 124) and (89, 56, 81) at (1002, 128), on the bar's
+right end cap. Lio is at full HP, so the fill wraps the whole back length and the back shows only there. Plum (0.12,
+0.04, 0.10) encodes to (97, 56, 89). The colours are **not certified**: that is the owner's, and it stays pending.
+
 ### What I could not do, and decisions the card did not specify
 
 1. **Finding (pre-existing, outside this card's paths): the enemy HP fill is never visible.** `SessionPresentation.cpp`
