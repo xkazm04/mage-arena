@@ -9,7 +9,9 @@
 #include "Hands/HandClip.h"
 #include "Hands/HandClipPlayer.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/MageArenaPawn.h"
 #include "Hands/MageArenaPlayerController.h"
+#include "Hands/MageSettings.h"
 #include "HeadMountedDisplayTypes.h"
 #include "InputCoreTypes.h"
 #include "MageArenaVR.h"
@@ -44,6 +46,9 @@ struct FWardReport
 	int32 Already = -1;
 	int32 Resume = -1;
 	int32 Chord = -1;
+	int32 ArcRejects = -1;
+	int32 ArcAccepts = -1;
+	int32 Producer = -1;
 	double RapidGapS = -1.0;
 	double RapidOnsetS = -1.0;
 	double RapidLoweredS = -1.0;
@@ -118,6 +123,18 @@ struct FWardReport
 		else if (Label == TEXT("MageArena.Ward.HoldChord"))
 		{
 			Chord = Value;
+		}
+		else if (Label == TEXT("MageArena.Ward.ArcGateRejectsOffAxis"))
+		{
+			ArcRejects = Value;
+		}
+		else if (Label == TEXT("MageArena.Ward.ArcGateAcceptsOnAxis"))
+		{
+			ArcAccepts = Value;
+		}
+		else if (Label == TEXT("MageArena.Ward.ReferenceFacingHasAProducer"))
+		{
+			Producer = Value;
 		}
 	}
 
@@ -250,7 +267,10 @@ struct FWardReport
 		Json += FString::Printf(TEXT("    \"MageArena.Ward.SettleOnset\": %s,\n"), *Tri(Settle));
 		Json += FString::Printf(TEXT("    \"MageArena.Ward.AlreadyRaised\": %s,\n"), *Tri(Already));
 		Json += FString::Printf(TEXT("    \"MageArena.Ward.ResumeAfterRelease\": %s,\n"), *Tri(Resume));
-		Json += FString::Printf(TEXT("    \"MageArena.Ward.HoldChord\": %s\n"), *Tri(Chord));
+		Json += FString::Printf(TEXT("    \"MageArena.Ward.HoldChord\": %s,\n"), *Tri(Chord));
+		Json += FString::Printf(TEXT("    \"MageArena.Ward.ArcGateRejectsOffAxis\": %s,\n"), *Tri(ArcRejects));
+		Json += FString::Printf(TEXT("    \"MageArena.Ward.ArcGateAcceptsOnAxis\": %s,\n"), *Tri(ArcAccepts));
+		Json += FString::Printf(TEXT("    \"MageArena.Ward.ReferenceFacingHasAProducer\": %s\n"), *Tri(Producer));
 		Json += TEXT("  },\n");
 		if (!bHasFresh)
 		{
@@ -506,27 +526,72 @@ bool PreludeLapTwitch(FAutomationTestBase& Test, FWardDetector& Detector, const 
 	return Out.bOk;
 }
 
-FHandFrame PalmUpFrame(double Time, double HeightM)
+/** T43: the controller's ward aim, through the same seam AimWard uses. */
+void AimWardThroughPipeline(FWardRig& Rig, const FVector& SeatAim)
 {
-	FHandFrame Frame;
-	Frame.TimeSeconds = Time;
-	Frame.Hand = EControllerHand::Left;
-	Frame.Confidence = 1.0f;
-	Frame.Joints.SetNum(MageHandJointCount);
-	const double Z = HeightM * MageClipMetresToCentimetres;
-	const FVector Palm(22.0, -20.0, Z);
-	for (FHandJointPose& Joint : Frame.Joints)
+	ApplyWardAim(Rig.Hands, SeatAim);
+}
+
+struct FArcRun
+{
+	int32 Raises = -1;
+	double HeldAngleDeg = -1.0;
+	bool bRaisedAtEnd = false;
+};
+
+/**
+ * T43: hold the ward with the clip turned AimYawDeg in the seat frame, as Space or the right button does, and stream
+ * it past the plateau. The authored hold palm faces +X, so the held palm sits AimYawDeg off the seat facing.
+ */
+FArcRun RunArc(FAutomationTestBase& Test, double AimYawDeg, const FVector* HeadSeatFacing = nullptr)
+{
+	FArcRun Run;
+	FWardRig Rig;
+	if (!Rig.Start(Test))
 	{
-		Joint.Location = Palm;
+		return Run;
 	}
-	const int32 Wrist = static_cast<int32>(EHandKeypoint::Wrist);
-	const int32 Index = static_cast<int32>(EHandKeypoint::IndexMetacarpal);
-	const int32 Little = static_cast<int32>(EHandKeypoint::LittleMetacarpal);
-	Frame.Joints[Wrist].Location = FVector(16.0, -20.0, Z);
-	Frame.Joints[Index].Location = FVector(22.0, -24.0, Z);
-	Frame.Joints[Little].Location = FVector(22.0, -16.0, Z);
-	Frame.Joints[static_cast<int32>(EHandKeypoint::Palm)].Location = Palm;
-	return Frame;
+	int32 Raises = 0;
+	Rig.Wards->OnWardRaised.AddLambda([&Raises](double, FVector)
+	{
+		++Raises;
+	});
+	if (HeadSeatFacing)
+	{
+		// Stands in for the session's per-tick write (UArenaSessionSubsystem::ApplyWardReference), which needs a world.
+		Rig.Wards->SetReferenceFacing(*HeadSeatFacing);
+	}
+	const double Yaw = FMath::DegreesToRadians(AimYawDeg);
+	const FVector Aim(FMath::Cos(Yaw), FMath::Sin(Yaw), 0.0);
+	AimWardThroughPipeline(Rig, Aim);
+	Rig.Hands->SetWardHeld(true, EClipVariant::Normal);
+	UHandClipPlayer* Player = Rig.Hands->GetClipPlayer();
+	if (!Player || !Player->IsPlaying())
+	{
+		Test.AddError(TEXT("the ward hold did not start ward-raise"));
+		Rig.Finish();
+		return Run;
+	}
+	const double Frame = Player->GetClip().Hz > 0.0 ? 1.0 / Player->GetClip().Hz : 1.0 / 72.0;
+	const double Until = Player->GetDuration() + 0.25;
+	int32 Guard = 0;
+	while (Player->GetTime() <= Until && Guard < 500)
+	{
+		// PlayerTick re-aims on every held tick.
+		AimWardThroughPipeline(Rig, Aim);
+		Rig.Hands->Step(Frame);
+		++Guard;
+	}
+	FHandFrame Latest;
+	if (Rig.Hands->GetLatest(FMageSettings::WardHand(), Latest))
+	{
+		Run.HeldAngleDeg = FWardDetector::AngleToFacingDeg(FWardDetector::PalmNormal(Latest), FVector::ForwardVector);
+	}
+	Run.Raises = Raises;
+	Run.bRaisedAtEnd = Rig.Wards->GetState().bRaised;
+	Rig.Hands->SetWardHeld(false, EClipVariant::Normal);
+	Rig.Finish();
+	return Run;
 }
 }
 
@@ -2017,60 +2082,140 @@ bool FMageArenaWardFirstFidget::RunTest(const FString& Parameters)
 	return bPass;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardElevatedFacing, "MageArena.Ward.ElevatedThreatFacing",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardArcRejects, "MageArena.Ward.ArcGateRejectsOffAxis",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
-bool FMageArenaWardElevatedFacing::RunTest(const FString& Parameters)
+bool FMageArenaWardArcRejects::RunTest(const FString& Parameters)
 {
-	bool bPass = false;
-	FWardReport::FPublish Publish(TEXT("MageArena.Ward.ElevatedThreatFacing"), bPass);
-	FString Error;
-	FWardDetector Detector;
-	if (!Detector.Init(Error))
+	bool bPass = true;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.ArcGateRejectsOffAxis"), bPass);
+	// T43: the aim turns the hand, not the reference. With the head at rest and no threat, a palm held outside the
+	// 35 deg arc of the seat facing must not raise, however the desktop aimed it.
+	for (const double AimDeg : {40.0, 60.0, 90.0})
 	{
-		AddError(Error);
-		return false;
+		const FArcRun Run = RunArc(*this, AimDeg);
+		bPass &= TestTrue(*FString::Printf(TEXT("the held palm at aim %.0f deg is %.1f deg off the seat facing"), AimDeg, Run.HeldAngleDeg),
+		    Run.HeldAngleDeg > FWardThresholds::RaiseAngleDeg);
+		bPass &= TestEqual(*FString::Printf(TEXT("raises from a palm aimed %.0f deg off the seat facing"), AimDeg), Run.Raises, 0);
+		UE_LOG(LogMageArena, Log, TEXT("Ward arc reject aim=%.1f held=%.2f raises=%d end=%d"), AimDeg, Run.HeldAngleDeg, Run.Raises,
+		    Run.bRaisedAtEnd ? 1 : 0);
 	}
-	const FVector Threat(0.3, 0.4, 1.0);
-	Detector.SetThreatFacing(Threat, true);
-	const FHandFrame PalmUp = PalmUpFrame(0.0, 0.30);
-	const FVector Normal = FWardDetector::PalmNormal(PalmUp);
-	const double Angle = FWardDetector::AngleToFacingDeg(Normal, Threat.GetSafeNormal());
-	const double Height = FWardDetector::PalmHeightMetres(PalmUp);
-	bPass = TestTrue(*FString::Printf(TEXT("palm-up normal is vertical (%.3f, %.3f, %.3f)"), Normal.X, Normal.Y, Normal.Z),
-		FVector(Normal.X, Normal.Y, 0.0).IsNearlyZero(1.0e-3) && Normal.Z > 0.9);
-	bPass &= TestTrue(*FString::Printf(TEXT("palm-up faces the elevated threat (%.1f deg, height %.2f)"), Angle, Height),
-		Angle <= FWardThresholds::RaiseAngleDeg && Height >= FWardThresholds::RaiseHeightM);
-	if (!bPass)
+	// The authored rise turns the left palm from about +80 deg yaw down to 0, so a clip turned left sweeps across the
+	// seat forward on the way up and may raise there, as a real hand doing that would. Held beyond the 50 deg lower
+	// angle it must not keep the ward.
+	for (const double AimDeg : {-60.0, -90.0})
 	{
-		return false;
+		const FArcRun Run = RunArc(*this, AimDeg);
+		bPass &= TestTrue(*FString::Printf(TEXT("the held palm at aim %.0f deg is %.1f deg off the seat facing"), AimDeg, Run.HeldAngleDeg),
+		    Run.HeldAngleDeg > FWardThresholds::LowerAngleDeg);
+		bPass &= TestFalse(*FString::Printf(TEXT("a palm held %.0f deg off the seat facing keeps the ward up"), AimDeg), Run.bRaisedAtEnd);
+		UE_LOG(LogMageArena, Log, TEXT("Ward arc reject aim=%.1f held=%.2f raises=%d end=%d"), AimDeg, Run.HeldAngleDeg, Run.Raises,
+		    Run.bRaisedAtEnd ? 1 : 0);
 	}
+	return bPass;
+}
 
-	const double Dt = 1.0 / 72.0;
-	Detector.Ingest(PalmUp);
-	FHandFrame Next = PalmUp;
-	Next.TimeSeconds = Dt;
-	Detector.Ingest(Next);
-	const FVector Flat(Threat.X, Threat.Y, 0.0);
-	const FVector FlatNormal = Flat.GetSafeNormal();
-	const FVector Facing = Detector.GetLastRaise().Facing;
-	bPass &= TestTrue(TEXT("elevated threat raised the palm-up ward"), Detector.GetState().bRaised);
-	bPass &= TestTrue(*FString::Printf(TEXT("facing (%.3f, %.3f, %.3f) is flat"), Facing.X, Facing.Y, Facing.Z),
-		FMath::Abs(Facing.Z) <= 1.0e-4);
-	bPass &= TestTrue(*FString::Printf(TEXT("facing matches the threat yaw (%.3f, %.3f)"), FlatNormal.X, FlatNormal.Y),
-		Facing.Equals(FlatNormal, 1.0e-3));
-	bPass &= TestTrue(TEXT("held palm-up keeps the flat facing"), Detector.GetState().Facing.Equals(FlatNormal, 1.0e-3));
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardArcAccepts, "MageArena.Ward.ArcGateAcceptsOnAxis",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
-	Detector.ResetStream();
-	Detector.SetThreatFacing(FVector(0.0, 0.0, 1.0), true);
-	Detector.Ingest(PalmUpFrame(0.0, 0.30));
-	const FVector StraightUp = Detector.GetLastRaise().Facing;
-	bPass &= TestTrue(TEXT("a vertical threat still raises palm-up"), Detector.GetState().bRaised);
-	bPass &= TestTrue(*FString::Printf(TEXT("a vertical threat flattens to +X, got (%.3f, %.3f, %.3f)"), StraightUp.X, StraightUp.Y, StraightUp.Z),
-		StraightUp.Equals(FVector::ForwardVector, 1.0e-3));
-	UE_LOG(LogMageArena, Log, TEXT("Ward elevated facing (%.3f, %.3f, %.3f) vertical (%.3f, %.3f, %.3f)"),
-		Facing.X, Facing.Y, Facing.Z, StraightUp.X, StraightUp.Y, StraightUp.Z);
-	AddInfo(FString::Printf(TEXT("elevated facing (%.3f, %.3f, %.3f)"), Facing.X, Facing.Y, Facing.Z));
+bool FMageArenaWardArcAccepts::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.ArcGateAcceptsOnAxis"), bPass);
+	// The other side of the gate: a palm inside the arc still raises once, so the fix did not just close it.
+	for (const double AimDeg : {0.0, 30.0, -30.0})
+	{
+		const FArcRun Run = RunArc(*this, AimDeg);
+		bPass &= TestTrue(*FString::Printf(TEXT("the held palm at aim %.0f deg is %.1f deg off the seat facing"), AimDeg, Run.HeldAngleDeg),
+		    Run.HeldAngleDeg >= 0.0 && Run.HeldAngleDeg <= FWardThresholds::RaiseAngleDeg);
+		bPass &= TestEqual(*FString::Printf(TEXT("raises from a palm aimed %.0f deg off the seat facing"), AimDeg), Run.Raises, 1);
+		bPass &= TestTrue(*FString::Printf(TEXT("a palm held %.0f deg off the seat facing keeps the ward up"), AimDeg), Run.bRaisedAtEnd);
+		UE_LOG(LogMageArena, Log, TEXT("Ward arc accept aim=%.1f held=%.2f raises=%d"), AimDeg, Run.HeldAngleDeg, Run.Raises);
+	}
+	return bPass;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaWardReferenceProducer, "MageArena.Ward.ReferenceFacingHasAProducer",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaWardReferenceProducer::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	FWardReport::FPublish Publish(TEXT("MageArena.Ward.ReferenceFacingHasAProducer"), bPass);
+	// T43: the reference setter must keep a production caller, and the input layer must not be it. Count call sites in
+	// the module source outside Tests/ and outside the detector that declares and forwards the setter.
+	const FString Root = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::GameSourceDir(), TEXT("MageArenaVR")));
+	TArray<FString> Files;
+	IFileManager::Get().FindFilesRecursive(Files, *Root, TEXT("*.cpp"), true, false);
+	TArray<FString> Headers;
+	IFileManager::Get().FindFilesRecursive(Headers, *Root, TEXT("*.h"), true, false);
+	Files.Append(Headers);
+	auto Count = [](const FString& Text, const TCHAR* Needle)
+	{
+		int32 Found = 0;
+		for (int32 At = Text.Find(Needle); At != INDEX_NONE; At = Text.Find(Needle, ESearchCase::CaseSensitive, ESearchDir::FromStart, At + 1))
+		{
+			++Found;
+		}
+		return Found;
+	};
+	int32 Producers = 0;
+	int32 InputLayer = 0;
+	int32 Removed = 0;
+	FString Sites;
+	for (const FString& File : Files)
+	{
+		FString Rel = File;
+		FPaths::MakePathRelativeTo(Rel, *(Root + TEXT("/")));
+		Rel.ReplaceInline(TEXT("\\"), TEXT("/"));
+		if (Rel.StartsWith(TEXT("Tests/")) || Rel.StartsWith(TEXT("Gestures/WardDetector.")))
+		{
+			continue;
+		}
+		FString Text;
+		if (!FFileHelper::LoadFileToString(Text, *File))
+		{
+			continue;
+		}
+		const int32 Calls = Count(Text, TEXT("SetReferenceFacing("));
+		Producers += Calls;
+		if (Rel.StartsWith(TEXT("Hands/")))
+		{
+			InputLayer += Calls;
+		}
+		Removed += Count(Text, TEXT("SetAimFacing(")) + Count(Text, TEXT("SetThreatFacing("));
+		if (Calls > 0)
+		{
+			Sites += FString::Printf(TEXT(" %s x%d"), *Rel, Calls);
+		}
+	}
+	bPass &= TestTrue(*FString::Printf(TEXT("scanned the module source under %s (%d files)"), *Root, Files.Num()), Files.Num() > 50);
+	bPass &= TestTrue(*FString::Printf(TEXT("SetReferenceFacing has a production caller outside Tests/ (%d:%s)"), Producers, *Sites), Producers >= 1);
+	bPass &= TestEqual(TEXT("SetReferenceFacing callers in Hands/, the input layer that turns the clip"), InputLayer, 0);
+	bPass &= TestEqual(TEXT("SetAimFacing / SetThreatFacing callers outside Tests/"), Removed, 0);
+
+	// The transform the producer uses: a world view in the seat frame. On the right pad (seat yaw 14.4 deg) a view along
+	// the seat is +X, and a view 60 deg to the side of it is 60 deg in the seat frame.
+	const float SeatYaw = 14.4f;
+	const FVector Along = AMageArenaPawn::ToSeatFrame(FRotator(-20.0, SeatYaw, 0.0).Vector(), SeatYaw);
+	bPass &= TestTrue(*FString::Printf(TEXT("a pitched view along the seat is +X, got (%.3f, %.3f, %.3f)"), Along.X, Along.Y, Along.Z),
+	    Along.Equals(FVector::ForwardVector, 1.0e-4));
+	const FVector Side = AMageArenaPawn::ToSeatFrame(FRotator(0.0, SeatYaw + 60.0, 0.0).Vector(), SeatYaw);
+	const double SideDeg = FMath::RadiansToDegrees(FMath::Atan2(Side.Y, Side.X));
+	bPass &= TestTrue(*FString::Printf(TEXT("a view 60 deg off the seat is %.2f deg in the seat frame"), SideDeg), FMath::IsNearlyEqual(SideDeg, 60.0, 1.0e-3));
+	bPass &= TestTrue(TEXT("a vertical view falls back to the seat forward"),
+	    AMageArenaPawn::ToSeatFrame(FVector::UpVector, SeatYaw).Equals(FVector::ForwardVector, 1.0e-6));
+
+	// The reference follows the head, not a fixed +X: with the head turned 60 deg left, the palm aimed with it raises,
+	// and a palm left on the seat forward is now the off-axis one (60 deg to the right of the head, away from the sweep).
+	const FVector HeadLeft = AMageArenaPawn::ToSeatFrame(FRotator(0.0, SeatYaw - 60.0, 0.0).Vector(), SeatYaw);
+	const FArcRun WithHead = RunArc(*this, -60.0, &HeadLeft);
+	bPass &= TestEqual(TEXT("raises from a palm aimed with a head turned 60 deg left"), WithHead.Raises, 1);
+	bPass &= TestTrue(TEXT("the palm aimed with the head keeps the ward up"), WithHead.bRaisedAtEnd);
+	const FArcRun AgainstHead = RunArc(*this, 0.0, &HeadLeft);
+	bPass &= TestEqual(TEXT("raises from a palm on the seat forward while the head is turned 60 deg left"), AgainstHead.Raises, 0);
+	UE_LOG(LogMageArena, Log, TEXT("Ward reference producers=%d inputLayer=%d removed=%d sites:%s"), Producers, InputLayer, Removed, *Sites);
+	AddInfo(FString::Printf(TEXT("reference producers %d:%s"), Producers, *Sites));
 	return bPass;
 }
 

@@ -9,11 +9,12 @@ namespace
 {
 FVector FlatFacing(const FVector& Facing)
 {
-	if (Facing.IsNearlyZero())
+	const FVector Flat(Facing.X, Facing.Y, 0.0);
+	if (Flat.IsNearlyZero())
 	{
 		return FVector::ForwardVector;
 	}
-	return Facing.GetSafeNormal();
+	return Flat.GetSafeNormal();
 }
 }
 
@@ -96,20 +97,9 @@ void FWardDetector::ResetStream()
 	LapBoundTime = -1.0e9;
 }
 
-void FWardDetector::SetAimFacing(const FVector& Facing)
+void FWardDetector::SetReferenceFacing(const FVector& SeatFacing)
 {
-	AimFacing = FlatFacing(Facing);
-}
-
-void FWardDetector::SetThreatFacing(const FVector& Facing, bool bTargeted)
-{
-	bThreatTargeted = bTargeted && !Facing.IsNearlyZero();
-	ThreatFacing = bThreatTargeted ? Facing.GetSafeNormal() : FVector::ForwardVector;
-}
-
-FVector FWardDetector::ReferenceFacing() const
-{
-	return bThreatTargeted ? ThreatFacing : AimFacing;
+	Reference = FlatFacing(SeatFacing);
 }
 
 FVector FWardDetector::PalmFacing(const FVector& Normal) const
@@ -117,14 +107,8 @@ FVector FWardDetector::PalmFacing(const FVector& Normal) const
 	FVector Facing(Normal.X, Normal.Y, 0.0);
 	if (Facing.IsNearlyZero())
 	{
-		// A palm that is straight up has no yaw. Fall back to the aim, but an elevated
-		// threat must not leak its vertical component into the ward arc.
-		const FVector Reference = ReferenceFacing();
-		Facing = FVector(Reference.X, Reference.Y, 0.0);
-		if (Facing.IsNearlyZero())
-		{
-			Facing = FVector::ForwardVector;
-		}
+		// A palm that is straight up has no yaw. Fall back to the reference, which is already flat.
+		Facing = Reference;
 	}
 	return Facing.GetSafeNormal();
 }
@@ -231,7 +215,7 @@ void FWardDetector::Ingest(const FHandFrame& Frame)
 
 	const FVector Normal = PalmNormal(Frame);
 	const double HeightM = PalmHeightMetres(Frame);
-	const double AngleDeg = AngleToFacingDeg(Normal, ReferenceFacing());
+	const double AngleDeg = AngleToFacingDeg(Normal, Reference);
 	const FVector PalmCm = Frame.Joints[Palm].Location;
 
 	// A held sample keeps the last measured speed, so neither onset walk stops on a re-sent pose (F7(b)).
@@ -370,14 +354,9 @@ void UWardDetectorSubsystem::BindToHands(UHandInputSubsystem* Hands)
 	}
 }
 
-void UWardDetectorSubsystem::SetAimFacing(const FVector& Facing)
+void UWardDetectorSubsystem::SetReferenceFacing(const FVector& SeatFacing)
 {
-	Detector.SetAimFacing(Facing);
-}
-
-void UWardDetectorSubsystem::SetThreatFacing(const FVector& Facing, bool bTargeted)
-{
-	Detector.SetThreatFacing(Facing, bTargeted);
+	Detector.SetReferenceFacing(SeatFacing);
 }
 
 void UWardDetectorSubsystem::HandleHandFrame(const FHandFrame& Frame)

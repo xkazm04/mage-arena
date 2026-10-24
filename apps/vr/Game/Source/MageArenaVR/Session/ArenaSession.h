@@ -579,6 +579,7 @@ public:
 private:
 	void ApplyCamera();
 	void ApplyViewAim();
+	void ApplyWardReference(const AMageArenaPawn* Pawn);
 	void PollPlatform();
 	void OnAppDeactivate();
 

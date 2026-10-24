@@ -49,6 +49,12 @@ public:
 	 */
 	static float SeatedPitchFromMouse(float PitchDegrees, float MouseDY, float Sensitivity, float PitchDown, float PitchUp);
 
+	/**
+	 * A world direction in the seat (clip) frame the hands are drawn in: flattened, then turned by -SeatYawDegrees.
+	 * Zero or vertical gives +X, the seat forward. MOONSHOT M2 will own this transform, XR tracking included.
+	 */
+	static FVector ToSeatFrame(const FVector& WorldDirection, float SeatYawDegrees);
+
 	/** Yaw stays within +/- the layout limit of the pad facing. Pitch is clamped. Roll is cleared. */
 	FRotator ClampLookRotation(const FRotator& Rotation) const;
 

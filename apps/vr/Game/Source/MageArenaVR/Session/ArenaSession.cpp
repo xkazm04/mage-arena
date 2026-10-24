@@ -2256,16 +2256,16 @@ TStatId UArenaSessionSubsystem::GetStatId() const
 
 void UArenaSessionSubsystem::ApplyViewAim()
 {
-	if (Session.IsScripted() || !GetWorld())
-	{
-		return;
-	}
 	AMageArenaPawn* Pawn = nullptr;
-	for (TActorIterator<AMageArenaPawn> It(GetWorld()); It; ++It)
+	if (!Session.IsScripted() && GetWorld())
 	{
-		Pawn = *It;
-		break;
+		for (TActorIterator<AMageArenaPawn> It(GetWorld()); It; ++It)
+		{
+			Pawn = *It;
+			break;
+		}
 	}
+	ApplyWardReference(Pawn);
 	if (!Pawn)
 	{
 		return;
@@ -2289,6 +2289,25 @@ void UArenaSessionSubsystem::ApplyViewAim()
 	const double Cx = Centre ? Centre->PositionM.X : -12.0;
 	const double Cy = Centre ? Centre->PositionM.Y : 0.0;
 	Session.SetViewAim(FSimVec{Spawn.X + (AimCm.X / 100.0 - Cx), Spawn.Y + (AimCm.Y / 100.0 - Cy)});
+}
+
+void UArenaSessionSubsystem::ApplyWardReference(const AMageArenaPawn* Pawn)
+{
+	UGameInstance* Instance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+	UWardDetectorSubsystem* Wards = Instance ? Instance->GetSubsystem<UWardDetectorSubsystem>() : nullptr;
+	if (!Wards)
+	{
+		return;
+	}
+	// T43: the ward palm is measured against the head, in the seat frame the hands are drawn in, from the same control
+	// rotation that sets the kernel facing (ViewAim) whose arc judges the threat. A scripted run or an unpossessed pawn
+	// has no head, so the seat forward stands in. MOONSHOT M2 will own the head-to-seat transform for XR tracking.
+	FVector Facing = FVector::ForwardVector;
+	if (Pawn && Pawn->GetController())
+	{
+		Facing = AMageArenaPawn::ToSeatFrame(Pawn->GetControlRotation().Vector(), Pawn->GetFacingYawDegrees());
+	}
+	Wards->SetReferenceFacing(Facing);
 }
 
 void UArenaSessionSubsystem::ApplyCamera()

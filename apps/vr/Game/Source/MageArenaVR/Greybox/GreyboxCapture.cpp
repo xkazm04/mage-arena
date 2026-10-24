@@ -652,8 +652,7 @@ void UGreyboxCaptureDriver::Advance()
 			if (UWardDetectorSubsystem* Detector = Instance->GetSubsystem<UWardDetectorSubsystem>())
 			{
 				Wards = Detector;
-				// The detector reads clip space. Centre-pad forward is +X, which is the clip forward.
-				Detector->SetAimFacing(FVector::ForwardVector);
+				// The reference is not set here: the session writes it from the head (T43), as in play.
 				WardHandle = Detector->OnWardRaised.AddLambda([this](double, FVector)
 				{
 					bSawWard = true;

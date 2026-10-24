@@ -277,6 +277,16 @@ void AMageArenaPawn::ApplyLook()
 	}
 }
 
+FVector AMageArenaPawn::ToSeatFrame(const FVector& WorldDirection, float SeatYawDegrees)
+{
+	const FVector Flat(WorldDirection.X, WorldDirection.Y, 0.0);
+	if (Flat.IsNearlyZero())
+	{
+		return FVector::ForwardVector;
+	}
+	return FRotator(0.0, -SeatYawDegrees, 0.0).RotateVector(Flat.GetSafeNormal());
+}
+
 float AMageArenaPawn::SeatedPitchFromMouse(float PitchDegrees, float MouseDY, float Sensitivity, float PitchDown, float PitchUp)
 {
 	const float Next = FRotator::NormalizeAxis(PitchDegrees + MouseDY * Sensitivity);

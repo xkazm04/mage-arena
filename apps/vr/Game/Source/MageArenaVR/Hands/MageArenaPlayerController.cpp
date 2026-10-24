@@ -6,7 +6,6 @@
 #include "Engine/GameInstance.h"
 #include "Gestures/MouseSigilCapture.h"
 #include "Gestures/SigilRecognizerSubsystem.h"
-#include "Gestures/WardDetector.h"
 #include "Hands/HandInputSubsystem.h"
 #include "Hands/MageArenaPawn.h"
 #include "Session/ArenaSession.h"
@@ -402,22 +401,20 @@ void AMageArenaPlayerController::PressWard(bool bFromCursor)
 	}
 }
 
-void ApplyWardAim(UHandInputSubsystem* Hands, UWardDetectorSubsystem* Wards, const FVector& Aim)
+void ApplyWardAim(UHandInputSubsystem* Hands, const FVector& SeatAim)
 {
 	if (Hands)
 	{
-		Hands->SetAimYaw(FMath::Atan2(Aim.Y, Aim.X));
-	}
-	if (Wards)
-	{
-		Wards->SetAimFacing(Aim);
+		Hands->SetAimYaw(FMath::Atan2(SeatAim.Y, SeatAim.X));
 	}
 }
 
 void AMageArenaPlayerController::AimWard(bool bFromCursor)
 {
-	UGameInstance* Instance = GetGameInstance();
-	ApplyWardAim(HandsOrNull(), Instance ? Instance->GetSubsystem<UWardDetectorSubsystem>() : nullptr, WardAimDirection(bFromCursor));
+	// The clip is drawn in the seat frame, so the world aim turns into it. On a side pad the seat yaw is not zero.
+	const AMageArenaPawn* Mage = Cast<AMageArenaPawn>(GetPawn());
+	const float SeatYaw = Mage ? Mage->GetFacingYawDegrees() : 0.f;
+	ApplyWardAim(HandsOrNull(), AMageArenaPawn::ToSeatFrame(WardAimDirection(bFromCursor), SeatYaw));
 }
 
 FVector AMageArenaPlayerController::WardAimDirection(bool bFromCursor) const

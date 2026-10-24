@@ -56,8 +56,13 @@ public:
 	/** The system gesture took the ward hand. Drop the raise in progress, as a clip rewind does. */
 	void CancelForSystemGesture(EControllerHand Hand);
 
-	void SetAimFacing(const FVector& Facing);
-	void SetThreatFacing(const FVector& Facing, bool bTargeted);
+	/**
+	 * The facing the palm is measured against, in the clip (seat) frame, flattened: the player's head facing. Session
+	 * state writes it (UArenaSessionSubsystem::ApplyViewAim). The input layer that turns the clip must not, or the
+	 * arc compares the palm with its own rotation. Until the first write it is +X, the seat forward.
+	 */
+	void SetReferenceFacing(const FVector& SeatFacing);
+	const FVector& GetReferenceFacing() const { return Reference; }
 
 	bool IsReady() const { return bReady; }
 	const FAbsorbRules& Rules() const { return LoadedRules; }
@@ -85,7 +90,6 @@ private:
 		double HeightM = 0.0;
 	};
 
-	FVector ReferenceFacing() const;
 	FVector PalmFacing(const FVector& Normal) const;
 	double FindOnset() const;
 	void UpdateState(const FVector& Facing);
@@ -98,8 +102,7 @@ private:
 	/** Palm speed over held samples: a re-sent pose carries the last measured speed instead of reading 0. */
 	FHeldPointRate PalmRate;
 	double LastSpeedMps = 0.0;
-	FVector AimFacing = FVector::ForwardVector;
-	FVector ThreatFacing = FVector::ForwardVector;
+	FVector Reference = FVector::ForwardVector;
 	double LastTime = 0.0;
 	double LoweredTime = -1.0e9;
 	/** First sample whose palm was in the lap. The first raise cannot see a lower, so this is its walk bound. */
@@ -112,7 +115,6 @@ private:
 	bool bEverLowered = false;
 	bool bSeenLowered = false;
 	bool bHasLapBound = false;
-	bool bThreatTargeted = false;
 };
 
 /** Broadcasts ward edges from the active hand source. Tests can Init and bind without GameInstance::Init. */
@@ -127,8 +129,7 @@ public:
 
 	bool InitDetector(FString& OutError);
 	void BindToHands(UHandInputSubsystem* Hands);
-	void SetAimFacing(const FVector& Facing);
-	void SetThreatFacing(const FVector& Facing, bool bTargeted);
+	void SetReferenceFacing(const FVector& SeatFacing);
 
 	FWardDetector& GetDetector() { return Detector; }
 	const FWardDetector& GetDetector() const { return Detector; }

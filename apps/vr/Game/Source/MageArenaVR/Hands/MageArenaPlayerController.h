@@ -10,7 +10,6 @@ class UHandInputSubsystem;
 class UInputAction;
 class UInputMappingContext;
 class UMouseSigilCapture;
-class UWardDetectorSubsystem;
 
 /** Keys that hold the ward. Space aims with the view. The right button aims at the cursor. */
 struct FWardHoldKeys
@@ -38,8 +37,11 @@ FWardHoldStep StepWardHold(const FWardHoldKeys& Prev, const FWardHoldKeys& Now);
  */
 FVector ResolveWardAim(bool bFromCursor, const FVector& CursorDirection, const FVector& ViewDirection);
 
-/** One ward aim into the pipeline: the ward clip turns toward Aim, and the detector takes Aim as its reference. */
-void ApplyWardAim(UHandInputSubsystem* Hands, UWardDetectorSubsystem* Wards, const FVector& Aim);
+/**
+ * One ward aim into the pipeline: the ward clip turns toward SeatAim (seat frame). It never sets the detector's
+ * reference; the session writes that from the head (UArenaSessionSubsystem::ApplyViewAim).
+ */
+void ApplyWardAim(UHandInputSubsystem* Hands, const FVector& SeatAim);
 
 /** True when the command line starts one of the scripted capture drivers. A capture owns the camera, so mouse look stands down. */
 bool IsCaptureRun(const TCHAR* CommandLine);
