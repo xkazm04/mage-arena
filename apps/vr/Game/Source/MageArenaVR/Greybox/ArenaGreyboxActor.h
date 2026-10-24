@@ -7,6 +7,7 @@
 #include "ArenaGreyboxActor.generated.h"
 
 class UBudgetStressDriver;
+class UCreatureImportCaptureDriver;
 class UGreyboxCaptureDriver;
 
 /** Spawns the procedural greybox from the layout. Basic shapes only. */
@@ -50,6 +51,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UBudgetStressDriver> BudgetStress;
+
+	UPROPERTY()
+	TObjectPtr<UCreatureImportCaptureDriver> CreatureCapture;
 
 	bool bStarted = false;
 };

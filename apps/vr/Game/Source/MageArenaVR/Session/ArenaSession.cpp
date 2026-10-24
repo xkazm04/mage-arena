@@ -2102,6 +2102,8 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 
 	const bool bNull = FParse::Param(FCommandLine::Get(), TEXT("nullrhi"));
 	const bool bGreyboxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture"));
+	// The creature import stills keep the session idle, as the greybox capture does (Greybox/CreatureImportCapture.h).
+	const bool bCreatureImportCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportCapture"));
 	const bool bWave1Capture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaWave1Capture"));
 	const bool bTeachCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaTeachCapture"));
 	const bool bCreaturesCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreaturesCapture"));
@@ -2183,7 +2185,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		StylePickCapture->Start();
 		return;
 	}
-	if (bGame && !bGreyboxCapture)
+	if (bGame && !bGreyboxCapture && !bCreatureImportCapture)
 	{
 		BeginArc(1, false);
 	}

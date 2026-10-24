@@ -14,6 +14,8 @@
 #include "Engine/TextureCube.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Greybox/CreatureImport.h"
+#include "Greybox/CreatureImportCapture.h"
 #include "Greybox/GreyboxCapture.h"
 #include "Greybox/GreyboxUtil.h"
 #include "MageArenaVR.h"
@@ -429,6 +431,22 @@ void UArenaGreyboxSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	if (AArenaGreybox* Arena = InWorld.SpawnActor<AArenaGreybox>(AArenaGreybox::StaticClass(), FTransform::Identity, Params))
 	{
 		Arena->Build();
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaCreatureImportCapture")))
+	{
+		// The creature UE import stills: the capture driver places the scratch meshes itself.
+		CreatureCapture = NewObject<UCreatureImportCaptureDriver>(this);
+		CreatureCapture->Start();
+	}
+	else if (CreatureImport::IsSceneRequested())
+	{
+		// -MageArenaCreatureImportScene: both imported meshes at opponent distance for the D-G4 budget re-run.
+		FArenaLayout SceneLayout;
+		FString Error;
+		if (SceneLayout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error))
+		{
+			CreatureImport::SpawnScene(InWorld, SceneLayout);
+		}
 	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaGreyboxCapture")))
 	{

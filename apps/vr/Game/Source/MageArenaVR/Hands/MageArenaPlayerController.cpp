@@ -92,17 +92,18 @@ FVector ResolveWardAim(bool bFromCursor, const FVector& CursorDirection, const F
 bool IsCaptureRun(const TCHAR* CommandLine)
 {
 	static const TCHAR* const Flags[] = {
-		TEXT("MageArenaGreyboxCapture"),
-		TEXT("MageArenaWave1Capture"),
-		TEXT("MageArenaTeachCapture"),
-		TEXT("MageArenaSettingsCapture"),
-		TEXT("MageArenaCreaturesCapture"),
-		TEXT("MageArenaStylePickCapture"),
-		TEXT("MageArenaPresetCapture"),
-		TEXT("MageArenaDayCapture"),
-		TEXT("MageArenaAirCapture"),
-		TEXT("MageArenaCollarCapture"),
-		TEXT("MageArenaColourAudioCapture"),
+	    TEXT("MageArenaGreyboxCapture"),
+	    TEXT("MageArenaWave1Capture"),
+	    TEXT("MageArenaTeachCapture"),
+	    TEXT("MageArenaSettingsCapture"),
+	    TEXT("MageArenaCreaturesCapture"),
+	    TEXT("MageArenaStylePickCapture"),
+	    TEXT("MageArenaPresetCapture"),
+	    TEXT("MageArenaDayCapture"),
+	    TEXT("MageArenaAirCapture"),
+	    TEXT("MageArenaCollarCapture"),
+	    TEXT("MageArenaColourAudioCapture"),
+	    TEXT("MageArenaCreatureImportCapture"),
 	};
 	for (const TCHAR* Flag : Flags)
 	{
