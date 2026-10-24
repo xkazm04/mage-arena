@@ -1035,6 +1035,16 @@ bool LoadVrRuleset(FVrRuleset& Out, FString& Error, bool bHonorProposalSwitch)
 	Out.FireWall.HeatPerStop = HeatPerStop;
 	Out.FireWall.BurnDamage = BurnDamage;
 
+	// T39 DF-003: the wide set's player mana regen is live. Absent keeps the pinned regen (1); the proposal can still override.
+	if (Overlay->HasField(TEXT("power")))
+	{
+		const FJsonObject* PowerJson = nullptr;
+		if (!NeedObject(*Overlay, TEXT("power"), PowerJson, Error) || !OnlyKnownKeys(*PowerJson, {TEXT("manaRegen")}, TEXT("power"), Error) || !ReadOptionalStrictNumber(*PowerJson, TEXT("manaRegen"), Out.Power.ManaRegen, Error, 0.01, 3.0))
+		{
+			return false;
+		}
+	}
+
 	const FJsonObject* NarrowJson = nullptr;
 	const FJsonObject* GentleJson = nullptr;
 	if (!NeedObject(*Overlay, TEXT("narrowFov"), NarrowJson, Error) || !NeedObject(*Overlay, TEXT("gentle"), GentleJson, Error))

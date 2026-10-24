@@ -30,10 +30,14 @@
 
 namespace
 {
-// Pre-change digest of DuelDigest, recorded from the build before any T19 kernel code (runs/T19/logs/probe-nullpath.log):
+// Pre-change digest of DuelDigest. First recorded from the build before any T19 kernel code (runs/T19/logs/probe-nullpath.log):
 // "Rivals null-path digest=2b6273dbaeae8cfaec6d7cb44ebe65b7 seed=1 phase=lost tick=1602 events=158; seed=2 phase=lost
 // tick=1376 events=133; seed=3 phase=lost tick=443 events=51;"
-const TCHAR* const PreChangeDigest = TEXT("2b6273dbaeae8cfaec6d7cb44ebe65b7");
+// Re-recorded by T39 DF-003 (Wolf 2026-10-24): the duel follows the live combat.vr.json, and the wide set moved splitHands
+// oneHandPower 1, plantedStaff 14 s / 1.5/s / 0.92 / 0.9, fireWall 150 deg / 12 s / 6 mana and power.manaRegen 1.25:
+// "seed=1 phase=lost tick=1311 events=125 collar=48; seed=2 phase=lost tick=1041 events=103 collar=38; seed=3 phase=lost
+// tick=487 events=56 collar=14;". The rivals block still adds nothing to a duel that reaches no break.
+const TCHAR* const PreChangeDigest = TEXT("eab55e4173a23aecd29a52b0ce4059e1");
 
 const FComposition* RivalReferencePreset()
 {

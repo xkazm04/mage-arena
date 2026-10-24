@@ -20,6 +20,7 @@
 #include "MageArenaVR.h"
 #include "Misc/Paths.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace
@@ -119,13 +120,15 @@ bool AssertProposals(FAutomationTestBase& Test, const FVrRuleset& Rules)
 	bool bPass = Test.TestNotNull(TEXT("bolt row"), Bolt) && Test.TestNotNull(TEXT("lash row"), Lash);
 	bPass &= Test.TestTrue(TEXT("split enabled"), Rules.Split.bEnabled);
 	bPass &= Test.TestTrue(TEXT("staff enabled"), Rules.Staff.bEnabled);
-	bPass &= Near(Test, TEXT("one-hand power"), Rules.Split.OneHandPower, 0.6);
+	// T39 DF-003 (wide, live): combat.vr.json splitHands.oneHandPower 1; plantedStaff durationS 14, drainPerSecond 1.5,
+	// magicReduction 0.92, physicalReduction 0.9 (manaUpFront 8 unchanged).
+	bPass &= Near(Test, TEXT("one-hand power"), Rules.Split.OneHandPower, 1.0);
 	bPass &= Test.TestEqual(TEXT("max tier"), Rules.Split.MaxTier, 2);
-	bPass &= Near(Test, TEXT("dome duration"), Rules.Staff.DurationS, 6.0);
+	bPass &= Near(Test, TEXT("dome duration"), Rules.Staff.DurationS, 14.0);
 	bPass &= Near(Test, TEXT("dome mana up front"), Rules.Staff.ManaUpFront, 8.0);
-	bPass &= Near(Test, TEXT("dome drain"), Rules.Staff.DrainPerSecond, 4.0);
-	bPass &= Near(Test, TEXT("dome magic"), Rules.Staff.MagicReduction, 0.85);
-	bPass &= Near(Test, TEXT("dome physical"), Rules.Staff.PhysicalReduction, 0.6);
+	bPass &= Near(Test, TEXT("dome drain"), Rules.Staff.DrainPerSecond, 1.5);
+	bPass &= Near(Test, TEXT("dome magic"), Rules.Staff.MagicReduction, 0.92);
+	bPass &= Near(Test, TEXT("dome physical"), Rules.Staff.PhysicalReduction, 0.9);
 	bPass &= Near(Test, TEXT("dome unblockable"), Rules.DomeReduction(TEXT("unblockable")), 0.0);
 	if (Bolt)
 	{
@@ -414,7 +417,8 @@ bool FMageArenaDefencesSplitBolt::RunTest(const FString& Parameters)
 		return false;
 	}
 	const double OneHand = Bolt->Damage * Duel.Rules.Split.OneHandPower;
-	bPass &= Near(*this, TEXT("one-hand bolt is 2.05 * 0.6"), OneHand, 1.23);
+	// combat.vr.json splitHands.oneHandPower 1 (T39 DF-003): the one-hand bolt is the full 2.05.
+	bPass &= Near(*this, TEXT("one-hand bolt is 2.05 * 1"), OneHand, 2.05);
 
 	// In front of the palm, close enough that 60 m/s crosses the body this tick.
 	SpawnIncoming(Duel.State, Duel.Foe, FSimVec{10.55, 10.0}, FSimVec{-1.0, 0.0}, 20.0, TEXT("magic"));
@@ -472,7 +476,8 @@ bool FMageArenaDefencesSplitLine::RunTest(const FString& Parameters)
 	}
 	bPass &= TestEqual(TEXT("lash id"), Lash->Id, FString(TEXT("lash:1:base")));
 	const double Expected = Lash->Damage * Duel.Rules.Split.OneHandPower;
-	bPass &= Near(*this, TEXT("one-hand lash is 8 * 0.6"), Expected, 4.8);
+	// combat.vr.json splitHands.oneHandPower 1 (T39 DF-003): the one-hand lash is the full 8.
+	bPass &= Near(*this, TEXT("one-hand lash is 8 * 1"), Expected, 8.0);
 	const int32 ReleaseTick = 1 + SimTicks(std::max(Lash->CastS, Lash->TelegraphS));
 
 	FInputFrame Cast = AimAt(Duel);
@@ -661,8 +666,8 @@ bool FMageArenaDefencesSplitBoltAtFullFlow::RunTest(const FString& Parameters)
 		bLanded = FoeOf(Duel).Metrics.Hits > 0;
 	}
 	bPass &= TestTrue(TEXT("split bolt lands"), bLanded);
-	// spells-water.csv bolt damage 2.05 x combat.vr.json oneHandPower 0.6 = 1.23. No Flow bonus, no Crest 1.5.
-	bPass &= Near(*this, TEXT("split bolt at full flow is 2.05 x 0.6"), FoeOf(Duel).Metrics.DamageTaken, 1.23);
+	// spells-water.csv bolt damage 2.05 x combat.vr.json oneHandPower 1 (T39 DF-003) = 2.05. No Flow bonus, no Crest 1.5.
+	bPass &= Near(*this, TEXT("split bolt at full flow is 2.05 x 1"), FoeOf(Duel).Metrics.DamageTaken, 2.05);
 	bPass &= TestEqual(TEXT("flow still 5 after the bolt"), PlayerOf(Duel).Water.Flow, 5);
 	bPass &= TestEqual(TEXT("crests unchanged after the bolt"), PlayerOf(Duel).Water.Crests, 0);
 
@@ -683,7 +688,8 @@ bool FMageArenaDefencesSplitBoltAtFullFlow::RunTest(const FString& Parameters)
 	}
 	// spells-water.csv lash damage 8 x combat.json flow.crest.damageMult 1.5 = 12.
 	bPass &= Near(*this, TEXT("crest lash is 8 x 1.5"), FoeOf(Duel).Metrics.DamageTaken - Before, 12.0);
-	bPass &= Near(*this, TEXT("foe took 1.23 + 12"), FoeOf(Duel).Metrics.DamageTaken, 13.23);
+	// combat.vr.json splitHands.oneHandPower 1 (T39 DF-003): the split bolt is the full 2.05, so 2.05 + 12.
+	bPass &= Near(*this, TEXT("foe took 2.05 + 12"), FoeOf(Duel).Metrics.DamageTaken, 14.05);
 	return bPass;
 }
 
@@ -727,8 +733,9 @@ bool FMageArenaDefencesSplitLineAtFullFlowRefused::RunTest(const FString& Parame
 	bPass &= TestFalse(TEXT("nothing winding"), PlayerOf(Duel).Pending.IsSet());
 	bPass &= TestEqual(TEXT("flow stays 5"), PlayerOf(Duel).Water.Flow, 5);
 	bPass &= TestEqual(TEXT("no crest"), PlayerOf(Duel).Water.Crests, 0);
-	// Regen 7.5/60 = 0.125 minus ward drain 27/60 = 0.45 (derivation in TierAndCrest): no spell mana spent.
-	bPass &= Near(*this, TEXT("refused line spends no spell mana"), PlayerOf(Duel).Mana - Before, 0.125 - 0.45);
+	// Regen 7.5/60 x combat.vr.json power.manaRegen 1.25 (T39 DF-003) = 0.15625 minus ward drain 27/60 = 0.45 (derivation in
+	// TierAndCrest): no spell mana spent.
+	bPass &= Near(*this, TEXT("refused line spends no spell mana"), PlayerOf(Duel).Mana - Before, 0.15625 - 0.45);
 	return bPass;
 }
 
@@ -851,10 +858,11 @@ bool FMageArenaDefencesTierAndCrest::RunTest(const FString& Parameters)
 		// AddMage uses runtime.json training.defaultRanks: focus 1, nerve 1.
 		// stats.csv: manaRegen = 6 + 1.5*rank, so focus 1 is 7.5/s. combat.json simStepHz is 60, so 7.5/60 = 0.125.
 		// combat.json absorb.drainPerSecond is "30 - 3 * nerveRank", so nerve 1 is 27/s and 27/60 = 0.45.
+		// combat.vr.json power.manaRegen 1.25 (T39 DF-003) lifts the regen to 0.125 x 1.25 = 0.15625.
 		// WardUntil is still 0, so a ward spell does not cut that drain.
 		bPass &= TestEqual(TEXT("default focus"), PlayerOf(Duel).Ranks.Focus, 1);
 		bPass &= TestEqual(TEXT("default nerve"), PlayerOf(Duel).Ranks.Nerve, 1);
-		bPass &= Near(*this, TEXT("tier refuse spends no spell mana"), PlayerOf(Duel).Mana - Before, 0.125 - 0.45);
+		bPass &= Near(*this, TEXT("tier refuse spends no spell mana"), PlayerOf(Duel).Mana - Before, 0.15625 - 0.45);
 		bPass &= TestEqual(TEXT("tier refuse does not cast"), PlayerOf(Duel).Metrics.Casts, 0);
 		bPass &= TestTrue(TEXT("refusal is tier"), HasRefusal(Duel.Rules, TEXT("tier")));
 		bPass &= TestNull(TEXT("no projectile"), PlayerShot(Duel.State, Duel.Player));
@@ -930,8 +938,9 @@ bool FMageArenaDefencesDome::RunTest(const FString& Parameters)
 			return false;
 		}
 		const double Expected = 20.0 * (1.0 - Duel.Rules.Staff.MagicReduction);
-		bPass &= Near(*this, TEXT("dome magic keeps 0.15"), PlayerOf(Duel).Metrics.DamageTaken, Expected);
-		bPass &= Near(*this, TEXT("dome magic is 3"), PlayerOf(Duel).Metrics.DamageTaken, 3.0);
+		bPass &= Near(*this, TEXT("dome magic keeps 0.08"), PlayerOf(Duel).Metrics.DamageTaken, Expected);
+		// combat.vr.json plantedStaff.magicReduction 0.92 (T39 DF-003): 20 x 0.08 = 1.6.
+		bPass &= Near(*this, TEXT("dome magic is 1.6"), PlayerOf(Duel).Metrics.DamageTaken, 1.6);
 		bPass &= TestEqual(TEXT("dome does not perfect magic"), PlayerOf(Duel).Metrics.Perfects, 0);
 	}
 	{
@@ -944,7 +953,8 @@ bool FMageArenaDefencesDome::RunTest(const FString& Parameters)
 		bPass &= TestTrue(TEXT("ward is up behind the spear"), PlayerOf(Duel).bAbsorb);
 		const double Expected = 10.0 * (1.0 - Duel.Rules.Staff.PhysicalReduction);
 		bPass &= Near(*this, TEXT("dome physical from behind"), PlayerOf(Duel).Metrics.DamageTaken, Expected);
-		bPass &= Near(*this, TEXT("dome physical is 4"), PlayerOf(Duel).Metrics.DamageTaken, 4.0);
+		// combat.vr.json plantedStaff.physicalReduction 0.9 (T39 DF-003): 10 x 0.1 = 1.
+		bPass &= Near(*this, TEXT("dome physical is 1"), PlayerOf(Duel).Metrics.DamageTaken, 1.0);
 		bPass &= TestEqual(TEXT("physical does not perfect"), PlayerOf(Duel).Metrics.Perfects, 0);
 	}
 	{
@@ -991,32 +1001,38 @@ bool FMageArenaDefencesPlantedMana::RunTest(const FString& Parameters)
 	PlayerOf(Duel).Mana = StartMana;
 	bPass &= TestTrue(TEXT("40 sits under the pool"), PlayerOf(Duel).MaxMana > 60.0);
 
-	const double RegenPerTick = (KernelData().ManaRegenBase + KernelData().ManaRegenPerRank * static_cast<double>(PlayerOf(Duel).Ranks.Focus)) * SimDt();
+	// combat.vr.json power.manaRegen 1.25 (T39 DF-003) multiplies the player's pinned regen: 7.5 x 1.25 / 60 = 0.15625 a tick.
+	const double RegenPerTick = (KernelData().ManaRegenBase + KernelData().ManaRegenPerRank * static_cast<double>(PlayerOf(Duel).Ranks.Focus)) * Duel.Rules.Power.ManaRegen * SimDt();
 	const double DrainPerTick = Duel.Rules.Staff.DrainPerSecond * SimDt();
 	const int32 PlantedTicks = SimTicks(Duel.Rules.Staff.DurationS);
-	bPass &= TestEqual(TEXT("six seconds is 360 ticks"), PlantedTicks, 360);
+	// combat.vr.json plantedStaff.durationS 14 (T39 DF-003) is 840 ticks.
+	bPass &= TestEqual(TEXT("fourteen seconds is 840 ticks"), PlantedTicks, 840);
 	// Plant tick pays the up-front cost and that tick's drain. Expiry lifts before the drain.
-	const double AtExpiryEdge = StartMana + PlantedTicks * RegenPerTick - Duel.Rules.Staff.ManaUpFront - PlantedTicks * DrainPerTick;
-	const double AfterLift = AtExpiryEdge + RegenPerTick;
-	bPass &= Near(*this, TEXT("hand total at 6 s"), AtExpiryEdge, 53.0);
-	bPass &= Near(*this, TEXT("hand total after the lift tick"), AfterLift, 53.125);
+	// T39 DF-003: regen 0.15625 against a drain of 1.5 / 60 = 0.025 a tick nets +110 over 840 ticks, so the pool reaches the cap
+	// while planted. Each tick regen clamps at MaxMana and then pays the drain, so the edge sits one drain under the cap.
+	bPass &= TestTrue(TEXT("the pool reaches the cap while planted"),
+	    StartMana + PlantedTicks * RegenPerTick - Duel.Rules.Staff.ManaUpFront - PlantedTicks * DrainPerTick > PlayerOf(Duel).MaxMana);
+	const double AtExpiryEdge = PlayerOf(Duel).MaxMana - DrainPerTick;
+	const double AfterLift = std::min(PlayerOf(Duel).MaxMana, AtExpiryEdge + RegenPerTick);
+	bPass &= Near(*this, TEXT("hand total at 14 s"), AtExpiryEdge, 94.975);
+	bPass &= Near(*this, TEXT("hand total after the lift tick"), AfterLift, 95.0);
 
 	FInputFrame Plant = AimAt(Duel);
 	Plant.bPlantStaff = true;
 	StepPlayer(Duel, Plant, &Duel.Rules);
 	bPass &= TestTrue(TEXT("planted on tick 1"), Duel.Rules.IsPlanted(Duel.Player));
-	bPass &= TestEqual(TEXT("until is the plant tick plus 360"), Duel.Rules.StaffRuntime.UntilTick, 1 + PlantedTicks);
+	bPass &= TestEqual(TEXT("until is the plant tick plus 840"), Duel.Rules.StaffRuntime.UntilTick, 1 + PlantedTicks);
 
 	while (Duel.State.Tick < PlantedTicks)
 	{
 		StepPlayer(Duel, AimAt(Duel), &Duel.Rules);
 	}
-	bPass &= TestEqual(TEXT("tick 360"), Duel.State.Tick, PlantedTicks);
+	bPass &= TestEqual(TEXT("tick 840"), Duel.State.Tick, PlantedTicks);
 	bPass &= TestTrue(TEXT("still planted on the last included tick"), Duel.Rules.IsPlanted(Duel.Player));
-	bPass &= Near(*this, TEXT("mana after 360 planted ticks"), PlayerOf(Duel).Mana, AtExpiryEdge);
+	bPass &= Near(*this, TEXT("mana after 840 planted ticks"), PlayerOf(Duel).Mana, AtExpiryEdge);
 
 	StepPlayer(Duel, AimAt(Duel), &Duel.Rules);
-	bPass &= TestEqual(TEXT("tick 361"), Duel.State.Tick, PlantedTicks + 1);
+	bPass &= TestEqual(TEXT("tick 841"), Duel.State.Tick, PlantedTicks + 1);
 	bPass &= TestFalse(TEXT("expiry lifts"), Duel.Rules.IsPlanted(Duel.Player));
 	bPass &= Near(*this, TEXT("lift tick regens and does not drain"), PlayerOf(Duel).Mana, AfterLift);
 	return bPass;
@@ -1171,7 +1187,7 @@ bool FMageArenaDefencesPinnedPath::RunTest(const FString& Parameters)
 		StepArena(Duel.State, Inputs);
 	}
 	bPass &= Near(*this, TEXT("null rules ignore the plant"), PlayerOf(Duel).Mana - Before, 0.125);
-	// A planted dome would leave 20 * (1 - 0.85) = 3. The null path has no dome.
+	// A planted dome would leave 20 * (1 - 0.92) = 1.6 (combat.vr.json plantedStaff.magicReduction, T39 DF-003). The null path has no dome.
 	bPass &= Near(*this, TEXT("null path does not dome a magic hit"), PlayerOf(Duel).Metrics.DamageTaken, 20.0);
 	bPass &= TestEqual(TEXT("null plant emits no defence line"), PlantLog.Lines, 0);
 
@@ -1353,12 +1369,13 @@ bool OpenFireWall(FAutomationTestBase& Test, FWallRig& Out)
 	const FVrFireWall& Wall = Out.Rules.FireWall;
 	bool bNumbers = Test.TestTrue(TEXT("firewall enabled"), Wall.bEnabled);
 	bNumbers &= Near(Test, TEXT("distance"), Wall.DistanceM, 4.0);
-	bNumbers &= Near(Test, TEXT("arc"), Wall.ArcDeg, 90.0);
-	bNumbers &= Near(Test, TEXT("duration"), Wall.DurationS, 3.0);
-	bNumbers &= Near(Test, TEXT("mana"), Wall.ManaCost, 12.0);
+	// T39 DF-003 (wide, live): combat.vr.json fireWall.arcDeg 150, durationS 12, manaCost 6.
+	bNumbers &= Near(Test, TEXT("arc"), Wall.ArcDeg, 150.0);
+	bNumbers &= Near(Test, TEXT("duration"), Wall.DurationS, 12.0);
+	bNumbers &= Near(Test, TEXT("mana"), Wall.ManaCost, 6.0);
 	bNumbers &= Near(Test, TEXT("heat"), Wall.HeatPerStop, 4.0);
 	bNumbers &= Near(Test, TEXT("burn"), Wall.BurnDamage, 12.0);
-	bNumbers &= Test.TestEqual(TEXT("three seconds is 180 ticks"), SimTicks(3.0), 180);
+	bNumbers &= Test.TestEqual(TEXT("twelve seconds is 720 ticks"), SimTicks(12.0), 720);
 	if (!bNumbers)
 	{
 		return false;
@@ -1408,8 +1425,8 @@ bool FMageArenaFireWallBolt::RunTest(const FString& Parameters)
 	FActor& Caster = *SimFindActor(Rig.State, Rig.Caster);
 	// runtime.json training.defaultRanks focus is 1. stats.csv maxMana = 80 + 15*rank, so the pool is 95.
 	// manaRegen = 6 + 1.5*rank = 7.5/s, and combat.json simStepHz is 60, so a tick would add 0.125.
-	// The pool is already full, so that regen is clamped away. combat.vr.json fireWall.manaCost is 12. 95 - 12 = 83.
-	// combat.vr.json fireWall.heatPerStop is 4. durationS 3 is 180 ticks. Raised on tick 1, so until is 181.
+	// The pool is already full, so that regen is clamped away. combat.vr.json fireWall.manaCost is 6 (T39 DF-003). 95 - 6 = 89.
+	// combat.vr.json fireWall.heatPerStop is 4. durationS 12 (T39 DF-003) is 720 ticks. Raised on tick 1, so until is 721.
 	bool bPass = TestEqual(TEXT("focus rank"), Caster.Ranks.Focus, 1);
 	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
 	StepCaster(Rig, RaiseInput());
@@ -1417,11 +1434,11 @@ bool FMageArenaFireWallBolt::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("bolt destroyed"), Rig.State.Projectiles.Num(), 0);
 	bPass &= TestEqual(TEXT("one wall"), Rig.Rules.Walls.Num(), 1);
 	bPass &= TestEqual(TEXT("raised"), Rig.Rules.WallsRaised, 1);
-	bPass &= Near(*this, TEXT("mana after raise"), After.Mana, 83.0);
+	bPass &= Near(*this, TEXT("mana after raise"), After.Mana, 89.0);
 	bPass &= Near(*this, TEXT("heat per stop"), After.Fire.Heat, 4.0);
 	if (Rig.Rules.Walls.Num() == 1)
 	{
-		bPass &= TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 181);
+		bPass &= TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 721);
 		bPass &= Near(*this, TEXT("wall x"), Rig.Rules.Walls[0].Centre.X, 8.0);
 	}
 	return bPass;
@@ -1515,18 +1532,18 @@ bool FMageArenaFireWallDuration::RunTest(const FString& Parameters)
 		AddError(TEXT("wall did not raise"));
 		return false;
 	}
-	// combat.vr.json fireWall.durationS is 3. combat.json simStepHz is 60, so the curtain lives 180 ticks.
-	// The raise lands on tick 1, so UntilTick is 181: tick 180 still stops, tick 181 has already expired.
-	bool bPass = TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 181);
-	Rig.State.Tick = 179;
+	// combat.vr.json fireWall.durationS is 12 (T39 DF-003). combat.json simStepHz is 60, so the curtain lives 720 ticks.
+	// The raise lands on tick 1, so UntilTick is 721: tick 720 still stops, tick 721 has already expired.
+	bool bPass = TestEqual(TEXT("until"), Rig.Rules.Walls[0].UntilTick, 721);
+	Rig.State.Tick = 719;
 	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
 	StepCaster(Rig, SimIdleInput(FSimVec{9.0, 10.0}));
-	bPass &= TestEqual(TEXT("last included tick"), Rig.State.Tick, 180);
+	bPass &= TestEqual(TEXT("last included tick"), Rig.State.Tick, 720);
 	bPass &= TestEqual(TEXT("bolt stopped on the last tick"), Rig.State.Projectiles.Num(), 0);
 	bPass &= TestEqual(TEXT("wall still up"), Rig.Rules.Walls.Num(), 1);
 	Launch(Rig, TEXT("magic"), 12.6, 10.0, 60.0, 20.0);
 	StepCaster(Rig, SimIdleInput(FSimVec{9.0, 10.0}));
-	bPass &= TestEqual(TEXT("expiry tick"), Rig.State.Tick, 181);
+	bPass &= TestEqual(TEXT("expiry tick"), Rig.State.Tick, 721);
 	bPass &= TestEqual(TEXT("wall dropped"), Rig.Rules.Walls.Num(), 0);
 	bPass &= TestEqual(TEXT("bolt passed"), Rig.State.Projectiles.Num(), 1);
 	return bPass;
@@ -1597,7 +1614,8 @@ bool FMageArenaFireWallOwnBolt::RunTest(const FString& Parameters)
 	bool bPass = TestEqual(TEXT("both bolts remain"), Rig.State.Projectiles.Num(), 2);
 	bPass &= TestEqual(TEXT("wall is up"), Rig.Rules.Walls.Num(), 1);
 	bPass &= TestEqual(TEXT("no firewall stop"), Probe.Stops, 0);
-	bPass &= Near(*this, TEXT("raise paid, no heat"), After.Mana, 83.0);
+	// combat.vr.json fireWall.manaCost 6 (T39 DF-003): 95 - 6 = 89.
+	bPass &= Near(*this, TEXT("raise paid, no heat"), After.Mana, 89.0);
 	bPass &= Near(*this, TEXT("no heat from her own curtain"), After.Fire.Heat, 0.0);
 	for (const FProjectile& Projectile : Rig.State.Projectiles)
 	{

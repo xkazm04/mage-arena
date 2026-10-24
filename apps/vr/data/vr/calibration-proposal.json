@@ -1,6 +1,6 @@
 {
 	"version": 1,
-	"_about": "not live until the owner signs off; applied only with -MageArenaProposal",
+	"_about": "The DF-003 wide set. Live in combat.vr.json since T39 DF-003 (owner ruling 2026-10-20, adopt each DF recommendation); -MageArenaProposal still applies these knobs on top, which now moves nothing.",
 	"knobs":
 	{
 		"wave":
