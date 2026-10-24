@@ -2,6 +2,19 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - DF-011 ruled: accept the three reds; P2 counts as landed
+
+> Owner, 2026-10-24 day standup, on `docs/design-findings/DF-011-after-t39-brennic-still-wins.md`: "Accept the reds".
+
+- **DF-011 is ruled and closed, option A (accept and measure).** `MageArenaDesign.Duel.FireSeated`, `Duel.AirSeated`
+  and `Session.FullSeated` (it loses bout 3 to Brennic) stay red as **known reds**, explained by this accepted DF. T39
+  stays as built (`5b13463` ... `6f00555`).
+- **P2 counts as landed with them accepted.** T39's Done-when ("each of the five known reds green or explained by an
+  accepted DF") is met by this ruling. That unblocks T47 (WOLF-PLAN P12, between P2 and P3).
+- **What is therefore NOT touched:** the census targets and pinned bout bands (`docs/DECISIONS.md` 2026-10-07, "DF-003
+  answered"), the overlay as T39 built it, and DF-011's options B, C and D, none of which is adopted. A later card that
+  moves one of the three reds cites a new ruling.
+
 ## 2026-10-21 - DF-010 ruled: the day-length assertion leaves the gate, and the day is lengthened with content (E + B)
 
 > Owner, 2026-10-21, on `docs/design-findings/DF-010-tiro-day-length.md`, asked which of five options: "E + B - buy the

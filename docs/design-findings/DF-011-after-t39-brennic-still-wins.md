@@ -1,7 +1,9 @@
 # DF-011 - After T39 the seat still loses to Brennic, and both school duels run short
 
 Found 2026-10-24 on Wolf (hostname `kaziho`, UE 5.8.3 CL 58210709) by T39's one `MageArenaDesign` run on the final
-overlay, branch commit `6f00555`. Status: **OPEN, needs an owner ruling.** Nothing in this file is decided in code.
+overlay, branch commit `6f00555`. Status: **RULED and CLOSED 2026-10-24, option A** - owner: "Accept the reds"
+(`docs/DECISIONS.md` 2026-10-24). The three reds below stay as known reds; P2 counts as landed. Was: OPEN, needs an
+owner ruling. Nothing in this file is decided in code.
 Raw logs: `runs/T39/final/` (gitignored); report: `runs/T39/REPORT.md`.
 
 T39 built every recommended option of DF-003, DF-005, DF-006 (A + B), DF-007 (A + B), DF-008 (A) and DF-009 (A), as
