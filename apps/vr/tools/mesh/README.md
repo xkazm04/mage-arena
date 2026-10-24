@@ -11,6 +11,7 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `comfy.mjs` | start / guard / run / free / stop the local ComfyUI; `run` hands the job to `../assets/trellis.mjs` unchanged, or to `trellis-mv.mjs` with `--back` |
 | `trellis-mv.mjs` + `trellis-mv.test.mjs` | the two-view (front + back) TRELLIS.2 workflow builder and runner, and its offline test |
 | `merge_halves.py` + `halves_lib.py` (+ `test_merge_halves.py`) | split-and-merge: the front half of the front-image mesh and the back half of a back-image mesh, posed in the finish frame and joined into one textured source GLB for `finish.mjs --rot 0` (see "Split and merge") |
+| `bake_source_id.py`, `seam_fix.py` + `seam_lib.py` (+ `test_seam_lib.py`) | the flank seam of a merge, fixed on the finished bake in UV space: which half each texel came from, a local colour match of the back half onto the front, a feather across the seam, and the seam report (see "The flank seam") |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
 | `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode bake` (default): the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png`; `--mode flat`: one flat palette colour per material (see "Finish modes") |
 | `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
@@ -157,7 +158,7 @@ back image alone as a single-image job and merge the halves in Blender:
 
 ```
 node apps/vr/tools/mesh/comfy.mjs run <back.jpg> <label> <seed> <outdir>      then comfy.mjs free, comfy.mjs stop
-blender -b --factory-startup --python-exit-code 1 -P apps/vr/tools/mesh/merge_halves.py -- <front.glb> <back.glb> <merged.glb> <rot_front> <rot_back> <cut_y> <overlap> <height> [<record.json>]
+blender -b --factory-startup --python-exit-code 1 -P apps/vr/tools/mesh/merge_halves.py -- <front.glb> <back.glb> <merged.glb> <rot_front> <rot_back> <cut_y> <overlap> <height> [<record.json>] [--match-back]
 node apps/vr/tools/mesh/finish.mjs <merged.glb> <finish> --class <Class> --name <Name> --mode bake --rot 0 ...
 ```
 
@@ -170,8 +171,36 @@ node apps/vr/tools/mesh/finish.mjs <merged.glb> <finish> --class <Class> --name 
   halves are joined with both TRELLIS textures. `finish.py`'s voxel remesh (and FILL) is the merge; the finished card is
   the watertight check. The record (`<merged>_merge.json`) has the fit, the faces kept, the cap faces and a 1 cm voxel trial.
 - Pick `cut_y` behind everything the front half must keep (for the maw: the throat wall at y -0.55, so -0.30). The
-  seam is a straight vertical line on both flanks where the two textures and surfaces meet; the bake does not blend it.
+  seam is a straight vertical line on both flanks where the two textures and surfaces meet; the bake does not blend it
+  (fix the colour step with the next section; a step in the surface's shape stays).
 - `python -m unittest apps/vr/tools/mesh/test_merge_halves.py` (numpy only). First run: docs/research/MAW-MV-2026-10-24.md.
+
+### The flank seam (colour match and feather, on the bake)
+
+The two TRELLIS textures differ in colour (the 2026-10-24 maw: olive front, browner back), so the bake shows a straight
+colour step on both flanks. Fix it on the finished texture; the geometry is only read, so the finish stays byte-identical:
+
+```
+blender -b <finish>/<Name>_finish.blend --python-exit-code 1 -P apps/vr/tools/mesh/bake_source_id.py -- <merged.glb> <fix>/<Name>_source_id.png <height_m>
+python apps/vr/tools/mesh/seam_fix.py <finish>/<Name>_finish.glb <finish>/T_<Name>_BaseColor.png <fix>/T_<Name>_BaseColor.png --source <fix>/<Name>_source_id.png --record <fix>/seam_fix.json
+```
+
+- `bake_source_id.py` bakes, with finish.py's pose, cage and ray, which half each texel took its colour from (128 front,
+  255 back, 0 missed). The bake's switch wanders a few cm around the cut plane (the remesh surface lies between the two
+  skins in the overlap band), so the plane alone (`--cut`, the fallback) mislabels a strip on each flank. Its hit set
+  must equal the finish's hit mask; on the maw it did to 2 texels in 1.13 M.
+- `seam_fix.py` rasterizes the LOD0's UV triangles to give every texel its surface point, moves every back texel from the
+  back's local mean colour onto the front's (measured within 5 cm of the seam at anchors along it, 8 cm around each,
+  so a flank is compared with the same flank; one gain for the spread, at most 1.25), blends texels within 3 cm of the
+  seam toward their 1.5 cm neighbourhood mean (the feather), and gives the bake margin its nearest island colour.
+- The record has the seam report before and after: 2 cm patches either side of the seam on both flanks at z 0.2-0.9 m
+  (adjacent, and 4-6 cm out, outside the feather), their noise floor (two patches on one texture), and 5 cm flank bands.
+- Copy the new `T_<Name>_BaseColor.png` beside the finish `.blend` before `beast_parts.py` and `rig_anim.py` (the FBX
+  carries no texture), and beside the FBX for evidence and the UE import.
+- `merge_halves.py --match-back` is the other route: it moves the back TRELLIS texture onto the front's statistics in the
+  overlap band before the join. On the maw it overshot (the band's front statistics are dominated by the lighter jaw and
+  belly, so the back came out lighter than the flank it meets); the bake fix above is the one of record.
+- `python -m unittest apps/vr/tools/mesh/test_seam_lib.py` (numpy and scipy). First run: docs/research/CREATURE-CAST-UE-2026-10-24.md.
 
 ## Starting and stopping the local ComfyUI
 

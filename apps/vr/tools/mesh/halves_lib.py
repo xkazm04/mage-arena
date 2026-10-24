@@ -73,11 +73,24 @@ def keep_mask(face_y, cut, overlap, side):
     raise ValueError(f'side must be front or back, not {side!r}')
 
 
+def band_mask(face_y, cut, overlap, eps=0.005):
+    """Faces whose centre lies strictly inside the overlap band, eps clear of both cut planes (so the cap faces, which lie
+    on the planes, are left out): the faces both halves cover, where their colours are compared."""
+    y = np.asarray(face_y, dtype=np.float64)
+    return (y > cut - overlap + eps) & (y < cut + overlap - eps)
+
+
+FLAGS = ('--match-back',)
+
+
 def parse_args(argv):
-    """merge_halves.py positionals: front.glb back.glb out.glb rot_front rot_back cut overlap height [record.json]."""
-    if len(argv) not in (8, 9):
+    """merge_halves.py positionals: front.glb back.glb out.glb rot_front rot_back cut overlap height [record.json], and
+    the flag --match-back (the back texture is moved onto the front's colour statistics in the overlap band)."""
+    flags = [a for a in argv if a.startswith('--')]
+    argv = [a for a in argv if not a.startswith('--')]
+    if len(argv) not in (8, 9) or any(f not in FLAGS for f in flags):
         raise SystemExit('usage: merge_halves.py -- <front.glb> <back.glb> <out.glb> <rot_front_deg> <rot_back_deg> '
-                         '<cut_y_m> <overlap_m> <height_m> [<record.json>]')
+                         '<cut_y_m> <overlap_m> <height_m> [<record.json>] [--match-back]')
     front, back, out = argv[:3]
     rot_front, rot_back, cut, overlap, height = (float(x) for x in argv[3:8])
     if overlap < 0 or height <= 0:
@@ -86,4 +99,4 @@ def parse_args(argv):
         raise SystemExit('cut must lie inside the body (|cut| < height)')
     record = argv[8] if len(argv) == 9 else out[:-4] + '_merge.json'
     return {'front': front, 'back': back, 'out': out, 'rot_front': rot_front, 'rot_back': rot_back, 'cut': cut,
-            'overlap': overlap, 'height': height, 'record': record}
+            'overlap': overlap, 'height': height, 'record': record, 'match_back': '--match-back' in flags}
