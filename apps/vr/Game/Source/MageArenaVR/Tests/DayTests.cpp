@@ -295,7 +295,8 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 		{
 			// T25: Brennic and Lio fall into missio. The script makes no choice, so the 5 s timeout spares them.
 			bPass &= TestEqual(*FString::Printf(TEXT("missio after bout %d"), Bout + 1), Session.GetStage(), FString(TEXT("missio")));
-			RunLogged(Session, Log, [&Session]() { return Session.GetStage() != TEXT("missio"); }, 6.0);
+			RunLogged(Session, Log, [&Session]()
+			{ return Session.GetStage() != TEXT("missio"); }, 6.0);
 		}
 		if (Bout < 3)
 		{
@@ -307,11 +308,11 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 	}
 	RunLogged(Session, Log, [&Session]() { return Session.GetStage() == TEXT("closed"); }, 20.0);
 	const TArray<FString> Expected = {
-		TEXT("cold"), TEXT("prologue"), TEXT("teach"), TEXT("ritual"),
-		TEXT("intro"), TEXT("active"), TEXT("intermission"),
-		TEXT("intro"), TEXT("active"), TEXT("intermission"),
-		TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("intermission"),
-		TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("aftermath"), TEXT("closed")};
+	    TEXT("cold"), TEXT("prologue"), TEXT("teach"), TEXT("ritual"),
+	    TEXT("intro"), TEXT("active"), TEXT("intermission"),
+	    TEXT("intro"), TEXT("active"), TEXT("intermission"),
+	    TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("intermission"),
+	    TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("aftermath"), TEXT("closed")};
 	bPass &= TestEqual(TEXT("first-launch phase order"), FString::Join(Log.Stages, TEXT(" > ")), FString::Join(Expected, TEXT(" > ")));
 	bPass &= TestEqual(TEXT("bout 1 intro line"), Intro1, FString(TEXT("Legion soldiers. Hold the dais.")));
 	bPass &= TestTrue(TEXT("the final was won"), Session.WasFinalWon());

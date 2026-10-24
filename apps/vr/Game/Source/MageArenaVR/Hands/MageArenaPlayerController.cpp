@@ -28,25 +28,25 @@ struct FQuickActionKey
 
 // One table. The mapping context and PlayQuickAction calls are built from it.
 const FQuickActionKey GQuickActionKeys[] = {
-	{ EKeys::One, TEXT("sigil-line1"), false },
-	{ EKeys::Two, TEXT("sigil-line2"), false },
-	{ EKeys::Three, TEXT("sigil-line3"), false },
-	{ EKeys::Four, TEXT("mudra"), false },
-	{ EKeys::Q, TEXT("bolt"), false },
-	{ EKeys::SpaceBar, TEXT("ward-raise"), false, true },
-	{ EKeys::A, TEXT("blink-left"), false },
-	{ EKeys::D, TEXT("blink-right"), false },
-	{ EKeys::S, TEXT("blink-back"), false },
-	{ EKeys::F, TEXT("staff-plant"), false },
-	{ EKeys::R, TEXT("both-palms"), false },
-	// The three stones beside the seat (comfort settings in cold, the stone pick in an intermission). Each key plays a
-	// reach clip; the session reads the hand over the stone like a tracked hand.
-	{ EKeys::Z, TEXT("stone-left"), false },
-	{ EKeys::X, TEXT("stone-centre"), false },
-	{ EKeys::C, TEXT("stone-right"), false },
-	// T25: the closed fist that finishes a fallen rival at missio (Clips/fist/). The spare is the held ward palm.
-	{ EKeys::G, TEXT("fist"), false },
-	{ EKeys::Escape, NAME_None, true },
+    {EKeys::One, TEXT("sigil-line1"), false},
+    {EKeys::Two, TEXT("sigil-line2"), false},
+    {EKeys::Three, TEXT("sigil-line3"), false},
+    {EKeys::Four, TEXT("mudra"), false},
+    {EKeys::Q, TEXT("bolt"), false},
+    {EKeys::SpaceBar, TEXT("ward-raise"), false, true},
+    {EKeys::A, TEXT("blink-left"), false},
+    {EKeys::D, TEXT("blink-right"), false},
+    {EKeys::S, TEXT("blink-back"), false},
+    {EKeys::F, TEXT("staff-plant"), false},
+    {EKeys::R, TEXT("both-palms"), false},
+    // The three stones beside the seat (comfort settings in cold, the stone pick in an intermission). Each key plays a
+    // reach clip; the session reads the hand over the stone like a tracked hand.
+    {EKeys::Z, TEXT("stone-left"), false},
+    {EKeys::X, TEXT("stone-centre"), false},
+    {EKeys::C, TEXT("stone-right"), false},
+    // T25: the closed fist that finishes a fallen rival at missio (Clips/fist/). The spare is the held ward palm.
+    {EKeys::G, TEXT("fist"), false},
+    {EKeys::Escape, NAME_None, true},
 };
 }
 

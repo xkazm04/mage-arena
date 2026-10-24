@@ -335,12 +335,14 @@ private:
 	void EnterIntro();
 	void EnterAftermath(bool bWon);
 	void EndDay();
-	/** Prologue, ritual, intro, aftermath, closed and the lost final's stone. True when it handled the phase. */
+	/** Prologue, ritual, intro, missio, aftermath, closed and the lost final's stone. True when it handled the phase. */
 	bool AdvanceDay(double DeltaSeconds);
 	/** Palm held over the centre stone for offerHoldS. */
 	bool HoldCentreStone(double DeltaSeconds);
 	/** T25: after the kernel settled a bout won against a bound rival, before its intermission or aftermath. */
 	void EnterMissio();
+	/** Missio's phase clock is advanced by AdvanceDay; this reads the fist, the palm and the timeout. */
+	void AdvanceMissio(double DeltaSeconds);
 	/** Writes arena.tiro.1.w<n>.finish and arena.missio.total, then goes where the bout was going. */
 	void ResolveMissio(bool bFinish, const TCHAR* How);
 	/** An open hand raised toward the arena, as one palm of the both-palms offer. */

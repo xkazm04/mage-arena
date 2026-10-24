@@ -3,10 +3,10 @@
 namespace
 {
 const EHandKeypoint GFingers[] = {
-	EHandKeypoint::IndexMetacarpal,
-	EHandKeypoint::MiddleMetacarpal,
-	EHandKeypoint::RingMetacarpal,
-	EHandKeypoint::LittleMetacarpal,
+    EHandKeypoint::IndexMetacarpal,
+    EHandKeypoint::MiddleMetacarpal,
+    EHandKeypoint::RingMetacarpal,
+    EHandKeypoint::LittleMetacarpal,
 };
 
 double AngleDeg(const FVector& A, const FVector& B)

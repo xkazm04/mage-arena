@@ -122,7 +122,8 @@ double MissioRunUntil(FArenaSession& Session, TFunctionRef<bool()> Done, double 
 
 double MissioRunWhile(FArenaSession& Session, const TCHAR* Stage, double LimitS)
 {
-	return MissioRunUntil(Session, [&Session, Stage]() { return Session.GetStage() != Stage; }, LimitS);
+	return MissioRunUntil(Session, [&Session, Stage]()
+	{ return Session.GetStage() != Stage; }, LimitS);
 }
 
 // Every opponent down, nothing of theirs in flight, until the bout leaves active (MageArena.Session.DayFlags does the same).
@@ -154,7 +155,8 @@ bool MissioReachBout(FAutomationTestBase& Test, FMissioRig& Rig, FArenaSession& 
 	bool bPass = Test.TestTrue(TEXT("day begins"), Session.BeginArc(1));
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kMissioTick, true);
-	MissioRunUntil(Session, [&Session]() { return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	MissioRunUntil(Session, [&Session]()
+	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	MissioRunWhile(Session, TEXT("ritual"), 5.0);
 	MissioRunWhile(Session, TEXT("intro"), 5.0);
@@ -187,7 +189,7 @@ int32 CountChain(const FArenaSession& Session, const TCHAR* Prefix)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistTakes, "MageArena.Fist.Takes",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistTakes::RunTest(const FString& Parameters)
 {
@@ -214,7 +216,7 @@ bool FMageArenaFistTakes::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistImpostor, "MageArena.Fist.ImpostorRejected",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistImpostor::RunTest(const FString& Parameters)
 {
@@ -242,12 +244,12 @@ bool FMageArenaFistImpostor::RunTest(const FString& Parameters)
 	const FVector Away = (Held.Joints[Thumb].Location - Held.Joints[Index].Location).GetSafeNormal();
 	Held.Joints[Thumb].Location += Away * 4.0;
 	bPass &= TestFalse(*FString::Printf(TEXT("thumb out %.3f m is not a fist"), FFistDetector::ThumbOverMetres(Held)),
-		FFistDetector::IsFistPose(Held, false));
+	    FFistDetector::IsFistPose(Held, false));
 	return bPass;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistNotPalm, "MageArena.Fist.OpenPalmNeverFist",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistNotPalm::RunTest(const FString& Parameters)
 {
@@ -293,7 +295,7 @@ bool FMageArenaFistNotPalm::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistNotWard, "MageArena.Fist.NeverWard",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistNotWard::RunTest(const FString& Parameters)
 {
@@ -329,7 +331,7 @@ bool FMageArenaFistNotWard::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistHold, "MageArena.Fist.HoldMatchesStones",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistHold::RunTest(const FString& Parameters)
 {
@@ -337,8 +339,10 @@ bool FMageArenaFistHold::RunTest(const FString& Parameters)
 	FString Text;
 	TSharedPtr<FJsonObject> Teach;
 	double OfferHoldS = -1.0;
-	bool bPass = TestTrue(TEXT("teach.json reads"), FFileHelper::LoadFileToString(Text, *FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/teach.json")))
-		&& FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Teach) && Teach.IsValid() && Teach->TryGetNumberField(TEXT("offerHoldS"), OfferHoldS));
+	const FString TeachPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/teach.json"));
+	const bool bRead = FFileHelper::LoadFileToString(Text, *TeachPath);
+	const bool bJson = bRead && FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Teach) && Teach.IsValid();
+	bool bPass = TestTrue(TEXT("teach.json reads"), bJson && Teach->TryGetNumberField(TEXT("offerHoldS"), OfferHoldS));
 	bPass &= TestEqual(TEXT("fist hold is teach.json offerHoldS"), FFistThresholds::HoldS, OfferHoldS);
 	FHandClip Clip;
 	if (!LoadFistClip(*this, TEXT("fist"), EClipVariant::Normal, Clip))
@@ -385,7 +389,7 @@ bool FMageArenaFistHold::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioSpare, "MageArena.Fist.MissioSpare",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistMissioSpare::RunTest(const FString& Parameters)
 {
@@ -420,7 +424,7 @@ bool FMageArenaFistMissioSpare::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioFinish, "MageArena.Fist.MissioFinish",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistMissioFinish::RunTest(const FString& Parameters)
 {
@@ -453,7 +457,7 @@ bool FMageArenaFistMissioFinish::RunTest(const FString& Parameters)
 		bPass &= TestTrue(*(Label + TEXT(" finish is true")), HasFinish(Session, WaveN, bFinish) && bFinish);
 		bPass &= TestEqual(*(Label + TEXT(" a finish spares no one")), MissioTotal(Session), 0.0);
 		bPass &= TestEqual(*(Label + TEXT(" chain: finished by the fist")),
-			CountChain(Session, *FString::Printf(TEXT("day missio bout=%d finish fist"), WaveN)), 1);
+		    CountChain(Session, *FString::Printf(TEXT("day missio bout=%d finish fist"), WaveN)), 1);
 		if (Case.Bout == 3)
 		{
 			bPass &= TestTrue(TEXT("the final is still won"), Session.WasFinalWon());
@@ -467,7 +471,7 @@ bool FMageArenaFistMissioFinish::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistMissioTimeout, "MageArena.Fist.MissioTimeout",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistMissioTimeout::RunTest(const FString& Parameters)
 {
@@ -495,7 +499,7 @@ bool FMageArenaFistMissioTimeout::RunTest(const FString& Parameters)
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFistNoFlagMidBout, "MageArena.Fist.NoChoiceMidBout",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFistNoFlagMidBout::RunTest(const FString& Parameters)
 {
@@ -529,10 +533,12 @@ bool FMageArenaFistNoFlagMidBout::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("no missio line in the chain"), CountChain(Session, TEXT("day missio")), 0);
 	// The fist held before the rival fell does not carry into missio: it needs a fresh 0.40 s there.
 	Rig.Hands->PlayQuickAction(TEXT("fist"), EClipVariant::Slow);
-	MissioRunUntil(Session, [&Session]() { return Session.GetStage() != TEXT("active"); }, 0.8);
+	MissioRunUntil(Session, [&Session]()
+	{ return Session.GetStage() != TEXT("active"); }, 0.8);
 	MissioWinBout(Session);
 	bPass &= TestEqual(TEXT("missio after the fall"), Session.GetStage(), FString(TEXT("missio")));
-	MissioRunUntil(Session, [&Session]() { return Session.GetStage() != TEXT("missio"); }, 1.0);
+	MissioRunUntil(Session, [&Session]()
+	{ return Session.GetStage() != TEXT("missio"); }, 1.0);
 	bPass &= TestEqual(TEXT("the bout's fist chose nothing in missio's first second"), Session.GetStage(), FString(TEXT("missio")));
 	bPass &= TestFalse(TEXT("no finish from the bout's fist"), Session.GetFlags().Has(TEXT("arena.tiro.1.w3.finish")));
 	// Bouts without a rival (Bout 1, the soldiers) go straight to the intermission, with no missio and no flag.
