@@ -32,12 +32,15 @@ public class MageArenaVR : ModuleRules
 		{
 			"RHI",
 			"ImageWrapper",
+			// Greybox/CreatureImport finds the imported idle clip in the scratch folder.
+			"AssetRegistry",
 			// T26: the audio capture records the master submix (UAudioMixerBlueprintLibrary).
 			"AudioMixer"
 		});
 		if (Target.bBuildEditor)
 		{
 			// T26: the SFX import commandlet (Tools/ImportSfxCommandlet) uses the editor's asset import.
+			// Tools/ImportCreatureMeshCommandlet imports FBX through the same AssetTools path (UnrealEd's FbxFactory).
 			PrivateDependencyModuleNames.AddRange(new[] { "UnrealEd", "AssetTools" });
 		}
 	}
