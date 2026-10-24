@@ -1,7 +1,12 @@
 # T45 - Capture evidence integrity: a driver must not be able to report success without capturing
 
-Status: open (needs the build machine: UE 5.8.3 editor and the `capture-*.ps1` launchers; written 2026-10-21 on Lynx,
-the ARM64 laptop, where no Unreal install and no renderer exist - `docs/DECISIONS.md` 2026-10-20 "Unreal host")
+Status: **done** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `9e42cbe` (E), `1612780` (shared helper,
+eight drivers), `191cad0` (StylePick, tests, style-pick launcher), `f92230e` (colour-audio), `197412c` (tolerance note);
+see "Result" at the end. `Result: Succeeded`; `MageArena.` 272/272 with the six `MageArena.Capture.*`;
+`MageArenaDesign.` 5/7, only DF-011's two accepted reds; the three negative proofs fail as required. Two readings differ
+from this card: `QUIT_EXEC` does quit (A3), and digital silence measures -91 dB, which the old guard did reject (C4).
+The T16 event log changed for the same seed and script (a finding, see Result). Was: open, written 2026-10-21 on Lynx,
+the ARM64 laptop, where no Unreal install and no renderer exist - `docs/DECISIONS.md` 2026-10-20 "Unreal host"
 Max turns: 300
 
 ## Goal
@@ -277,3 +282,78 @@ versus the mixer delta over a real 30 s recording) and the measured WAV duration
 and the real captures that justify it; the duration tolerance you chose and why; whether deliverable 1 changed the T16
 event logs for the same seed and script; whether `MOONSHOT-2026-10.md:1020` was still open when you started; anything
 you could not do with the exact error; and every decision this card did not specify.
+
+## Result (Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709)
+
+Built from the worktree with `build.ps1`, `Result: Succeeded` at every step and at `197412c`. One Unreal process at a
+time; verdicts read from `-ReportExportPath`. The full report with every quoted line is `runs/T45/REPORT.md` on Wolf
+(gitignored); this section is its committed record.
+
+**Built.** `Session/CaptureEvidence.{h,cpp}` (new; chosen over `CaptureShot` because it also holds the WAV parser and the
+manifest): `FCaptureEvidence` records each requested shot, `Poll()` fails one that has not landed and decoded within
+`ShotBudgetS` (30 s) as `MAGEVR_CAPTURE_FAIL shot stuck name=<n> waited=<s>s`, and fails a landed PNG under the pixel
+floor; `CanCapture()` refuses `-nullrhi` (`MAGEVR_CAPTURE_FAIL no rhi`); `WriteManifest()` runs before every DONE.
+Wired into all ten `Session/` drivers. `UStylePickCaptureDriver` has `Fail()`, distinct FAILs for both `Start()` returns
+and the frame-60 check, `MinSequenceFrames` = 1200 (`short run seq=<n> stage=<s>`), DONE once after every frame landed,
+starts through `UArenaSessionSubsystem::Start`, quits through `Controller->ConsoleCommand("Quit")`, and FAILs when a
+frame's kernel tick is not the previous plus one (frame N = tick N under `-usefixedtimestep -fps=60`). Proof knobs:
+`-MageArenaStylePickFrames=<n>`, `-MageArenaStylePickBout=<n>`.
+
+**Defects as found on Wolf.** A1, A2, A4, B, C1-C3, D, E (still open at `84b20ed`), F: as written. **A3 differs:**
+`QUIT_EXEC` quits - `FParse::Command(&Cmd, TEXT("QUIT"))` (`GameEngine.cpp:1530`) accepts any non-alphanumeric next
+character (`Parse.cpp:791`), and the before-run logged `FPlatformMisc::RequestExit(0, UGameEngine::HandleExitCommand)`
+and exited after 214 s; so it was not the cause of Retry 1's timeouts. **C4 differs in part:** digital silence measures
+`max_volume: -91.0 dB` here (s16 and f32), which the old guard rejected; what passed was a missing `max_volume` line (a
+header-only WAV printed `capture-colour-audio: ok`) and any duration (a 20.8 s tone printed `ok`).
+
+**A2, before and after** (greybox, frames 300/1200/1800, `runs/T45/before/grid-before-greybox.jpg` and
+`runs/T45/grid-after-greybox.jpg`). Before: `Sim: 5.00s | Last: cast (Actor 1)` ... `Sim: 30.00s | Last: blink (Actor 1)`
+over the same empty arena from the same spot, 1888 frames, no marker. After: fire columns and lane markers, a dark red
+block mid-arena (the greybox opponent, by position) with a cyan water bolt in flight at 20 s, the seat HUD, the camera on
+another pad after a blink at 30 s; `MAGEVR_STYLEPICK end seq=1870 tick=1870 stage=lost sim=31.167`,
+`MAGEVR_CAPTURE_DONE shots=1870`, launcher exit 0.
+
+**Finding: the T16 event log changed for the same seed and script.** Before `1572878ccd422c88871a2c2621055511` (210
+events), after `7b0715c871ac3399504c4f7a744896d4` (203); the player's first blink moves from tick 31 to 37. The old driver
+called `Session.Advance(1/60, true)`, stepping the hand clips, while the clip players also tick themselves, so the hands
+ran at twice the kernel's speed; the subsystem path steps them once a frame, as the game does. Not fixed (constraint).
+The new path is deterministic: a style-13 launch wrote the identical log (`7B0715C8...`). P4 captures fresh.
+
+**Suites.** `MageArena.` 272/272 (266 + `MageArena.Capture.StylePick.FailsWithoutSession`, `.ShortRunFails`,
+`MageArena.Capture.ShotWatchdog.StuckShotFails`, `MageArena.Capture.PixelSanity.UniformFrameFails`,
+`MageArena.Capture.Audio.DurationMismatchFails`, `MageArena.Capture.Manifest.RoundTrips`). `MageArenaDesign.` 5/7:
+FireSeated `Expected 'brennic-c15 reached the last phase (1 of 2 breaks)' to be true.`; FullSeated `the script did not
+lose bout 3`, `the day closes` ("lost"), `all four bouts won` (2) - DF-011's accepted reds with T47's messages.
+
+**Red lines.** FailsWithoutSession against the unchanged driver: `Expected 'fail markers logged by a driver with no
+session' to be 1, but it was 0.` The other five guard new code and were turned red by mutating it (reverted): `Expected
+'a 20.8 s WAV fails a 30 s request' to be false.`, `Expected 'the manifest reads back (shot 0 is incomplete)' to be
+true.`, `Expected 'a single-colour frame fails' to be false.`, `Expected 'a missing file past the budget fails' to be
+true.`, `Expected 'a 3 s run (180 frames) does not pass' to be false.`
+
+**Negative proofs.** (1) `capture-style-pick.ps1 -Styles greybox -ExtraArgs "-MageArenaStylePickBout=99"`:
+`MAGEVR_CAPTURE_FAIL session did not start bout=99`, no DONE, `capture-style-pick: failed (4 failures)`, exit 1.
+(2) `-ExtraArgs "-MageArenaStylePickFrames=180"`: `MAGEVR_CAPTURE_FAIL short run seq=180 stage=active`, no DONE,
+exit 1. (3) `capture-colour-audio.ps1 -CheckWav`: header-only WAV `no duration from ffprobe` / `no max_volume line` /
+`failed`, exit 1 (before: `ok`); 20.8 s tone `the recording is 20.800 s, expected 30.8 s within 1.0 s`, exit 1 (before:
+`ok`); 30 s silence `the recording is silent (peak -91 dB)`, exit 1 (before: the same).
+
+**Audio (C2), three 30.8 s takes.** game/mixer/WAV: 30.803/30.357/30.272 (DONE, `max_volume: -5.6 dB`,
+`capture-colour-audio: ok`); 30.811/29.632/29.483 (`MAGEVR_CAPTURE_FAIL mixer drift audio=30.811 mixer=29.632`);
+30.813/30.805/30.741 (DONE). The new `mixer_s` cue column shows each lag is one mixer stall between 14 and 22 s of play.
+Tolerance 1.0 s for duration and drift: passes start-up latency and the 0.45 s stall, refuses the 1.2 s stall and
+20.8-for-30. Cue TSV columns: `audio_s` (game time since the recording started, unchanged) ... `gain_db`, then `mixer_s`
+(mixer clock since the recording started; read a cue's WAV position from it).
+
+**Pixel floor.** 32x18 point grid, >= 12 colours at 5 bits a channel and luma sd >= 4.0. Real captures on Wolf: 33
+earlier stills/frames min 47 colours / 24.83; 1870 greybox and 1870 style-13 frames min 20 (a blink vignette) / 27.83;
+the 2026-10-04 black-with-a-strip frame 6 / 17.29; uniform 1 / 0. It rejects black and flat frames, not an empty arena
+(the before frames pass with 63 colours).
+
+**Manifest.** `runs/<run>/shots/manifest.json`; StylePick `runs/T16/shots-<style>/manifest.json`; colour-audio audio
+`runs/<run>/audio/manifest.json`. Fields: driver, commit (read from `.git`), seed, the command line, notes, and per shot
+name, path, bytes, tick, bout, stage, pixel {ok, width, height, distinct, lumaStdDev, why}. The two launchers read it.
+
+**Not done.** `Greybox/GreyboxCapture.cpp` (outside this run's paths; own 8/20 s shot fallbacks and `bColoursOk`) and
+`Budget/BudgetStressDriver.cpp` (takes no screenshots) are not wired. Pre-existing and unchanged: Wave1's global timeout
+logs FAIL and can still reach DONE through `WriteBudget`. The T16 capture itself is P4.
