@@ -44,6 +44,8 @@ const FQuickActionKey GQuickActionKeys[] = {
 	{ EKeys::Z, TEXT("stone-left"), false },
 	{ EKeys::X, TEXT("stone-centre"), false },
 	{ EKeys::C, TEXT("stone-right"), false },
+	// T25: the closed fist that finishes a fallen rival at missio (Clips/fist/). The spare is the held ward palm.
+	{ EKeys::G, TEXT("fist"), false },
 	{ EKeys::Escape, NAME_None, true },
 };
 }
