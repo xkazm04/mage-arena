@@ -1,5 +1,7 @@
 #include "Budget/BudgetFx.h"
 
+#include "Session/ElementColour.h"
+
 namespace
 {
 const FString TemplateRoot = TEXT("/Niagara/DefaultAssets/Templates/Emitters/");
@@ -30,11 +32,13 @@ FBudgetFxRow MakeRow(const TCHAR* Name, const TCHAR* Template, bool bGpu, int32 
 // flash and motes, the red rim for the unblockable telegraph (CLAUDE.md).
 const FLinearColor WaterColour(0.009721f, 0.745404f, 0.745404f);
 const FLinearColor WhiteColour(1.0f, 1.0f, 1.0f);
-const FLinearColor RimRedColour(0.8f, 0.02f, 0.02f);
 }
 
 const TArray<FBudgetFxRow>& BudgetStress::FxRows()
 {
+	// T49: the telegraph's red is the palette's one unblockable rim (0.745404, 0.014444, 0.009134), not a copy. The old
+	// hand-typed 0.8, 0.02, 0.02 differed from it. The greybox default, not a style override: the bake is one asset.
+	const FLinearColor RimRedColour = FElementPalette::Greybox().UnblockableRim;
 	static const TArray<FBudgetFxRow> Rows = {
 		MakeRow(TEXT("NS_Budget_BoltTrail"), TEXT("Fountain"), false, 300, 600.0, 0, 0.0, 0.5, 4.0, 8.0, WaterColour,
 			TEXT("attached to projectile 0")),
