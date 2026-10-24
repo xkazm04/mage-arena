@@ -2,6 +2,26 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-24 - Athena 20:46Z: the maw ACCEPTED as a working asset; split-and-merge is the path; the seam fix ordered
+
+> Athena, 2026-10-24 20:46Z (owner delegation), on 6fc79bf (`docs/research/MAW-MV-2026-10-24.md`: the two-view
+> TRELLIS.2 run failed, the split-and-merge fallback won). On the seam: "the front half reads greener and the back half
+> browner on both flanks". The rest of the ruling is recorded below as the dispatch brief relayed it, not verbatim.
+
+- **The mire maw (the merged s7 front + s7301 back, 17,490 tris, s7 fit rig) is ACCEPTED as a working asset** (working,
+  not final), as of 6fc79bf.
+- **Two-view TRELLIS.2 is retired on this checkpoint.** The installed checkpoint has no `proj_linear` weights, so
+  `Pixal3DMultiViewConditioning` only averages the two views' tokens, and the maw run returned 2,994 specks. The
+  `--back` path stays in the tools but is not run again on this checkpoint.
+- **Split-and-merge is the path** for a creature whose single-view back is torn (`merge_halves.py`, mesh README).
+- **The flank seam fix is ordered**, in Blender, with no re-mesh: match the back half's albedo to the front half's
+  across the cut, then feather across it. The palette, dome and leg defects are the source's and are not chased.
+- **Then ONE Unreal lane:** import the maw beside Brennic and the hound, tune the hound's glow at 8 m (without
+  touching the tonemapper or the exposure), capture the whole cast, and re-check the D-G4 budget. Blender is closed
+  before Unreal starts (the RAM order of 19:11Z).
+- Run as `docs/research/CREATURE-CAST-UE-2026-10-24.md`.
+- Nothing ships: the DINOv3 hold stands. No signed number or pinned band changes.
+
 ## 2026-10-24 - Athena 20:13Z: Brennic and the cinder hound ACCEPTED as working in-engine assets
 
 > Athena, 2026-10-24 20:13Z (owner delegation), on bc630e0 (`docs/research/CREATURE-UE-IMPORT-2026-10-24.md`: Brennic and
