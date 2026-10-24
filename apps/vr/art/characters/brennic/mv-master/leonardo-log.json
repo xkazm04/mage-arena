@@ -1,0 +1,21 @@
+{
+  "card": "VISUAL-PLAN (d) steps 0-2",
+  "asset": "Brennic multi-view master reference",
+  "model": "openai/gpt-image-2.5-flare",
+  "laneCap": {
+    "images": 12
+  },
+  "dayCap": {
+    "images": 30,
+    "day": "2026-10-24"
+  },
+  "nightCap": {
+    "credits": 400
+  },
+  "staging": "C:/Users/kazda/mage-art-staging/brennic-mv-2026-10-24",
+  "totalCredits": 0,
+  "note": "One entry per Leonardo generation call, failed calls included; reference uploads (v1 init-image, no generation, no credits) are under uploads. A PENDING entry (creditsSource reserved) is a call whose run ended before the call did; it counts at the expected cost. credits come from the API response (creditsSource api), else the account balance difference, else the expected cost (fallback). file is outside every repo; sha256 binds it. latched is set by the first quota or HTTP 402 error, after which every call is refused.",
+  "calls": [],
+  "uploads": [],
+  "latched": null
+}

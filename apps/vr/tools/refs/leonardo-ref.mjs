@@ -340,7 +340,14 @@ async function gen() {
     process.exit(2);
   }
 
-  const key = readKey();
+  let key;
+  try {
+    key = readKey();
+  } catch (e) {
+    // No request was sent, so there is no call to log; the message names the file, never a key.
+    console.error(`BLOCKED: no Leonardo key (${e.code ?? 'error'}: ${String(e.message).split('\n')[0].slice(0, 200)})`);
+    process.exit(3);
+  }
   const prompt = compile(id);
   const entry = {
     date: new Date().toISOString(), id, what: c.what, model: MODEL, public: false, seed, quality, width: W, height: H,
