@@ -3,6 +3,7 @@
 #include "Session/ArenaSession.h"
 #include "Session/ArenaAudio.h"
 #include "Session/ElementColour.h"
+#include "Session/PresentationLook.h"
 
 #include "Camera/CameraComponent.h"
 #include "Components/SceneComponent.h"
@@ -38,24 +39,13 @@
 
 namespace
 {
-FLinearColor ConscriptColour(0.45f, 0.48f, 0.52f);
-FLinearColor SlingerColour(0.55f, 0.28f, 0.05f);
 // T26: the threat and cast colours (Water, Fire, Air, Earth, steel, the unblockable black and red) are no longer
 // constants here. ElementColour.h owns them (FElementPalette, a style file may override it) and ThreatLookFor picks one
-// from the owner's school and the family.
-const FLinearColor HpColour(0.65f, 0.08f, 0.05f);
-// Opponent mage bodies (T20): dark tones of the school colours, so the body never reads as an absorb cue.
-const FLinearColor MageFireBody(0.30f, 0.06f, 0.03f);
-const FLinearColor MageWaterBody(0.03f, 0.22f, 0.24f);
-// T23. The body is a dark tone of the air wind green, never an absorb cue.
-const FLinearColor MageAirBody(0.05f, 0.20f, 0.06f);
-// T26: the cinder hound body was the orange its embers now draw in (0.8, 0.3, 0.05). A body must not read as an absorb
-// cue (the T20 rule for mage bodies), so the hound is a dark ember tone and its ember stands out at the mouth.
-const FLinearColor HoundBody(0.28f, 0.07f, 0.02f);
+// from the owner's school and the family. T46: the body looks and the HP bar are PresentationLook's, which the D-G4
+// stress plan reads too.
 const FLinearColor ManaColour(0.08f, 0.25f, 0.75f);
 const FLinearColor StaminaColour(0.15f, 0.55f, 0.18f);
 const FLinearColor ClockColour(0.75f, 0.55f, 0.12f);
-const FLinearColor TrainingDummyColour(0.86f, 0.78f, 0.62f);
 const FLinearColor SignPlateColour(0.015f, 0.016f, 0.02f);
 const FLinearColor GlyphPlateColour(0.01f, 0.012f, 0.014f);
 // T22: a Crack is light leaking through the collar (warm white, never black with a red rim); the Wardstones are dark
@@ -70,40 +60,6 @@ constexpr double TithePulseS = 0.5;
 // Wardstones: bearing from the pad's forward, and how far out to the floor edge they stand.
 constexpr double WardstoneBearingDeg = 24.0;
 constexpr double WardstoneEdgeFraction = 0.93;
-
-// T16 style pick (10-04 work, merged 10-12): -MageArenaStyle=<id> recolours the soldiers from the style file. The
-// threat and cast colours are ElementColour's since T26 and are applied there. The reader targets the 10-04 style
-// schema ("soldiers"); a file without that key leaves the soldiers as they are.
-bool bStyleLoaded = false;
-void LoadStylePresentation()
-{
-	if (bStyleLoaded) return;
-	bStyleLoaded = true;
-
-	FString StyleArg;
-	if (FParse::Value(FCommandLine::Get(), TEXT("MageArenaStyle="), StyleArg) && StyleArg != TEXT("greybox") && !StyleArg.IsEmpty())
-	{
-		FString StylePath = FPaths::Combine(FPaths::ProjectDir(), TEXT("../data/vr/styles/style-") + StyleArg + TEXT(".json"));
-		FPaths::CollapseRelativeDirectories(StylePath);
-		FString StyleJson;
-		if (FFileHelper::LoadFileToString(StyleJson, *StylePath))
-		{
-			TSharedPtr<FJsonObject> Root;
-			const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(StyleJson);
-			if (FJsonSerializer::Deserialize(Reader, Root) && Root.IsValid())
-			{
-				auto ReadCol = [&](const TSharedPtr<FJsonObject>& Obj, const TCHAR* Field, FLinearColor& Out) {
-					const TArray<TSharedPtr<FJsonValue>>* Arr;
-					if (Obj->TryGetArrayField(Field, Arr) && Arr->Num() >= 3) {
-						Out = FLinearColor((*Arr)[0]->AsNumber(), (*Arr)[1]->AsNumber(), (*Arr)[2]->AsNumber(), Out.A);
-					}
-				};
-				ReadCol(Root, TEXT("soldiers"), ConscriptColour);
-				ReadCol(Root, TEXT("soldiers"), SlingerColour);
-			}
-		}
-	}
-}
 
 FVector PadForward(const FArenaSession& Session)
 {
@@ -230,18 +186,35 @@ ASessionPresentation::FBody& ASessionPresentation::BodyFor(int32 Id, const FStri
 	FBody& Created = Bodies.AddDefaulted_GetRef();
 	Created.Id = Id;
 	Created.EnemyId = EnemyId;
-	FLinearColor Colour = ConscriptColour;
-	FString Shape = TEXT("Cylinder");
-	if (EnemyId == TEXT("slinger")) { Colour = SlingerColour; }
-	else if (EnemyId == TEXT("cinder_hound")) { Colour = HoundBody; Shape = TEXT("Cube"); }
-	else if (EnemyId == TEXT("mire_maw")) { Colour = FLinearColor(0.15f, 0.35f, 0.1f); Shape = TEXT("Cylinder"); }
-	else if (EnemyId == TEXT("mage-fire")) { Colour = MageFireBody; }
-	else if (EnemyId == TEXT("mage-water")) { Colour = MageWaterBody; }
-	else if (EnemyId == TEXT("mage-air")) { Colour = MageAirBody; }
-	Created.Mesh = MakePart(*Shape, Colour);
-	Created.HpBack = MakePart(TEXT("Cube"), FLinearColor(0.02f, 0.02f, 0.02f));
-	Created.HpFill = MakePart(TEXT("Cube"), HpColour);
+	const FBodyLook Look = PresentationLook::Body(EnemyId);
+	Created.Mesh = MakePart(Look.Shape, Look.Colour);
+	Created.HpBack = MakePart(TEXT("Cube"), PresentationLook::HpBackColour());
+	Created.HpFill = MakePart(TEXT("Cube"), PresentationLook::HpFillColour());
 	return Created;
+}
+
+bool ASessionPresentation::IsBodyDrawn(int32 ActorId) const
+{
+	for (const FBody& Body : Bodies)
+	{
+		if (Body.Id == ActorId)
+		{
+			return Body.Mesh && Body.Mesh->IsVisible() && Body.HpBack && Body.HpBack->IsVisible() && Body.HpFill && Body.HpFill->IsVisible();
+		}
+	}
+	return false;
+}
+
+bool ASessionPresentation::IsShotDrawn(int32 ProjectileId) const
+{
+	for (const FShot& Shot : Shots)
+	{
+		if (Shot.Id == ProjectileId && Shot.bLive)
+		{
+			return Shot.Mesh && Shot.Mesh->IsVisible();
+		}
+	}
+	return false;
 }
 
 ASessionPresentation::FShot& ASessionPresentation::ShotFor(int32 Id, bool bSpear)
@@ -536,7 +509,7 @@ void ASessionPresentation::EnsureCuff()
 		}
 		return Mesh;
 	};
-	HpBar = Bar(HpColour, FVector(0.0, 0.0, -4.2));
+	HpBar = Bar(PresentationLook::HpFillColour(), FVector(0.0, 0.0, -4.2));
 	ManaBar = Bar(ManaColour, FVector(0.0, 0.0, -5.8));
 	StaminaBar = Bar(StaminaColour, FVector(0.0, 0.0, -7.4));
 	ClockBar = Bar(ClockColour, FVector(0.0, 0.0, -9.0));
@@ -1348,7 +1321,7 @@ void ASessionPresentation::SyncPhaseVisuals(const FArenaSession& Session, double
 
 void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 {
-	LoadStylePresentation();
+	PresentationLook::LoadStyleFromCommandLine();
 	if (!Session.IsRunning())
 	{
 		return;
@@ -1384,20 +1357,11 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			: (bMage ? (Actor.Fire.bSchool ? TEXT("mage-fire") : (Actor.Air.bSchool ? TEXT("mage-air") : TEXT("mage-water"))) : TEXT(""));
 		FBody& Body = BodyFor(Actor.Id, EnemyId);
 		LiveBodies.Add(Actor.Id);
-		float Height = 176.f;
-		float Width = 48.f;
-		float Length = 48.f;
-		FLinearColor BodyColour = ConscriptColour;
-		if (Actor.bDummy) { BodyColour = TrainingDummyColour; }
-		else if (EnemyId == TEXT("slinger")) { Height = 150.f; Width = 42.f; Length = 42.f; BodyColour = SlingerColour; }
-		else if (EnemyId == TEXT("cinder_hound")) { Height = 40.f; Width = 40.f; Length = 120.f; BodyColour = HoundBody; }
-		else if (EnemyId == TEXT("mire_maw")) { Height = 80.f; Width = 150.f; Length = 150.f; BodyColour = FLinearColor(0.15f, 0.35f, 0.1f); }
-		else if (EnemyId == TEXT("mage-fire")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageFireBody; }
-		else if (EnemyId == TEXT("mage-water")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageWaterBody; }
-		else if (EnemyId == TEXT("mage-air")) { Height = 180.f; Width = 56.f; Length = 56.f; BodyColour = MageAirBody; }
+		const FBodyLook Look = Actor.bDummy ? PresentationLook::Dummy() : PresentationLook::Body(EnemyId);
+		const double Height = Look.SizeCm.Z;
 
 		FVector Centre = Session.KernelToUnrealCm(Actor.Pos);
-		Centre.Z += Height * 0.5f;
+		Centre.Z += Height * 0.5;
 		if (Body.Mesh)
 		{
 			Body.Mesh->SetVisibility(true);
@@ -1409,8 +1373,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Body.Mesh->SetWorldRotation(FRotationMatrix::MakeFromX(FacingDir).Rotator());
 			}
 			Body.Mesh->SetWorldLocation(Centre);
-			Greybox::SetSized(Body.Mesh, FVector(Length, Width, Height));
-			Recolour(Body.Mesh, BodyColour);
+			Greybox::SetSized(Body.Mesh, Look.SizeCm);
+			Recolour(Body.Mesh, Look.Colour);
 			const FVector To = Centre - CamLoc;
 			if (!Actor.bDummy && Camera && FVector::DotProduct(To.GetSafeNormal(), CamFwd) > 0.45f)
 			{
@@ -1418,18 +1382,20 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			}
 		}
 		const double Fraction = Actor.MaxHp > 0.0 ? FMath::Clamp(Actor.Hp / Actor.MaxHp, 0.0, 1.0) : 0.0;
-		const FVector Bar = Centre + FVector(0.0, 0.0, Height * 0.5f + 18.0);
+		const FVector Bar = Centre + FVector(0.0, 0.0, Height * 0.5 + PresentationLook::HpBarGapCm);
+		constexpr double BarLength = PresentationLook::HpBarLengthCm;
+		constexpr double BarThickness = PresentationLook::HpBarThicknessCm;
 		if (Body.HpBack)
 		{
 			Body.HpBack->SetVisibility(true);
 			Body.HpBack->SetWorldLocation(Bar);
-			Greybox::SetSized(Body.HpBack, FVector(70.0, 8.0, 8.0));
+			Greybox::SetSized(Body.HpBack, FVector(BarLength, BarThickness, BarThickness));
 		}
 		if (Body.HpFill)
 		{
 			Body.HpFill->SetVisibility(true);
-			Body.HpFill->SetWorldLocation(Bar + FVector((Fraction - 1.0) * 35.0, 0.0, 0.0));
-			Greybox::SetSized(Body.HpFill, FVector(FMath::Max(4.0, 70.0 * Fraction), 8.0, 8.0));
+			Body.HpFill->SetWorldLocation(Bar + FVector((Fraction - 1.0) * BarLength * 0.5, 0.0, 0.0));
+			Greybox::SetSized(Body.HpFill, FVector(FMath::Max(PresentationLook::HpFillMinCm, BarLength * Fraction), BarThickness, BarThickness));
 		}
 	}
 

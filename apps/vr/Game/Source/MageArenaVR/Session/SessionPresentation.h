@@ -39,6 +39,10 @@ public:
 	int32 CountDistinctMaterials() const;
 	/** T37: shared instances in the opaque part cache and the translucent curtain cache together. */
 	int32 GetSharedTintCount() const { return PartTints.Tints.Num() + CurtainTints.Tints.Num(); }
+	/** T46: the body and both HP bar parts of this actor are visible (the D-G4 stress capture counts its population by it). */
+	bool IsBodyDrawn(int32 ActorId) const;
+	/** T46: this projectile is live and its part is visible. */
+	bool IsShotDrawn(int32 ProjectileId) const;
 
 private:
 	struct FBody
