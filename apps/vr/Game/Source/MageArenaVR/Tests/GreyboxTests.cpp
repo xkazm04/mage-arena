@@ -2,9 +2,12 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Budget/BudgetFx.h"
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/ThreatDemo.h"
 #include "Hands/MageArenaPawn.h"
+#include "Session/ElementColour.h"
+#include "Session/PresentationLook.h"
 
 namespace
 {
@@ -217,6 +220,90 @@ bool FMageArenaGreyboxThreatColours::RunTest(const FString& Parameters)
 	const double Tube = Plan[3].Spec.RadiusM * Layout.ThreatRimTubeScale;
 	TestTrue(TEXT("rim radius is outside the core"), RimRadius > Plan[3].Spec.RadiusM);
 	TestTrue(TEXT("rim tube leaves the core visible"), RimRadius - Tube * 0.5 >= Plan[3].Spec.RadiusM - 1.0e-4);
+	return true;
+}
+
+// T49 (owner ruling 2026-10-21). A near-black body with a red rim means "leave" and belongs to the unblockable alone:
+// exactly one layout threat wears it, and the HP bar the game builds (PresentationLook) wears neither half.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxThreatPairReserved, "MageArena.Greybox.ThreatPairReserved",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxThreatPairReserved::RunTest(const FString& Parameters)
+{
+	FArenaLayout Layout;
+	FString Error;
+	if (!TestTrue(TEXT("layout file loads"), Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error)))
+	{
+		AddError(Error);
+		return false;
+	}
+	int32 Pairs = 0;
+	for (const FThreatSpec& Threat : Layout.Threats)
+	{
+		if (IsBlackCore(Threat.Body) && IsRedRim(Threat.Rim))
+		{
+			++Pairs;
+			TestEqual(TEXT("the black core with a red rim is the unblockable"), Threat.Kind, FString(TEXT("unblockable")));
+		}
+	}
+	TestEqual(TEXT("exactly one layout threat is a black core with a red rim"), Pairs, 1);
+
+	const FLinearColor Back = PresentationLook::HpBackColour();
+	const FLinearColor Fill = PresentationLook::HpFillColour();
+	for (const FLinearColor& Part : {Back, Fill})
+	{
+		TestFalse(*FString::Printf(TEXT("HP colour %s is not a black core"), *Part.ToString()), IsBlackCore(Part));
+		TestFalse(*FString::Printf(TEXT("HP colour %s is not a red rim"), *Part.ToString()), IsRedRim(Part));
+	}
+	// Not just under the IsBlackCore line: the back's brightest channel sits well above it.
+	TestTrue(TEXT("HP back is not near-black"), FMath::Max3(Back.R, Back.G, Back.B) >= 0.1f);
+	// The bar stays a bar: the fill stands off the back by luminance (WCAG ratio on linear values).
+	const float Ratio = (Fill.GetLuminance() + 0.05f) / (Back.GetLuminance() + 0.05f);
+	TestTrue(*FString::Printf(TEXT("HP fill stands off the back (ratio %.2f)"), Ratio), Ratio >= 2.5f);
+	// Neither part borrows a cue colour: every element, steel and the unblockable pair are far away in linear RGB.
+	const FElementPalette Palette = FElementPalette::Greybox();
+	const FLinearColor Cues[] = {Palette.Water, Palette.Fire, Palette.Air, Palette.Earth, Palette.Steel, Palette.UnblockableBody, Palette.UnblockableRim};
+	for (const FLinearColor& Cue : Cues)
+	{
+		TestTrue(*FString::Printf(TEXT("HP fill is not the cue colour %s"), *Cue.ToString()), FLinearColor::Dist(Fill, Cue) > 0.3f);
+	}
+	TestTrue(TEXT("HP back is not the unblockable core"), FLinearColor::Dist(Back, Palette.UnblockableBody) > 0.1f);
+	return true;
+}
+
+// T49. FElementPalette is the one definition of the unblockable red. The layout JSON keeps its own copy (the data is not
+// edited by hand), so this holds it to the palette; the D-G4 telegraph bake reads the palette itself.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxUnblockableRed, "MageArena.Greybox.UnblockableRed",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxUnblockableRed::RunTest(const FString& Parameters)
+{
+	FArenaLayout Layout;
+	FString Error;
+	if (!TestTrue(TEXT("layout file loads"), Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error)))
+	{
+		AddError(Error);
+		return false;
+	}
+	const FElementPalette Palette = FElementPalette::Greybox();
+	const FThreatSpec* Unblockable = Layout.Threats.FindByPredicate([](const FThreatSpec& Threat)
+	{ return Threat.Kind == TEXT("unblockable"); });
+	if (!TestNotNull(TEXT("layout has an unblockable threat"), Unblockable))
+	{
+		return false;
+	}
+	TestTrue(*FString::Printf(TEXT("layout unblockable rim %s is the palette's"), *Unblockable->Rim.ToString()), Unblockable->Rim.Equals(Palette.UnblockableRim, 1.0e-4f));
+	TestTrue(*FString::Printf(TEXT("layout unblockable telegraph %s is the palette's"), *Unblockable->Telegraph.ToString()),
+	    Unblockable->Telegraph.Equals(Palette.UnblockableRim, 1.0e-4f));
+	TestTrue(*FString::Printf(TEXT("layout unblockable body %s is the palette's"), *Unblockable->Body.ToString()), Unblockable->Body.Equals(Palette.UnblockableBody, 1.0e-4f));
+
+	const FBudgetFxRow* Telegraph = BudgetStress::FxRows().FindByPredicate([](const FBudgetFxRow& Row)
+	{ return Row.Name == TEXT("NS_Budget_Telegraph"); });
+	if (!TestNotNull(TEXT("the D-G4 table has the telegraph row"), Telegraph))
+	{
+		return false;
+	}
+	TestTrue(*FString::Printf(TEXT("NS_Budget_Telegraph colour %s is the palette's"), *Telegraph->Colour.ToString()), Telegraph->Colour.Equals(Palette.UnblockableRim, 1.0e-6f));
 	return true;
 }
 
