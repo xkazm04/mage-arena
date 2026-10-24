@@ -342,13 +342,58 @@ int32 FArenaLayout::ApplyStyle(const FJsonObject& Style)
 	{
 		// The dusk sun is orange and the sky light blue; a style keeps their energy (luminance) and drops their hue. White
 		// at full strength drew a style's sand about three times its sampled colour (T16, style 25, linear).
-		const float Sun = DirectionalColour.GetLuminance();
-		const float SkyFill = SkyLightColour.GetLuminance();
-		DirectionalColour = FLinearColor(Sun, Sun, Sun);
-		SkyLightColour = FLinearColor(SkyFill, SkyFill, SkyFill);
+		// T56: the dusk haze is warm too, and it veils the far stands a style paints.
+		for (FLinearColor* Light : {&DirectionalColour, &SkyLightColour, &FogInscatter, &FogSunInscatter})
+		{
+			const float Luminance = Light->GetLuminance();
+			*Light = FLinearColor(Luminance, Luminance, Luminance, Light->A);
+		}
 	}
 	StyleColours = Applied;
 	return Applied;
+}
+
+void FArenaLayout::ApplyDuskLight()
+{
+	// Linear colours. The pawn's camera has manual exposure at bias 0 and no tonemapper, so the unlit dome shows its
+	// colours as they are and a lit surface shows its albedo times (sun lux x cos + sky fill).
+	// A sun 20 degrees up throws a shadow 2.7 times an object's height; it stays high enough that the far stands'
+	// shadow ends short of the far spawn markers. Yaw 165 sets it ahead and a little left of the seated view, behind
+	// the opponent as in key art S1, so shadows fall toward the player.
+	DirectionalPitchDeg = -20.0;
+	DirectionalYawDeg = 165.0;
+	DirectionalIntensityLux = 2.4;
+	DirectionalColour = FLinearColor(1.0f, 0.50f, 0.16f);
+	SunSourceAngleDeg = 2.0;
+	bCastShadows = true;
+	// The far stands are about 33 m from the seated eye; two cascades cover them at the Quest cascade cap.
+	ShadowDistanceM = 45.0;
+	ShadowCascades = 2;
+	// The shadow side is lit by the sky alone: a rose-lilac fill at about three quarters of the sun on the sand, so
+	// it stays readable and warm, as the key art's shadow side is.
+	SkyIntensity = 0.8;
+	SkyLightColour = FLinearColor(0.62f, 0.40f, 0.42f);
+	// Gold at the horizon, rose, then lilac at the zenith. Every band stays out of the ember-orange threat class.
+	SkyBands = 5;
+	SkyHorizon = FLinearColor(0.98f, 0.52f, 0.20f);
+	SkyUpper = FLinearColor(0.66f, 0.34f, 0.32f);
+	SkyZenith = FLinearColor(0.42f, 0.27f, 0.40f);
+	// Fog starts past the farthest spawn marker (15 m from the centre pad), so no threat colour is veiled, and stops
+	// short of the dome (58 m and more from the seated eye), so the bands keep their colours.
+	bHeightFog = true;
+	FogInscatter = FLinearColor(0.90f, 0.52f, 0.30f);
+	FogSunInscatter = FLinearColor(1.0f, 0.55f, 0.22f);
+	FogDensity = 0.035;
+	FogHeightFalloff = 0.2;
+	FogStartM = 20.0;
+	FogCutoffM = 50.0;
+}
+
+FLinearColor FArenaLayout::SkyBandColour(int32 Band) const
+{
+	const int32 Bands = FMath::Max(SkyBands, 3);
+	const float T = static_cast<float>(FMath::Clamp(Band, 0, Bands - 1)) / static_cast<float>(Bands - 1);
+	return T <= 0.5f ? FMath::Lerp(SkyHorizon, SkyUpper, T * 2.f) : FMath::Lerp(SkyUpper, SkyZenith, T * 2.f - 1.f);
 }
 
 bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
@@ -491,6 +536,7 @@ bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
 		return false;
 	}
 	WallColour = Stone;
+	ApplyDuskLight();
 
 	const FString StylePath = StyleFilePathFromCommandLine();
 	if (!StylePath.IsEmpty())

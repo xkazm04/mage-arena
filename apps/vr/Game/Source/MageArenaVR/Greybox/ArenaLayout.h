@@ -163,6 +163,33 @@ struct FArenaLayout
 	FLinearColor SkyZenith = FLinearColor(0.015f, 0.018f, 0.06f);
 	bool bCastShadows = false;
 
+	/** Sun disc size in degrees; a wider source softens the shadow edge where the renderer filters by it. */
+	double SunSourceAngleDeg = 0.5357;
+	/** Movable-light shadow reach from the camera, and its cascade count (the Quest cap is in Config/Android). */
+	double ShadowDistanceM = 0.0;
+	int32 ShadowCascades = 0;
+	/** Visible sky dome bands from the horizon up; their colours run horizon, upper, zenith (SkyBandColour). */
+	int32 SkyBands = 3;
+	/** Exponential height fog. Off by default; the dusk light turns it on beyond the farthest threat. */
+	bool bHeightFog = false;
+	FLinearColor FogInscatter = FLinearColor::Black;
+	FLinearColor FogSunInscatter = FLinearColor::Black;
+	double FogDensity = 0.0;
+	double FogHeightFalloff = 0.2;
+	double FogStartM = 0.0;
+	/** Nothing past this distance is fogged; 0 fogs everything. */
+	double FogCutoffM = 0.0;
+
+	/**
+	 * T56: the key-art golden-hour dusk (style block 'Light' slot, docs/concepts/VISUAL-PLAN.md section c): a low warm sun
+	 * behind the opponent with long soft shadows, a lilac sky fill that keeps the shadow side readable, an orange-to-lilac
+	 * dome and a warm haze beyond the threats. arena-layout.json's lighting block predates it and is a T54 golden overlay
+	 * file, so LoadFromFile applies this over that block, before a style. Lighting only: no colour a threat wears moves.
+	 */
+	void ApplyDuskLight();
+	/** Colour of dome band Band (0 at the horizon): horizon to upper over the lower half, upper to zenith over the rest. */
+	FLinearColor SkyBandColour(int32 Band) const;
+
 	/** How many colours the style file of -MageArenaStyle=<id> applied in LoadFromFile; 0 for the greybox. */
 	int32 StyleColours = 0;
 
@@ -175,8 +202,8 @@ struct FArenaLayout
 	 * T16: applies a style file (apps/vr/data/vr/styles/style-<id>.json) over the greybox colours: `arena` (the
 	 * arena-layout.json `colours` keys plus `wall`; the flame is `projectiles.fire` instead of `arena.flame`), `sky.horizon`
 	 * and `sky.zenith`, the upper sky band at their midpoint.
-	 * A style that applies any colour also turns the sun and the sky light to neutral greys of their own luminance, so
-	 * the dusk light cannot tint the sampled colours. Alpha (the ward arc's) stays the layout's. Returns how many colours it applied.
+	 * A style that applies any colour also turns the sun, the sky light and the fog to neutral greys of their own
+	 * luminance, so the dusk light cannot tint the sampled colours. Alpha (the ward arc's) stays the layout's. Returns how many colours it applied.
 	 */
 	int32 ApplyStyle(const FJsonObject& Style);
 

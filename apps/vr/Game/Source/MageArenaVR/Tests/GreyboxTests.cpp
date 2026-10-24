@@ -4,6 +4,7 @@
 
 #include "Budget/BudgetFx.h"
 #include "Dom/JsonObject.h"
+#include "HAL/IConsoleManager.h"
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/ThreatDemo.h"
 #include "Hands/MageArenaPawn.h"
@@ -370,7 +371,8 @@ bool FMageArenaGreyboxStyleSkin::RunTest(const FString& Parameters)
 		    Same(Styled.SkyUpper, (Styled.SkyHorizon + Styled.SkyZenith) * 0.5f));
 		TestEqual(*FString::Printf(TEXT("style %s keeps the ward arc alpha"), Id), Styled.WardArc.A, Base.WardArc.A);
 		for (const TPair<FLinearColor, FLinearColor>& Light :
-		    {TPair<FLinearColor, FLinearColor>(Styled.DirectionalColour, Base.DirectionalColour), TPair<FLinearColor, FLinearColor>(Styled.SkyLightColour, Base.SkyLightColour)})
+		    {TPair<FLinearColor, FLinearColor>(Styled.DirectionalColour, Base.DirectionalColour), TPair<FLinearColor, FLinearColor>(Styled.SkyLightColour, Base.SkyLightColour),
+		        TPair<FLinearColor, FLinearColor>(Styled.FogInscatter, Base.FogInscatter), TPair<FLinearColor, FLinearColor>(Styled.FogSunInscatter, Base.FogSunInscatter)})
 		{
 			TestTrue(*FString::Printf(TEXT("style %s light %s is neutral"), Id, *Light.Key.ToString()), Light.Key.R == Light.Key.G && Light.Key.G == Light.Key.B);
 			TestTrue(*FString::Printf(TEXT("style %s light %s keeps the greybox luminance"), Id, *Light.Key.ToString()),
@@ -403,6 +405,91 @@ bool FMageArenaGreyboxStyleSkin::RunTest(const FString& Parameters)
 		{
 			TestFalse(*FString::Printf(TEXT("style %s surface %s is not the leave red"), Id, *Surface.ToString()), IsRedRim(Surface));
 		}
+	}
+	return true;
+}
+
+// T56: the arena is lit as key art S1's golden-hour dusk (style block 'Light' slot): a low warm sun behind the opponent
+// with shadows on, a sky fill that keeps the shadow side readable, an orange-to-lilac dome, and haze that starts past
+// every threat. Forward shading stays on. These are bands, not the exact numbers, so a later tune stays inside the look.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxDuskLight, "MageArena.Greybox.DuskLight",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxDuskLight::RunTest(const FString& Parameters)
+{
+	const IConsoleVariable* Forward = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ForwardShading"));
+	if (TestNotNull(TEXT("r.ForwardShading exists"), Forward))
+	{
+		TestEqual(TEXT("forward shading is on"), Forward->GetInt(), 1);
+	}
+
+	FArenaLayout Layout;
+	FString Error;
+	if (!TestTrue(TEXT("layout file loads"), Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error)))
+	{
+		AddError(Error);
+		return false;
+	}
+
+	// A low sun: shadows two to four times an object's height, never a grazing light that drowns the sand in shadow.
+	TestTrue(*FString::Printf(TEXT("sun pitch %.1f is in the low band [-25, -15]"), Layout.DirectionalPitchDeg),
+	    Layout.DirectionalPitchDeg >= -25.0 && Layout.DirectionalPitchDeg <= -15.0);
+	const FVector SunTravel = FRotator(Layout.DirectionalPitchDeg, Layout.DirectionalYawDeg, 0.0).Vector();
+	const FRunePad* Centre = Layout.FindPad(1);
+	if (TestNotNull(TEXT("centre pad"), Centre))
+	{
+		const FVector View = Layout.FlatForwardM(*Centre);
+		TestTrue(TEXT("the sun is ahead of the seated view, so shadows fall toward the player"), FVector::DotProduct(SunTravel, View) < -0.8);
+	}
+	TestTrue(TEXT("the sun casts shadows"), Layout.bCastShadows);
+	TestTrue(*FString::Printf(TEXT("%d shadow cascades fit the Quest cap of 2"), Layout.ShadowCascades), Layout.ShadowCascades >= 1 && Layout.ShadowCascades <= 2);
+	TestTrue(*FString::Printf(TEXT("shadow distance %.0f m reaches the far stands, no farther than 60 m"), Layout.ShadowDistanceM),
+	    Layout.ShadowDistanceM >= Layout.FloorRadiusXM * 2.0 && Layout.ShadowDistanceM <= 60.0);
+
+	const FLinearColor Key = Layout.DirectionalColour;
+	TestTrue(*FString::Printf(TEXT("key %s is warm: red over green over blue"), *Key.ToString()), Key.R > Key.G && Key.G > Key.B && Key.B < 0.5f * Key.R);
+	// What the sand sees: the sun at its elevation, and the sky fill the shadow side keeps.
+	const double SunOnSand = Layout.DirectionalIntensityLux * FMath::Sin(FMath::DegreesToRadians(-Layout.DirectionalPitchDeg)) * Key.GetLuminance();
+	const double Fill = Layout.SkyIntensity * Layout.SkyLightColour.GetLuminance();
+	TestTrue(*FString::Printf(TEXT("sky fill %.2f is 35-120%% of the sun on the sand %.2f"), Fill, SunOnSand), Fill >= 0.35 * SunOnSand && Fill <= 1.2 * SunOnSand);
+	const FLinearColor Sky = Layout.SkyLightColour;
+	TestTrue(*FString::Printf(TEXT("sky fill %s leans rose-lilac: red and blue over green"), *Sky.ToString()), Sky.B > Sky.G && Sky.R > Sky.G);
+
+	TestTrue(TEXT("the dome has at least three bands"), Layout.SkyBands >= 3);
+	const FLinearColor Horizon = Layout.SkyBandColour(0);
+	const FLinearColor Top = Layout.SkyBandColour(Layout.SkyBands - 1);
+	TestTrue(*FString::Printf(TEXT("horizon %s is orange"), *Horizon.ToString()), Horizon.R > Horizon.G && Horizon.G > Horizon.B);
+	TestTrue(*FString::Printf(TEXT("top band %s is lilac"), *Top.ToString()), Top.B > Top.G && Top.R > Top.G);
+	TestTrue(TEXT("the top band is the zenith cap's colour"), Top.Equals(Layout.SkyZenith, 1.0e-5f));
+	TestTrue(TEXT("the sky darkens upward"), Horizon.GetLuminance() > Top.GetLuminance());
+	for (int32 Band = 1; Band < Layout.SkyBands; ++Band)
+	{
+		TestTrue(*FString::Printf(TEXT("band %d is no brighter than band %d"), Band, Band - 1),
+		    Layout.SkyBandColour(Band).GetLuminance() <= Layout.SkyBandColour(Band - 1).GetLuminance() + 1.0e-5f);
+	}
+
+	TestTrue(TEXT("height fog is on"), Layout.bHeightFog);
+	TestTrue(TEXT("the fog is thin"), Layout.FogDensity > 0.0 && Layout.FogDensity <= 0.1);
+	if (Centre)
+	{
+		double Farthest = 0.0;
+		for (const FSpawnMarker& Marker : Layout.SpawnMarkers)
+		{
+			Farthest = FMath::Max(Farthest, FVector::Dist(Layout.EyeLocationM(*Centre), Marker.PositionM));
+		}
+		TestTrue(*FString::Printf(TEXT("fog starts at %.1f m, past the farthest spawn marker at %.1f m"), Layout.FogStartM, Farthest), Layout.FogStartM > Farthest);
+		// The dome's nearest panel is its radius (70 m) less the eye's 12 m off centre; fog stops short of it.
+		TestTrue(*FString::Printf(TEXT("fog cutoff %.1f m lies between the fog start and the sky dome"), Layout.FogCutoffM),
+		    Layout.FogCutoffM > Layout.FogStartM && Layout.FogCutoffM < 70.0 - FMath::Abs(Centre->PositionM.X));
+	}
+
+	// The light is scenery: no sky, fog or light colour may wear a threat class.
+	const FLinearColor Scenery[] = {Key, Sky, Layout.FogInscatter, Layout.FogSunInscatter, Layout.SkyHorizon, Layout.SkyUpper, Layout.SkyZenith,
+	    Layout.SkyBandColour(1), Layout.SkyBandColour(Layout.SkyBands - 2)};
+	for (const FLinearColor& Colour : Scenery)
+	{
+		TestFalse(*FString::Printf(TEXT("scenery %s is no threat colour"), *Colour.ToString()),
+		    IsTurquoise(Colour) || IsEmberOrange(Colour) || IsSteel(Colour) || IsBlackCore(Colour) || IsRedRim(Colour));
 	}
 	return true;
 }

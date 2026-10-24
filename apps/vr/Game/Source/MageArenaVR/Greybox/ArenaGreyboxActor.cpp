@@ -2,6 +2,8 @@
 
 #include "Budget/BudgetStressDriver.h"
 #include "Components/DirectionalLightComponent.h"
+#include "Components/ExponentialHeightFogComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Engine/DirectionalLight.h"
@@ -27,6 +29,19 @@ FVector ToCm(const FVector& Metres)
 void AddBox(UInstancedStaticMeshComponent* Mesh, const FVector& CentreM, const FQuat& Rotation, const FVector& SizeM)
 {
 	Greybox::AddSized(Mesh, ToCm(CentreM), Rotation, ToCm(SizeM));
+}
+
+// T56: the parts that stand up off the sand throw the dusk shadows. Greybox parts cast none by default; the sand, the
+// pads, the flames and the sky dome stay that way. One instanced component is one shadow draw per cascade.
+void CastShadows(bool bCast, std::initializer_list<UInstancedStaticMeshComponent*> Casters)
+{
+	for (UInstancedStaticMeshComponent* Caster : Casters)
+	{
+		if (Caster)
+		{
+			Caster->SetCastShadow(bCast);
+		}
+	}
 }
 }
 
@@ -129,6 +144,7 @@ void AArenaGreybox::BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder)
 	UInstancedStaticMeshComponent* Seats = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.Seat));
 	// The wall shares the stands' instances unless a style gives it its own colour (T16), so the greybox draws as before.
 	UInstancedStaticMeshComponent* WallMesh = Layout.WallColour == Layout.Stone ? Stone : Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.WallColour));
+	CastShadows(Layout.bCastShadows, {Stone, DaisMesh, Seats, WallMesh});
 
 	// One centimetre above z=0 so a leftover map plane cannot win a coplanar fight.
 	const FVector FloorCentre(0.0, 0.0, -Layout.FloorThicknessM * 0.5 + 0.01);
@@ -205,6 +221,7 @@ void AArenaGreybox::BuildProps(UStaticMesh* Cube, UStaticMesh* Cylinder, UStatic
 	UInstancedStaticMeshComponent* Bars = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.BannerPole));
 	UInstancedStaticMeshComponent* Cloth = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.BannerCloth));
 	UInstancedStaticMeshComponent* Markers = Greybox::MakeInstances(this, Cylinder, Greybox::Tint(Basic, this, Layout.Marker));
+	CastShadows(Layout.bCastShadows, {Brazier, Poles, Bars, Cloth, Markers});
 
 	for (const FArenaProp& Prop : Layout.Braziers)
 	{
@@ -265,7 +282,31 @@ void AArenaGreybox::BuildLights()
 			Light->SetIntensity(static_cast<float>(Layout.DirectionalIntensityLux));
 			Light->SetLightColor(Layout.DirectionalColour);
 			Light->SetCastShadows(Layout.bCastShadows);
+			Light->SetLightSourceAngle(static_cast<float>(Layout.SunSourceAngleDeg));
+			if (Layout.bCastShadows)
+			{
+				Light->SetDynamicShadowDistanceMovableLight(static_cast<float>(FArenaLayout::MetresToCentimetres(Layout.ShadowDistanceM)));
+				Light->SetDynamicShadowCascades(Layout.ShadowCascades);
+			}
 			Light->SetAtmosphereSunLight(false);
+		}
+	}
+
+	if (Layout.bHeightFog)
+	{
+		// T56: a warm haze past the farthest threat, brighter toward the low sun. It veils the far stands; FogStartM keeps
+		// it off every spawn marker and FogCutoffM off the sky dome.
+		AExponentialHeightFog* Fog = World->SpawnActor<AExponentialHeightFog>(AExponentialHeightFog::StaticClass(), FTransform::Identity, Params);
+		if (UExponentialHeightFogComponent* Haze = Fog ? Fog->GetComponent() : nullptr)
+		{
+			Haze->SetFogDensity(static_cast<float>(Layout.FogDensity));
+			Haze->SetFogHeightFalloff(static_cast<float>(Layout.FogHeightFalloff));
+			Haze->SetFogInscatteringColor(Layout.FogInscatter);
+			Haze->SetDirectionalInscatteringColor(Layout.FogSunInscatter);
+			Haze->SetDirectionalInscatteringExponent(8.f);
+			Haze->SetDirectionalInscatteringStartDistance(static_cast<float>(FArenaLayout::MetresToCentimetres(Layout.FogStartM)));
+			Haze->SetStartDistance(static_cast<float>(FArenaLayout::MetresToCentimetres(Layout.FogStartM)));
+			Haze->SetFogCutoffDistance(static_cast<float>(FArenaLayout::MetresToCentimetres(Layout.FogCutoffM)));
 		}
 	}
 
@@ -308,17 +349,27 @@ void AArenaGreybox::BuildSky(UStaticMesh* Cube)
 	// The engine sky atmosphere stays black in this offscreen capture. An inward-facing
 	// unlit dome is the background. LevelColorationUnlitMaterial is not two-sided, so
 	// each panel's +X points at the arena.
-	UMaterialInterface* Horizon = Greybox::Tint(Unlit, this, Layout.SkyHorizon);
-	UMaterialInterface* Upper = Greybox::Tint(Unlit, this, Layout.SkyUpper);
+	// T56: SkyBands stacked bands, so the dusk runs orange to lilac in steps instead of one hard horizon line. The
+	// seated camera looks level with a 58.7 degree vertical field, so it sees the dome from the stands' top (about 10
+	// degrees up) to about 29 degrees: the first band (horizon) ends at 14 m, the middle bands share 14-44 m, and the last
+	// band (zenith) runs from 44 m to the top. Each band overlaps the next by a metre.
+	const int32 Bands = FMath::Max(Layout.SkyBands, 3);
+	TArray<UMaterialInterface*> BandMaterials;
+	for (int32 Band = 0; Band < Bands; ++Band)
+	{
+		BandMaterials.Add(Greybox::Tint(Unlit, this, Layout.SkyBandColour(Band)));
+	}
 	UMaterialInterface* Zenith = Greybox::Tint(Unlit, this, Layout.SkyZenith);
 
 	const double Radius = 70.0;
 	const int32 Azimuth = 4;
 	const double Thickness = 2.0;
-	const double LowerCentreZ = 18.0;
-	const double LowerHeight = 40.0;
-	const double UpperCentreZ = 52.0;
-	const double UpperHeight = 36.0;
+	const double BottomZ = -2.0;
+	const double HorizonTopZ = 14.0;
+	const double ZenithBottomZ = 44.0;
+	const double TopZ = 70.0;
+	const double MiddleStep = (ZenithBottomZ - HorizonTopZ) / (Bands - 2);
+	const double Overlap = 1.0;
 
 	auto AddPanel = [this, Cube](UMaterialInterface* Material, const FVector& CentreM, const FQuat& Rotation, const FVector& SizeM)
 	{
@@ -342,8 +393,12 @@ void AArenaGreybox::BuildSky(UStaticMesh* Cube)
 		const FQuat Rotation = FRotationMatrix::MakeFromX(-Radial).ToQuat();
 		const double Chord = 2.0 * Radius * 1.2;
 		const FVector Place = Radial * Radius;
-		AddPanel(Horizon, Place + FVector(0.0, 0.0, LowerCentreZ), Rotation, FVector(Thickness, Chord, LowerHeight));
-		AddPanel(Upper, Place + FVector(0.0, 0.0, UpperCentreZ), Rotation, FVector(Thickness, Chord, UpperHeight));
+		for (int32 Band = 0; Band < Bands; ++Band)
+		{
+			const double Low = Band == 0 ? BottomZ : HorizonTopZ + (Band - 1) * MiddleStep;
+			const double High = Band == Bands - 1 ? TopZ : HorizonTopZ + Band * MiddleStep;
+			AddPanel(BandMaterials[Band], Place + FVector(0.0, 0.0, (Low + High) * 0.5), Rotation, FVector(Thickness, Chord, High - Low + Overlap));
+		}
 	}
 
 	const FQuat CapRotation = FRotationMatrix::MakeFromX(FVector(0.0, 0.0, -1.0)).ToQuat();
