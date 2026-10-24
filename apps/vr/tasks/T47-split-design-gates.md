@@ -1,6 +1,9 @@
 # T47 - Split the design suites' invariants from their measurements
 
-Status: ready for Wolf (the x64 UE host) **after T39 has landed** - see "Order against T39", which is a hard
+Status: **done** on Wolf (kaziho) 2026-10-24, UE 5.8.3 CL 58210709, commits `69b349a` (step 1), `086854e` (step 2),
+`f64c685` (step 3); see "Result" at the end. `Result: Succeeded`; `MageArena.Invariants` 5/5; `MageArena.` 266/266
+(Conformance 45/45); `MageArenaDesign.` 5/7 (FireSeated and FullSeated red as DF-011's accepted reds); self-test
+verdicts identical. Was: ready for Wolf (the x64 UE host) **after T39 has landed** - see "Order against T39", which is a hard
 precondition, not a preference. Written 2026-10-21 on Lynx (ARM64, no Unreal install, `docs/DECISIONS.md` 2026-10-20
 "Unreal host"): nothing in this card was built or run, and every line number below was read from the source on
 2026-10-21 at `66645cc`.
@@ -65,6 +68,12 @@ git log --oneline -1 apps/vr/tasks/T39-adopt-df-recommendations-and-rerun-design
 
 If any `T39: DF-00x` commit is missing, **stop and report**. Record T39's final per-test `MageArenaDesign` table as
 this card's before-table; every after-number is compared against it per test, as WOLF-PLAN section d requires.
+
+**Proof, Wolf kaziho 2026-10-24.** T39 landed in full: `git log --oneline --grep="^T39"` lists `5b13463` DF-003,
+`0acf0c2` DF-009, `a64eab5` DF-007 B, `bef9323` DF-005, `0f33106` DF-006 B, `7f4926d` DF-007 A, `6f00555` DF-008 (no T39
+commit touched `SessionTests.cpp`, so the file log shows none; the card's first command is answered by the grep). Its
+three remaining reds (FireSeated, AirSeated, FullSeated) are explained by an accepted DF: the owner ruled DF-011 on
+2026-10-24, "Accept the reds" (`docs/DECISIONS.md` 2026-10-24), so P2 counts as landed and this precondition holds.
 
 ## What is an invariant and what is a measurement
 
@@ -288,3 +297,68 @@ Write `runs/T47/REPORT.md`:
 - The one-line `CLAUDE.md` Build-section change the new test names need (do not apply it).
 - Which reported numbers MOONSHOT M9 should later re-measure per skill band.
 - Anything you could not do and the exact error.
+
+## Result (Wolf kaziho 2026-10-24, UE 5.8.3 CL 58210709)
+
+Built from the worktree with `build.ps1`, `Result: Succeeded` for each step. Each suite ran in its own editor process,
+verdicts read from `-ReportExportPath`. Raw logs: `runs/T47/` (gitignored), on Wolf.
+
+**Before-table (T39's result, re-measured at `0e987cf`, code identical to `9412598`).** `MageArenaDesign.` 4/7:
+
+| Test | Before | After `f64c685` | Why it moved |
+|---|---|---|---|
+| `Census.Rivals` | green | green (plus the new signature gate) | - |
+| `Census.Sweep` | green | green | - |
+| `Session.Wave1Seated` | green | green | - |
+| `Session.CreaturesSeated` | green | green | - |
+| `Duel.AirSeated` | red: `length 23.12s in 45-80` (old `:481`) | **green** | its only failure was a Report row |
+| `Duel.FireSeated` | red: c1 length 38.32 s (`:344`), c1 wins (`:350`), c15 length 37.50 s (`:344`), c15 reached the last phase 1 of 2 (`:345`) | red: `brennic-c15 reached the last phase (1 of 2 breaks)` only | length and win left `bPass` |
+| `Session.FullSeated` | red: lost bout 3 (`:789`), day closes (`:790`), 2 of 4 won (`:791`), day 187.85 s in 7-10 min (`:792`) | red: lost bout 3, day closes, 2 of 4 won | the day length left `bPass` (DF-010 E) |
+
+Under `-MageArenaMeasureSelfTest` all 36 `MAGEVR_MEASURE` lines read `OUTSIDE` (0 `INSIDE`) and the per-test verdicts
+and error lines are identical to the normal run. `MageArena.` 266/266, `MageArena.Kernel.Conformance` 45/45, no test that
+was green turned red. `MageArena.Invariants` 5/5.
+
+**Verdict table as implemented.** Moved out of `bPass` (still printed, same arithmetic and constants): CreaturesSeated
+window (old `:244-245`); FireSeated length (old `:344`) and the c1 win (old `:348-351`); AirSeated length (old `:481`)
+and win (old `:485`); FullSeated day with the teach (old `:792`). Kept as gates: the rival binding, reached the last
+phase, signature in the last phase, on a pad, every outcome (won bout 2; did not lose a bout, the day closes, four bouts
+won; Wave 1's phase, waves cleared, victory line). One row differs from the card's table: Wave1Seated `:175-176` asserts
+victory within the **120 s cap** (`GenerousCap`), not the 25-40 s pinned window - that window was already only logged -
+so it stays a gate as an outcome bound, and the window is now the `victoryS` measure line. Census.Rivals gains one
+gate: the signature in every duel that reaches the last phase, on every set where one did (20/20, 18/18 Brennic; 20/20
+Lio; the `-off` sets reach none).
+
+**The gesture invariants** (`Tests/SessionInvariantTests.cpp`, `MageArena.Invariants.<Scenario>`, five tests). Each opens
+its design twin's session and plays the reference script through `PlayAction` -> `PlayQuickAction` for a fixed window
+of active time: **10 s** (`GestureWindowS`; every first ward, cast and blink lands inside 3 s in the recorded chains, and
+the shortest bout ends at 23.12 s) and **25 s** for bout 2 (`CreaturesWindowS`; its first `kernel roll` is at 18.08 s,
+the bout ends at 31.02 s). Asserted: a played bolt clip -> `gesture bolt` -> `kernel cast`; a blink clip -> `gesture
+blink` -> `kernel roll actor=`; a ward clip -> `gesture ward ... -> absorb` with the kernel ward up (`FActor::bAbsorb`,
+the kernel side the recorded chains support: every scenario records 0 perfects and one ward, at onset 0.028 s); the seat
+on a pad; the bindings; and for FullSeated the day ending inside the twin's guard. **A played sigil clip -> `gesture
+sigil` -> `kernel cast`** is asserted in Wave1Seated, CreaturesSeated and FullSeated. The Fire and Air duels' reference
+script draws no sigil at all (0 `gesture sigil` lines in `runs/T19/brennic-c1-chain.log` and
+`runs/T23/lio-c15-chain.log`), so there the cast invariant is the bolt's; making the script draw would change the
+measuring stick (DF-011 C, not adopted). Window tallies: Wave1 sigil 1->1, bolt 25->25, blink 1->1, ward 1 raise;
+Creatures 1->1, 73->73, 2->2, 1; Fire 0, 30->30, 2->2, 1; Air 0, 29->29, 2->2, 1; Full 1->1, 25->25, 1->1, 1.
+
+**Negative controls** (local only, reverted, `git diff --stat` empty after): `if (Name.StartsWith(TEXT("sigil")))
+return;` in `FArenaSession::PlayAction` -> Wave1/Creatures/Full fail `a played sigil clip -> gesture sigil -> kernel cast
+(0 of 0)`; `if (Name == TEXT("bolt")) return;` -> all five fail `a played bolt clip -> gesture bolt -> kernel cast (0 of
+0)`.
+
+**Outcome invariants after T39**, per scenario: Wave1 green; Creatures green; Air green (Lio won at 23.12 s); Fire red,
+brennic-c15 reaches only 1 of 2 phase breaks (DF-011); Full red, the script loses bout 3 to Brennic, so the day does not
+close and 2 of 4 bouts are won (DF-011).
+
+**DF-010:** the day-length assertion left `bPass` in `f64c685`; the day reads `MAGEVR_MEASURE Session.FullSeated
+dayWithTeachS=187.85 target=420.00-600.00 OUTSIDE`. The 7-10 min target and the plan text are unchanged.
+
+**`CLAUDE.md` Build section, one line (not applied, outside this run's paths):** "Since T47 (2026-10-24, `f64c685`), two
+`MageArenaDesign` reds are known, both accepted under DF-011: `Duel.FireSeated` (brennic-c15 reaches 1 of 2 phases) and
+`Session.FullSeated` (loses bout 3 to Brennic); `Duel.AirSeated` is green, its band now a `MAGEVR_MEASURE` line. The green
+gate `MageArena.` includes `MageArena.Invariants.*`."
+
+**For MOONSHOT M9** to re-measure per skill band: the Brennic and Lio census medians and win rates (c1, c1.5), the
+Wave 1 and bout 2 victory times against 25-40 s and 30-45 s, and the day with the teach against 7-10 min.
