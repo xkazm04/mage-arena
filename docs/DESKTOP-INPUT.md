@@ -53,7 +53,10 @@ toward the cursor, in the seat frame the hands are drawn in (`AMageArenaPlayerCo
 reference it learns from session state: the head facing in that same seat frame, written every tick by
 `UArenaSessionSubsystem::ApplyViewAim` from the mouse-look rotation (the seat forward in a scripted run or with no
 possessed pawn). A palm more than 35 degrees off the head does not raise the ward. So `Space` raises wherever the head
-looks, and the right button raises only while the cursor is within 35 degrees of the view centre. The threat's
+looks, and the right button raises only while the cursor is within 35 degrees of the view centre. One asymmetry
+is the clip's, not the gate's: the authored rise turns the left palm from about 80 degrees right of forward down to
+forward, so a palm aimed to the left sweeps across the head facing on its way up and can raise there; held more than
+50 degrees off (the lower angle) it drops again (`MageArena.Ward.ArcGateRejectsOffAxis`). The threat's
 direction is judged after that by the kernel: a raised ward guards a hit only from inside the pinned absorb arc around
 the player's facing, which the same view sets. On a headset the hand is the tracked hand and the same write reads the
 head; until MOONSHOT M2 maps the HMD into the seat frame, it reads the control rotation there too.
