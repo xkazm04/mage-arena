@@ -437,7 +437,11 @@ The mesh is structurally clean and the right size, so this gap is perceptual.
 order of visible gain per Unreal hour. (1) Spell VFX, T58: done, accepted 2026-10-25. (2) Crowd and stands, T57: done,
 accepted 2026-10-25 (the crowd tint pass is deferred). (3) Braziers as fire props, T60: done 2026-10-25
 (`docs/research/BRAZIERS-T60-2026-10-25.md`): a rounded bowl on the existing brazier batch, and a slow two-layer glow
-flame in an environment colour of its own, out of every threat class (shortfall 4's "orange cone" is gone).
+flame in an environment colour of its own, out of every threat class (shortfall 4's "orange cone" is gone). The bowls
+were accepted, the flame was not. T61 (option B, `docs/research/BRAZIERS-T61-2026-10-25.md`, open) gives the flame a
+golden-white heart above the rim and below Fire and Earth, and moves the near braziers off the unblockable's line. No
+critic round read a threat colour in it, but it reads as fire only weakly, and the moved braziers crowd the fire and
+steel lines.
 
 ## (c) The style contract
 

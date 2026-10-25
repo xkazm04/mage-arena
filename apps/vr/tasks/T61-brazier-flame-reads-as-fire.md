@@ -1,6 +1,11 @@
 # T61 - the brazier flame reads as fire (option B)
 
-Status: open
+Status: open (2026-10-25, `docs/research/BRAZIERS-T61-2026-10-25.md`). Held: build Succeeded; check-overlay and check-pin
+OK; D-G4 max 126 (<= 128), parity ok=True; BrazierFlameNotThreat green in all four palettes (least chroma 0.198); the
+critic read no threat colour in the new flame. Failed: (a) the critic reads it as fire only weakly ("a pale candle or gas
+tuft") after three rounds; (b) the moved near braziers stand behind the fire bolt and the steel line in
+04-threats-midflight; MageArena. is 310/311, because MageArena.Overlay.Golden needs a re-record after the layout move
+(hash lines only; the patch is not committed, since apps/vr/data/scenarios-vr/ is outside this lane).
 Max turns: 120
 
 ## Goal
