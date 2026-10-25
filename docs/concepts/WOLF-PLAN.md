@@ -410,6 +410,7 @@ These do not get their own slot in the critical path - **they attach to the phas
 | **T57** crowd visibility | Unreal lane, after T56 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
 | **T58** spell VFX toward the key art | Unreal lane, after T57 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
 | **T59** player hand mesh | Unreal lane, after T58 | Answer 6; VISUAL-PLAN (b) shortfall 3. |
+| **T65** crowd tint pass | Unreal lane, after T64 | Athena lifted her T57 deferral 2026-10-25 (DECISIONS). Built in `apps/vr/tasks/T65-crowd-tint.md`; report `docs/research/CROWD-TINT-T65-2026-10-25.md`; D-G4 max 127 (base 127), open. |
 
 ## d. Gates before every merge on Wolf
 

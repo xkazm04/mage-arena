@@ -2,6 +2,30 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena lifts her own crowd-tint deferral (T65); the tint pass built, one gate open
+
+> Athena, 2026-10-25 (owner delegation), lifting her own T57 deferral (the "crowd tint pass is DEFERRED" line under
+> 7fd7d11 below, which was her ruling, not the owner's). Recorded as the dispatch brief relayed it, not verbatim. The
+> measured result is `docs/research/CROWD-TINT-T65-2026-10-25.md`.
+
+- **The tint pass is asked for as the next Unreal lane** (`apps/vr/tasks/T65-crowd-tint.md`): warm, varied, muted tunics in
+  the S1 palette and some red stand banners, through the per-instance custom data of the same instanced component and the
+  same material `M_Crowd_Atlas`; no new component, mesh or material; no edit to the atlas PNG.
+- **Her constraints:** (1) no tunic or banner colour brighter or more saturated than any threat colour, in the greybox
+  palette and in styles 13, 25 and 30, held by `Crowd.TintNotThreat` (luminance, saturation and a chroma distance of
+  `BrazierFire::ThreatChromaMargin` from every threat colour); (2) the ember flecks over the crowd band keep reading;
+  (3) one draw call, one BasePass and one DepthPass row for the crowd; (4) D-G4 max at or under 126 in three 60 s runs;
+  (5) a blind critic on shuffled before/after pairs, any threat-class or ember-fleck regression blocks the merge.
+- **Measured:** six tunic tints and 14 banners on one component (450 instances, 8 custom floats); `Crowd.TintNotThreat`
+  green in four palettes and red on an over-bright tint; two blind critics, VISIBLE GAIN in all seven pairs and NO
+  REGRESSION in threat class or ember flecks; `MageArena.` 334/334, EXIT CODE 0; the crowd still two draws (213 of 450
+  visible, 426 tris). **D-G4 reads 123 / 127 in all three runs, and the untouched base (6cb13e4) reads 123-124 / 127 the same
+  day:** the tint is +0, but the max is 127, one over her 126. The base moved after T63 (T64 or T22; not bisected). She
+  rules: accept 127 as the ceiling for now, or a card to find the +1.
+- **Two readings of "any threat colour"** are written in the research doc (section 3): the luminance bound leaves out the
+  black core and the saturation bound leaves out steel and the core, which the chroma and brightest-channel checks guard.
+- The DINOv3 hold stands. No signed number moves; nothing under `apps/vr/data/` or `apps/vr/art/` changed.
+
 ## 2026-10-25 - Athena, on c69ef865 (T61 braziers): the flame colour ACCEPTED, the near positions NOT
 
 > Athena, 2026-10-25 08:06Z (owner delegation), on c69ef865 (`docs/research/BRAZIERS-T61-2026-10-25.md`). The ruling is
