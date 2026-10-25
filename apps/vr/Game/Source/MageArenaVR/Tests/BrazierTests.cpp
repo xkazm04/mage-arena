@@ -17,7 +17,7 @@
 #include "Session/ElementColour.h"
 #include "Session/SpellVfx.h"
 
-// T60: the braziers as fire props (Greybox/BrazierFire.h). The flame is scenery: these tests hold its colours out of
+// T60, T61: the braziers as fire props (Greybox/BrazierFire.h). The flame is scenery: these tests hold its colours out of
 // every threat class by chromaticity, as MageArena.SpellVfx.ColoursKeepThreatClass holds the spell glows in theirs, and
 // out of the classes MageArena.Greybox.ThreatColours and ThreatPairReserved check, under the greybox palette and every
 // shipped style.
@@ -192,7 +192,8 @@ bool FMageArenaGreyboxBrazierFlameNotThreat::RunTest(const FString& Parameters)
 			{
 				// Pale: its weakest channel stands higher against its brightest than Fire's or Earth's, so hue tells it from
 				// the orange glows (min over max, the inverse of saturation).
-				const auto Paleness = [](const FLinearColor& C) { return FMath::Min3(C.R, C.G, C.B) / FMath::Max(FMath::Max3(C.R, C.G, C.B), 1.0e-4f); };
+				const auto Paleness = [](const FLinearColor& C)
+				{ return FMath::Min3(C.R, C.G, C.B) / FMath::Max(FMath::Max3(C.R, C.G, C.B), 1.0e-4f); };
 				bPass &= TestTrue(FString::Printf(TEXT("%s is paler than Fire and Earth (%.2f)"), *What, Paleness(Flame)), Paleness(Flame) > FMath::Max(Paleness(P.Fire), Paleness(P.Earth)) + 0.25f);
 			}
 		}

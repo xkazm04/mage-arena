@@ -322,7 +322,8 @@ int32 FArenaLayout::ApplyStyle(const FJsonObject& Style)
 	// T60: no brazier flame colour comes from a style. `projectiles.fire` is the fire spell's absorb colour, so a flame in
 	// it read as an incoming fire bolt from the corner of the eye; `arena.flame` is no better (style 25 samples it as the
 	// leave red, which over its near-black brazier is the unblockable's pair). The flame is an environment colour of its
-	// own, derived in Greybox/BrazierFire.h, out of every threat class and dimmer than every threat glow.
+	// own, derived in Greybox/BrazierFire.h, out of every threat class by chroma, its luminance between the rim's and the
+	// orange glows' (T61).
 	const TSharedPtr<FJsonObject>* Sky = nullptr;
 	if (Style.TryGetObjectField(TEXT("sky"), Sky) && Sky && Sky->IsValid())
 	{

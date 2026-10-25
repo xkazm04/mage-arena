@@ -14,34 +14,40 @@ struct FElementPalette;
  * colour of its own (docs/research/BRAZIERS-T60-2026-10-25.md).
  *
  * The bowl is a stack of flaring cylinder rings on the brazier's existing instanced component, so it costs no draw call.
- * The flame is T58's glow puff (M_SpellGlow, Session/SpellVfx.h): two instanced layers for all four braziers, a broad ochre
- * body and a brighter amber heart, so at most two draw calls whatever the number of braziers.
+ * The flame is T58's glow puff (M_SpellGlow, Session/SpellVfx.h): two instanced layers for all four braziers, a broad
+ * light-amber body and a pale warm-yellow heart, so at most two draw calls whatever the number of braziers.
  *
  * The flame is scenery, never a cue. Its colours are derived here, never read from a style's `projectiles.fire` (the fire
- * spell's absorb colour) nor from `arena.flame` (style 25 samples that as the leave red): an amber and an ochre whose
- * chroma stands off every threat class, dimmer than the dimmest threat glow of the palette in force. Its flicker is a slow
- * sway and breath of the puffs in place, under 1.5 Hz, unlike the fast, rising embers of a fire bolt's trail.
+ * spell's absorb colour) nor from `arena.flame` (style 25 samples that as the leave red). T61 (option B, DECISIONS
+ * 2026-10-25 on deaa15b; docs/research/BRAZIERS-T61-2026-10-25.md): a pale, desaturated warm flame whose chroma stands off
+ * every threat class, brighter than the unblockable's rim and dimmer than the dimmer of Fire and Earth in the palette in
+ * force. Hue and shape tell it from the fire bolt, not darkness: T60's flame, held under every threat glow, read as smoke
+ * against the lit wall. Its flicker is a slow sway and breath of the puffs in place, under 1.5 Hz, unlike the fast, rising
+ * embers of a fire bolt's trail.
  */
 namespace BrazierFire
 {
 enum class ELayer : uint8
 {
-	// The broad, dim ochre lick.
+	// The broad, light-amber lick.
 	Body,
-	// The brighter amber heart low in the bowl.
+	// The pale warm-yellow heart, the flame's brightest part.
 	Heart,
 };
 
 /**
- * The layers' chroma (each divided by its brightest channel): a muted amber heart and a warmer body, both less saturated
- * than Earth (whose hue they sit near) so they stand off it, and less yellow than an ochre, which at this luminance reads
- * olive. Earth and Fire hold the saturated oranges.
+ * The layers' chroma (each divided by its brightest channel): a pale, desaturated warm-yellow heart and a light-amber body.
+ * Both are far paler than Fire and Earth, which hold the saturated oranges, and both keep a clear blue deficit, so the
+ * heart never whitens into steel's chroma nor a near-black core's (BrazierFlameNotThreat holds the 0.15 margin).
  */
-inline const FLinearColor HeartChroma(1.0f, 0.66f, 0.26f);
-inline const FLinearColor BodyChroma(1.0f, 0.58f, 0.27f);
-/** The heart's luminance as a share of the dimmest threat glow's, and the body's as a share of the heart's. */
-inline constexpr float HeartShare = 0.95f;
-inline constexpr float BodyShare = 0.85f;
+inline const FLinearColor HeartChroma(1.0f, 0.85f, 0.55f);
+inline const FLinearColor BodyChroma(1.0f, 0.72f, 0.36f);
+/**
+ * Where each layer's luminance sits in the palette's flame band, from the rim's luminance (0) to the dimmer of Fire's and
+ * Earth's (1): the heart high, so it reads as fire against the lit wall; the body lower, never above the heart.
+ */
+inline constexpr float HeartBandShare = 0.8f;
+inline constexpr float BodyBandShare = 0.45f;
 /** M_SpellGlow's GlowGain on the flame layers (a spell glow uses 1). */
 inline constexpr float FlameGlowGain = 1.4f;
 /**
@@ -52,11 +58,11 @@ inline constexpr float MinBrightest = 0.10f;
 /** The least chroma distance (linear RGB, each divided by its brightest channel) from every threat colour. */
 inline constexpr float ThreatChromaMargin = 0.15f;
 
-/** The least luminance of the colours a threat glows in: the four elements and the unblockable's rim. Steel never glows. */
-MAGEARENAVR_API float DimmestGlowLuminance(const FElementPalette& Palette);
+/** The flame's luminance band under Palette: from the unblockable rim's luminance up to the dimmer of Fire's and Earth's. */
+MAGEARENAVR_API FVector2f FlameLuminanceBand(const FElementPalette& Palette);
 /**
- * The colour of a flame layer under Palette: its chroma at its share of the dimmest threat glow's luminance, and never
- * with its brightest channel under MinBrightest.
+ * The colour of a flame layer under Palette: its chroma at its share of the flame band, and never with its brightest
+ * channel under MinBrightest.
  */
 MAGEARENAVR_API FLinearColor FlameColour(const FElementPalette& Palette, ELayer Layer);
 

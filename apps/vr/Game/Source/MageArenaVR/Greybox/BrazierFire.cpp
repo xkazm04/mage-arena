@@ -80,23 +80,21 @@ void AllPuffs(const FArenaLayout& Layout, double TimeS, TArray<SpellVfx::FPuff>&
 }
 }
 
-float BrazierFire::DimmestGlowLuminance(const FElementPalette& Palette)
+FVector2f BrazierFire::FlameLuminanceBand(const FElementPalette& Palette)
 {
-	float Least = Palette.UnblockableRim.GetLuminance();
-	for (const EElement Element : {EElement::Water, EElement::Fire, EElement::Air, EElement::Earth})
-	{
-		Least = FMath::Min(Least, Palette.ElementColour(Element).GetLuminance());
-	}
-	return Least;
+	// The rim is the dimmest threat glow of every shipped palette, and Fire or Earth the dimmer orange the flame must never
+	// outshine. Steel never glows.
+	return FVector2f(Palette.UnblockableRim.GetLuminance(), FMath::Min(Palette.Fire.GetLuminance(), Palette.Earth.GetLuminance()));
 }
 
 FLinearColor BrazierFire::FlameColour(const FElementPalette& Palette, ELayer Layer)
 {
 	// An environment colour, never a threat's: never projectiles.fire (the fire bolt's absorb colour) and never
-	// arena.flame (style 25 samples it as the leave red). Only its brightness follows the palette, so it stays dimmer
-	// than whatever a threat glows in.
-	const float Heart = HeartShare * DimmestGlowLuminance(Palette);
-	return Layer == ELayer::Heart ? AtLuminance(HeartChroma, Heart) : AtLuminance(BodyChroma, BodyShare * Heart);
+	// arena.flame (style 25 samples it as the leave red). Only its brightness follows the palette, inside the band from
+	// the rim up to the orange glows.
+	const FVector2f Band = FlameLuminanceBand(Palette);
+	const bool bHeart = Layer == ELayer::Heart;
+	return AtLuminance(bHeart ? HeartChroma : BodyChroma, FMath::Lerp(Band.X, Band.Y, bHeart ? HeartBandShare : BodyBandShare));
 }
 
 void BrazierFire::BowlPieces(const FArenaProp& Brazier, TArray<FPiece>& Out)
