@@ -96,8 +96,8 @@ bool FMageArenaCrackSeamOnCuff::RunTest(const FString& Parameters)
 				}
 				const FVector Expected = CuffRoot->GetComponentTransform().TransformPosition(SeamOnCuffCm);
 				const double Away = FVector::Dist(Seam->GetComponentLocation(), Expected);
-				bPass &= TestTrue(*FString::Printf(TEXT("frame %d: seam %d sits on the cuff (%.1f cm away, limit %.1f)"), Frame, Index, Away, SeamToleranceCm),
-					Away <= SeamToleranceCm);
+				const FString OnCuff = FString::Printf(TEXT("frame %d: seam %d sits on the cuff (%.1f cm away, limit %.1f)"), Frame, Index, Away, SeamToleranceCm);
+				bPass &= TestTrue(*OnCuff, Away <= SeamToleranceCm);
 			}
 			bPass &= TestEqual(*FString::Printf(TEXT("frame %d: exactly one seam shows, over the one cuff"), Frame), Visible, 1);
 		}
