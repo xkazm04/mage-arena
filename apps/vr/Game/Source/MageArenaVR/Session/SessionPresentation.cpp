@@ -4,8 +4,10 @@
 #include "Session/ArenaAudio.h"
 #include "Session/ElementColour.h"
 #include "Session/PresentationLook.h"
+#include "Session/SpellVfx.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
@@ -30,7 +32,9 @@
 #include "MageArenaVR.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Math/RotationMatrix.h"
+#include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Modules/ModuleManager.h"
 #include "Dom/JsonObject.h"
@@ -116,6 +120,18 @@ double SecondsToContact(const FProjectile& Projectile, const FActor& Player)
 FThreatLook LookOf(const FGames& Games, int32 OwnerId, const FString& Family)
 {
 	return ElementLook(ActiveElementPalette(), Games.State, Games.PlayerId, OwnerId, Family);
+}
+
+// T58: -MageArenaSpellVfx=0 draws the presentation as it was before the spell VFX (the before stills and budget runs).
+bool SpellVfxOn()
+{
+	static const bool bOn = []
+	{
+		int32 Value = 1;
+		FParse::Value(FCommandLine::Get(), TEXT("MageArenaSpellVfx="), Value);
+		return Value != 0;
+	}();
+	return bOn;
 }
 }
 
@@ -1365,6 +1381,12 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	}
 	LoadStylePaletteFromCommandLine();
 	const FGames& Games = Session.GetGames();
+	const bool bSpellVfx = SpellVfxOn();
+	for (TPair<FLinearColor, TArray<FTransform>>& Layer : GlowFrame)
+	{
+		Layer.Value.Reset();
+	}
+	GlowPuffsDrawn = 0;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
 	SyncWalls(Session);
@@ -1611,6 +1633,20 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 		Shot.LastCm = At;
 		Shot.bOwned = bPlayerOwned;
+		// T58: the shell and the trail, in GlowColour of the look the core is drawn with (none for steel).
+		const FThreatLook ShotLook = LookOf(Games, Projectile.OwnerId, Projectile.Family);
+		Shot.OwnerId = Projectile.OwnerId;
+		Shot.Glow = bSpear ? TOptional<FLinearColor>() : SpellVfx::GlowColour(ShotLook, Projectile.Family);
+		Shot.Trail = ShotLook.bRim ? SpellVfx::ETrail::None
+		                           : SpellVfx::TrailFor(ActorElement(Games.State, bPlayerOwned ? Games.PlayerId : Projectile.OwnerId).Get(EElement::Water));
+		if (bSpellVfx && Shot.Glow.IsSet())
+		{
+			FVector Flight = Session.KernelToUnrealCm(SimAdd(Projectile.Pos, SimScale(Projectile.Velocity, 0.05))) - Session.KernelToUnrealCm(Projectile.Pos);
+			Flight.Z = 0.0;
+			TArray<SpellVfx::FPuff> Puffs;
+			SpellVfx::BoltPuffs(Shot.Trail, At, Flight.GetSafeNormal(), FMath::Max(18.0, Projectile.Radius * 200.0), Projectile.Id, Now, Puffs);
+			AddPuffs(Shot.Glow.GetValue(), Puffs);
+		}
 		if (!bPlayerOwned)
 		{
 			bThreatCm = true;
@@ -1676,8 +1712,11 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 				Ring.Rim->SetVisibility(bUnblockable);
 				Ring.Rim->SetWorldLocation(Mid - FVector(0.0, 0.0, 3.0));
 				Ring.Rim->SetWorldRotation(Rot);
-				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0, Width + 36.0, 5.0));
-				Recolour(Ring.Rim, Look.Rim);
+				// T58: the red rim pulses, wider and brighter at the same chroma; the black body stays on top of it.
+				const float Pulse = bSpellVfx ? SpellVfx::RimPulse(Now) : 0.f;
+				const double Grow = 2.0 * SpellVfx::RimPulseCm * Pulse;
+				Greybox::SetSized(Ring.Rim, FVector(Length + 24.0 + Grow, Width + 36.0 + Grow, 5.0));
+				Recolour(Ring.Rim, SpellVfx::RimPulseColour(Look.Rim, Pulse));
 			}
 			continue;
 		}
@@ -1716,10 +1755,15 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Ring.Rim->SetVisibility(bUnblockable);
 			if (bUnblockable)
 			{
-				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, 1.0));
+				// T58: the rim sat 1 cm above the 5 cm body and, wider, covered it: the leave cue drew as a plain red disc.
+				// It now sits under the body, so the black core shows inside the red rim, and it pulses, wider and brighter
+				// at the same chroma. -MageArenaSpellVfx=0 keeps the old placement for the before stills.
+				const float Pulse = bSpellVfx ? SpellVfx::RimPulse(Now) : 0.f;
+				const double Grow = 2.0 * SpellVfx::RimPulseCm * Pulse;
+				Ring.Rim->SetWorldLocation(At + FVector(0.0, 0.0, bSpellVfx ? -1.5 : 1.0));
 				Ring.Rim->SetWorldRotation(FRotator::ZeroRotator);
-				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2, RadiusCm * 2.2, 4.0));
-				Recolour(Ring.Rim, Look.Rim);
+				Greybox::SetSized(Ring.Rim, FVector(RadiusCm * 2.2 + Grow, RadiusCm * 2.2 + Grow, 4.0));
+				Recolour(Ring.Rim, SpellVfx::RimPulseColour(Look.Rim, Pulse));
 			}
 		}
 
@@ -1795,6 +1839,10 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			}
 		}
 		SyncCuff(Session, *Player, bPaused);
+		if (bSpellVfx)
+		{
+			SyncBursts(Games, *Player, LiveShots, CamLoc, Now);
+		}
 	}
 	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
 	{
@@ -1822,6 +1870,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	LiveAll.Append(LiveShots);
 	LiveAll.Append(LiveRings);
 	HideUnused(LiveAll, Now, bPaused);
+	FlushGlow();
 	if (Audio)
 	{
 		Audio->Sync(Session, bPaused, CamLoc, Camera ? Camera->GetComponentRotation() : FRotator::ZeroRotator);
@@ -2304,5 +2353,139 @@ void ASessionPresentation::SyncAirVisuals(const FArenaSession& Session, double N
 		{
 			Bead->SetVisibility(bForm);
 		}
+	}
+}
+
+int32 ASessionPresentation::CountGlowLayersDrawn() const
+{
+	int32 Drawn = 0;
+	for (const TPair<FLinearColor, TObjectPtr<UInstancedStaticMeshComponent>>& Layer : GlowLayers)
+	{
+		Drawn += Layer.Value && Layer.Value->IsVisible() && Layer.Value->GetInstanceCount() > 0 ? 1 : 0;
+	}
+	return Drawn;
+}
+
+void ASessionPresentation::AddPuffs(const FLinearColor& Colour, const TArray<SpellVfx::FPuff>& Puffs)
+{
+	TArray<FTransform>& Transforms = GlowFrame.FindOrAdd(Colour);
+	for (const SpellVfx::FPuff& Puff : Puffs)
+	{
+		if (GlowPuffsDrawn >= SpellVfx::MaxPuffs)
+		{
+			return;
+		}
+		// The engine sphere is 100 cm across.
+		Transforms.Emplace(Puff.Rotation, Puff.CentreCm, Puff.SizeCm / 100.0);
+		++GlowPuffsDrawn;
+	}
+}
+
+void ASessionPresentation::SyncBursts(const FGames& Games, const FActor& Player, const TSet<int32>& LiveShots, const FVector& EyeCm, double Now)
+{
+	// ResolveHit emits "perfect" (target: the thrower) before the "hit" of a perfect absorb, and counts a block before the
+	// "hit" of a plain one. The struck shot is the thrower's shot that left the field this frame; its glow and trail are
+	// the splash's, so a splash is always the colour of the bolt the ward took. Steel and the unblockable never splash.
+	const bool bBlocked = LastBlocks >= 0 && Player.Metrics.Blocks > LastBlocks;
+	LastBlocks = Player.Metrics.Blocks;
+	TSet<int32> PerfectFrom;
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		if (Event.Kind == TEXT("perfect") && Event.ActorId == Player.Id && Event.TargetId.IsSet())
+		{
+			PerfectFrom.Add(Event.TargetId.GetValue());
+		}
+	}
+	for (int32 Index = EventCursor; Index < Games.State.Events.Num(); ++Index)
+	{
+		const FArenaEvent& Event = Games.State.Events[Index];
+		if (Event.Kind != TEXT("hit") || Event.ActorId != Player.Id || !Event.TargetId.IsSet())
+		{
+			continue;
+		}
+		const bool bPerfect = PerfectFrom.Contains(Event.TargetId.GetValue());
+		if (!bPerfect && !bBlocked)
+		{
+			continue;
+		}
+		FShot* Struck = nullptr;
+		for (FShot& Shot : Shots)
+		{
+			if (Shot.OwnerId == Event.TargetId.GetValue() && Shot.Mesh && !LiveShots.Contains(Shot.Id) && (Shot.bLive || Shot.GhostUntil > Now) && Shot.Glow.IsSet() && Shot.Trail != SpellVfx::ETrail::None)
+			{
+				Struck = &Shot;
+			}
+		}
+		if (!Struck)
+		{
+			continue;
+		}
+		FBurst& Burst = Bursts.AddDefaulted_GetRef();
+		Burst.AtCm = Struck->LastCm;
+		Burst.Colour = Struck->Glow.GetValue();
+		Burst.Trail = Struck->Trail;
+		Burst.Start = Now;
+		Burst.Seed = Event.Tick + Index;
+		Burst.bPerfect = bPerfect;
+		// The ward took the bolt: it goes into its splash, with no ghost left hanging in front of the palm.
+		Struck->bLive = false;
+		Struck->GhostUntil = 0.0;
+	}
+	for (int32 Index = Bursts.Num() - 1; Index >= 0; --Index)
+	{
+		const FBurst& Burst = Bursts[Index];
+		const double Elapsed = Now - Burst.Start;
+		if (Elapsed >= (Burst.bPerfect ? SpellVfx::PerfectS : SpellVfx::SplashS))
+		{
+			Bursts.RemoveAtSwap(Index);
+			continue;
+		}
+		const FVector TowardEye = (EyeCm - Burst.AtCm).GetSafeNormal();
+		TArray<SpellVfx::FPuff> Puffs;
+		SpellVfx::SplashPuffs(Burst.Trail, Burst.AtCm, TowardEye, Elapsed / SpellVfx::SplashS, Burst.Seed, Puffs);
+		if (Burst.bPerfect)
+		{
+			SpellVfx::PerfectRingPuffs(Burst.AtCm, TowardEye, Elapsed / SpellVfx::PerfectS, Puffs);
+		}
+		AddPuffs(Burst.Colour, Puffs);
+	}
+}
+
+void ASessionPresentation::FlushGlow()
+{
+	for (TPair<FLinearColor, TArray<FTransform>>& Frame : GlowFrame)
+	{
+		const TArray<FTransform>& Transforms = Frame.Value;
+		TObjectPtr<UInstancedStaticMeshComponent>& Layer = GlowLayers.FindOrAdd(Frame.Key);
+		if (!Layer)
+		{
+			if (Transforms.IsEmpty())
+			{
+				continue;
+			}
+			if (!GlowTints.Base)
+			{
+				GlowTints.Base = SpellVfx::GlowMaterial();
+			}
+			Layer = Greybox::MakeInstances(this, Greybox::LoadShape(TEXT("Sphere")), Greybox::SharedTint(GlowTints, this, Frame.Key));
+			if (!Layer)
+			{
+				continue;
+			}
+		}
+		if (Layer->GetInstanceCount() != Transforms.Num())
+		{
+			Layer->ClearInstances();
+			if (!Transforms.IsEmpty())
+			{
+				Layer->AddInstances(Transforms, false, true);
+			}
+		}
+		else if (!Transforms.IsEmpty())
+		{
+			Layer->BatchUpdateInstancesTransforms(0, Transforms, true, true, true);
+		}
+		Layer->SetVisibility(!Transforms.IsEmpty());
 	}
 }
