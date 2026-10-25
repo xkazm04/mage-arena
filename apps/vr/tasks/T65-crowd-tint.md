@@ -1,6 +1,8 @@
 # T65 - the crowd tint pass
 
-Status: open
+Status: built 2026-10-25 (`docs/research/CROWD-TINT-T65-2026-10-25.md`). Six tints and 14 banners on the one component;
+TintNotThreat green and red-tested; blind critics: gain, no regression; MageArena. 334/334; D-G4 123 / 127 against a base
+that also reads 127 (open: the ceiling is 126).
 Max turns: 160
 
 ## Goal
