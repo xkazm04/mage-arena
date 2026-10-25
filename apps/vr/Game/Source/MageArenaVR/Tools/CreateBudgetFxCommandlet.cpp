@@ -8,15 +8,24 @@
 #include "HAL/FileManager.h"
 #include "Misc/PackageName.h"
 #include "EdGraph/EdGraphPin.h"
+#include "AssetCompilingManager.h"
+#include "AssetImportTask.h"
+#include "AssetToolsModule.h"
+#include "Engine/Texture2D.h"
+#include "IAssetTools.h"
 #include "Materials/Material.h"
-#include "Materials/MaterialExpressionCameraVectorWS.h"
-#include "Materials/MaterialExpressionDotProduct.h"
+#include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionAppendVector.h"
+#include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionMultiply.h"
-#include "Materials/MaterialExpressionPower.h"
+#include "Materials/MaterialExpressionPerInstanceCustomData.h"
 #include "Materials/MaterialExpressionSaturate.h"
 #include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionTextureCoordinate.h"
+#include "Materials/MaterialExpressionTextureSample.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
-#include "Materials/MaterialExpressionVertexNormalWS.h"
+#include "Misc/Paths.h"
+#include "Misc/SecureHash.h"
 #include "NiagaraEditorUtilities.h"
 #include "NiagaraEmitter.h"
 #include "NiagaraEmitterHandle.h"
@@ -26,6 +35,7 @@
 #include "NiagaraScriptSource.h"
 #include "NiagaraSystem.h"
 #include "NiagaraSystemFactoryNew.h"
+#include "ShaderCompiler.h"
 #include "UObject/UnrealType.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
@@ -235,23 +245,93 @@ int32 ApplyInputs(const FBudgetFxRow& Row, FVersionedNiagaraEmitterData& Data)
 }
 
 /**
+ * T63: T_SpellFlipbook, the spell flipbook atlas, imported from apps/vr/art/vfx/spell-flipbook.png (written by
+ * apps/vr/tools/vfx/spell-flipbook.mjs). A mask, not a picture (R = G = B = shade, A = opacity), so linear, not sRGB;
+ * mips from the Effects group; 512x512 at most. Null when the import or the save fails.
+ */
+UTexture2D* ImportSpellFlipbook()
+{
+	const FString Png = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("../art/vfx/spell-flipbook.png")));
+	if (!FPaths::FileExists(Png))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail flipbook missing %s"), *Png);
+		return nullptr;
+	}
+	const FString PackagePath = SpellVfx::FlipbookTexturePackage;
+	const FString Name = FPackageName::GetShortName(PackagePath);
+	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
+	UAssetImportTask* Task = NewObject<UAssetImportTask>();
+	Task->Filename = Png;
+	Task->DestinationPath = FPackageName::GetLongPackagePath(PackagePath);
+	Task->DestinationName = Name;
+	Task->bReplaceExisting = true;
+	Task->bReplaceExistingSettings = true;
+	Task->bAutomated = true;
+	Task->bSave = false;
+	AssetTools.ImportAssetTasks({Task});
+	UTexture2D* Texture = nullptr;
+	for (UObject* Object : Task->GetObjects())
+	{
+		Texture = Texture ? Texture : Cast<UTexture2D>(Object);
+	}
+	if (!Texture)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s import %s"), *Name, *Png);
+		return nullptr;
+	}
+	Texture->SRGB = false;
+	Texture->MipGenSettings = TMGS_FromTextureGroup;
+	Texture->LODGroup = TEXTUREGROUP_Effects;
+	Texture->CompressionSettings = TC_Default;
+	Texture->MaxTextureSize = 512;
+	Texture->PostEditChange();
+	FAssetCompilingManager::Get().FinishAllCompilation();
+	const FString PackageFile = FPackageName::LongPackageNameToFilename(Texture->GetOutermost()->GetName(), FPackageName::GetAssetPackageExtension());
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+	SaveArgs.SaveFlags = SAVE_NoError;
+	if (!UPackage::SavePackage(Texture->GetOutermost(), Texture, *PackageFile, SaveArgs))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s save %s"), *Name, *PackageFile);
+		return nullptr;
+	}
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s %dx%d srgb=%d mipgen=%d group=%d md5=%s -> %s"), *Name, Texture->Source.GetSizeX(), Texture->Source.GetSizeY(),
+	    Texture->SRGB ? 1 : 0, static_cast<int32>(Texture->MipGenSettings), static_cast<int32>(Texture->LODGroup), *LexToString(FMD5Hash::HashFile(*Png)), *PackageFile);
+	return Texture;
+}
+
+/**
  * T58: M_SpellGlow, the one material of every spell VFX puff (Session/SpellVfx.h). Unlit, translucent (alpha blend),
- * two-sided, usable on instanced meshes: Emissive = Color, Opacity = saturate(pow(saturate(-dot(N, V)), GlowFalloff) x
- * GlowGain). Only the far hemisphere of a sphere shows, densest at its centre and fading to nothing at its silhouette: a
- * soft glow without a texture. A blend moves a pixel from the background toward exactly Color and never past it, so a
- * glow cannot clip into another hue over the bright sand and sky (an additive glow read fire as yellow-gold and air as
- * lime to a blind critic). A bolt's opaque core stands in front of that far half and keeps its exact threat colour; the
- * halo shows only around it. Greybox::Tint writes Color. Returns false when the save fails.
+ * two-sided, usable on instanced meshes. A blend moves a pixel from the background toward the glow colour and never past
+ * it, so a glow cannot clip into another hue over the bright sand and sky (an additive glow read fire as yellow-gold and
+ * air as lime to a blind critic). Greybox::Tint writes Color.
+ *
+ * T63: the puff is a card showing one cell of T_SpellFlipbook, picked per instance by three custom data floats
+ * (SpellVfx::CardCustomData): U = u x d0 + d1, V = v / 4 + d2. Emissive = Color x the cell's shade (R, at most 1) and
+ * Opacity = saturate(A x GlowGain): every pixel is the glow colour or a darker tone of the same chroma, never brighter
+ * than its own threat and never another hue. The far-hemisphere falloff of T58 lives on as the SoftGlow cell. Every
+ * colour stays one material instance and one instanced draw. Returns false when the import or the save fails.
  */
 bool CreateSpellGlowMaterial(bool bForce)
 {
 	const FString PackagePath = SpellVfx::GlowMaterialPackage;
 	const FString Name = FPackageName::GetShortName(PackagePath);
 	const FString ObjectPath = FString::Printf(TEXT("%s.%s"), *PackagePath, *Name);
-	if (!bForce && LoadObject<UMaterial>(nullptr, *ObjectPath, nullptr, LOAD_NoWarn | LOAD_Quiet))
+	const FString TextureObject = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	if (!bForce && LoadObject<UMaterial>(nullptr, *ObjectPath, nullptr, LOAD_NoWarn | LOAD_Quiet) && LoadObject<UTexture2D>(nullptr, *TextureObject, nullptr, LOAD_NoWarn | LOAD_Quiet))
 	{
 		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s unchanged"), *Name);
 		return true;
+	}
+	const FString PackageFile = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
+	// A rebuild starts from nothing on disk: the reimported atlas would otherwise load the old material, and the new one
+	// could not be saved over it.
+	IFileManager::Get().Delete(*PackageFile, false, true, true);
+	IFileManager::Get().Delete(*FPackageName::LongPackageNameToFilename(SpellVfx::FlipbookTexturePackage, FPackageName::GetAssetPackageExtension()), false, true, true);
+	UTexture2D* Flipbook = ImportSpellFlipbook();
+	if (!Flipbook)
+	{
+		return false;
 	}
 	UPackage* Package = CreatePackage(*PackagePath);
 	UMaterial* Material = NewObject<UMaterial>(Package, FName(*Name), RF_Public | RF_Standalone | RF_Transactional);
@@ -269,50 +349,76 @@ bool CreateSpellGlowMaterial(bool bForce)
 	UMaterialExpressionVectorParameter* Colour = NewObject<UMaterialExpressionVectorParameter>(Material);
 	Colour->ParameterName = TEXT("Color");
 	Colour->DefaultValue = FLinearColor::White;
-	Add(Colour, -600, -200);
+	Add(Colour, -400, -300);
 	UMaterialExpressionScalarParameter* Gain = NewObject<UMaterialExpressionScalarParameter>(Material);
 	Gain->ParameterName = TEXT("GlowGain");
 	Gain->DefaultValue = 1.0f;
-	Add(Gain, -600, 200);
-	UMaterialExpressionScalarParameter* Falloff = NewObject<UMaterialExpressionScalarParameter>(Material);
-	Falloff->ParameterName = TEXT("GlowFalloff");
-	Falloff->DefaultValue = 1.5f;
-	Add(Falloff, -600, 100);
-	UMaterialExpressionVertexNormalWS* Normal = NewObject<UMaterialExpressionVertexNormalWS>(Material);
-	Add(Normal, -900, 0);
-	UMaterialExpressionCameraVectorWS* View = NewObject<UMaterialExpressionCameraVectorWS>(Material);
-	Add(View, -900, 60);
-	UMaterialExpressionDotProduct* Facing = NewObject<UMaterialExpressionDotProduct>(Material);
-	Facing->A.Expression = Normal;
-	Facing->B.Expression = View;
-	Add(Facing, -750, 0);
-	UMaterialExpressionMultiply* Away = NewObject<UMaterialExpressionMultiply>(Material);
-	Away->A.Expression = Facing;
-	Away->ConstB = -1.f;
-	Add(Away, -700, 0);
-	UMaterialExpressionSaturate* Clamped = NewObject<UMaterialExpressionSaturate>(Material);
-	Clamped->Input.Expression = Away;
-	Add(Clamped, -650, 0);
-	UMaterialExpressionPower* Soft = NewObject<UMaterialExpressionPower>(Material);
-	Soft->Base.Expression = Clamped;
-	Soft->Exponent.Expression = Falloff;
-	Add(Soft, -450, 0);
+	Add(Gain, -400, 250);
+	// Without instance data (a plain mesh in the editor) the card shows the SoftGlow cell.
+	const float Defaults[SpellVfx::CardCustomFloats] = {0.25f, 0.f, 0.75f};
+	UMaterialExpressionPerInstanceCustomData* Data[SpellVfx::CardCustomFloats];
+	for (int32 Index = 0; Index < SpellVfx::CardCustomFloats; ++Index)
+	{
+		Data[Index] = NewObject<UMaterialExpressionPerInstanceCustomData>(Material);
+		Data[Index]->DataIndex = Index;
+		Data[Index]->ConstDefaultValue = Defaults[Index];
+		Add(Data[Index], -1200, -100 + Index * 100);
+	}
+	UMaterialExpressionTextureCoordinate* Uv = NewObject<UMaterialExpressionTextureCoordinate>(Material);
+	Add(Uv, -1200, 250);
+	UMaterialExpressionComponentMask* UvU = NewObject<UMaterialExpressionComponentMask>(Material);
+	UvU->Input.Expression = Uv;
+	UvU->R = true;
+	Add(UvU, -1050, 200);
+	UMaterialExpressionComponentMask* UvV = NewObject<UMaterialExpressionComponentMask>(Material);
+	UvV->Input.Expression = Uv;
+	UvV->G = true;
+	Add(UvV, -1050, 300);
+	UMaterialExpressionMultiply* UScaled = NewObject<UMaterialExpressionMultiply>(Material);
+	UScaled->A.Expression = UvU;
+	UScaled->B.Expression = Data[0];
+	Add(UScaled, -900, 100);
+	UMaterialExpressionAdd* U = NewObject<UMaterialExpressionAdd>(Material);
+	U->A.Expression = UScaled;
+	U->B.Expression = Data[1];
+	Add(U, -800, 100);
+	UMaterialExpressionMultiply* VScaled = NewObject<UMaterialExpressionMultiply>(Material);
+	VScaled->A.Expression = UvV;
+	VScaled->ConstB = 1.f / SpellVfx::FlipbookGrid;
+	Add(VScaled, -900, 250);
+	UMaterialExpressionAdd* V = NewObject<UMaterialExpressionAdd>(Material);
+	V->A.Expression = VScaled;
+	V->B.Expression = Data[2];
+	Add(V, -800, 250);
+	UMaterialExpressionAppendVector* Cell = NewObject<UMaterialExpressionAppendVector>(Material);
+	Cell->A.Expression = U;
+	Cell->B.Expression = V;
+	Add(Cell, -650, 150);
+	UMaterialExpressionTextureSample* Sample = NewObject<UMaterialExpressionTextureSample>(Material);
+	Sample->Texture = Flipbook;
+	Sample->SamplerType = SAMPLERTYPE_LinearColor;
+	Sample->Coordinates.Expression = Cell;
+	Add(Sample, -500, 100);
+	// TextureSample outputs: 0 RGB, 1 R, 2 G, 3 B, 4 A.
+	UMaterialExpressionMultiply* Shaded = NewObject<UMaterialExpressionMultiply>(Material);
+	Shaded->A.Expression = Colour;
+	Shaded->B.Connect(1, Sample);
+	Add(Shaded, -250, -200);
 	UMaterialExpressionMultiply* Dense = NewObject<UMaterialExpressionMultiply>(Material);
-	Dense->A.Expression = Soft;
+	Dense->A.Connect(4, Sample);
 	Dense->B.Expression = Gain;
-	Add(Dense, -300, 0);
+	Add(Dense, -250, 150);
 	UMaterialExpressionSaturate* Opacity = NewObject<UMaterialExpressionSaturate>(Material);
 	Opacity->Input.Expression = Dense;
-	Add(Opacity, -150, 0);
-	Material->GetEditorOnlyData()->EmissiveColor.Expression = Colour;
+	Add(Opacity, -120, 150);
+	Material->GetEditorOnlyData()->EmissiveColor.Expression = Shaded;
 	Material->GetEditorOnlyData()->Opacity.Expression = Opacity;
 	Material->PreEditChange(nullptr);
 	Material->PostEditChange();
 	Material->MarkPackageDirty();
-	const FString PackageFile = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
-	if (bForce)
+	if (GShaderCompilingManager)
 	{
-		IFileManager::Get().Delete(*PackageFile, false, true, true);
+		GShaderCompilingManager->FinishAllCompilation();
 	}
 	FSavePackageArgs SaveArgs;
 	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
@@ -322,7 +428,8 @@ bool CreateSpellGlowMaterial(bool bForce)
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s save %s"), *Name, *PackageFile);
 		return false;
 	}
-	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=translucent shading=unlit twosided=1 instanced=1 -> %s"), *Name, *PackageFile);
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=translucent shading=unlit twosided=1 instanced=1 flipbook=%s customdata=%d -> %s"), *Name,
+	    *Flipbook->GetName(), SpellVfx::CardCustomFloats, *PackageFile);
 	return true;
 }
 
@@ -353,7 +460,7 @@ int32 UCreateBudgetFxCommandlet::Main(const FString& Params)
 	int32 Created = 0;
 	int32 Unchanged = 0;
 	int32 Failed = 0;
-	// T58: the spell VFX material. -spellvfx rebuilds it alone, without touching the Niagara systems.
+	// T58: the spell VFX material (T63: and its flipbook atlas). -spellvfx rebuilds them alone, without touching the Niagara systems.
 	if (!bDump && !CreateSpellGlowMaterial(FParse::Param(*Params, TEXT("spellvfx"))))
 	{
 		++Failed;

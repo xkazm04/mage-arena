@@ -3,7 +3,8 @@
 # already loads is reported and left alone, so a second run writes nothing. -Dump logs every rapid-iteration
 # parameter of freshly built systems and saves nothing; -Verify also dumps the saved systems; -Force rebuilds them.
 # T58: it also builds M_SpellGlow (apps/vr/Game/Content/Vfx), the spell VFX material, when missing; -SpellVfx rebuilds
-# that material alone.
+# that material alone. T63: with it, T_SpellFlipbook, imported from apps/vr/art/vfx/spell-flipbook.png (written by
+# apps/vr/tools/vfx/spell-flipbook.mjs; run its --check first, and git lfs pull if the PNG is a pointer).
 # Needs the editor target built (apps/vr/tools/build.ps1). No -nullrhi: the GPU emitter compiles shaders.
 param([switch]$Dump, [switch]$Verify, [switch]$Force, [switch]$SpellVfx, [string]$Run = "D-G4-fx")
 
