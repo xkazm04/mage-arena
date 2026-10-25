@@ -1,6 +1,9 @@
 # T52 - Import and place the crowd cards in the arena stands, and check draw calls against D-G4
 
-Status: open (needs Wolf: UE 5.8 editor, the MetaXR plugins and `capture-budget.ps1`; written 2026-10-22 on Lynx, where
+Status: superseded by T57 (2026-10-25). T42 never ran, so the crowd stands on the greybox tiers instead of the kit's
+treads: one instanced engine plane with per-instance atlas rects (+2 draws), 436 cards, `-MageArenaNoCrowd`
+(docs/research/CROWD-T57-2026-10-25.md). The four FBX cards and placement.json stay for the kit, if T42 runs.
+Was: open (needs Wolf: UE 5.8 editor, the MetaXR plugins and `capture-budget.ps1`; written 2026-10-22 on Lynx, where
 none of it runs; do it after T42, the arena kit)
 Max turns: 150
 

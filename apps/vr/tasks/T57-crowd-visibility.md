@@ -1,6 +1,6 @@
 # T57 - crowd visibility
 
-Status: open
+Status: done (2026-10-25; docs/research/CROWD-T57-2026-10-25.md)
 Max turns: 120
 
 ## Goal
