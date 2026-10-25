@@ -1,6 +1,7 @@
 # T28 - Intermission scenes on the stones: one optional choice, never blocking
 
-Status: code written 2026-10-25 without Unreal (built: NO); Unreal proof owed - see runs/T28/REPORT.md
+Status: done 2026-10-25 (part 2, T62: built, MageArena.Intermission 9/9, MageArena. 321/321, MageArenaDesign 5/7 under
+DF-011); one finding open: the idle kernel steps shift later bouts ("PART 2 - result" below). Audio stays deferred (C2 D1-D4).
 C2 (`docs/campaign/05-c2-slice-story-bible-and-script.md`, data `apps/vr/data/vr/story/slice.json`) was drafted
 2026-10-21; its decisions D1-D4 were approved 2026-10-24 (docs/DECISIONS.md, "C2 rulings D1-D4 approved as
 recommended"), which unblocked this card on its non-audio parts. runs/ is never committed, so the report is also kept
@@ -235,3 +236,19 @@ UnrealEditor-Cmd MageArenaVR.uproject -ExecCmds="Automation RunTests MageArenaDe
 node apps/vr/tools/lint/format-check.mjs && node apps/vr/tools/lint/unused-members.mjs
     # OK (both pass now)
 ```
+
+### PART 2 - result (2026-10-25, T62, `docs/research/BRAZIERS-T62-2026-10-25.md` section 3)
+
+- **Build:** `Result: Succeeded` on the first build (cold worktree, 417.86 s). The T28 C++ needed **no compile fix**.
+- **The six out-of-path test edits** landed as the table above lists them (T62 commit "T28: the six owed test edits");
+  `TeachTests.cpp:308` was also clang-formatted, since format-check reads changed lines.
+- **MageArena.Intermission:** `Found 9 automation tests`, 9 x `Result={Success}`, `EXIT CODE: 0`.
+- **MageArena.:** `Found 321 automation tests`, 321 x Success, `EXIT CODE: 0` (after T62's golden re-record).
+- **MageArenaDesign.:** 5 / 7; only `Duel.FireSeated` and `Session.FullSeated` red (DF-011).
+  `MAGEVR_MEASURE Session.FullSeated dayWithTeachS=205.31` against 187.85 (T56 log): **+17.46 s, not +31 s.**
+- **The RNG risk is real.** The timing deltas are exactly as predicted (prologue +5.99, intros +5 +5 +9, intermissions
+  +3.02 +3.00: +31.0 s), but the fights moved: bout 1 39.38 = 39.38 s; bout 2 27.50 -> 27.47 s; **bout 3 (Brennic)
+  42.50 -> 29.00 s**, still lost, cracks 2 -> 0. The session pumps the kernel with idle input in the intermission
+  (`Session/SessionFlow.cpp:1462`), and the kernel draws from one sequential stream (`Kernel/ArenaKernel.cpp:362`),
+  the likely cause: a longer idle phase changes the state a later bout starts from (not traced further). Not changed here: it needs a ruling (freeze the
+  kernel during the intermission, or re-seed each bout), because either moves the FullSeated and design-gate numbers.
