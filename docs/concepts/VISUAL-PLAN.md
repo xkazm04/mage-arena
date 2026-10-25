@@ -433,6 +433,12 @@ The mesh is structurally clean and the right size, so this gap is perceptual.
 | (2) Mesh quality | Faces, accessories, colour edges, hands, skinning faults | Defects a gated pipeline catches before UE | Sections c-e |
 | (3) Scene dressing | Light, crowd, VFX, debug text, hand mesh | Presentation work no mesh fixes | Cards T55-T59 (owner answer 6, section g) |
 
+**The arena order** (Athena, 2026-10-25, `docs/DECISIONS.md`): the visual gap in shortfall (3) is the arena, closed in
+order of visible gain per Unreal hour. (1) Spell VFX, T58: done, accepted 2026-10-25. (2) Crowd and stands, T57: done,
+accepted 2026-10-25 (the crowd tint pass is deferred). (3) Braziers as fire props, T60: done 2026-10-25
+(`docs/research/BRAZIERS-T60-2026-10-25.md`): a rounded bowl on the existing brazier batch, and a slow two-layer glow
+flame in an environment colour of its own, out of every threat class (shortfall 4's "orange cone" is gone).
+
 ## (c) The style contract
 
 ### Draft STYLE BLOCK (approved 2026-10-24 by Athena under owner delegation)

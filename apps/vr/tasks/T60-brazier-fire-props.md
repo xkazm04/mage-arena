@@ -1,6 +1,6 @@
 # T60 - braziers as fire props
 
-Status: open
+Status: done (2026-10-25; docs/research/BRAZIERS-T60-2026-10-25.md)
 Max turns: 120
 
 ## Goal
