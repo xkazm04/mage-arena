@@ -1,6 +1,9 @@
 # T62 - the near braziers off every threat lane, the T28 Unreal proof, one golden re-record
 
-Status: in progress (2026-10-25).
+Status: done 2026-10-25 (`docs/research/BRAZIERS-T62-2026-10-25.md`). Near braziers at (-8, +/-7.8); ClearOfThreatLanes red
+then green; T28 built with no fix, Intermission 9/9; goldens re-recorded, hash lines only; MageArena. 321/321, EXIT CODE 0;
+MageArenaDesign 5/7 (DF-011); D-G4 max 126 (+0), parity ok; the critic reads no after-build brazier behind a threat. Open
+(report section 8): the far-right brazier in the T58 absorb splashes, the backdrop rule, the T28 idle-step shift of bout 3.
 Max turns: 160
 
 ## Goal
