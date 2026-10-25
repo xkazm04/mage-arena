@@ -1,6 +1,6 @@
 # T55 - no debug text in any view
 
-Status: in flight, Unreal lane dispatched at wake bb6753ed
+Status: done in 54bea62 (overlay text and Phase n/m removed, `MageArena.Presentation.NoDebugText.Sources`); the 2026-10-25 stills show no debug text (`docs/research/GATE-CAPTURES-2026-10-25.md`)
 Max turns: 120
 
 ## Goal
