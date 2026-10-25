@@ -33,7 +33,14 @@ int32 UImportSfxCommandlet::Main(const FString& Params)
 	FParse::Value(*Params, TEXT("source="), SourceDir);
 	FPaths::CollapseRelativeDirectories(SourceDir);
 	SourceDir = FPaths::ConvertRelativePathToFull(SourceDir);
-	const FString DestinationPath = TEXT("/Game/Audio/SFX");
+	FString DestinationPath = TEXT("/Game/Audio/SFX");
+	FParse::Value(*Params, TEXT("destination="), DestinationPath);
+	// T27, -kind=voice (apps/vr/tools/import-voice.ps1): each row's WAV is at its "file" (C2 section 9:
+	// <speaker>/<cue>.wav), and a row with no WAV yet is counted missing, not failed (audio deferred, DECISIONS
+	// 2026-10-24). The default kind is the T26 SFX pack: <id>.wav, every one required.
+	FString Kind = TEXT("sfx");
+	FParse::Value(*Params, TEXT("kind="), Kind);
+	const bool bVoice = Kind == TEXT("voice");
 
 	FString ManifestText;
 	TSharedPtr<FJsonObject> Manifest;
@@ -55,18 +62,26 @@ int32 UImportSfxCommandlet::Main(const FString& Params)
 	int32 Imported = 0;
 	int32 Unchanged = 0;
 	int32 Failed = 0;
+	int32 Missing = 0;
 	for (const TSharedPtr<FJsonValue>& Value : *Cues)
 	{
 		const TSharedPtr<FJsonObject> Cue = Value.IsValid() ? Value->AsObject() : nullptr;
 		FString Id;
-		if (!Cue.IsValid() || !Cue->TryGetStringField(TEXT("id"), Id))
+		FString File;
+		if (!Cue.IsValid() || !Cue->TryGetStringField(TEXT("id"), Id) || (bVoice && !Cue->TryGetStringField(TEXT("file"), File)))
 		{
 			++Failed;
 			continue;
 		}
 		bool bLoop = false;
 		Cue->TryGetBoolField(TEXT("loop"), bLoop);
-		const FString Wav = FPaths::Combine(SourceDir, Id + TEXT(".wav"));
+		const FString Wav = FPaths::Combine(SourceDir, bVoice ? File : Id + TEXT(".wav"));
+		if (bVoice && !FPaths::FileExists(Wav))
+		{
+			++Missing;
+			UE_LOG(LogMageArena, Display, TEXT("MAGEVR_IMPORT_SFX missing %s (no WAV at %s)"), *Id, *Wav);
+			continue;
+		}
 		TArray<uint8> Head;
 		if (!FFileHelper::LoadFileToArray(Head, *Wav) || Head.Num() < 44 || FMemory::Memcmp(Head.GetData(), "RIFF", 4) != 0)
 		{
@@ -123,7 +138,8 @@ int32 UImportSfxCommandlet::Main(const FString& Params)
 		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_IMPORT_SFX imported %s loop=%d seconds=%.3f channels=%d rate=%d md5=%s -> %s"), *Id, bLoop ? 1 : 0,
 			Wave->GetDuration(), Wave->NumChannels, static_cast<int32>(Wave->GetSampleRateForCurrentPlatform()), *LexToString(Hash), *PackageFile);
 	}
-	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_IMPORT_SFX done imported=%d unchanged=%d failed=%d"), Imported, Unchanged, Failed);
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_IMPORT_SFX done kind=%s imported=%d unchanged=%d missing=%d failed=%d -> %s"), *Kind, Imported, Unchanged, Missing,
+	    Failed, *DestinationPath);
 	return Failed == 0 ? 0 : 1;
 #else
 	UE_LOG(LogMageArena, Error, TEXT("MAGEVR_IMPORT_SFX needs an editor build"));
