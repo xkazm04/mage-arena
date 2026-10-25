@@ -119,7 +119,6 @@ struct FArenaLayout
 	FLinearColor Seat = FLinearColor(0.40f, 0.39f, 0.37f);
 	FLinearColor Marker = FLinearColor(0.15f, 0.15f, 0.16f);
 	FLinearColor Brazier = FLinearColor(0.18f, 0.16f, 0.15f);
-	FLinearColor Flame = FLinearColor(0.95f, 0.35f, 0.06f);
 	FLinearColor BannerCloth = FLinearColor(0.64f, 0.59f, 0.50f);
 	FLinearColor BannerPole = FLinearColor(0.30f, 0.24f, 0.16f);
 	FLinearColor Hand = FLinearColor(0.75f, 0.64f, 0.54f);
@@ -200,7 +199,8 @@ struct FArenaLayout
 	static FString StyleFilePathFromCommandLine();
 	/**
 	 * T16: applies a style file (apps/vr/data/vr/styles/style-<id>.json) over the greybox colours: `arena` (the
-	 * arena-layout.json `colours` keys plus `wall`; the flame is `projectiles.fire` instead of `arena.flame`), `sky.horizon`
+	 * arena-layout.json `colours` keys plus `wall`, but no flame: the brazier flame is an environment colour derived in
+	 * Greybox/BrazierFire.h, never `projectiles.fire` nor `arena.flame`), `sky.horizon`
 	 * and `sky.zenith`, the upper sky band at their midpoint.
 	 * A style that applies any colour also turns the sun, the sky light and the fog to neutral greys of their own
 	 * luminance, so the dusk light cannot tint the sampled colours. Alpha (the ward arc's) stays the layout's. Returns how many colours it applied.

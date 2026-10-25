@@ -319,13 +319,10 @@ int32 FArenaLayout::ApplyStyle(const FJsonObject& Style)
 			Applied += Read(**Arena, Field.Key, *Field.Value);
 		}
 	}
-	// The brazier flame is the style's Fire colour, as the greybox flame is the ember orange, never `arena.flame`: style
-	// 25 samples that as the leave red (0.84, 0.07, 0.04), which over its near-black brazier is the unblockable's pair.
-	const TSharedPtr<FJsonObject>* Projectiles = nullptr;
-	if (Style.TryGetObjectField(TEXT("projectiles"), Projectiles) && Projectiles && Projectiles->IsValid())
-	{
-		Applied += Read(**Projectiles, TEXT("fire"), Flame);
-	}
+	// T60: no brazier flame colour comes from a style. `projectiles.fire` is the fire spell's absorb colour, so a flame in
+	// it read as an incoming fire bolt from the corner of the eye; `arena.flame` is no better (style 25 samples it as the
+	// leave red, which over its near-black brazier is the unblockable's pair). The flame is an environment colour of its
+	// own, derived in Greybox/BrazierFire.h, out of every threat class and dimmer than every threat glow.
 	const TSharedPtr<FJsonObject>* Sky = nullptr;
 	if (Style.TryGetObjectField(TEXT("sky"), Sky) && Sky && Sky->IsValid())
 	{
@@ -493,7 +490,6 @@ bool FArenaLayout::LoadFromFile(const FString& Path, FString& OutError)
 		|| !NeedColour(*Colours, TEXT("seat"), Seat, OutError)
 		|| !NeedColour(*Colours, TEXT("marker"), Marker, OutError)
 		|| !NeedColour(*Colours, TEXT("brazier"), Brazier, OutError)
-		|| !NeedColour(*Colours, TEXT("flame"), Flame, OutError)
 		|| !NeedColour(*Colours, TEXT("bannerCloth"), BannerCloth, OutError)
 		|| !NeedColour(*Colours, TEXT("bannerPole"), BannerPole, OutError)
 		|| !NeedColour(*Colours, TEXT("hand"), Hand, OutError)

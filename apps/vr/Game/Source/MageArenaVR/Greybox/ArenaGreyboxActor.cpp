@@ -15,12 +15,14 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Greybox/ArenaStands.h"
+#include "Greybox/BrazierFire.h"
 #include "Greybox/CreatureImport.h"
 #include "Greybox/CreatureImportCapture.h"
 #include "Greybox/GreyboxCapture.h"
 #include "Greybox/GreyboxUtil.h"
 #include "MageArenaVR.h"
 #include "Misc/Parse.h"
+#include "Session/ElementColour.h"
 
 namespace
 {
@@ -35,7 +37,7 @@ void AddBox(UInstancedStaticMeshComponent* Mesh, const FVector& CentreM, const F
 }
 
 // T56: the parts that stand up off the sand throw the dusk shadows. Greybox parts cast none by default; the sand, the
-// pads, the flames and the sky dome stay that way. One instanced component is one shadow draw per cascade.
+// pads, the brazier flames and the sky dome stay that way. One instanced component is one shadow draw per cascade.
 void CastShadows(bool bCast, std::initializer_list<UInstancedStaticMeshComponent*> Casters)
 {
 	for (UInstancedStaticMeshComponent* Caster : Casters)
@@ -50,7 +52,9 @@ void CastShadows(bool bCast, std::initializer_list<UInstancedStaticMeshComponent
 
 AArenaGreybox::AArenaGreybox()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	// T60: ticks only while the brazier flames burn (BuildProps turns it on), to sway their puffs.
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	SetRootComponent(SceneRoot);
 }
@@ -83,7 +87,6 @@ void AArenaGreybox::Build()
 
 	UStaticMesh* Cube = Greybox::LoadShape(TEXT("Cube"));
 	UStaticMesh* Cylinder = Greybox::LoadShape(TEXT("Cylinder"));
-	UStaticMesh* Cone = Greybox::LoadShape(TEXT("Cone"));
 	UMaterialInterface* Basic = Greybox::BasicMaterial();
 	if (!Cube || !Cylinder || !Basic)
 	{
@@ -94,10 +97,19 @@ void AArenaGreybox::Build()
 	BuildShell(Cube, Cylinder);
 	// T57: the crowd on the tier tops. Optional: -MageArenaNoCrowd or missing assets leave the stands bare.
 	ArenaCrowd::Build(this, Layout, ArenaCrowd::IsSwitchedOff());
-	BuildProps(Cube, Cylinder, Cone);
+	BuildProps(Cube, Cylinder);
 	BuildLights();
 	BuildSky(Cube);
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_GREYBOX_READY pads=%d markers=%d"), Layout.Pads.Num(), Layout.SpawnMarkers.Num());
+}
+
+void AArenaGreybox::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (const UWorld* World = GetWorld())
+	{
+		BrazierFire::Animate({FlameBody, FlameHeart}, Layout, World->GetTimeSeconds());
+	}
 }
 
 void AArenaGreybox::DestroyStockStage()
@@ -209,31 +221,33 @@ void AArenaGreybox::BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder)
 	}
 }
 
-void AArenaGreybox::BuildProps(UStaticMesh* Cube, UStaticMesh* Cylinder, UStaticMesh* Cone)
+void AArenaGreybox::BuildProps(UStaticMesh* Cube, UStaticMesh* Cylinder)
 {
 	UMaterialInterface* Basic = Greybox::BasicMaterial();
 	UInstancedStaticMeshComponent* Brazier = Greybox::MakeInstances(this, Cylinder, Greybox::Tint(Basic, this, Layout.Brazier));
-	FLinearColor Flame = Layout.Flame;
-	Flame.A = 1.f;
-	// Same lit basic material as the shell. The unlit debug material cannot instance in -game.
-	UInstancedStaticMeshComponent* Flames = Cone ? Greybox::MakeInstances(this, Cone, Greybox::Tint(Basic, this, Flame)) : nullptr;
 	UInstancedStaticMeshComponent* Poles = Greybox::MakeInstances(this, Cylinder, Greybox::Tint(Basic, this, Layout.BannerPole));
 	UInstancedStaticMeshComponent* Bars = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.BannerPole));
 	UInstancedStaticMeshComponent* Cloth = Greybox::MakeInstances(this, Cube, Greybox::Tint(Basic, this, Layout.BannerCloth));
 	UInstancedStaticMeshComponent* Markers = Greybox::MakeInstances(this, Cylinder, Greybox::Tint(Basic, this, Layout.Marker));
 	CastShadows(Layout.bCastShadows, {Brazier, Poles, Bars, Cloth, Markers});
 
+	// T60: the foot, stem and flaring bowl rings share the brazier's one instanced component, so the bowl costs no draw.
 	for (const FArenaProp& Prop : Layout.Braziers)
 	{
-		const double StandRadius = Prop.BowlRadiusM * 0.35;
-		const FVector StandCentre(Prop.PositionM.X, Prop.PositionM.Y, Prop.StandHeightM * 0.5);
-		AddBox(Brazier, StandCentre, FQuat::Identity, FVector(StandRadius * 2.0, StandRadius * 2.0, Prop.StandHeightM));
-		const FVector BowlCentre(Prop.PositionM.X, Prop.PositionM.Y, Prop.StandHeightM + Prop.BowlHeightM * 0.5);
-		AddBox(Brazier, BowlCentre, FQuat::Identity, FVector(Prop.BowlRadiusM * 2.0, Prop.BowlRadiusM * 2.0, Prop.BowlHeightM));
-		const double FlameHeight = Prop.FlameRadiusM * 2.5;
-		const FVector FlameCentre(Prop.PositionM.X, Prop.PositionM.Y, Prop.StandHeightM + Prop.BowlHeightM + FlameHeight * 0.5);
-		AddBox(Flames, FlameCentre, FQuat::Identity, FVector(Prop.FlameRadiusM * 2.0, Prop.FlameRadiusM * 2.0, FlameHeight));
+		TArray<BrazierFire::FPiece> Pieces;
+		BrazierFire::BowlPieces(Prop, Pieces);
+		for (const BrazierFire::FPiece& Piece : Pieces)
+		{
+			AddBox(Brazier, Piece.CentreM, FQuat::Identity, Piece.SizeM);
+		}
 	}
+	// T60: the flames are two glow layers in an environment colour of their own, never a threat's (BrazierFire.h).
+	// Optional: -MageArenaNoBrazierFire leaves the bowls cold.
+	LoadStylePaletteFromCommandLine();
+	const BrazierFire::FFlameLayers Flames = BrazierFire::Build(this, Layout, ActiveElementPalette(), BrazierFire::IsSwitchedOff());
+	FlameBody = Flames.Body;
+	FlameHeart = Flames.Heart;
+	SetActorTickEnabled(FlameBody || FlameHeart);
 
 	for (const FArenaProp& Prop : Layout.Banners)
 	{

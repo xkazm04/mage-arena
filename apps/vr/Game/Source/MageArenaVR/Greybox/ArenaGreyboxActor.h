@@ -9,6 +9,7 @@
 class UBudgetStressDriver;
 class UCreatureImportCaptureDriver;
 class UGreyboxCaptureDriver;
+class UInstancedStaticMeshComponent;
 
 /** Spawns the procedural greybox from the layout. Basic shapes only. */
 UCLASS()
@@ -20,16 +21,24 @@ public:
 	AArenaGreybox();
 
 	void Build();
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	void BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder);
-	void BuildProps(UStaticMesh* Cube, UStaticMesh* Cylinder, UStaticMesh* Cone);
+	void BuildProps(UStaticMesh* Cube, UStaticMesh* Cylinder);
 	void BuildLights();
 	void BuildSky(UStaticMesh* Cube);
 	void DestroyStockStage();
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> SceneRoot;
+
+	/** T60: the brazier flames' two glow layers (Greybox/BrazierFire.h), posed every frame while they exist. */
+	UPROPERTY()
+	TObjectPtr<UInstancedStaticMeshComponent> FlameBody;
+
+	UPROPERTY()
+	TObjectPtr<UInstancedStaticMeshComponent> FlameHeart;
 
 	FArenaLayout Layout;
 	bool bBuilt = false;

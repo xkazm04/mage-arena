@@ -356,15 +356,14 @@ bool FMageArenaGreyboxStyleSkin::RunTest(const FString& Parameters)
 		{ return FMath::IsNearlyEqual(A.R, B.R, 1.0e-5f) && FMath::IsNearlyEqual(A.G, B.G, 1.0e-5f) && FMath::IsNearlyEqual(A.B, B.B, 1.0e-5f); };
 
 		FArenaLayout Styled = Base;
-		// 14 arena colours, the flame from projectiles.fire, and the two sky tones.
-		TestEqual(*FString::Printf(TEXT("style %s applies 17 colours"), Id), Styled.ApplyStyle(*Style), 17);
-		TestEqual(*FString::Printf(TEXT("style %s counts what it applied"), Id), Styled.StyleColours, 17);
+		// 14 arena colours and the two sky tones. T60: no flame; the brazier flame is an environment colour (BrazierFire.h).
+		TestEqual(*FString::Printf(TEXT("style %s applies 16 colours"), Id), Styled.ApplyStyle(*Style), 16);
+		TestEqual(*FString::Printf(TEXT("style %s counts what it applied"), Id), Styled.StyleColours, 16);
 		TestTrue(*FString::Printf(TEXT("style %s sand"), Id), Same(Styled.Sand, Colour(TEXT("arena"), TEXT("sand"))));
 		TestTrue(*FString::Printf(TEXT("style %s stands"), Id), Same(Styled.Stone, Colour(TEXT("arena"), TEXT("stone"))));
 		TestTrue(*FString::Printf(TEXT("style %s wall"), Id), Same(Styled.WallColour, Colour(TEXT("arena"), TEXT("wall"))));
 		TestTrue(*FString::Printf(TEXT("style %s brazier"), Id), Same(Styled.Brazier, Colour(TEXT("arena"), TEXT("brazier"))));
 		TestTrue(*FString::Printf(TEXT("style %s banner cloth"), Id), Same(Styled.BannerCloth, Colour(TEXT("arena"), TEXT("bannerCloth"))));
-		TestTrue(*FString::Printf(TEXT("style %s flame is its fire"), Id), Same(Styled.Flame, Colour(TEXT("projectiles"), TEXT("fire"))));
 		TestTrue(*FString::Printf(TEXT("style %s sky horizon"), Id), Same(Styled.SkyHorizon, Colour(TEXT("sky"), TEXT("horizon"))));
 		TestTrue(*FString::Printf(TEXT("style %s sky zenith"), Id), Same(Styled.SkyZenith, Colour(TEXT("sky"), TEXT("zenith"))));
 		TestTrue(*FString::Printf(TEXT("style %s upper sky between them"), Id),
@@ -400,7 +399,7 @@ bool FMageArenaGreyboxStyleSkin::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("style %s changes the %s"), Id, Surface.Name), !Same(Surface.Now, Surface.Was));
 		}
 		const FLinearColor Painted[] = {Styled.Sand, Styled.Stone, Styled.WallColour, Styled.Dais, Styled.PadRing, Styled.Seat, Styled.Marker,
-		    Styled.Brazier, Styled.Flame, Styled.BannerCloth, Styled.BannerPole, Styled.Hand, Styled.SkyHorizon, Styled.SkyUpper, Styled.SkyZenith};
+		    Styled.Brazier, Styled.BannerCloth, Styled.BannerPole, Styled.Hand, Styled.SkyHorizon, Styled.SkyUpper, Styled.SkyZenith};
 		for (const FLinearColor& Surface : Painted)
 		{
 			TestFalse(*FString::Printf(TEXT("style %s surface %s is not the leave red"), Id, *Surface.ToString()), IsRedRim(Surface));
