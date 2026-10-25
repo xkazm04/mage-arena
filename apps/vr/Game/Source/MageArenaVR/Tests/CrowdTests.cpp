@@ -10,14 +10,17 @@
 #include "Greybox/ArenaGreyboxActor.h"
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/ArenaStands.h"
+#include "Greybox/BrazierFire.h"
 #include "Materials/Material.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
+#include "Session/ElementColour.h"
 #include "StaticMeshResources.h"
 
 // T57: the crowd cards on the greybox tier tops, drawn as one instanced component (Greybox/ArenaStands.h).
+// T65: their tunic tints and the banners, held out of every threat colour class.
 
 namespace
 {
@@ -25,6 +28,85 @@ bool LoadLayout(FAutomationTestBase& Test, FArenaLayout& Layout)
 {
 	FString Error;
 	return Test.TestTrue(FString::Printf(TEXT("the arena layout loads (%s)"), *Error), Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error));
+}
+
+TSharedPtr<FJsonObject> LoadStyle(const TCHAR* Id)
+{
+	FString Path = FPaths::Combine(FPaths::ProjectDir(), FString::Printf(TEXT("../data/vr/styles/style-%s.json"), Id));
+	FPaths::CollapseRelativeDirectories(Path);
+	FString Json;
+	TSharedPtr<FJsonObject> Style;
+	if (!FFileHelper::LoadFileToString(Json, *Path) || !FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Json), Style))
+	{
+		return nullptr;
+	}
+	return Style;
+}
+
+// HSV saturation: 1 - min / max.
+float Saturation(const FLinearColor& Colour)
+{
+	const float Most = FMath::Max3(Colour.R, Colour.G, Colour.B);
+	return Most > 1.0e-4f ? 1.f - FMath::Min3(Colour.R, Colour.G, Colour.B) / Most : 0.f;
+}
+
+/**
+ * What is wrong with Tints under Palette, one line each. A tint must be dimmer than every threat colour but the black core
+ * (dark by definition: the leave cue's other half, held by chroma and by the brightest-channel floor), less saturated than
+ * every chromatic threat (steel and the core are the achromatic classes, held by chroma), at least
+ * BrazierFire::ThreatChromaMargin from every threat colour by chroma, and not a black core itself.
+ */
+TArray<FString> TintViolations(const FElementPalette& Palette, TConstArrayView<FLinearColor> Tints, const FString& What)
+{
+	struct FThreat
+	{
+		const TCHAR* Name;
+		FLinearColor Colour;
+		bool bAchromatic;
+		bool bCore;
+	};
+	const FThreat Threats[] = {{TEXT("water"), Palette.Water, false, false}, {TEXT("fire"), Palette.Fire, false, false},
+	    {TEXT("air"), Palette.Air, false, false}, {TEXT("earth"), Palette.Earth, false, false}, {TEXT("steel"), Palette.Steel, true, false},
+	    {TEXT("unblockable rim"), Palette.UnblockableRim, false, false}, {TEXT("unblockable core"), Palette.UnblockableBody, true, true}};
+	float DimmestLuminance = TNumericLimits<float>::Max();
+	float LeastSaturation = TNumericLimits<float>::Max();
+	for (const FThreat& Threat : Threats)
+	{
+		if (!Threat.bCore)
+		{
+			DimmestLuminance = FMath::Min(DimmestLuminance, Threat.Colour.GetLuminance());
+		}
+		if (!Threat.bAchromatic)
+		{
+			LeastSaturation = FMath::Min(LeastSaturation, Saturation(Threat.Colour));
+		}
+	}
+	TArray<FString> Out;
+	for (const FLinearColor& Tint : Tints)
+	{
+		const FString Name = FString::Printf(TEXT("%s tint %s"), *What, *Tint.ToString());
+		if (Tint.GetLuminance() >= DimmestLuminance)
+		{
+			Out.Add(FString::Printf(TEXT("%s luminance %.4f is not under the dimmest threat's %.4f"), *Name, Tint.GetLuminance(), DimmestLuminance));
+		}
+		if (Saturation(Tint) >= LeastSaturation)
+		{
+			Out.Add(FString::Printf(TEXT("%s saturation %.3f is not under the least saturated chromatic threat's %.3f"), *Name, Saturation(Tint), LeastSaturation));
+		}
+		if (FMath::Max3(Tint.R, Tint.G, Tint.B) < ArenaCrowd::MinTintBrightest)
+		{
+			Out.Add(FString::Printf(TEXT("%s is in the black core class (brightest channel under %.2f)"), *Name, ArenaCrowd::MinTintBrightest));
+		}
+		for (const FThreat& Threat : Threats)
+		{
+			const float Distance = ArenaCrowd::ChromaDistance(Tint, Threat.Colour);
+			if (Distance < BrazierFire::ThreatChromaMargin)
+			{
+				Out.Add(FString::Printf(TEXT("%s stands %.3f off %s by chroma (margin %.2f)"), *Name, Distance, Threat.Name, BrazierFire::ThreatChromaMargin));
+			}
+		}
+	}
+	return Out;
 }
 
 struct FCrowdWorld
@@ -249,8 +331,12 @@ bool FMageArenaCrowdOneBatch::RunTest(const FString& Parameters)
 	{
 		// One component of one single-section mesh with one material: one mesh draw command per pass, whatever the count.
 		TestEqual(TEXT("the crowd adds exactly one instanced component"), After.Num() - Before.Num(), 1);
-		TestEqual(TEXT("one instance per card"), Crowd->GetInstanceCount(), ArenaCrowd::Place(Layout).Num());
-		TestEqual(TEXT("four custom floats per instance (the atlas rect)"), Crowd->NumCustomDataFloats, ArenaCrowd::CustomDataFloats);
+		// T65: the banners are instances of this one component too.
+		const int32 Banners = ArenaCrowd::PlaceBanners(Layout).Num();
+		TestTrue(TEXT("the stands carry banners"), Banners > 0);
+		TestEqual(TEXT("one instance per card and banner"), Crowd->GetInstanceCount(), ArenaCrowd::Place(Layout).Num() + Banners);
+		TestEqual(TEXT("eight custom floats per instance (the atlas rect, the tint, the flat flag)"), Crowd->NumCustomDataFloats, 8);
+		TestEqual(TEXT("the code says eight"), ArenaCrowd::CustomDataFloats, 8);
 		TestEqual(TEXT("one material slot"), Crowd->GetNumMaterials(), 1);
 		const UStaticMesh* Mesh = Crowd->GetStaticMesh();
 		const FStaticMeshRenderData* RenderData = Mesh ? Mesh->GetRenderData() : nullptr;
@@ -274,6 +360,90 @@ bool FMageArenaCrowdOneBatch::RunTest(const FString& Parameters)
 		}
 	}
 	Rig.Close();
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCrowdTintNotThreat, "MageArena.Greybox.Crowd.TintNotThreat",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaCrowdTintNotThreat::RunTest(const FString& Parameters)
+{
+	// Every tint the crowd can carry: the tunic palette, the banner, and the tints the placed instances hold.
+	FArenaLayout Layout;
+	if (!LoadLayout(*this, Layout))
+	{
+		return false;
+	}
+	TArray<FLinearColor> Tints(ArenaCrowd::TunicPalette());
+	Tints.Add(ArenaCrowd::BannerColour());
+	TestTrue(TEXT("several tunic colours, so the crowd is varied"), ArenaCrowd::TunicPalette().Num() >= 5);
+	TArray<ArenaCrowd::FCard> All = ArenaCrowd::Place(Layout);
+	const int32 Figures = All.Num();
+	All.Append(ArenaCrowd::PlaceBanners(Layout));
+	TestTrue(TEXT("the stands carry some banners"), All.Num() > Figures);
+	int32 Strays = 0;
+	int32 Used = 0;
+	TSet<int32> UsedTints;
+	for (int32 Index = 0; Index < All.Num(); ++Index)
+	{
+		const FLinearColor Tint(All[Index].Tint[0], All[Index].Tint[1], All[Index].Tint[2]);
+		const bool bBanner = Index >= Figures;
+		TestEqual(TEXT("only banners are flat"), All[Index].Flat > 0.5f, bBanner);
+		const int32 Found = ArenaCrowd::TunicPalette().IndexOfByPredicate([&Tint](const FLinearColor& Each)
+		{ return Each.Equals(Tint, 0.f); });
+		const bool bKnown = bBanner ? Tint.Equals(ArenaCrowd::BannerColour(), 0.f) : Found != INDEX_NONE;
+		Strays += bKnown ? 0 : 1;
+		if (!bBanner && Found != INDEX_NONE)
+		{
+			UsedTints.Add(Found);
+			++Used;
+		}
+	}
+	TestEqual(TEXT("every instance carries a palette tint"), Strays, 0);
+	TestEqual(TEXT("every tunic colour is used"), UsedTints.Num(), ArenaCrowd::TunicPalette().Num());
+	AddInfo(FString::Printf(TEXT("tunics=%d banners=%d tint colours used=%d"), Used, All.Num() - Figures, UsedTints.Num()));
+
+	struct FCase
+	{
+		FString Name;
+		FElementPalette Palette;
+	};
+	TArray<FCase> Cases;
+	Cases.Add({TEXT("greybox"), FElementPalette::Greybox()});
+	for (const TCHAR* Id : {TEXT("13"), TEXT("25"), TEXT("30")})
+	{
+		const TSharedPtr<FJsonObject> Style = LoadStyle(Id);
+		if (!TestTrue(FString::Printf(TEXT("style %s loads"), Id), Style.IsValid()))
+		{
+			continue;
+		}
+		FCase Case{FString::Printf(TEXT("style %s"), Id), FElementPalette::Greybox()};
+		TestEqual(FString::Printf(TEXT("style %s sets all seven threat colours"), Id), ApplyStylePalette(Case.Palette, *Style), 7);
+		Cases.Add(Case);
+	}
+	for (const FCase& Case : Cases)
+	{
+		const TArray<FString> Violations = TintViolations(Case.Palette, Tints, Case.Name);
+		for (const FString& Line : Violations)
+		{
+			AddError(Line);
+		}
+		TestEqual(FString::Printf(TEXT("%s: no tunic or banner tint reaches a threat colour"), *Case.Name), Violations.Num(), 0);
+
+		// The negative controls: the checks do fail on a tint that does. An over-bright orange, an over-saturated red,
+		// and a steel grey, each under every palette.
+		const FLinearColor Bad[] = {FLinearColor(0.60f, 0.20f, 0.05f), FLinearColor(0.09f, 0.0f, 0.0f), FLinearColor(0.04f, 0.04f, 0.04f)};
+		for (const FLinearColor& Tint : Bad)
+		{
+			TestTrue(FString::Printf(TEXT("%s: the checks catch the tint %s"), *Case.Name, *Tint.ToString()), TintViolations(Case.Palette, MakeArrayView(&Tint, 1), Case.Name).Num() > 0);
+		}
+		bool bCaughtByLuminance = false;
+		for (const FString& Line : TintViolations(Case.Palette, MakeArrayView(&Bad[0], 1), Case.Name))
+		{
+			bCaughtByLuminance |= Line.Contains(TEXT("luminance"));
+		}
+		TestTrue(FString::Printf(TEXT("%s: the checks catch an over-bright tint by luminance"), *Case.Name), bCaughtByLuminance);
+	}
 	return true;
 }
 

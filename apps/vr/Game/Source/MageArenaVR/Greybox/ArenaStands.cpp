@@ -105,6 +105,77 @@ TConstArrayView<ArenaCrowd::FVariant> ArenaCrowd::Variants()
 	return VariantTable;
 }
 
+namespace
+{
+// T65: each tint is a chroma at a luminance of 0.054, under the dimmest threat colour in the greybox palette and in styles
+// 13, 25 and 30 (style 25's steel, 0.056), with its brightest channel over the black core class's 0.08 and its chroma at
+// least 0.15 off every threat's (MageArena.Greybox.Crowd.TintNotThreat holds all of it). Reds and browns stay under the
+// ember orange and the rim red by saturation and by blue share; the plum and the slate vary the row.
+const FLinearColor TunicTints[] = {
+    FLinearColor(0.0839f, 0.0470f, 0.0352f), // rust
+    FLinearColor(0.1026f, 0.0411f, 0.0390f), // maroon
+    FLinearColor(0.1098f, 0.0395f, 0.0329f), // brick
+    FLinearColor(0.0925f, 0.0416f, 0.0629f), // plum
+    FLinearColor(0.0823f, 0.0477f, 0.0329f), // umber
+    FLinearColor(0.0448f, 0.0535f, 0.0862f), // slate
+};
+// Luminance 0.0525, saturation 0.63: a dull red, a chroma 0.24 or more off the ember orange, the earth and the rim red.
+const FLinearColor BannerRed(0.0986f, 0.0404f, 0.0365f);
+
+// The plane's normal turns to face along Yaw and its U axis to the viewer's right (the viewer looks back along the card's
+// -X, so their right is the card's -Y). Its V then runs down or up the card: bVDown tells which, so a rect swaps its top
+// and bottom instead of mirroring the mesh, and the front face stays front. The plane's pivot is its centre: up half the
+// figure, and across by CentreRightM so the feet sit on the pivot.
+FTransform CardTransform(const FVector& FeetM, double YawDeg, double WidthM, double HeightM, double CentreRightM, bool& bVDown)
+{
+	const FVector Normal(0.0, 0.0, 1.0);
+	const FVector Right = -ArenaCrowd::PlaneUAxis();
+	const FMatrix Basis(Normal, Right, Normal ^ Right, FVector::ZeroVector);
+	const FQuat PlaneToCard(Basis.GetTransposed());
+	bVDown = PlaneToCard.RotateVector(ArenaCrowd::PlaneVAxis()).Z < 0.0;
+	const FQuat Yaw = FRotator(0.0, YawDeg, 0.0).Quaternion();
+	const FVector Centre = FeetM + Yaw.RotateVector(FVector(0.0, -CentreRightM, HeightM * 0.5));
+	const bool bUAlongX = FMath::Abs(ArenaCrowd::PlaneUAxis().X) > 0.5;
+	const FVector Scale = bUAlongX ? FVector(WidthM, HeightM, 1.0) : FVector(HeightM, WidthM, 1.0);
+	return FTransform(Yaw * PlaneToCard, Centre * 100.0, Scale);
+}
+
+double FacingYawDeg(const FArenaLayout& Layout, const FVector& FeetM, const ArenaStands::FStandBox& Box)
+{
+	FVector Facing = Layout.ArenaCentreM - FeetM;
+	Facing.Z = 0.0;
+	Facing = Facing.GetSafeNormal();
+	if (Facing.IsNearlyZero())
+	{
+		Facing = -Box.Outward;
+	}
+	return FMath::RadiansToDegrees(FMath::Atan2(Facing.Y, Facing.X));
+}
+}
+
+TConstArrayView<FLinearColor> ArenaCrowd::TunicPalette()
+{
+	return TunicTints;
+}
+
+FLinearColor ArenaCrowd::BannerColour()
+{
+	return BannerRed;
+}
+
+FLinearColor ArenaCrowd::Chroma(const FLinearColor& Colour)
+{
+	const float Most = FMath::Max3(Colour.R, Colour.G, Colour.B);
+	return Most > 1.0e-4f ? FLinearColor(Colour.R / Most, Colour.G / Most, Colour.B / Most, 1.f) : FLinearColor::Black;
+}
+
+float ArenaCrowd::ChromaDistance(const FLinearColor& A, const FLinearColor& B)
+{
+	const FLinearColor CA = Chroma(A);
+	const FLinearColor CB = Chroma(B);
+	return FMath::Sqrt(FMath::Square(CA.R - CB.R) + FMath::Square(CA.G - CB.G) + FMath::Square(CA.B - CB.B));
+}
+
 bool ArenaCrowd::IsAisle(int32 Segment, int32 Segments)
 {
 	// One segment in each quarter, mirrored across both axes: at 32 segments, 4, 11, 20 and 27 (the diagonals).
@@ -121,6 +192,7 @@ TArray<ArenaCrowd::FCard> ArenaCrowd::Place(const FArenaLayout& Layout)
 {
 	TArray<FCard> Cards;
 	FCrowdRng Rng{Seed};
+	FCrowdRng TintRng{TintSeed};
 	const int32 Segments = FMath::Max(Layout.WallSegments, 3);
 	for (int32 Segment = 0; Segment < Segments; ++Segment)
 	{
@@ -153,43 +225,68 @@ TArray<ArenaCrowd::FCard> ArenaCrowd::Place(const FArenaLayout& Layout)
 				Card.FeetM = Box.MidM + Box.Along * Along + Box.Outward * Back;
 				Card.FeetM.Z = Box.TopM;
 
-				FVector Facing = Layout.ArenaCentreM - Card.FeetM;
-				Facing.Z = 0.0;
-				Facing = Facing.GetSafeNormal();
-				if (Facing.IsNearlyZero())
-				{
-					Facing = -Box.Outward;
-				}
-				Card.YawDeg = FMath::RadiansToDegrees(FMath::Atan2(Facing.Y, Facing.X)) + YawJitter;
+				Card.YawDeg = FacingYawDeg(Layout, Card.FeetM, Box) + YawJitter;
 
-				// The plane's normal turns to face the centre and its U axis to the viewer's right (the viewer looks back
-				// along the card's -X, so their right is the card's -Y). Its V then runs down or up the card; a V that
-				// runs up swaps the rect's top and bottom instead of mirroring the mesh, so the front face stays front.
 				const FVariant& Variant = VariantTable[Card.Variant];
-				const FVector Normal(0.0, 0.0, 1.0);
-				const FVector Right = -PlaneUAxis();
-				const FMatrix Basis(Normal, Right, Normal ^ Right, FVector::ZeroVector);
-				const FQuat PlaneToCard(Basis.GetTransposed());
-				const bool bVDown = PlaneToCard.RotateVector(PlaneVAxis()).Z < 0.0;
-				const FQuat Yaw = FRotator(0.0, Card.YawDeg, 0.0).Quaternion();
-				const double Width = Variant.WidthM * Card.Scale;
-				const double Height = Variant.HeightM * Card.Scale;
-				// The plane's pivot is its centre: up half the figure, and across so the feet sit on the pivot.
-				const FVector Centre = Card.FeetM + Yaw.RotateVector(FVector(0.0, -Variant.CentreRightM * Card.Scale, Height * 0.5));
-				const bool bUAlongX = FMath::Abs(PlaneUAxis().X) > 0.5;
-				const FVector Scale = bUAlongX ? FVector(Width, Height, 1.0) : FVector(Height, Width, 1.0);
-				Card.Transform = FTransform(Yaw * PlaneToCard, Centre * 100.0, Scale);
+				bool bVDown = false;
+				Card.Transform = CardTransform(Card.FeetM, Card.YawDeg, Variant.WidthM * Card.Scale, Variant.HeightM * Card.Scale, Variant.CentreRightM * Card.Scale, bVDown);
 				const float Top = static_cast<float>(1.0 - Variant.V1);
 				const float Bottom = static_cast<float>(1.0 - Variant.V0);
 				Card.Rect[0] = static_cast<float>(Variant.U0);
 				Card.Rect[1] = bVDown ? Top : Bottom;
 				Card.Rect[2] = static_cast<float>(Variant.U1);
 				Card.Rect[3] = bVDown ? Bottom : Top;
+				const int32 TintIndex = FMath::Min(FMath::FloorToInt32(TintRng.Next() * UE_ARRAY_COUNT(TunicTints)), static_cast<int32>(UE_ARRAY_COUNT(TunicTints)) - 1);
+				Card.Tint[0] = TunicTints[TintIndex].R;
+				Card.Tint[1] = TunicTints[TintIndex].G;
+				Card.Tint[2] = TunicTints[TintIndex].B;
 				Cards.Add(Card);
 			}
 		}
 	}
 	return Cards;
+}
+
+TArray<ArenaCrowd::FCard> ArenaCrowd::PlaceBanners(const FArenaLayout& Layout)
+{
+	TArray<FCard> Banners;
+	const int32 Segments = FMath::Max(Layout.WallSegments, 3);
+	const int32 Tier = FMath::Max(Layout.StandTiers - 1, 0);
+	for (int32 Segment = 0; Segment < Segments; ++Segment)
+	{
+		const bool bAisle = IsAisle(Segment, Segments);
+		if (!bAisle && Segment % BannerEvery != 0)
+		{
+			continue;
+		}
+		const ArenaStands::FStandBox Box = ArenaStands::StandBox(Layout, Segment, Tier);
+		for (const double Side : {-1.0, 1.0})
+		{
+			if (!bAisle && Side > 0.0)
+			{
+				continue;
+			}
+			FCard Banner;
+			Banner.Variant = -1;
+			Banner.Segment = Segment;
+			Banner.Tier = Tier;
+			Banner.Scale = 1.0;
+			Banner.FeetM = Box.MidM + Box.Along * (bAisle ? Side * BannerAisleOffsetM : 0.0) + Box.Outward * BannerBackM;
+			Banner.FeetM.Z = Box.TopM;
+			Banner.YawDeg = FacingYawDeg(Layout, Banner.FeetM, Box);
+			bool bVDown = false;
+			Banner.Transform = CardTransform(Banner.FeetM, Banner.YawDeg, BannerWidthM, BannerHeightM, 0.0, bVDown);
+			// A flat colour: the rect is never sampled.
+			Banner.Rect[2] = 1.f;
+			Banner.Rect[3] = 1.f;
+			Banner.Tint[0] = BannerRed.R;
+			Banner.Tint[1] = BannerRed.G;
+			Banner.Tint[2] = BannerRed.B;
+			Banner.Flat = 1.f;
+			Banners.Add(Banner);
+		}
+	}
+	return Banners;
 }
 
 bool ArenaCrowd::IsSwitchedOff()
@@ -219,7 +316,11 @@ UInstancedStaticMeshComponent* ArenaCrowd::Spawn(AActor* Owner, const TArray<FCa
 	Instances->AddInstances(Transforms, false);
 	for (int32 Index = 0; Index < Cards.Num(); ++Index)
 	{
-		Instances->SetCustomData(Index, MakeArrayView(Cards[Index].Rect, CustomDataFloats), false);
+		float Data[CustomDataFloats];
+		FMemory::Memcpy(Data, Cards[Index].Rect, sizeof(float) * RectFloats);
+		FMemory::Memcpy(Data + TintFloatIndex, Cards[Index].Tint, sizeof(float) * 3);
+		Data[FlatFloatIndex] = Cards[Index].Flat;
+		Instances->SetCustomData(Index, MakeArrayView(Data, CustomDataFloats), false);
 	}
 	Instances->MarkRenderStateDirty();
 	return Instances;
@@ -239,8 +340,10 @@ UInstancedStaticMeshComponent* ArenaCrowd::Build(AActor* Owner, const FArenaLayo
 		UE_LOG(LogMageArena, Warning, TEXT("MAGEVR_ARENA_CROWD missing=%s"), Card ? MaterialName : TEXT("Plane"));
 		return nullptr;
 	}
-	const TArray<FCard> Cards = Place(Layout);
+	TArray<FCard> Cards = Place(Layout);
+	const int32 Figures = Cards.Num();
+	Cards.Append(PlaceBanners(Layout));
 	UInstancedStaticMeshComponent* Instances = Spawn(Owner, Cards, Card, Material);
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_ARENA_CROWD cards=%d components=%d"), Instances ? Instances->GetInstanceCount() : 0, Instances ? 1 : 0);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_ARENA_CROWD cards=%d banners=%d components=%d"), Instances ? Figures : 0, Instances ? Cards.Num() - Figures : 0, Instances ? 1 : 0);
 	return Instances;
 }
