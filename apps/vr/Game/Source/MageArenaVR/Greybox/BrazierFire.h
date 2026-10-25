@@ -78,6 +78,8 @@ inline constexpr int32 BowlPiecesPerBrazier = 7;
 MAGEARENAVR_API void FlamePuffs(const FArenaProp& Brazier, int32 Seed, double TimeS, TArray<SpellVfx::FPuff>& OutBody, TArray<SpellVfx::FPuff>& OutHeart);
 inline constexpr int32 BodyPuffsPerBrazier = 3;
 inline constexpr int32 HeartPuffsPerBrazier = 2;
+/** The most a puff reaches above the bowl's lip, in flame radii: the old cone's height (2.5). */
+inline constexpr double MaxFlameTopRadii = 2.5;
 /** The fastest of the flicker's three waves, in Hz. */
 inline constexpr double FastestFlickerHz = 1.4;
 

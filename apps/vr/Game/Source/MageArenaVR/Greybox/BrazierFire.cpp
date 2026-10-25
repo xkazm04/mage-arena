@@ -132,15 +132,16 @@ void BrazierFire::FlamePuffs(const FArenaProp& Brazier, int32 Seed, double TimeS
 	const FWaves W = Waves(Seed, TimeS);
 	// A bed in the bowl's mouth and two tongues forked across the seat's view (Y), each swaying on its own wave; the sway
 	// grows with height. Nothing rises: every puff breathes and sways about its own place, so the flame licks instead of
-	// throwing sparks.
+	// throwing sparks. The whole flame stays inside the old cone's envelope (MaxFlameTopRadii above the lip): a taller
+	// flame crossed the unblockable's flight line from the seat and broke its red ring (BRAZIERS-T60, critic round 1).
 	const FVector Low(W.A, W.C, 0.0);
 	const FVector High(W.C, W.A, 0.0);
-	const FVector Fork(0.0, R * 0.35, 0.0);
-	Lick(OutBody, Base, R * 0.25, Low * (R * 0.05), FVector(R * 2.6, R * 2.6, R * 1.4 * (1.0 + 0.06 * W.B)));
-	Lick(OutBody, Base, R * (1.50 + 0.25 * W.A), Fork + High * (R * 0.35), FVector(R * 1.2, R * 1.2, R * 3.0 * (1.0 + 0.18 * W.B)));
-	Lick(OutBody, Base, R * (1.20 + 0.25 * W.C), Low * (R * 0.30) - Fork * 0.85, FVector(R * 1.1, R * 1.1, R * 2.4 * (1.0 + 0.18 * W.A)));
-	Lick(OutHeart, Base, R * 0.70, Low * (R * 0.10), FVector(R * 1.8, R * 1.8, R * 1.9 * (1.0 + 0.10 * W.A)));
-	Lick(OutHeart, Base, R * (1.60 + 0.20 * W.C), High * (R * 0.25), FVector(R * 0.8, R * 0.8, R * 1.8 * (1.0 + 0.15 * W.B)));
+	const FVector Fork(0.0, R * 0.25, 0.0);
+	Lick(OutBody, Base, R * 0.20, Low * (R * 0.05), FVector(R * 2.4, R * 2.4, R * 1.2 * (1.0 + 0.06 * W.B)));
+	Lick(OutBody, Base, R * (1.10 + 0.15 * W.A), Fork + High * (R * 0.25), FVector(R * 1.0, R * 1.0, R * 2.2 * (1.0 + 0.12 * W.B)));
+	Lick(OutBody, Base, R * (0.90 + 0.15 * W.C), Low * (R * 0.20) - Fork, FVector(R * 1.0, R * 1.0, R * 1.8 * (1.0 + 0.12 * W.A)));
+	Lick(OutHeart, Base, R * 0.55, Low * (R * 0.08), FVector(R * 1.6, R * 1.6, R * 1.6 * (1.0 + 0.10 * W.A)));
+	Lick(OutHeart, Base, R * (1.20 + 0.15 * W.C), High * (R * 0.20), FVector(R * 0.7, R * 0.7, R * 1.4 * (1.0 + 0.12 * W.B)));
 }
 
 bool BrazierFire::IsSwitchedOff()

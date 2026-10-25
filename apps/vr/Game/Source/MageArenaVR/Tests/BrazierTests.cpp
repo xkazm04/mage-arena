@@ -282,8 +282,11 @@ bool FMageArenaGreyboxBrazierFlicker::RunTest(const FString& Parameters)
 			for (const SpellVfx::FPuff& Puff : *Layer)
 			{
 				const FVector Off = Puff.CentreCm - Spot;
-				// Every puff stays in a column over the bowl: a lick, not a spark thrown off.
-				if (!TestTrue(FString::Printf(TEXT("frame %d puff stays over the bowl (%s)"), Frame, *Off.ToString()), FVector2D(Off.X, Off.Y).Size() <= R && Off.Z >= 0.0 && Off.Z <= R * 3.5))
+				// Every puff stays in a column over the bowl, no taller than the old cone: a lick, not a spark thrown off, and
+				// nothing that grows into a threat's flight line from the seat.
+				const double Top = Off.Z + Puff.SizeCm.Z * 0.5;
+				if (!TestTrue(FString::Printf(TEXT("frame %d puff stays over the bowl (%s, top %.1f cm)"), Frame, *Off.ToString(), Top),
+				        FVector2D(Off.X, Off.Y).Size() <= R * 0.8 && Off.Z >= 0.0 && Top <= R * BrazierFire::MaxFlameTopRadii))
 				{
 					return false;
 				}
