@@ -6,6 +6,10 @@
 #include "Kernel/Enemies.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimTypes.h"
+#include "Engine/Texture2D.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialExpressionTextureSample.h"
+#include "Misc/PackageName.h"
 #include "Session/ElementColour.h"
 #include "Session/SpellVfx.h"
 
@@ -235,6 +239,233 @@ bool FMageArenaSpellVfxPuffs::RunTest(const FString& Parameters)
 	// 1,468 live Niagara particles at the D-G4 max (DRAWCALL-BUDGET section 4) plus the cap stays at or under 2,000.
 	bPass &= TestTrue(TEXT("the puff cap keeps the particle budget"), 1468 + SpellVfx::MaxPuffs <= 2000);
 	return bPass;
+}
+
+// T63. The flipbook keeps T58's draw count: every glow colour is one layer (one instanced draw), whatever cells its
+// puffs show, because the cell rides in the per-instance custom data, not in the material or the layer key.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFlipbookLayers, "MageArena.SpellVfx.FlipbookKeepsOneLayerPerColour",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFlipbookLayers::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	const FElementPalette Palette = FElementPalette::Greybox();
+	const FVector Eye(0.0, 0.0, 120.0);
+	const FVector Ward(110.0, 0.0, 120.0);
+	SpellVfx::FGlowFrame Frame;
+	Frame.Reset(Eye);
+	// Each school's bolt, plain splash and perfect ring in its own colour, as the presentation queues them in a frame.
+	struct FSchool
+	{
+		SpellVfx::ETrail Trail;
+		FLinearColor Colour;
+	};
+	const FSchool Schools[] = {
+	    {SpellVfx::ETrail::Droplets, Palette.Water},
+	    {SpellVfx::ETrail::Embers, Palette.Fire},
+	    {SpellVfx::ETrail::Wisps, Palette.Air},
+	};
+	for (const FSchool& School : Schools)
+	{
+		for (int32 Bolt = 0; Bolt < 3; ++Bolt)
+		{
+			TArray<SpellVfx::FPuff> Puffs;
+			SpellVfx::BoltPuffs(School.Trail, FVector(350.0, -120.0 + 80.0 * Bolt, 130.0), FVector(-1.0, 0.0, 0.0), 18.0, 11 + Bolt, 4.0 + 0.13 * Bolt, Puffs);
+			SpellVfx::SplashPuffs(School.Trail, Ward, Eye - Ward, 0.3, 5 + Bolt, true, Puffs);
+			SpellVfx::SplashPuffs(School.Trail, Ward, Eye - Ward, 0.3, 9 + Bolt, false, Puffs);
+			SpellVfx::PerfectRingPuffs(Ward, Eye - Ward, 0.3, Puffs, School.Trail);
+			Frame.Add(School.Colour, Puffs);
+		}
+	}
+	// The unblockable's shell: rim red, no trail, the soft glow only.
+	TArray<SpellVfx::FPuff> Leave;
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::None, FVector(500.0, 0.0, 10.0), FVector(-1.0, 0.0, 0.0), 30.0, 3, 4.0, Leave);
+	Frame.Add(Palette.UnblockableRim, Leave);
+
+	bPass &= TestEqual(TEXT("four colours, four layers"), Frame.Layers.Num(), 4);
+	int32 Queued = 0;
+	for (const TPair<FLinearColor, SpellVfx::FGlowFrame::FLayer>& Layer : Frame.Layers)
+	{
+		const FString Name = Layer.Key.ToString();
+		const int32 Cards = Layer.Value.Transforms.Num();
+		Queued += Cards;
+		bPass &= TestEqual(*FString::Printf(TEXT("%s: three custom floats a card"), *Name), Layer.Value.CustomData.Num(), Cards * SpellVfx::CardCustomFloats);
+		TSet<SpellVfx::ECell> Cells;
+		for (int32 Card = 0; Card < Cards; ++Card)
+		{
+			float Data[SpellVfx::CardCustomFloats];
+			for (int32 Index = 0; Index < SpellVfx::CardCustomFloats; ++Index)
+			{
+				Data[Index] = Layer.Value.CustomData[Card * SpellVfx::CardCustomFloats + Index];
+			}
+			bool bMirror = false;
+			Cells.Add(SpellVfx::CellOfCustomData(Data, bMirror));
+			// The cell stays inside the atlas: U and V of the card's corners in 0..1.
+			const float U0 = Data[1];
+			const float U1 = Data[1] + Data[0];
+			bPass &= TestTrue(*FString::Printf(TEXT("%s card %d reads inside the atlas"), *Name, Card),
+			    FMath::Min(U0, U1) >= -1.0e-4f && FMath::Max(U0, U1) <= 1.0001f && Data[2] >= 0.f && Data[2] + 1.f / SpellVfx::FlipbookGrid <= 1.0001f);
+		}
+		if (Layer.Key.Equals(Palette.UnblockableRim))
+		{
+			bPass &= TestTrue(TEXT("the unblockable shows only the soft glow"), Cells.Num() == 1 && Cells.Contains(SpellVfx::ECell::SoftGlow));
+		}
+		else
+		{
+			// Shell, trail, crown and streak cells all on the one layer of the colour.
+			bPass &= TestTrue(*FString::Printf(TEXT("%s: one layer carries shell, trail and burst cells (got %d)"), *Name, Cells.Num()), Cells.Num() >= 3);
+			bPass &= TestFalse(*FString::Printf(TEXT("%s: a school never shows the unblockable's soft glow"), *Name), Cells.Contains(SpellVfx::ECell::SoftGlow));
+		}
+	}
+	bPass &= TestEqual(TEXT("every queued puff is counted"), Queued, Frame.Drawn);
+
+	// Reset keeps the colours (so an emptied layer is hidden, not leaked) and empties them.
+	Frame.Reset(Eye);
+	bPass &= TestEqual(TEXT("reset keeps the layers"), Frame.Layers.Num(), 4);
+	for (const TPair<FLinearColor, SpellVfx::FGlowFrame::FLayer>& Layer : Frame.Layers)
+	{
+		bPass &= TestTrue(TEXT("reset empties a layer"), Layer.Value.Transforms.IsEmpty() && Layer.Value.CustomData.IsEmpty());
+	}
+	// The cap still holds with the flipbook on.
+	TArray<SpellVfx::FPuff> Many;
+	for (int32 Bolt = 0; Bolt < 80; ++Bolt)
+	{
+		SpellVfx::BoltPuffs(SpellVfx::ETrail::Embers, FVector(400.0, Bolt * 10.0, 120.0), FVector(-1.0, 0.0, 0.0), 18.0, Bolt, 2.0, Many);
+	}
+	Frame.Add(Palette.Fire, Many);
+	bPass &= TestEqual(TEXT("the puff cap holds"), Frame.Drawn, SpellVfx::MaxPuffs);
+	bPass &= TestEqual(TEXT("the capped layer holds the cap"), Frame.Layers.FindChecked(Palette.Fire).Transforms.Num(), SpellVfx::MaxPuffs);
+	return bPass;
+}
+
+// T63. Cards face the eye, read top up (a flame licks upward), and a shell flickers through its cells over time.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFlipbookCards, "MageArena.SpellVfx.FlipbookCardsFaceTheEye",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFlipbookCards::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	const FVector Eye(0.0, 0.0, 120.0);
+	TArray<SpellVfx::FPuff> Puffs;
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::Embers, FVector(350.0, 60.0, 130.0), FVector(-1.0, 0.0, 0.0), 18.0, 7, 3.0, Puffs);
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::Wisps, FVector(300.0, 0.0, 125.0), FVector(0.0, 1.0, 0.0), 18.0, 8, 3.0, Puffs);
+	for (int32 Index = 0; Index < Puffs.Num(); ++Index)
+	{
+		const SpellVfx::FPuff& Puff = Puffs[Index];
+		const FTransform Card = SpellVfx::CardTransform(Puff, Eye);
+		const FVector Normal = Card.GetRotation().GetAxisZ();
+		bPass &= TestTrue(*FString::Printf(TEXT("puff %d faces the eye"), Index), FVector::DotProduct(Normal, (Eye - Puff.CentreCm).GetSafeNormal()) > 0.999);
+		bPass &= TestTrue(*FString::Printf(TEXT("puff %d sits at its centre"), Index), Card.GetLocation().Equals(Puff.CentreCm));
+		bPass &= TestTrue(*FString::Printf(TEXT("puff %d is no smaller than its puff"), Index), Card.GetScale3D().Y * 100.0 >= Puff.SizeCm.Y - 1.0e-6);
+	}
+	// The Fire shell stands upright: the atlas's up (the card's -Y, V running down) points up the world.
+	const FTransform Flame = SpellVfx::CardTransform(Puffs[0], Eye);
+	bPass &= TestTrue(TEXT("the flame shell is a flame cell"), Puffs[0].Cell == SpellVfx::ECell::FireFlameA || Puffs[0].Cell == SpellVfx::ECell::FireFlameB);
+	bPass &= TestTrue(TEXT("the flame licks upward"), -Flame.GetRotation().GetAxisY().Z > 0.99);
+	// A wisp flying across the view lies along its flight; seen head-on, it shortens to a round card.
+	const SpellVfx::FPuff* Wisp = Puffs.FindByPredicate([](const SpellVfx::FPuff& Puff)
+	{ return Puff.Cell == SpellVfx::ECell::AirWisp; });
+	if (TestNotNull(TEXT("the air trail shows wisps"), Wisp))
+	{
+		const FTransform Across = SpellVfx::CardTransform(*Wisp, Eye);
+		bPass &= TestTrue(TEXT("a crossing wisp lies along its flight"), FMath::Abs(Across.GetRotation().GetAxisX().Y) > 0.9);
+		bPass &= TestTrue(TEXT("a crossing wisp keeps its length"), Across.GetScale3D().X > 2.0 * Across.GetScale3D().Y);
+		SpellVfx::FPuff HeadOn = *Wisp;
+		HeadOn.Rotation = FRotationMatrix::MakeFromX((Eye - HeadOn.CentreCm).GetSafeNormal()).ToQuat();
+		const FTransform Toward = SpellVfx::CardTransform(HeadOn, Eye);
+		bPass &= TestTrue(TEXT("a wisp seen head-on is round"), FMath::IsNearlyEqual(Toward.GetScale3D().X, Toward.GetScale3D().Y, 0.02));
+	}
+	// A shell flickers: over a second it shows both of its school's cells, mirrored and not.
+	TSet<int32> Looks;
+	for (double Time = 0.0; Time < 1.0; Time += 0.05)
+	{
+		TArray<SpellVfx::FPuff> Shell;
+		SpellVfx::BoltPuffs(SpellVfx::ETrail::Droplets, FVector(300.0, 0.0, 120.0), FVector(-1.0, 0.0, 0.0), 18.0, 4, Time, Shell);
+		Looks.Add(static_cast<int32>(Shell[0].Cell) * 2 + (Shell[0].bMirror ? 1 : 0));
+		bPass &= TestTrue(TEXT("a water shell shows a water shell cell"), Shell[0].Cell == SpellVfx::ECell::WaterShellA || Shell[0].Cell == SpellVfx::ECell::WaterShellB);
+	}
+	bPass &= TestEqual(TEXT("a shell takes four looks"), Looks.Num(), 4);
+	// The custom data round-trips every cell, mirrored and not.
+	for (int32 Index = 0; Index < SpellVfx::FlipbookGrid * SpellVfx::FlipbookGrid; ++Index)
+	{
+		for (const bool bMirror : {false, true})
+		{
+			SpellVfx::FPuff Puff;
+			Puff.Cell = static_cast<SpellVfx::ECell>(Index);
+			Puff.bMirror = bMirror;
+			float Data[SpellVfx::CardCustomFloats];
+			SpellVfx::CardCustomData(Puff, Data);
+			bool bReadMirror = false;
+			const SpellVfx::ECell Read = SpellVfx::CellOfCustomData(Data, bReadMirror);
+			bPass &= TestTrue(*FString::Printf(TEXT("cell %d mirror %d round-trips"), Index, bMirror ? 1 : 0), Read == Puff.Cell && bReadMirror == bMirror);
+		}
+	}
+	return bPass;
+}
+
+// T63. The atlas and the material as saved: Quest-sane (512 or less, mips on, linear), every cell's border clear (a
+// card never shows its square), and M_SpellGlow samples it. The shade channel is a multiplier of at most 1, so a glow
+// is never brighter than its own threat colour.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFlipbookAsset, "MageArena.SpellVfx.FlipbookAtlasIsQuestSane",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFlipbookAsset::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	bool bPass = true;
+	const int32 Size = Atlas->Source.GetSizeX();
+	bPass &= TestTrue(*FString::Printf(TEXT("the atlas is square, a power of two, at most 512 (is %dx%d)"), Size, Atlas->Source.GetSizeY()),
+	    Size == Atlas->Source.GetSizeY() && FMath::IsPowerOfTwo(Size) && Size <= 512);
+	bPass &= TestFalse(TEXT("the atlas is a linear mask, not sRGB"), Atlas->SRGB);
+	bPass &= TestNotEqual(TEXT("the atlas has mips"), static_cast<int32>(Atlas->MipGenSettings), static_cast<int32>(TMGS_NoMipmaps));
+	TArray64<uint8> Mip;
+	if (TestEqual(TEXT("the atlas source is BGRA8"), static_cast<int32>(Atlas->Source.GetFormat()), static_cast<int32>(TSF_BGRA8)) && Atlas->Source.GetMipData(Mip, 0))
+	{
+		const int32 Cell = Size / SpellVfx::FlipbookGrid;
+		// The generator keeps content inside 0.9 of a cell: the outer 5% each side is clear.
+		const int32 Band = FMath::FloorToInt32(Cell * 0.05f) - 1;
+		int32 Worst = 0;
+		for (int32 Y = 0; Y < Size; ++Y)
+		{
+			for (int32 X = 0; X < Size; ++X)
+			{
+				const int32 Cx = X % Cell;
+				const int32 Cy = Y % Cell;
+				if (Cx >= Band && Cx < Cell - Band && Cy >= Band && Cy < Cell - Band)
+				{
+					continue;
+				}
+				Worst = FMath::Max(Worst, static_cast<int32>(Mip[(static_cast<int64>(Y) * Size + X) * 4 + 3]));
+			}
+		}
+		bPass &= TestEqual(TEXT("every cell's border is clear"), Worst, 0);
+	}
+	const FString MaterialPath = FString::Printf(TEXT("%s.%s"), SpellVfx::GlowMaterialPackage, *FPackageName::GetShortName(SpellVfx::GlowMaterialPackage));
+	UMaterial* Material = LoadObject<UMaterial>(nullptr, *MaterialPath);
+	if (TestNotNull(TEXT("M_SpellGlow loads"), Material))
+	{
+		bPass &= TestEqual(TEXT("M_SpellGlow is translucent"), static_cast<int32>(Material->BlendMode), static_cast<int32>(BLEND_Translucent));
+		bPass &= TestTrue(TEXT("M_SpellGlow is unlit"), Material->GetShadingModels().HasOnlyShadingModel(MSM_Unlit));
+		bPass &= TestTrue(TEXT("M_SpellGlow draws on instanced meshes"), Material->bUsedWithInstancedStaticMeshes);
+		bool bSamples = false;
+		for (const UMaterialExpression* Expression : Material->GetExpressions())
+		{
+			const UMaterialExpressionTextureSample* Sample = Cast<UMaterialExpressionTextureSample>(Expression);
+			bSamples |= Sample && Sample->Texture == Atlas;
+		}
+		bPass &= TestTrue(TEXT("M_SpellGlow samples the atlas"), bSamples);
+	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
 }
 
 #endif
