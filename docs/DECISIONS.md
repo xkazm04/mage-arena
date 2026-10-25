@@ -2,6 +2,25 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on deaa15b (T60 braziers): the bowls ACCEPTED, the flame NOT; option B
+
+> Athena, 2026-10-25 (owner delegation), on deaa15b (`docs/research/BRAZIERS-T60-2026-10-25.md`, section 6). The
+> ruling is recorded as the dispatch brief relayed it, near-verbatim.
+
+- **The T60 bowls and the colour-safety work are ACCEPTED.** The `projectiles.fire` override is gone and
+  `Greybox.BrazierFlameNotThreat` holds it.
+- **The flame is NOT accepted as fire.** It reads as smoke or a khaki shrub.
+- **She WITHDRAWS her own "dimmer than any threat glow" clause:** it cannot produce a flame against the lit wall.
+- **Option B.** The heart becomes a pale, desaturated warm white or yellow, with a luminance above the rim's (0.169
+  greybox) and below Fire's and Earth's (0.38 / 0.31 greybox). It stays held off every threat class by chroma, with the
+  same `BrazierFlameNotThreat` test, and the shape stays a slow, broad lick. Hue and shape separate it from the
+  vermilion bolt, not darkness. A blind critic must read (a) fire and (b) no threat confusion.
+- **Move the near-right brazier at (-2, -7.2)** off the demo unblockable's flight line from the centre seat, as a
+  layout-only change.
+- **Remove the stale `colours.flame` and the cone note** from `arena-layout.json`.
+- **One Unreal lane, and a D-G4 re-check.** The card is T61 (`apps/vr/tasks/T61-brazier-flame-reads-as-fire.md`).
+- The DINOv3 hold stands. No signed number moves.
+
 ## 2026-10-25 - Athena, on 7fd7d11 (T57 crowd and stands): ACCEPTED; the braziers next
 
 > Athena, 2026-10-25 (owner delegation), on 7fd7d11 (`docs/research/CROWD-T57-2026-10-25.md`). The ruling is recorded
