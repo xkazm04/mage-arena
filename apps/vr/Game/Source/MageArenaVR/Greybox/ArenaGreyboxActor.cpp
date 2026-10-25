@@ -14,6 +14,7 @@
 #include "Engine/TextureCube.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "Greybox/ArenaStands.h"
 #include "Greybox/CreatureImport.h"
 #include "Greybox/CreatureImportCapture.h"
 #include "Greybox/GreyboxCapture.h"
@@ -91,6 +92,8 @@ void AArenaGreybox::Build()
 	}
 
 	BuildShell(Cube, Cylinder);
+	// T57: the crowd on the tier tops. Optional: -MageArenaNoCrowd or missing assets leave the stands bare.
+	ArenaCrowd::Build(this, Layout, ArenaCrowd::IsSwitchedOff());
 	BuildProps(Cube, Cylinder, Cone);
 	BuildLights();
 	BuildSky(Cube);
@@ -173,15 +176,10 @@ void AArenaGreybox::BuildShell(UStaticMesh* Cube, UStaticMesh* Cylinder)
 		const FVector WallCentre = Mid + Normal * (Layout.WallThicknessM * 0.5) + FVector(0.0, 0.0, Layout.WallHeightM * 0.5);
 		AddBox(WallMesh, WallCentre, Rotation, FVector(ChordLen * 1.04, Layout.WallThicknessM, Layout.WallHeightM));
 
-		const double MidRadius = FMath::Max(Mid.Size2D(), 0.01);
 		for (int32 Tier = 0; Tier < Layout.StandTiers; ++Tier)
 		{
-			const double Offset = Layout.WallThicknessM + Layout.StandGapM + (static_cast<double>(Tier) + 0.5) * Layout.StandDepthM;
-			const FVector StandMid = Mid + Normal * Offset;
-			const double Scale = StandMid.Size2D() / MidRadius;
-			const double Top = Layout.WallHeightM + Layout.StandFirstTopAboveWallM + Tier * Layout.StandStepRiseM;
-			const FVector StandCentre(StandMid.X, StandMid.Y, Top * 0.5);
-			AddBox(Stone, StandCentre, Rotation, FVector(ChordLen * 1.04 * Scale, Layout.StandDepthM, Top));
+			const ArenaStands::FStandBox Box = ArenaStands::StandBox(Layout, Index, Tier);
+			AddBox(Stone, FVector(Box.MidM.X, Box.MidM.Y, Box.TopM * 0.5), Box.Rotation, FVector(Box.RowLengthM * 1.04, Box.DepthM, Box.TopM));
 		}
 	}
 
