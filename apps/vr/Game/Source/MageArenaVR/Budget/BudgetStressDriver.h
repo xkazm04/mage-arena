@@ -148,6 +148,9 @@ private:
 	TArray<int32> LiveParticles;
 	TArray<int32> LiveParticlesCpu;
 	TArray<int32> LiveParticlesGpu;
+	// T58: the spell VFX glow puffs (instances, counted against the particle budget) and glow layers (draw calls).
+	TArray<int32> GlowPuffs;
+	TArray<int32> GlowLayers;
 	TArray<int32> GpuEmitterCounts;
 	TArray<int32> GpuCrossCheckCounts;
 	TArray<int32> NiagaraLive;

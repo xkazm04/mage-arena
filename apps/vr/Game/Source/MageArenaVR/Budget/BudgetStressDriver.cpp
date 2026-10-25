@@ -533,6 +533,8 @@ void UBudgetStressDriver::SampleFx()
 	LiveParticles.Add(Count.Total());
 	LiveParticlesCpu.Add(Count.Cpu);
 	LiveParticlesGpu.Add(Count.Gpu);
+	GlowPuffs.Add(Presentation ? Presentation->GetGlowPuffsDrawn() : 0);
+	GlowLayers.Add(Presentation ? Presentation->CountGlowLayersDrawn() : 0);
 	GpuEmitterCounts.Add(Count.ActiveGpuEmitters);
 	GpuCrossCheckCounts.Add(CrossCheck);
 	NiagaraLive.Add(Live);
@@ -946,6 +948,8 @@ void UBudgetStressDriver::WriteResults()
 	Root->SetObjectField(TEXT("liveParticlesSpread"), Spread(LiveParticles));
 	Root->SetObjectField(TEXT("liveParticlesCpu"), Spread(LiveParticlesCpu));
 	Root->SetObjectField(TEXT("liveParticlesGpu"), Spread(LiveParticlesGpu));
+	Root->SetObjectField(TEXT("glowPuffs"), Spread(GlowPuffs));
+	Root->SetObjectField(TEXT("glowLayers"), Spread(GlowLayers));
 	Root->SetNumberField(TEXT("gpuEmittersCrossCheck"), GpuCrossCheckCounts.Num() ? FMath::Max(GpuCrossCheckCounts) : 0);
 	TSharedRef<FJsonObject> SystemsLive = MakeShared<FJsonObject>();
 	SystemsLive->SetNumberField(TEXT("min"), NiagaraLive.Num() ? FMath::Min(NiagaraLive) : 0);
