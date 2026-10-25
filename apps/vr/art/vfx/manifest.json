@@ -1,0 +1,113 @@
+{
+  "card": "T63",
+  "generator": "apps/vr/tools/vfx/spell-flipbook.mjs",
+  "file": "spell-flipbook.png",
+  "sizePx": [
+    512,
+    512
+  ],
+  "grid": [
+    4,
+    4
+  ],
+  "channels": "R=G=B shade (Emissive = Color x shade), A opacity; linear, not sRGB",
+  "cells": [
+    {
+      "index": 0,
+      "name": "water-shell-a",
+      "col": 0,
+      "row": 0
+    },
+    {
+      "index": 1,
+      "name": "water-shell-b",
+      "col": 1,
+      "row": 0
+    },
+    {
+      "index": 2,
+      "name": "water-spray",
+      "col": 2,
+      "row": 0
+    },
+    {
+      "index": 3,
+      "name": "water-crown",
+      "col": 3,
+      "row": 0
+    },
+    {
+      "index": 4,
+      "name": "fire-flame-a",
+      "col": 0,
+      "row": 1
+    },
+    {
+      "index": 5,
+      "name": "fire-flame-b",
+      "col": 1,
+      "row": 1
+    },
+    {
+      "index": 6,
+      "name": "fire-embers",
+      "col": 2,
+      "row": 1
+    },
+    {
+      "index": 7,
+      "name": "fire-crown",
+      "col": 3,
+      "row": 1
+    },
+    {
+      "index": 8,
+      "name": "air-swirl-a",
+      "col": 0,
+      "row": 2
+    },
+    {
+      "index": 9,
+      "name": "air-swirl-b",
+      "col": 1,
+      "row": 2
+    },
+    {
+      "index": 10,
+      "name": "air-wisp",
+      "col": 2,
+      "row": 2
+    },
+    {
+      "index": 11,
+      "name": "air-crown",
+      "col": 3,
+      "row": 2
+    },
+    {
+      "index": 12,
+      "name": "soft-glow",
+      "col": 0,
+      "row": 3
+    },
+    {
+      "index": 13,
+      "name": "droplet-streak",
+      "col": 1,
+      "row": 3
+    },
+    {
+      "index": 14,
+      "name": "spark-streak",
+      "col": 2,
+      "row": 3
+    },
+    {
+      "index": 15,
+      "name": "grit",
+      "col": 3,
+      "row": 3
+    }
+  ],
+  "pixelsSha256": "976be383af9101a00814cc7bdabfb2595ca06ec2760261a28ad7bb6c67cd5271"
+}
