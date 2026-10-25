@@ -13,13 +13,19 @@
 #include "HAL/FileManager.h"
 #include "HAL/PlatformTime.h"
 #include "Hands/MageArenaPawn.h"
+#include "Kernel/VrRules.h"
 #include "MageArenaVR.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Misc/App.h"
 #include "Misc/CommandLine.h"
+#include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "RHIStats.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+#include "Session/ArenaSession.h"
+#include "Session/RivalFigure.h"
+#include "Session/SessionPresentation.h"
 #include "ShaderCompiler.h"
 #include "UnrealClient.h"
 
@@ -41,6 +47,12 @@ UCreatureImportCaptureDriver::UCreatureImportCaptureDriver()
 
 void UCreatureImportCaptureDriver::Start()
 {
+	if (FParse::Param(FCommandLine::Get(), TEXT("MageArenaRivalReplay")))
+	{
+		RivalReplay = NewObject<URivalReplayCaptureDriver>(this);
+		RivalReplay->Start();
+		return;
+	}
 	FParse::Value(FCommandLine::Get(), TEXT("MageArenaRun="), RunId);
 	// The candidates. Each value can be overridden on the command line, so a candidate is tuned without a rebuild.
 	const CreatureImport::FEmberParams& Ember = CreatureImport::DefaultEmber();
@@ -390,6 +402,516 @@ UWorld* UCreatureImportCaptureDriver::GetTickableGameObjectWorld() const
 
 void UCreatureImportCaptureDriver::BeginDestroy()
 {
+	SetTickableTickType(ETickableTickType::Never);
+	Super::BeginDestroy();
+}
+
+// T38 rival replay. Staging, stated so the frames are read for what they are:
+// - The creatures: the session is idle (no bout) while the hound and the maw are stilled at their 8 m spots, as in the
+//   creature cast stills, with the chosen glow (the material's defaults). Brennic is not in them: he is the duel's.
+// - The duel starts through UArenaSessionSubsystem::Start, the path the game uses (as the T16 style-pick replay does):
+//   bout 3, Brennic's semifinal (SetBout(2, true)), seed 1, the scripted seat. The session presentation draws him, and
+//   its rival figure picks his clip from the kernel's events alone; this driver only reads which clip plays.
+// - The hound and the maw stand at their scene spots beside him, looping Idle: neither is a kernel actor of this bout.
+// - The seated camera of the duel (LookAtArena, pitch -4 deg) never moves to follow him; the crops are cut afterwards.
+namespace
+{
+// Frames after a clip starts (60 per second under -usefixedtimestep -fps=60). Idle loops (2.0 s), so the first second
+// is enough; Cast plays 1.53 s and Hit 0.8 s; Death plays 2.0 s and then holds, shot at 3 s and 5 s.
+const TArray<int32>& OffsetsFor(ERivalClip Clip)
+{
+	static const TArray<int32> Idle = {6, 24, 42, 60};
+	static const TArray<int32> Cast = {6, 24, 42, 60, 78};
+	static const TArray<int32> Hit = {4, 16, 28, 40};
+	static const TArray<int32> Death = {6, 30, 54, 78, 102, 120, 180, 300};
+	switch (Clip)
+	{
+	case ERivalClip::Cast:
+		return Cast;
+	case ERivalClip::Hit:
+		return Hit;
+	case ERivalClip::Death:
+		return Death;
+	default:
+		return Idle;
+	}
+}
+
+// A clip cut off before its set is shot is tried again on its next start, up to this many times.
+constexpr int32 MaxAttempts = 4;
+// The longest duel the replay waits for (s of engine time), well past the recorded chains' longest bout.
+constexpr double DuelBudgetS = 180.0;
+}
+
+URivalReplayCaptureDriver::URivalReplayCaptureDriver()
+{
+	SetTickableTickType(ETickableTickType::Never);
+}
+
+void URivalReplayCaptureDriver::Start()
+{
+	FParse::Value(FCommandLine::Get(), TEXT("MageArenaRun="), RunId);
+	FString SeedList = TEXT("1,2");
+	FParse::Value(FCommandLine::Get(), TEXT("MageArenaRivalSeeds="), SeedList, false);
+	TArray<FString> SeedTexts;
+	SeedList.ParseIntoArray(SeedTexts, TEXT(","));
+	for (const FString& Text : SeedTexts)
+	{
+		Seeds.Add(static_cast<uint32>(FCString::Atoi(*Text)));
+	}
+	if (Seeds.Num() == 0)
+	{
+		Seeds.Add(1);
+	}
+	Sets.SetNum(RivalClips::Count);
+	for (int32 Index = 0; Index < RivalClips::Count; ++Index)
+	{
+		Sets[Index].Offsets = OffsetsFor(static_cast<ERivalClip>(Index));
+	}
+	bRunning = true;
+	RunStartWall = FPlatformTime::Seconds();
+	Enter(EStep::WaitStable);
+	SetTickableTickType(ETickableTickType::Always);
+	Evidence.Begin(TEXT("RivalReplay"));
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY start run=%s"), *RunId);
+	if (!MageArenaCapture::CanCapture())
+	{
+		Fail(TEXT("no rhi"));
+		return;
+	}
+	if (!FApp::UseFixedTimeStep() || !FMath::IsNearlyEqual(FApp::GetFixedDeltaTime(), 1.0 / 60.0, 1.0e-6))
+	{
+		Fail(FString::Printf(TEXT("a frame is a kernel tick only under -usefixedtimestep -fps=60 (fixed=%d dt=%.6f)"), FApp::UseFixedTimeStep() ? 1 : 0,
+		    FApp::GetFixedDeltaTime()));
+	}
+}
+
+void URivalReplayCaptureDriver::Enter(EStep Next)
+{
+	Step = Next;
+	StepStartWall = FPlatformTime::Seconds();
+	Frames = 0;
+}
+
+void URivalReplayCaptureDriver::Fail(const FString& Reason)
+{
+	UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *Reason);
+	Enter(EStep::Quit);
+}
+
+UArenaSessionSubsystem* URivalReplayCaptureDriver::SessionSys() const
+{
+	UWorld* World = GetTickableGameObjectWorld();
+	return World ? World->GetSubsystem<UArenaSessionSubsystem>() : nullptr;
+}
+
+FString URivalReplayCaptureDriver::CropOfFigure() const
+{
+	// The figure's bounds projected into the shot, as x y w h in its pixels: a square around him, for the crop sheets.
+	const UArenaSessionSubsystem* Sys = SessionSys();
+	const ASessionPresentation* Presentation = Sys ? Sys->GetPresentation() : nullptr;
+	const URivalFigureComponent* Figure = Presentation ? Presentation->GetRivalFigure() : nullptr;
+	UWorld* World = GetTickableGameObjectWorld();
+	APlayerController* Controller = World ? World->GetFirstPlayerController() : nullptr;
+	if (!Figure || !Figure->IsShown() || !Controller)
+	{
+		return FString();
+	}
+	const FBox Box = Figure->GetMesh()->Bounds.GetBox();
+	int32 ViewX = 0;
+	int32 ViewY = 0;
+	Controller->GetViewportSize(ViewX, ViewY);
+	int32 ResX = 1920;
+	int32 ResY = 1080;
+	FParse::Value(FCommandLine::Get(), TEXT("ResX="), ResX);
+	FParse::Value(FCommandLine::Get(), TEXT("ResY="), ResY);
+	FBox2D Screen(ForceInit);
+	for (int32 Corner = 0; Corner < 8; ++Corner)
+	{
+		const FVector Point((Corner & 1) ? Box.Max.X : Box.Min.X, (Corner & 2) ? Box.Max.Y : Box.Min.Y, (Corner & 4) ? Box.Max.Z : Box.Min.Z);
+		FVector2D Pixel;
+		if (!Controller->ProjectWorldLocationToScreen(Point, Pixel, true))
+		{
+			return FString();
+		}
+		if (ViewX > 0 && ViewY > 0)
+		{
+			Pixel.X *= static_cast<double>(ResX) / ViewX;
+			Pixel.Y *= static_cast<double>(ResY) / ViewY;
+		}
+		Screen += Pixel;
+	}
+	const FVector2D Centre = Screen.GetCenter();
+	const int32 Side = FMath::Clamp(FMath::RoundToInt(FMath::Max(Screen.GetSize().X, Screen.GetSize().Y) * 1.3), 64, FMath::Min(ResX, ResY));
+	const int32 X = FMath::Clamp(FMath::RoundToInt(Centre.X - Side * 0.5), 0, ResX - Side);
+	const int32 Y = FMath::Clamp(FMath::RoundToInt(Centre.Y - Side * 0.5), 0, ResY - Side);
+	return FString::Printf(TEXT("%d %d %d %d"), X, Y, Side, Side);
+}
+
+void URivalReplayCaptureDriver::RequestShot(const FString& Name, const FString& Stage)
+{
+	const FString Path = MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/%s"), *RunId, *Name));
+	IFileManager::Get().MakeDirectory(*FPaths::GetPath(Path), true);
+	FScreenshotRequest::RequestScreenshot(Path, false, false, false);
+	const UArenaSessionSubsystem* Sys = SessionSys();
+	if (Sys && Sys->GetSession().IsRunning())
+	{
+		Evidence.Requested(Name, Path, Sys);
+	}
+	else
+	{
+		Evidence.Requested(Name, Path, -1, -1, Stage, -1, FPlatformTime::Seconds());
+	}
+	const FString Crop = CropOfFigure();
+	if (!Crop.IsEmpty())
+	{
+		Evidence.Note(FString::Printf(TEXT("crop.%s"), *Name), Crop);
+	}
+	Evidence.Note(FString::Printf(TEXT("counters.%s"), *Name), FString::Printf(TEXT("drawCalls=%d rhiPrimitives=%d"), GNumDrawCallsRHI[0], GNumPrimitivesDrawnRHI[0]));
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_SHOT name=%s stage=%s crop=%s drawCalls=%d path=%s"), *Name, *Stage, Crop.IsEmpty() ? TEXT("-") : *Crop, GNumDrawCallsRHI[0], *Path);
+}
+
+bool URivalReplayCaptureDriver::StartDuel()
+{
+	UArenaSessionSubsystem* Sys = SessionSys();
+	if (!Sys)
+	{
+		Fail(TEXT("no session subsystem"));
+		return false;
+	}
+	FArenaSession& Session = Sys->GetSession();
+	const uint32 Seed = Seeds[SeedIndex];
+	Session.SetSaveDirectory(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("rival-replay")));
+	Session.SetBout(2, true);
+	if (!Sys->Start(Seed, true))
+	{
+		Fail(FString::Printf(TEXT("the Brennic duel did not start (bout 3, seed %u, scripted)"), Seed));
+		return false;
+	}
+	const FVrRuleset* Rules = Session.GetVrRules();
+	const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
+	Evidence.Note(FString::Printf(TEXT("duel.%d"), SeedIndex + 1),
+	    FString::Printf(TEXT("bout=3 seed=%u scripted=1 rival=%s actor=%d"), Seed, Rival ? *Rival->Id : TEXT("-"), Rules ? Rules->RivalRuntime.ActorId : -1));
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY duel seed=%u rival=%s"), Seed, Rival ? *Rival->Id : TEXT("-"));
+	if (!Rival || Rival->Id != RivalClips::BrennicRivalId)
+	{
+		Fail(FString::Printf(TEXT("the duel's rival is %s, not Brennic"), Rival ? *Rival->Id : TEXT("none")));
+		return false;
+	}
+	if (Timeline.IsEmpty())
+	{
+		Timeline = TEXT("seed\tframe\ttick\tsimS\tclip\tstarts\tphase\n");
+	}
+	DuelFrame = 0;
+	SeenStarts = -1;
+	DownFrame = -1;
+	EndedFrame = -1;
+	for (FClipSet& Set : Sets)
+	{
+		Set.Starts = -1;
+	}
+	return true;
+}
+
+void URivalReplayCaptureDriver::StepDuel()
+{
+	UArenaSessionSubsystem* Sys = SessionSys();
+	ASessionPresentation* Presentation = Sys ? Sys->GetPresentation() : nullptr;
+	if (!Sys || !Presentation)
+	{
+		Fail(TEXT("no session presentation"));
+		return;
+	}
+	FArenaSession& Session = Sys->GetSession();
+	const FGames& Games = Session.GetGames();
+	++DuelFrame;
+	const URivalFigureComponent* Figure = Presentation->GetRivalFigure();
+	if (!Figure)
+	{
+		// The presentation tries the import on the first frame it draws the duel.
+		if (DuelFrame > 30)
+		{
+			Fail(TEXT("the rival figure did not load (run the Brennic import into the scratch folder first)"));
+		}
+		return;
+	}
+	const ERivalClip Clip = Figure->GetClip();
+	const int32 Starts = Figure->GetClipStarts();
+	if (Starts != SeenStarts)
+	{
+		SeenStarts = Starts;
+		Timeline += FString::Printf(TEXT("%u\t%d\t%d\t%.3f\t%s\t%d\t%s\n"), Seeds[SeedIndex], DuelFrame, Games.State.Tick, Session.GetSimSeconds(), RivalClips::Name(Clip), Starts,
+		    *Games.Phase);
+		UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY clip=%s seed=%u frame=%d tick=%d sim=%.3f phase=%s"), RivalClips::Name(Clip), Seeds[SeedIndex], DuelFrame,
+		    Games.State.Tick, Session.GetSimSeconds(), *Games.Phase);
+		// A set in progress whose clip was cut off is tried again on that clip's next start.
+		for (FClipSet& Each : Sets)
+		{
+			if (!Each.bDone && Each.Starts >= 0)
+			{
+				UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY set cut after %d of %d frames"), Each.Next, Each.Offsets.Num());
+				Each.Starts = -1;
+			}
+		}
+		FClipSet& Started = Sets[static_cast<int32>(Clip)];
+		if (!Started.bDone && Started.Attempt < MaxAttempts)
+		{
+			++Started.Attempt;
+			Started.Starts = Starts;
+			Started.StartFrame = DuelFrame;
+			Started.Next = 0;
+		}
+		if (Clip == ERivalClip::Death && DownFrame < 0)
+		{
+			DownFrame = DuelFrame;
+			// The stage would move on from the down (missio, then the next scene); hold the kernel so Death plays and holds.
+			Session.SetFrameHold(true);
+			Evidence.Note(TEXT("down"), FString::Printf(TEXT("seed=%u frame=%d tick=%d sim=%.3f phase=%s (kernel held from here)"), Seeds[SeedIndex], DuelFrame, Games.State.Tick, Session.GetSimSeconds(), *Games.Phase));
+		}
+	}
+	FClipSet& Set = Sets[static_cast<int32>(Clip)];
+	if (!Set.bDone && Set.Starts == Starts && Set.Offsets.IsValidIndex(Set.Next) && DuelFrame - Set.StartFrame >= Set.Offsets[Set.Next] &&
+	    !FScreenshotRequest::IsScreenshotRequested())
+	{
+		const FString Lower = FString(RivalClips::Name(Clip)).ToLower();
+		const FString Name = FString::Printf(TEXT("rival/%s/seed%u-%s-a%d-%02d.png"), *Lower, Seeds[SeedIndex], *Lower, Set.Attempt, Set.Next + 1);
+		RequestShot(Name, Games.Phase);
+		Evidence.Note(FString::Printf(TEXT("clip.%s"), *Name), FString::Printf(TEXT("%s seed=%u attempt=%d frame=%d of the clip (wanted %d) tick=%d"), RivalClips::Name(Clip), Seeds[SeedIndex], Set.Attempt, DuelFrame - Set.StartFrame, Set.Offsets[Set.Next], Games.State.Tick));
+		++Set.Next;
+		if (Set.Next >= Set.Offsets.Num())
+		{
+			Set.bDone = true;
+			Set.Starts = -1;
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY set done clip=%s attempt=%d"), RivalClips::Name(Clip), Set.Attempt);
+		}
+	}
+
+	int32 Done = 0;
+	for (const FClipSet& Each : Sets)
+	{
+		Done += Each.bDone ? 1 : 0;
+	}
+	if (Done == Sets.Num())
+	{
+		Enter(EStep::Finish);
+		return;
+	}
+	// The duel ended without Brennic down, or Death is shot while another clip never played through.
+	if (EndedFrame < 0 && (Sets[static_cast<int32>(ERivalClip::Death)].bDone || (DownFrame < 0 && Games.Phase != TEXT("active"))))
+	{
+		EndedFrame = DuelFrame;
+	}
+	if (EndedFrame >= 0 && DuelFrame - EndedFrame > 60)
+	{
+		if (SeedIndex + 1 < Seeds.Num())
+		{
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY duel seed=%u ended phase=%s down=%d; next seed=%u"), Seeds[SeedIndex], *Games.Phase, DownFrame >= 0 ? 1 : 0,
+			    Seeds[SeedIndex + 1]);
+			Evidence.Note(FString::Printf(TEXT("duel.%d.end"), SeedIndex + 1), FString::Printf(TEXT("phase=%s tick=%d sim=%.3f down=%d"), *Games.Phase, Games.State.Tick, Session.GetSimSeconds(), DownFrame >= 0 ? 1 : 0));
+			++SeedIndex;
+			StartDuel();
+			return;
+		}
+		TArray<FString> Missing;
+		for (int32 Index = 0; Index < Sets.Num(); ++Index)
+		{
+			if (!Sets[Index].bDone)
+			{
+				Missing.Add(FString::Printf(TEXT("%s (%d tries)"), RivalClips::Name(static_cast<ERivalClip>(Index)), Sets[Index].Attempt));
+			}
+		}
+		Fail(FString::Printf(TEXT("the duel ended (phase %s) before every clip played through: missing %s"), *Games.Phase, *FString::Join(Missing, TEXT(", "))));
+		return;
+	}
+	if (DuelFrame > DuelBudgetS * 60.0)
+	{
+		Fail(FString::Printf(TEXT("the duel ran past %.0f s"), DuelBudgetS));
+	}
+}
+
+void URivalReplayCaptureDriver::Tick(float DeltaTime)
+{
+	(void)DeltaTime;
+	if (!bRunning)
+	{
+		return;
+	}
+	const double Now = FPlatformTime::Seconds();
+	if (Step != EStep::Quit && Step != EStep::Finish && Now - RunStartWall > 1500.0)
+	{
+		Fail(TEXT("timeout"));
+	}
+	const ECaptureShotPoll Shots = Evidence.Poll();
+	if (Shots == ECaptureShotPoll::Failed && Step != EStep::Quit)
+	{
+		Fail(Evidence.GetFailure());
+	}
+	++Frames;
+	UWorld* World = GetTickableGameObjectWorld();
+	AMageArenaPawn* Pawn = nullptr;
+	if (World)
+	{
+		TActorIterator<AMageArenaPawn> It(World);
+		Pawn = It ? *It : nullptr;
+	}
+	const bool bShadersIdle = (GShaderCompilingManager == nullptr || !GShaderCompilingManager->IsCompiling()) && FAssetCompilingManager::Get().GetNumRemainingAssets() == 0;
+	const double Elapsed = Now - StepStartWall;
+	static const TCHAR* const CreatureShots[] = {TEXT("creatures/01-hound-8m.png"), TEXT("creatures/02-maw-8m.png"), TEXT("creatures/03-hound-and-maw-8m.png")};
+	constexpr int32 CreatureShotCount = UE_ARRAY_COUNT(CreatureShots);
+
+	switch (Step)
+	{
+	case EStep::WaitStable:
+	{
+		const float Delta = FApp::GetDeltaTime();
+		StableFrames = (Pawn && Pawn->HasLayout() && bShadersIdle && Delta > 0.f) ? StableFrames + 1 : 0;
+		if ((StableFrames >= 20 && Elapsed >= 1.5) || Elapsed >= 90.0)
+		{
+			FString Error;
+			if (!Pawn || !World || !Layout.LoadFromFile(FArenaLayout::DefaultFilePath(), Error))
+			{
+				Fail(FString::Printf(TEXT("pawn or layout missing %s"), *Error));
+				break;
+			}
+			const double Distance = CreatureImport::OpponentDistanceM();
+			for (const CreatureImport::FCreatureSpec& Spec : CreatureImport::Specs())
+			{
+				if (FString(Spec.Name) == RivalClips::BrennicAsset)
+				{
+					continue;
+				}
+				ASkeletalMeshActor* Actor = CreatureImport::SpawnCreature(*World, Layout, Spec.Name, CreatureImport::StandPointCm(Layout, Distance, Spec.SceneLateralM));
+				if (!Actor)
+				{
+					Fail(FString::Printf(TEXT("%s did not load (run its import first)"), Spec.Name));
+					return;
+				}
+				Actor->GetSkeletalMeshComponent()->PrestreamTextures(600.f, true);
+				Creatures.Add(Actor);
+			}
+			Evidence.Note(TEXT("opponentDistanceM"), FString::Printf(TEXT("%.2f"), Distance));
+			Pawn->ApplyFlatPresentation();
+			Pawn->LookAtArena();
+			Pawn->SetLookPitch(-4.f);
+			if (GEngine)
+			{
+				GEngine->Exec(World, TEXT("r.MotionBlurQuality 0"));
+			}
+			CreatureShot = 0;
+			Enter(EStep::PoseCreatures);
+		}
+		break;
+	}
+	case EStep::PoseCreatures:
+		if (CreatureShot >= CreatureShotCount)
+		{
+			for (ASkeletalMeshActor* Actor : Creatures)
+			{
+				Actor->SetActorHiddenInGame(false);
+			}
+			if (StartDuel())
+			{
+				Enter(EStep::Duel);
+			}
+			break;
+		}
+		// 01 the hound alone, 02 the maw alone, 03 both (Creatures holds them in Specs() order: hound, maw).
+		for (int32 Index = 0; Index < Creatures.Num(); ++Index)
+		{
+			Creatures[Index]->SetActorHiddenInGame(!(CreatureShot == 2 || CreatureShot == Index));
+		}
+		Enter(EStep::SettleCreatures);
+		break;
+	case EStep::SettleCreatures:
+	{
+		bool bResident = true;
+		for (const CreatureImport::FCreatureSpec& Spec : CreatureImport::Specs())
+		{
+			UTexture2D* Texture = FindObject<UTexture2D>(nullptr, *CreatureImport::TextureObjectPath(Spec.Name));
+			bResident &= !Texture || Texture->IsFullyStreamedIn();
+		}
+		if (Frames >= 20 && Elapsed >= 1.0 && bShadersIdle && bResident && Shots != ECaptureShotPoll::Pending)
+		{
+			RequestShot(CreatureShots[CreatureShot], TEXT("idle"));
+			++CreatureShot;
+			Enter(EStep::PoseCreatures);
+		}
+		else if (Elapsed > 300.0)
+		{
+			Fail(TEXT("shaders or textures never settled"));
+		}
+		break;
+	}
+	case EStep::Duel:
+		StepDuel();
+		break;
+	case EStep::Finish:
+	{
+		if (Shots == ECaptureShotPoll::Pending)
+		{
+			break;
+		}
+		const FString Dir = MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s"), *RunId));
+		FFileHelper::SaveStringToFile(Timeline, *FPaths::Combine(Dir, TEXT("rival/clip-timeline.tsv")));
+		const UArenaSessionSubsystem* Sys = SessionSys();
+		const ASessionPresentation* Presentation = Sys ? Sys->GetPresentation() : nullptr;
+		if (const URivalFigureComponent* Figure = Presentation ? Presentation->GetRivalFigure() : nullptr)
+		{
+			Evidence.Note(TEXT("lod0Triangles.Brennic"), FString::FromInt(Figure->GetLod0Triangles()));
+		}
+		for (const ASkeletalMeshActor* Actor : Creatures)
+		{
+			const USkeletalMesh* Mesh = Actor->GetSkeletalMeshComponent()->GetSkeletalMeshAsset();
+			const FSkeletalMeshRenderData* Render = Mesh ? Mesh->GetResourceForRendering() : nullptr;
+			Evidence.Note(FString::Printf(TEXT("lod0Triangles.%s"), Mesh ? *Mesh->GetName() : TEXT("-")),
+			    FString::FromInt(Render && Render->LODRenderData.Num() > 0 ? Render->LODRenderData[0].GetTotalFaces() : 0));
+		}
+		FString Error;
+		if (Evidence.WriteManifest(FPaths::Combine(Dir, TEXT("manifest.json")), Error))
+		{
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), Evidence.GetManifest().Shots.Num());
+		}
+		else
+		{
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CAPTURE_FAIL %s"), *Error);
+		}
+		Enter(EStep::Quit);
+		break;
+	}
+	case EStep::Quit:
+		bRunning = false;
+		SetTickableTickType(ETickableTickType::Never);
+		if (World)
+		{
+			if (APlayerController* Controller = World->GetFirstPlayerController())
+			{
+				Controller->ConsoleCommand(TEXT("Quit"));
+			}
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+TStatId URivalReplayCaptureDriver::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(URivalReplayCaptureDriver, STATGROUP_Tickables);
+}
+
+bool URivalReplayCaptureDriver::IsTickable() const
+{
+	return bRunning;
+}
+
+UWorld* URivalReplayCaptureDriver::GetTickableGameObjectWorld() const
+{
+	return GetOuter() ? GetOuter()->GetWorld() : nullptr;
+}
+
+void URivalReplayCaptureDriver::BeginDestroy()
+{
+	bRunning = false;
 	SetTickableTickType(ETickableTickType::Never);
 	Super::BeginDestroy();
 }

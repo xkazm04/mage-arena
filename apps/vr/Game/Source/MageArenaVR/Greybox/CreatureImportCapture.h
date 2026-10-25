@@ -9,6 +9,7 @@
 
 class ASkeletalMeshActor;
 class UMaterialInstanceDynamic;
+class URivalReplayCaptureDriver;
 
 /**
  * The creature cast stills (-MageArenaCreatureImportCapture, apps/vr/tools/capture-creature-import.ps1;
@@ -97,4 +98,93 @@ private:
 	/** One dynamic instance per hound material slot (both slots take M_CinderHound). */
 	UPROPERTY()
 	TArray<TObjectPtr<UMaterialInstanceDynamic>> HoundMaterials;
+
+	/** -MageArenaRivalReplay: this run is the T38 rival replay instead of the stills above. */
+	UPROPERTY()
+	TObjectPtr<URivalReplayCaptureDriver> RivalReplay;
+};
+
+/**
+ * T38 (-MageArenaCreatureImportCapture -MageArenaRivalReplay, apps/vr/tools/capture-rival.ps1;
+ * docs/research/T38-RIVAL-2026-10-25.md): first the cinder hound and the mire maw stilled at their 8 m spots under the
+ * T56 dusk, then the seated Brennic duel replayed (the reference seated script, bout 3: SetBout(2, true)), with Brennic
+ * drawn by the session presentation's rival figure (Session/RivalFigure.h) and the two creatures beside him. Seed 1 is
+ * the T16 replay, and Brennic wins it (DF-011), so it never shows Death; seed 2, the lowest seed where the same script
+ * downs him, follows (-MageArenaRivalSeeds=1,2). Each of the four clips gets a short set of frames from the first time
+ * it plays through: runs/<run>/rival/<clip>/seed<n>-<clip>-a<try>-<frame>.png.
+ * The launcher runs it with -usefixedtimestep -fps=60, so one engine frame is one kernel tick and a set's frames are
+ * clip time. Once Brennic is down the kernel is held (SetFrameHold) so the stage cannot move on while Death plays and
+ * holds; the clip keeps playing on engine time. Ends in MAGEVR_CAPTURE_DONE with runs/<run>/manifest.json, or
+ * MAGEVR_CAPTURE_FAIL (the figure did not load, a clip never played through, the duel ended without Brennic down).
+ */
+UCLASS()
+class MAGEARENAVR_API URivalReplayCaptureDriver : public UObject, public FTickableGameObject
+{
+	GENERATED_BODY()
+
+public:
+	URivalReplayCaptureDriver();
+
+	void Start();
+
+	virtual void Tick(float DeltaTime) override;
+	virtual TStatId GetStatId() const override;
+	virtual bool IsTickable() const override;
+	virtual UWorld* GetTickableGameObjectWorld() const override;
+	virtual void BeginDestroy() override;
+
+private:
+	enum class EStep : uint8
+	{
+		WaitStable,
+		PoseCreatures,
+		SettleCreatures,
+		Duel,
+		Finish,
+		Quit
+	};
+
+	/** The frames of one clip: Offsets (engine frames after the clip starts) from its first start that plays them all. */
+	struct FClipSet
+	{
+		TArray<int32> Offsets;
+		int32 Attempt = 0;
+		int32 Starts = -1;
+		int32 StartFrame = 0;
+		int32 Next = 0;
+		bool bDone = false;
+	};
+
+	void Enter(EStep Next);
+	void Fail(const FString& Reason);
+	bool StartDuel();
+	void StepDuel();
+	void RequestShot(const FString& Name, const FString& Stage);
+	FString CropOfFigure() const;
+	class UArenaSessionSubsystem* SessionSys() const;
+
+	EStep Step = EStep::WaitStable;
+	bool bRunning = false;
+	double RunStartWall = 0.0;
+	double StepStartWall = 0.0;
+	int32 StableFrames = 0;
+	int32 Frames = 0;
+	int32 DuelFrame = 0;
+	int32 CreatureShot = 0;
+	int32 SeenStarts = -1;
+	int32 DownFrame = -1;
+	int32 EndedFrame = -1;
+	FString RunId = TEXT("T38-rival");
+	/** The duels in turn; the next starts when one ends with a clip still unshot. */
+	TArray<uint32> Seeds;
+	int32 SeedIndex = 0;
+	FString Timeline;
+	FArenaLayout Layout;
+	FCaptureEvidence Evidence;
+	/** By ERivalClip. */
+	TArray<FClipSet> Sets;
+
+	/** The hound and the maw at their scene spots (CreatureImport::Specs() order, Brennic left out). */
+	UPROPERTY()
+	TArray<TObjectPtr<ASkeletalMeshActor>> Creatures;
 };

@@ -585,10 +585,12 @@ TArray<ASkeletalMeshActor*> SpawnScene(UWorld& World, const FArenaLayout& Layout
 	TArray<ASkeletalMeshActor*> Spawned;
 	const double Distance = OpponentDistanceM();
 	FString Only;
+	FString Skip;
 	FParse::Value(FCommandLine::Get(), TEXT("MageArenaCreatureOnly="), Only);
+	FParse::Value(FCommandLine::Get(), TEXT("MageArenaCreatureSkip="), Skip);
 	for (const FCreatureSpec& Spec : GSpecs)
 	{
-		if (!Only.IsEmpty() && Only != Spec.Name)
+		if ((!Only.IsEmpty() && Only != Spec.Name) || Skip == Spec.Name)
 		{
 			continue;
 		}

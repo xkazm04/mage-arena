@@ -235,7 +235,8 @@ void PlaceCreature(ASkeletalMeshActor& Actor, const FArenaLayout& Layout, const 
 
 /**
  * Every spec'd creature at opponent distance, each at its SceneLateralM, in Specs() order: the budget scene and the cast
- * still. -MageArenaCreatureOnly=<Name> spawns that one alone (a per-creature budget run).
+ * still. -MageArenaCreatureOnly=<Name> spawns that one alone (a per-creature budget run); -MageArenaCreatureSkip=<Name>
+ * leaves that one out (T38: Brennic, when the session draws him as the rival figure).
  */
 TArray<ASkeletalMeshActor*> SpawnScene(UWorld& World, const FArenaLayout& Layout);
 
