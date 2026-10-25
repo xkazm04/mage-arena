@@ -10,6 +10,7 @@
 class ASkeletalMeshActor;
 class UMaterialInstanceDynamic;
 class URivalReplayCaptureDriver;
+class UTexture2D;
 
 /**
  * The creature cast stills (-MageArenaCreatureImportCapture, apps/vr/tools/capture-creature-import.ps1;
@@ -110,11 +111,11 @@ private:
  * T56 dusk, then the seated Brennic duel replayed (the reference seated script, bout 3: SetBout(2, true)), with Brennic
  * drawn by the session presentation's rival figure (Session/RivalFigure.h) and the two creatures beside him. Seed 1 is
  * the T16 replay, and Brennic wins it (DF-011), so it never shows Death; seed 2, the lowest seed where the same script
- * downs him, follows (-MageArenaRivalSeeds=1,2). Each of the four clips gets a short set of frames from the first time
- * it plays through: runs/<run>/rival/<clip>/seed<n>-<clip>-a<try>-<frame>.png.
+ * downs him, follows (-MageArenaRivalSeeds=1,2). Each of the four clips gets short sets of frames from the first times
+ * it plays through (three for Idle, Cast and Hit, one for Death): runs/<run>/rival/<clip>/seed<n>-<clip>-a<try>-<frame>.png.
  * The launcher runs it with -usefixedtimestep -fps=60, so one engine frame is one kernel tick and a set's frames are
- * clip time. Once Brennic is down the kernel is held (SetFrameHold) so the stage cannot move on while Death plays and
- * holds; the clip keeps playing on engine time. Ends in MAGEVR_CAPTURE_DONE with runs/<run>/manifest.json, or
+ * clip time. Once Brennic is down the session runs on into its intermission while Death plays and holds where he fell
+ * (-MageArenaRivalHold=1 holds the kernel at the down instead). Ends in MAGEVR_CAPTURE_DONE with runs/<run>/manifest.json, or
  * MAGEVR_CAPTURE_FAIL (the figure did not load, a clip never played through, the duel ended without Brennic down).
  */
 UCLASS()
@@ -144,10 +145,15 @@ private:
 		Quit
 	};
 
-	/** The frames of one clip: Offsets (engine frames after the clip starts) from its first start that plays them all. */
+	/**
+	 * The frames of one clip: Offsets (engine frames after the clip starts), from each start that plays them all, until
+	 * Wanted full sets are shot (the fight's spell light hides him in some; the owner picks).
+	 */
 	struct FClipSet
 	{
 		TArray<int32> Offsets;
+		int32 Wanted = 1;
+		int32 Completed = 0;
 		int32 Attempt = 0;
 		int32 Starts = -1;
 		int32 StartFrame = 0;
@@ -187,4 +193,8 @@ private:
 	/** The hound and the maw at their scene spots (CreatureImport::Specs() order, Brennic left out). */
 	UPROPERTY()
 	TArray<TObjectPtr<ASkeletalMeshActor>> Creatures;
+
+	/** Held resident for the duel (the figure itself is the presentation's). */
+	UPROPERTY()
+	TObjectPtr<UTexture2D> BrennicTexture;
 };

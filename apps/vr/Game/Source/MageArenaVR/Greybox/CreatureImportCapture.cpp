@@ -412,7 +412,7 @@ void UCreatureImportCaptureDriver::BeginDestroy()
 // - The duel starts through UArenaSessionSubsystem::Start, the path the game uses (as the T16 style-pick replay does):
 //   bout 3, Brennic's semifinal (SetBout(2, true)), seed 1, the scripted seat. The session presentation draws him, and
 //   its rival figure picks his clip from the kernel's events alone; this driver only reads which clip plays.
-// - The hound and the maw stand at their scene spots beside him, looping Idle: neither is a kernel actor of this bout.
+// - The hound and the maw stand beside him, 12 m out (DuelBehindM), looping Idle: neither is a kernel actor of this bout.
 // - The seated camera of the duel (LookAtArena, pitch -4 deg) never moves to follow him; the crops are cut afterwards.
 namespace
 {
@@ -437,10 +437,17 @@ const TArray<int32>& OffsetsFor(ERivalClip Clip)
 	}
 }
 
-// A clip cut off before its set is shot is tried again on its next start, up to this many times.
-constexpr int32 MaxAttempts = 4;
+// A clip cut off before its set is shot is tried again on its next start, up to this many times. Hits come 17 to 20
+// ticks apart in a flurry and each one restarts the Hit, so a full Hit set waits for a hit nothing follows for 0.7 s
+// (the seed-1 duel has its first at tick 1010, after 15 cut ones).
+constexpr int32 MaxAttempts = 64;
 // The longest duel the replay waits for (s of engine time), well past the recorded chains' longest bout.
 constexpr double DuelBudgetS = 180.0;
+// Duel frames before a clip set may start (see StepDuel).
+constexpr int32 FigureWarmFrames = 30;
+// Where the hound and the maw stand during the duel (m ahead of the centre pad; m to the seated player's right).
+constexpr double DuelBehindM = 12.0;
+constexpr double DuelLateralM[] = {3.0, -6.0};
 }
 
 URivalReplayCaptureDriver::URivalReplayCaptureDriver()
@@ -467,6 +474,7 @@ void URivalReplayCaptureDriver::Start()
 	for (int32 Index = 0; Index < RivalClips::Count; ++Index)
 	{
 		Sets[Index].Offsets = OffsetsFor(static_cast<ERivalClip>(Index));
+		Sets[Index].Wanted = static_cast<ERivalClip>(Index) == ERivalClip::Death ? 1 : 3;
 	}
 	bRunning = true;
 	RunStartWall = FPlatformTime::Seconds();
@@ -654,7 +662,10 @@ void URivalReplayCaptureDriver::StepDuel()
 			}
 		}
 		FClipSet& Started = Sets[static_cast<int32>(Clip)];
-		if (!Started.bDone && Started.Attempt < MaxAttempts)
+		// The figure is made on the duel's first frame and draws grey while its material compiles (the first run's first
+		// Cast frame), so no set starts before it has stood FigureWarmFrames with the shader compiler idle.
+		const bool bWarm = DuelFrame > FigureWarmFrames && (GShaderCompilingManager == nullptr || !GShaderCompilingManager->IsCompiling());
+		if (bWarm && !Started.bDone && Started.Attempt < MaxAttempts)
 		{
 			++Started.Attempt;
 			Started.Starts = Starts;
@@ -664,9 +675,13 @@ void URivalReplayCaptureDriver::StepDuel()
 		if (Clip == ERivalClip::Death && DownFrame < 0)
 		{
 			DownFrame = DuelFrame;
-			// The stage would move on from the down (missio, then the next scene); hold the kernel so Death plays and holds.
-			Session.SetFrameHold(true);
-			Evidence.Note(TEXT("down"), FString::Printf(TEXT("seed=%u frame=%d tick=%d sim=%.3f phase=%s (kernel held from here)"), Seeds[SeedIndex], DuelFrame, Games.State.Tick, Session.GetSimSeconds(), *Games.Phase));
+			// The session runs on into its intermission, as in the game: the figure holds Death where he fell, and the
+			// shots and wards still in flight clear. -MageArenaRivalHold=1 holds the kernel at the down instead, which
+			// freezes them in front of the seat (the first seed-2 run: the player's ward hid him in every Death frame).
+			int32 Hold = 0;
+			FParse::Value(FCommandLine::Get(), TEXT("MageArenaRivalHold="), Hold);
+			Session.SetFrameHold(Hold != 0);
+			Evidence.Note(TEXT("down"), FString::Printf(TEXT("seed=%u frame=%d tick=%d sim=%.3f phase=%s kernelHeld=%d"), Seeds[SeedIndex], DuelFrame, Games.State.Tick, Session.GetSimSeconds(), *Games.Phase, Hold != 0 ? 1 : 0));
 		}
 	}
 	FClipSet& Set = Sets[static_cast<int32>(Clip)];
@@ -680,18 +695,20 @@ void URivalReplayCaptureDriver::StepDuel()
 		++Set.Next;
 		if (Set.Next >= Set.Offsets.Num())
 		{
-			Set.bDone = true;
+			++Set.Completed;
+			Set.bDone = Set.Completed >= Set.Wanted;
 			Set.Starts = -1;
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY set done clip=%s attempt=%d"), RivalClips::Name(Clip), Set.Attempt);
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_RIVAL_REPLAY set done clip=%s attempt=%d full=%d of %d"), RivalClips::Name(Clip), Set.Attempt, Set.Completed, Set.Wanted);
 		}
 	}
 
-	int32 Done = 0;
+	// Death comes last (it ends the last duel); every other clip needs one full set by then.
+	bool bAllShot = Sets[static_cast<int32>(ERivalClip::Death)].bDone;
 	for (const FClipSet& Each : Sets)
 	{
-		Done += Each.bDone ? 1 : 0;
+		bAllShot &= Each.Completed > 0;
 	}
-	if (Done == Sets.Num())
+	if (bAllShot)
 	{
 		Enter(EStep::Finish);
 		return;
@@ -715,12 +732,13 @@ void URivalReplayCaptureDriver::StepDuel()
 		TArray<FString> Missing;
 		for (int32 Index = 0; Index < Sets.Num(); ++Index)
 		{
-			if (!Sets[Index].bDone)
+			if (Sets[Index].Completed == 0)
 			{
 				Missing.Add(FString::Printf(TEXT("%s (%d tries)"), RivalClips::Name(static_cast<ERivalClip>(Index)), Sets[Index].Attempt));
 			}
 		}
-		Fail(FString::Printf(TEXT("the duel ended (phase %s) before every clip played through: missing %s"), *Games.Phase, *FString::Join(Missing, TEXT(", "))));
+		Fail(FString::Printf(TEXT("the last duel ended (phase %s, Brennic down=%d) before every clip played through: missing %s"), *Games.Phase, DownFrame >= 0 ? 1 : 0,
+		    *FString::Join(Missing, TEXT(", "))));
 		return;
 	}
 	if (DuelFrame > DuelBudgetS * 60.0)
@@ -790,6 +808,13 @@ void URivalReplayCaptureDriver::Tick(float DeltaTime)
 				Creatures.Add(Actor);
 			}
 			Evidence.Note(TEXT("opponentDistanceM"), FString::Printf(TEXT("%.2f"), Distance));
+			// Brennic's texture at full resolution from his first duel frame (the first run's first Cast frame drew him
+			// grey, before it streamed in); the creature stills wait for it with their own.
+			BrennicTexture = LoadObject<UTexture2D>(nullptr, *CreatureImport::TextureObjectPath(RivalClips::BrennicAsset));
+			if (BrennicTexture)
+			{
+				BrennicTexture->SetForceMipLevelsToBeResident(600.f);
+			}
 			Pawn->ApplyFlatPresentation();
 			Pawn->LookAtArena();
 			Pawn->SetLookPitch(-4.f);
@@ -805,9 +830,13 @@ void URivalReplayCaptureDriver::Tick(float DeltaTime)
 	case EStep::PoseCreatures:
 		if (CreatureShot >= CreatureShotCount)
 		{
-			for (ASkeletalMeshActor* Actor : Creatures)
+			// For the duel they step back behind the fight: Brennic ranges over the near ring (he fell at about 2.6 m left
+			// of the centre line at 8 m in the seed-2 duel, in front of the maw's 8 m spot), so his body would read
+			// against the maw's.
+			for (int32 Index = 0; Index < Creatures.Num(); ++Index)
 			{
-				Actor->SetActorHiddenInGame(false);
+				Creatures[Index]->SetActorHiddenInGame(false);
+				CreatureImport::PlaceCreature(*Creatures[Index], Layout, CreatureImport::StandPointCm(Layout, DuelBehindM, DuelLateralM[FMath::Min(Index, 1)]), 0.0);
 			}
 			if (StartDuel())
 			{

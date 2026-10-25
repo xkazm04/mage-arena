@@ -23,7 +23,9 @@ param(
 	[string]$Staging = "C:\Users\kazda\mage-art-staging\t38-rival-2026-10-25",
 	[string]$BrennicDir = "C:\Users\kazda\mage-art-staging\brennic-mesh-rework-2026-10-24\rig",
 	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig",
-	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-2026-10-24\rig"
+	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-2026-10-24\rig",
+	# Appended to the replay's command line (e.g. -MageArenaRivalHold=1).
+	[string[]]$ExtraArgs = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -105,7 +107,7 @@ try {
 		"-usefixedtimestep",
 		"-fps=60",
 		"-ExecCmds=`"DisableAllScreenMessages; t.MaxFPS 60`""
-	)
+	) + $ExtraArgs
 	Write-Host "rival: starting the replay run=$Run seeds=$Seeds"
 	$Process = Start-Process -FilePath $Editor -ArgumentList $ArgumentList -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $RunDir "capture.stdout.log") -RedirectStandardError (Join-Path $RunDir "capture.stderr.log")
 	if (-not $Process.WaitForExit(1620000)) {
@@ -145,27 +147,39 @@ try {
 	foreach ($Problem in $Problems) { Write-Host "rival: FAIL $Problem" }
 	Write-Host "rival: capture ok=$CaptureOk done=$Done failed=$Failed"
 
-	# Crop sheets: each clip's full set side by side, cut around Brennic where the driver projected him on the set's
-	# first frame (the camera never moves). ffmpeg reports on stderr, which Stop would turn into an error record.
+	# Crop sheets: each full set of a clip side by side, each frame cut around Brennic where the driver projected him on
+	# that frame (one square size per sheet, the largest of the set; a frame with no projection keeps the last one).
+	# ffmpeg reports on stderr, which Stop would turn into an error record.
 	if ($Manifest -and (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
 		$ErrorActionPreference = "Continue"
+		$Want = @{ idle = 4; cast = 5; hit = 4; death = 8 }
 		foreach ($Clip in @("idle", "cast", "hit", "death")) {
 			$Names = @($Manifest.shots | Where-Object { $_.name -like "rival/$Clip/*" } | ForEach-Object { $_.name })
-			$Group = @($Names | Group-Object { ($_ -split '/')[-1] -replace '-\d+\.png$', '' } | Sort-Object Count -Descending) | Select-Object -First 1
-			if (-not $Group) { continue }
-			$Frames = @($Group.Group | Sort-Object)
-			$Crop = $Manifest.notes."crop.$($Frames[0])"
-			if (-not $Crop) { continue }
-			$Box = @($Crop -split ' ' | ForEach-Object { [int]$_ })
-			$Inputs = @()
-			foreach ($Frame in $Frames) { $Inputs += @("-i", (Join-Path $RunDir $Frame)) }
-			$Chains = @()
-			for ($i = 0; $i -lt $Frames.Count; $i++) { $Chains += "[${i}:v]crop=$($Box[2]):$($Box[3]):$($Box[0]):$($Box[1]),scale=360:360[c$i]" }
-			$Stack = ((0..($Frames.Count - 1)) | ForEach-Object { "[c$_]" }) -join ""
-			$Filter = ($Chains -join ";") + ";${Stack}hstack=inputs=$($Frames.Count)[out]"
-			$Sheet = Join-Path $RunDir "rival\sheet-$Clip.png"
-			& ffmpeg -hide_banner -loglevel error -y @Inputs -filter_complex $Filter -map "[out]" $Sheet
-			Write-Host "rival: sheet $Clip exit=$LASTEXITCODE $Sheet ($($Frames.Count) frames, crop $Crop)"
+			foreach ($Group in @($Names | Group-Object { ($_ -split '/')[-1] -replace '-\d+\.png$', '' } | Where-Object { $_.Count -ge $Want[$Clip] })) {
+				$Frames = @($Group.Group | Sort-Object)
+				$Boxes = @()
+				$Last = $null
+				foreach ($Frame in $Frames) {
+					$Crop = $Manifest.notes."crop.$Frame"
+					if ($Crop) { $Last = @($Crop -split ' ' | ForEach-Object { [int]$_ }) }
+					$Boxes += , $Last
+				}
+				if (@($Boxes | Where-Object { $null -eq $_ }).Count -gt 0) { continue }
+				$Side = ($Boxes | ForEach-Object { $_[2] } | Measure-Object -Maximum).Maximum
+				$Inputs = @()
+				foreach ($Frame in $Frames) { $Inputs += @("-i", (Join-Path $RunDir $Frame)) }
+				$Chains = @()
+				for ($i = 0; $i -lt $Frames.Count; $i++) {
+					$X = [Math]::Max(0, [Math]::Min(1920 - $Side, $Boxes[$i][0] + [int](($Boxes[$i][2] - $Side) / 2)))
+					$Y = [Math]::Max(0, [Math]::Min(1080 - $Side, $Boxes[$i][1] + [int](($Boxes[$i][3] - $Side) / 2)))
+					$Chains += "[${i}:v]crop=${Side}:${Side}:${X}:${Y},scale=360:360[c$i]"
+				}
+				$Stack = ((0..($Frames.Count - 1)) | ForEach-Object { "[c$_]" }) -join ""
+				$Filter = ($Chains -join ";") + ";${Stack}hstack=inputs=$($Frames.Count)[out]"
+				$Sheet = Join-Path $RunDir "rival\sheet-$($Group.Name).png"
+				& ffmpeg -hide_banner -loglevel error -y @Inputs -filter_complex $Filter -map "[out]" $Sheet
+				Write-Host "rival: sheet $($Group.Name) exit=$LASTEXITCODE $Sheet ($($Frames.Count) frames, ${Side} px squares)"
+			}
 		}
 		$ErrorActionPreference = "Stop"
 	}
