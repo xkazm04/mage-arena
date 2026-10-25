@@ -207,7 +207,8 @@ void UTeachCaptureDriver::Advance()
 				Enter(EStep::WaitPerfectShot);
 			}
 		}
-		else if (Elapsed > 45.0)
+		// T28: the script palms the prologue's skip stone only from its 6 s floor (slice.json), so the teach starts later.
+		else if (Elapsed > 51.0)
 		{
 			Fail(TEXT("perfect ring did not appear"));
 		}

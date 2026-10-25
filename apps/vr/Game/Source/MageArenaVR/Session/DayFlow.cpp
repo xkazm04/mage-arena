@@ -68,15 +68,15 @@ bool FArenaSession::LoadDayData()
 		double* Out;
 	};
 	const FField Fields[] = {
-		{TEXT("prologueMaxS"), &Next.PrologueMaxS},
-		{TEXT("ritualLineS"), &Next.RitualLineS},
-		{TEXT("ritualTimeoutS"), &Next.RitualTimeoutS},
-		{TEXT("introS"), &Next.IntroS},
-		{TEXT("aftermathTabletS"), &Next.AftermathTabletS},
+	    {TEXT("prologueMaxS"), &Next.PrologueMaxS},
+	    {TEXT("ritualLineS"), &Next.RitualLineS},
+	    {TEXT("ritualTimeoutS"), &Next.RitualTimeoutS},
+	    {TEXT("aftermathTabletS"), &Next.AftermathTabletS},
+	    {TEXT("closingCardS"), &Next.ClosingCardS},
 	};
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
 	{
-		bool bKnown = Pair.Key.StartsWith(TEXT("_")) || Pair.Key == TEXT("version");
+		bool bKnown = Pair.Key.StartsWith(TEXT("_")) || Pair.Key == TEXT("version") || Pair.Key == TEXT("introS");
 		for (const FField& Field : Fields)
 		{
 			bKnown |= Pair.Key == Field.Key;
@@ -96,6 +96,31 @@ bool FArenaSession::LoadDayData()
 			return false;
 		}
 		*Field.Out = Value;
+	}
+	// T28: introS is one number per Tiro wave index (C2 section 4: [8, 8, 12, 12]); a single number still means every bout.
+	Next.IntroS.Reset();
+	const TSharedPtr<FJsonValue> Intro = Root->TryGetField(TEXT("introS"));
+	const TArray<TSharedPtr<FJsonValue>>* IntroValues = nullptr;
+	if (Intro.IsValid() && Intro->Type == EJson::Number)
+	{
+		Next.IntroS.Add(Intro->AsNumber());
+	}
+	else if (Root->TryGetArrayField(TEXT("introS"), IntroValues) && IntroValues)
+	{
+		for (const TSharedPtr<FJsonValue>& Value : *IntroValues)
+		{
+			Next.IntroS.Add(Value.IsValid() && Value->Type == EJson::Number ? Value->AsNumber() : -1.0);
+		}
+	}
+	bool bIntroOk = Next.IntroS.Num() > 0 && Next.IntroS.Num() <= 8;
+	for (const double Seconds : Next.IntroS)
+	{
+		bIntroOk &= Seconds > 0.0 && Seconds <= 120.0;
+	}
+	if (!bIntroOk)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("day.json introS must be a number or an array of 1-8 numbers, each in (0, 120]"));
+		return false;
 	}
 	if (Next.RitualLineS >= Next.RitualTimeoutS)
 	{
@@ -503,13 +528,14 @@ bool FArenaSession::AreStoryStonesShown() const
 		return false;
 	}
 	const FString& Phase = Games.Phase;
+	// T28: a skip stone shows once it works, from its beat's floor.
 	if (Phase == TEXT("prologue"))
 	{
-		return true;
+		return PhaseClock + 1.0e-9 >= BeatFloorS(TEXT("prologue"));
 	}
 	if (Phase == TEXT("aftermath"))
 	{
-		return PhaseClock + 1.0e-9 >= DayTuning.AftermathTabletS;
+		return PhaseClock + 1.0e-9 >= DayTuning.AftermathTabletS + BeatFloorS(TEXT("closing"));
 	}
 	if (Phase == TEXT("lost"))
 	{
@@ -611,12 +637,14 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 	PhaseClock += DeltaSeconds;
 	if (Phase == TEXT("prologue"))
 	{
-		if (bScripted && !bStoryCue)
+		// T28: below the beat's floor the centre stone does nothing; the script reaches for it once the floor passed.
+		const bool bFloor = PhaseClock + 1.0e-9 >= BeatFloorS(TEXT("prologue"));
+		if (bFloor && bScripted && !bStoryCue)
 		{
 			bStoryCue = true;
 			PlayAction(TEXT("stone-centre"));
 		}
-		const bool bSkipped = HoldCentreStone(DeltaSeconds);
+		const bool bSkipped = HoldCentreStone(DeltaSeconds) && bFloor;
 		if (bSkipped || PhaseClock + 1.0e-9 >= DayTuning.PrologueMaxS)
 		{
 			Note(FString::Printf(TEXT("day prologue %s t=%.2f"), bSkipped ? TEXT("skipped") : TEXT("ended"), PhaseClock));
@@ -658,7 +686,7 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 	}
 	if (Phase == TEXT("intro"))
 	{
-		if (PhaseClock + 1.0e-9 >= DayTuning.IntroS)
+		if (PhaseClock + 1.0e-9 >= DayTuning.IntroSeconds(Games.Wave))
 		{
 			Games.Phase = TEXT("active");
 			Note(FString::Printf(TEXT("day fight bout=%d"), Games.Wave + 1));
@@ -671,13 +699,21 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 		{
 			return true;
 		}
-		if (bScripted && !bStoryCue)
+		// T28: the closing card. The centre stone ends the day from the closing beat's floor; closingCardS ends it anyway.
+		const double CardS = PhaseClock - DayTuning.AftermathTabletS;
+		const bool bFloor = CardS + 1.0e-9 >= BeatFloorS(TEXT("closing"));
+		if (bFloor && bScripted && !bStoryCue)
 		{
 			bStoryCue = true;
 			PlayAction(TEXT("stone-centre"));
 		}
-		if (HoldCentreStone(DeltaSeconds))
+		if (HoldCentreStone(DeltaSeconds) && bFloor)
 		{
+			EndDay();
+		}
+		else if (CardS + 1.0e-9 >= DayTuning.ClosingCardS)
+		{
+			Note(FString::Printf(TEXT("day closing timeout t=%.2f"), CardS));
 			EndDay();
 		}
 		return true;
@@ -717,4 +753,215 @@ void FArenaSession::AdvanceMissio(double DeltaSeconds)
 	{
 		ResolveMissio(false, TEXT("timeout"));
 	}
+}
+
+void FArenaSession::LoadStorySlice()
+{
+	const FString Path = SlicePath.IsEmpty() ? FStorySlice::DefaultFilePath() : SlicePath;
+	FString Error;
+	if (!Slice.Load(Path, Error))
+	{
+		// C2 section 8: the story content never breaks the slice. The day plays one line per beat from strings.json.
+		UE_LOG(LogMageArena, Warning, TEXT("Story slice skipped (%s); the day plays one line per beat from strings.json"), *Error);
+		return;
+	}
+	Note(FString::Printf(TEXT("day slice scenes=%d"), Slice.GetScenes().Num()));
+}
+
+const FStoryScene* FArenaSession::GetActiveScene() const
+{
+	if (!bDay || Games.Phase != TEXT("intermission") || !Slice.IsLoaded())
+	{
+		return nullptr;
+	}
+	const FArenaTier* Tier = Tiro();
+	const int32 WaveN = Tier && Tier->Waves.IsValidIndex(Games.Wave) ? Tier->Waves[Games.Wave].N : Games.Wave + 1;
+	return Slice.FindSceneAfterWave(WaveN);
+}
+
+FString FArenaSession::GetSceneVariantId() const
+{
+	const FStoryScene* Scene = GetActiveScene();
+	if (!Scene || SceneWave != Games.Wave || !Scene->Variants.IsValidIndex(SceneVariant))
+	{
+		return FString();
+	}
+	return Scene->Variants[SceneVariant].Id;
+}
+
+bool FArenaSession::AreSceneStonesShown() const
+{
+	const FStoryScene* Scene = GetActiveScene();
+	// The T20 pick keeps its own stones and labels (IsPickOffered); a scene that wraps it shows no second set.
+	return Scene && !bPaused && SceneWave == Games.Wave && !Scene->bKeepsExistingPick && Scene->Stones.Num() == 3 && !IsPickOffered();
+}
+
+FString FArenaSession::SceneStoneKey(int32 Index) const
+{
+	const FStoryScene* Scene = GetActiveScene();
+	if (!AreSceneStonesShown() || !Scene || !Scene->Stones.IsValidIndex(Index))
+	{
+		return FString();
+	}
+	return Scene->Stones[Index];
+}
+
+double FArenaSession::GetSceneHoldFraction() const
+{
+	if (SceneHoldStone < 0 || Tuning.OfferHoldS <= 0.0)
+	{
+		return 0.0;
+	}
+	return FMath::Clamp(SceneHold / Tuning.OfferHoldS, 0.0, 1.0);
+}
+
+void FArenaSession::ResetScene()
+{
+	SceneWave = -1;
+	SceneClock = 0.0;
+	SceneVariant = INDEX_NONE;
+	SceneHold = 0.0;
+	SceneHoldStone = -1;
+}
+
+void FArenaSession::BeginScene(const FStoryScene& Scene)
+{
+	ResetScene();
+	SceneWave = Games.Wave;
+	// The flags of the bout just won are already recorded (CheckEnd, then missio), so the when clauses read this bout.
+	SceneVariant = Scene.SelectVariant(Flags);
+	const FString Variant = Scene.Variants.IsValidIndex(SceneVariant) ? Scene.Variants[SceneVariant].Id : FString(TEXT("-"));
+	Note(FString::Printf(TEXT("intermission %d scene %s variant=%s"), Scene.Intermission, *Scene.Id, *Variant));
+}
+
+FString FArenaSession::SceneLine() const
+{
+	const FStoryScene* Scene = GetActiveScene();
+	if (!Scene || SceneWave != Games.Wave)
+	{
+		return FString();
+	}
+	TArray<const FStoryLine*> Lines;
+	if (Scene->Variants.IsValidIndex(SceneVariant))
+	{
+		for (const FStoryLine& Line : Scene->Variants[SceneVariant].Lines)
+		{
+			Lines.Add(&Line);
+		}
+	}
+	for (const FStoryLine& Line : Scene->Always)
+	{
+		Lines.Add(&Line);
+	}
+	// One line at a time, each for its dwellS (C2 section 8: a line with no audio plays as text for its dwell).
+	double Until = 0.0;
+	for (const FStoryLine* Line : Lines)
+	{
+		Until += Line->DwellS;
+		if (SceneClock + 1.0e-9 < Until)
+		{
+			return Line->Text;
+		}
+	}
+	return FString();
+}
+
+bool FArenaSession::AdvanceScene(double DeltaSeconds)
+{
+	const FStoryScene* Scene = GetActiveScene();
+	if (!Scene)
+	{
+		return false;
+	}
+	if (SceneWave != Games.Wave)
+	{
+		BeginScene(*Scene);
+	}
+	SceneClock += DeltaSeconds;
+	// Below the scene's floor a raised palm does nothing: a ward still up from the bout must not skip the scene.
+	if (bOfferContinue && SceneClock + 1.0e-9 < Scene->FloorS)
+	{
+		bOfferContinue = false;
+		Note(FString::Printf(TEXT("intermission %d palm below the floor t=%.2f"), Scene->Intermission, SceneClock));
+	}
+	if (bOfferContinue)
+	{
+		// The shared continue in AdvanceArc takes it from here (and closes an open pick).
+		return false;
+	}
+	if (IsPickOffered())
+	{
+		// The T20 pick is this scene's choice (C2 int-1 keepsExistingPick): its stones, hold, timeout and branch effect
+		// are unchanged. ChoosePick also writes arena.intermission.<n>.choice.
+		if (AdvancePick(DeltaSeconds))
+		{
+			return true;
+		}
+	}
+	else if (!Scene->bKeepsExistingPick && AdvanceSceneChoice(*Scene, DeltaSeconds))
+	{
+		return true;
+	}
+	if (SceneClock + 1.0e-9 >= Scene->MaxS)
+	{
+		// Never blocking: the scene's seconds are up. No flag is written and nothing is charged.
+		if (IsPickOffered())
+		{
+			bPickClosed = true;
+		}
+		Note(FString::Printf(TEXT("intermission %d timeout t=%.2f"), Scene->Intermission, SceneClock));
+		ContinueIntermission();
+		return true;
+	}
+	return false;
+}
+
+bool FArenaSession::AdvanceSceneChoice(const FStoryScene& Scene, double DeltaSeconds)
+{
+	if (Scene.Stones.Num() != 3)
+	{
+		SceneHold = 0.0;
+		SceneHoldStone = -1;
+		return false;
+	}
+	// The pick's detection: a palm or index tip within the stone radius, held offerHoldS. Desktop plays Clips/stones.
+	bool bInside[3] = {false, false, false};
+	StonesTouched(bInside);
+	int32 Touched = -1;
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		if (bInside[Index])
+		{
+			Touched = Index;
+			break;
+		}
+	}
+	if (Touched != SceneHoldStone)
+	{
+		SceneHold = 0.0;
+		SceneHoldStone = Touched;
+	}
+	if (Touched < 0)
+	{
+		return false;
+	}
+	SceneHold += DeltaSeconds;
+	if (SceneHold + 1.0e-9 < Tuning.OfferHoldS)
+	{
+		return false;
+	}
+	WriteSceneChoice(Scene, Touched);
+	Note(FString::Printf(TEXT("intermission %d choice stone=%d t=%.2f"), Scene.Intermission, Touched, SceneClock));
+	ContinueIntermission();
+	return true;
+}
+
+void FArenaSession::WriteSceneChoice(const FStoryScene& Scene, int32 Stone)
+{
+	if (Scene.Writes.IsEmpty())
+	{
+		return;
+	}
+	Flags.SetNumber(Scene.Writes, static_cast<double>(Stone));
+	SaveFlags();
 }

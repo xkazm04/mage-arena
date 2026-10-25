@@ -1145,7 +1145,9 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 	const bool bPick = Session.IsPickOffered();
 	// T21: the centre stone skips the prologue and ends the day (the aftermath, or after a lost final).
 	const bool bStory = Session.AreStoryStonesShown();
-	const bool bStones = bCold || bPick || bStory;
+	// T28: an intermission scene's own choice (C2 section 6), on the same stones with its labels.
+	const bool bScene = Session.AreSceneStonesShown();
+	const bool bStones = bCold || bPick || bStory || bScene;
 	if (bStones)
 	{
 		EnsureComfortVisuals();
@@ -1174,7 +1176,14 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		bPick ? Session.PickStoneKey(1) : FString(FMageSettings::IsNarrow() ? TEXT("settings.fov.narrow") : TEXT("settings.fov.wide")),
 		bPick ? Session.PickStoneKey(2) : FString(FMageSettings::IsGentle() ? TEXT("settings.gentle.on") : TEXT("settings.gentle.off")),
 	};
-	if (bStory && !bPick)
+	if (bScene && !bPick)
+	{
+		for (int32 Index = 0; Index < 3; ++Index)
+		{
+			Keys[Index] = Session.SceneStoneKey(Index);
+		}
+	}
+	else if (bStory && !bPick)
 	{
 		for (int32 Index = 0; Index < 3; ++Index)
 		{
@@ -1197,8 +1206,10 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 	}
 	// The stone under a held palm glows toward white as the offerHoldS hold fills (campaign design section 3: "The stone
 	// glows during the hold"). Presentation only; white is not a threat colour.
-	const int32 Held = bPick ? Session.GetPickHoldStone() : (bStory ? Session.GetStoryHoldStone() : -1);
-	const double Fill = Held >= 0 ? (bPick ? Session.GetPickHoldFraction() : Session.GetStoryHoldFraction()) : 0.0;
+	const int32 Held = bPick ? Session.GetPickHoldStone() : (bScene ? Session.GetSceneHoldStone() : (bStory ? Session.GetStoryHoldStone() : -1));
+	const double Fill = Held >= 0
+	    ? (bPick ? Session.GetPickHoldFraction() : (bScene ? Session.GetSceneHoldFraction() : Session.GetStoryHoldFraction()))
+	    : 0.0;
 	for (int32 Index = 0; Index < ComfortStones.Num() && Index < StoneBase.Num(); ++Index)
 	{
 		UStaticMeshComponent* Stone = ComfortStones[Index];

@@ -392,7 +392,8 @@ void UCollarCaptureDriver::Advance()
 				Enter(EStep::WaitTabletShot);
 			}
 		}
-		else if (Elapsed > 15.0)
+		// T28: the tablet stands day.json aftermathTabletS (16 s) before the closing line.
+		else if (Elapsed > 30.0)
 		{
 			Fail(TEXT("no aftermath closing line"));
 		}

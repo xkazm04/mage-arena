@@ -364,6 +364,7 @@ bool FArenaSession::Start(uint32 Seed)
 	PickHold = 0.0;
 	PickHoldStone = -1;
 	bPickClosed = false;
+	ResetScene();
 	bFlowCue = false;
 	bClockCue = false;
 	WristUntil = -1.0;

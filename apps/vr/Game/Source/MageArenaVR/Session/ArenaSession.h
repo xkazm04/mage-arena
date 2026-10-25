@@ -10,6 +10,7 @@
 #include "Session/CollarLedger.h"
 #include "Session/PlayerPreset.h"
 #include "Session/SessionCue.h"
+#include "Session/StorySlice.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
 
@@ -96,11 +97,19 @@ struct FTeachTuning
  */
 struct FDayTuning
 {
-	double PrologueMaxS = 10.0;
+	double PrologueMaxS = 45.0;
 	double RitualLineS = 3.0;
 	double RitualTimeoutS = 20.0;
-	double IntroS = 3.0;
-	double AftermathTabletS = 4.0;
+	/** T28: one intro length per Tiro wave index (C2 section 4). A wave past the end uses the last entry. */
+	TArray<double> IntroS = {8.0, 8.0, 12.0, 12.0};
+	double AftermathTabletS = 16.0;
+	/** T28: the closing card's timeout, counted from the end of the tablet. The day closes itself then. */
+	double ClosingCardS = 34.0;
+
+	double IntroSeconds(int32 WaveIndex) const
+	{
+		return IntroS.Num() == 0 ? 0.0 : IntroS[FMath::Clamp(WaveIndex, 0, IntroS.Num() - 1)];
+	}
 };
 
 /**
@@ -160,6 +169,12 @@ public:
 	 * ritual: Septima's line for ritualLineS, then the offer line; both palms held for teach.json offerHoldS lock the
 	 * collar, and ritualTimeoutS (from the start of the ritual) continues anyway.
 	 * intro: the bout's intro line for introS while the opponents stand; the kernel steps only from active on.
+	 * T28, with apps/vr/data/vr/story/slice.json loaded: each beat's floorS gates its skip (the prologue's centre stone,
+	 * the closing card's centre stone), the closing card ends itself after closingCardS, and each intermission plays its
+	 * scene: the variant its when clauses select, at most one optional choice on the stones (one palm held offerHoldS
+	 * writes arena.intermission.<n>.choice; the T20 pick stays the scene's choice after Bout 1), a raised palm continues
+	 * once the scene's floor passed, and the scene's maxS (20 s at most) continues with no flag. Without the slice
+	 * (missing, unreadable, not version 1, malformed) the day plays as before, with a warning.
 	 */
 	bool BeginArc(uint32 Seed);
 	/** Testing only: from cold, prologue, offer or the teach straight to the ritual. */
@@ -194,6 +209,24 @@ public:
 	FString StoryStoneKey(int32 Index) const;
 	int32 GetStoryHoldStone() const { return StoryHoldStone; }
 	double GetStoryHoldFraction() const;
+	/** T28: the loaded story slice (empty when slice.json was skipped). */
+	const FStorySlice& GetSlice() const { return Slice; }
+	/** Tests only: read the story slice from this file instead of apps/vr/data/vr/story/slice.json (next BeginArc). */
+	void SetSlicePath(const FString& Path) { SlicePath = Path; }
+	/** A beat's floorS from the slice: below it the beat's skip does nothing. 0 without the slice. */
+	double BeatFloorS(const TCHAR* BeatId) const { return Slice.BeatFloorS(BeatId); }
+	/** The scene of this intermission, or null (not a day, not an intermission, no slice, or no scene after this bout). */
+	const FStoryScene* GetActiveScene() const;
+	/** Seconds the current intermission scene has run (0 before its first step). */
+	double GetSceneClock() const { return SceneClock; }
+	/** The id of the variant the scene's when clauses selected ("2A"); empty before the scene begins. */
+	FString GetSceneVariantId() const;
+	/** The scene offers stones of its own (not the T20 pick, which keeps its own accessors). */
+	bool AreSceneStonesShown() const;
+	/** The label on scene stone Index: a strings.json key or the label text, which TeachString both resolve. */
+	FString SceneStoneKey(int32 Index) const;
+	int32 GetSceneHoldStone() const { return SceneHoldStone; }
+	double GetSceneHoldFraction() const;
 	/** The aftermath reports a won final. */
 	bool WasFinalWon() const { return bFinalWon; }
 	void NotifyFocusLost();
@@ -340,6 +373,17 @@ private:
 	bool AdvanceDay(double DeltaSeconds);
 	/** Palm held over the centre stone for offerHoldS. */
 	bool HoldCentreStone(double DeltaSeconds);
+	/** T28: reads slice.json; a file that fails is skipped with a warning and the slice stays empty. */
+	void LoadStorySlice();
+	/** The intermission's scene, while GetActiveScene is set. True when the intermission was left. */
+	bool AdvanceScene(double DeltaSeconds);
+	void BeginScene(const FStoryScene& Scene);
+	/** A palm held offerHoldS over one of the scene's own stones. True when it picked (and the day went on). */
+	bool AdvanceSceneChoice(const FStoryScene& Scene, double DeltaSeconds);
+	void WriteSceneChoice(const FStoryScene& Scene, int32 Stone);
+	/** The scene line standing at the scene clock; empty once the lines are done or outside a begun scene. */
+	FString SceneLine() const;
+	void ResetScene();
 	/** T25: after the kernel settled a bout won against a bound rival, before its intermission or aftermath. */
 	void EnterMissio();
 	/** Missio's phase clock is advanced by AdvanceDay; this reads the fist, the palm and the timeout. */
@@ -492,6 +536,15 @@ private:
 	int32 BoutPerfectsStart = 0;
 	int32 StaffPlantsAtBout = 0;
 	FArenaFlags Flags;
+	// T28: slice.json, and the intermission scene in progress. SceneWave is the Tiro wave index whose intermission the
+	// scene began in (-1: none). SceneHold and SceneHoldStone time a palm over one of the scene's own stones.
+	FStorySlice Slice;
+	FString SlicePath;
+	int32 SceneWave = -1;
+	double SceneClock = 0.0;
+	int32 SceneVariant = INDEX_NONE;
+	double SceneHold = 0.0;
+	int32 SceneHoldStone = -1;
 	FCollarLedger Collar;
 	// T25: fed every hand frame, read only in missio (reset on entry, so a fist from the bout does not count).
 	FFistDetector Fist;

@@ -351,12 +351,15 @@ bool FArenaSession::BeginArc(uint32 Seed)
 	StoryHold = 0.0;
 	StoryHoldStone = -1;
 	bStoryCue = false;
+	ResetScene();
 	Flags.Load(FlagsFilePath());
 	// T22: the lifetime collar. A missing file is a new collar; a corrupt one starts at 0, like a corrupt save.
 	Collar.LoadLifetime(CollarFilePath());
 	Collar.BeginBout();
 	bKeepChain = false;
 	Chain.Reset();
+	// T28: the story slice never fails the day (a skipped file leaves the day as it played before the slice).
+	LoadStorySlice();
 	bResumeGate = false;
 	bResumeCounting = false;
 	ResumeElapsed = 0.0;
@@ -646,6 +649,12 @@ FString FArenaSession::GetPromptText() const
 	}
 	if (Games.Phase == TEXT("intermission"))
 	{
+		// T28: the scene's lines first, one at a time; then the line that names the gesture.
+		const FString Line = SceneLine();
+		if (!Line.IsEmpty())
+		{
+			return Line;
+		}
 		return TeachString(IsPickOffered() ? TEXT("intermission.pick") : TEXT("intermission"));
 	}
 	if (Games.Phase == TEXT("lost"))
@@ -1413,7 +1422,15 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 		else
 		{
 			OfferHold = 0.0;
-			if (!bOfferContinue && Games.Phase == TEXT("intermission") && AdvancePick(DeltaSeconds))
+			if (Games.Phase == TEXT("intermission") && GetActiveScene())
+			{
+				// T28: the day's intermission scene (its floor, its stones or the T20 pick, its timeout).
+				if (AdvanceScene(DeltaSeconds))
+				{
+					return;
+				}
+			}
+			else if (!bOfferContinue && Games.Phase == TEXT("intermission") && AdvancePick(DeltaSeconds))
 			{
 				return;
 			}
@@ -1610,11 +1627,17 @@ void FArenaSession::ChoosePick(int32 Stone, const TCHAR* Reason)
 	PickHold = 0.0;
 	PickHoldStone = -1;
 	Note(FString::Printf(TEXT("pick %s stone=%d t=%.2f tideOrbIV=%s"), Reason, Stone, PickClock, *Composition.Branches.TideOrb));
+	// T28: in the day the pick is intermission 1's scene choice, and it is recorded as one (C2 int-1).
+	if (const FStoryScene* Scene = GetActiveScene())
+	{
+		WriteSceneChoice(*Scene, Stone);
+	}
 	ContinueIntermission();
 }
 
 void FArenaSession::ContinueIntermission()
 {
+	ResetScene();
 	// The day picks the opponent school per bout (Brennic's Fire semifinal, the tiroFinal school). SetBout pins it.
 	if (!bSchoolPinned && DayFire.IsValidIndex(Games.Wave + 1))
 	{
