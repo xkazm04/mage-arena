@@ -40,14 +40,14 @@ enum class ELayer : uint8
  * Both are far paler than Fire and Earth, which hold the saturated oranges, and both keep a clear blue deficit, so the
  * heart never whitens into steel's chroma nor a near-black core's (BrazierFlameNotThreat holds the 0.15 margin).
  */
-inline const FLinearColor HeartChroma(1.0f, 0.85f, 0.55f);
-inline const FLinearColor BodyChroma(1.0f, 0.72f, 0.36f);
+inline const FLinearColor HeartChroma(1.0f, 0.86f, 0.48f);
+inline const FLinearColor BodyChroma(1.0f, 0.62f, 0.26f);
 /**
  * Where each layer's luminance sits in the palette's flame band, from the rim's luminance (0) to the dimmer of Fire's and
  * Earth's (1): the heart high, so it reads as fire against the lit wall; the body lower, never above the heart.
  */
-inline constexpr float HeartBandShare = 0.8f;
-inline constexpr float BodyBandShare = 0.45f;
+inline constexpr float HeartBandShare = 0.95f;
+inline constexpr float BodyBandShare = 0.6f;
 /** M_SpellGlow's GlowGain on the flame layers (a spell glow uses 1). */
 inline constexpr float FlameGlowGain = 1.4f;
 /**
