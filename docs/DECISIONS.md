@@ -2,6 +2,23 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on a02aa89 (draw-call budget): ACCEPTED
+
+> Athena, 2026-10-25 (owner delegation), on a02aa89 (`docs/research/DRAWCALL-BUDGET-2026-10-25.md`). The ruling is
+> recorded as the dispatch brief relayed it, not verbatim.
+
+- **a02aa89 is ACCEPTED.** The creature cast's cost fell from +25 to +12 draw calls, and a blind critic read the stills
+  as SAME.
+- **The honest skeletal count is a real gain.**
+- **LOD0 stays at the 8 m ring.** The LOD1 quality loss (critic MINOR) is not traded for BasePass, which sits at 191k of
+  350k and does not bind.
+- **Shadow-off stays rejected** (grounding).
+- **The planning number:** about 26 draw calls of headroom at the max (124 of 150). At about 4 calls per creature after
+  the cuts, that is roughly 5-6 more single-section bodies before the next budget pass.
+- **Next: Brennic's back-cloak normal pass, Blender first, then Unreal, never both at the same time.** The Blender half
+  is `docs/research/BRENNIC-CLOAK-NORMAL-2026-10-25.md`.
+- Nothing ships: the DINOv3 hold stands. No signed number or pinned band changes.
+
 ## 2026-10-25 - Athena: ce1d3ca ACCEPTED; the draw-call budget before any further asset
 
 > Athena, 2026-10-25 (shortly after 00:00Z, owner delegation), on ce1d3ca
