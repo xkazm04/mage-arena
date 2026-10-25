@@ -62,7 +62,7 @@ public:
 	/** The visible beads of the ring this id holds (a spear, an ember or a telegraph), or -1 when no ring holds it. */
 	int32 CountRingBeadsDrawn(int32 Id) const;
 	/** T58: the glow puffs (SpellVfx) drawn this frame, at most SpellVfx::MaxPuffs. */
-	int32 GetGlowPuffsDrawn() const { return GlowPuffsDrawn; }
+	int32 GetGlowPuffsDrawn() const { return GlowFrame.Drawn; }
 	/** T58: the glow layers drawn this frame: one instanced component, so one draw call, per glow colour on screen. */
 	int32 CountGlowLayersDrawn() const;
 
@@ -142,8 +142,6 @@ private:
 	void EnsureCollarVisuals(const FArenaSession& Session);
 	void SyncCollarVisuals(const FArenaSession& Session);
 	UCameraComponent* FindCamera() const;
-	/** T58: queues puffs on the glow layer of Colour for this frame, up to SpellVfx::MaxPuffs in all. */
-	void AddPuffs(const FLinearColor& Colour, const TArray<SpellVfx::FPuff>& Puffs);
 	/** T58: the absorb splashes and perfect rings started by this frame's ward events, and the live ones drawn. */
 	void SyncBursts(const struct FGames& Games, const struct FActor& Player, const TSet<int32>& LiveShots, const FVector& EyeCm, double Now);
 	/** T58: writes this frame's puffs into the glow layers and hides the layers with none. */
@@ -174,17 +172,17 @@ private:
 	UPROPERTY()
 	FGreyboxTintCache CurtainTints;
 
-	// T58: one tint of M_SpellGlow per glow colour, and one instanced sphere layer per colour, so every puff of a colour
-	// is one draw call. GlowFrame holds this frame's instance transforms per colour.
+	// T58: one tint of M_SpellGlow per glow colour, and one instanced layer per colour, so every puff of a colour is one
+	// draw call. T63: the layer draws cards (the engine plane), each showing its flipbook cell through per-instance custom
+	// data. GlowFrame holds this frame's card transforms and custom data per colour, and the frame's puff count.
 	UPROPERTY()
 	FGreyboxTintCache GlowTints;
 
 	UPROPERTY()
 	TMap<FLinearColor, TObjectPtr<UInstancedStaticMeshComponent>> GlowLayers;
 
-	TMap<FLinearColor, TArray<FTransform>> GlowFrame;
+	SpellVfx::FGlowFrame GlowFrame;
 	TArray<FBurst> Bursts;
-	int32 GlowPuffsDrawn = 0;
 	// The seat's Metrics.Blocks last frame: a rise is a plain absorb ("hit" carries no verdict).
 	int32 LastBlocks = -1;
 

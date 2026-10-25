@@ -1393,11 +1393,6 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	LoadStylePaletteFromCommandLine();
 	const FGames& Games = Session.GetGames();
 	const bool bSpellVfx = SpellVfxOn();
-	for (TPair<FLinearColor, TArray<FTransform>>& Layer : GlowFrame)
-	{
-		Layer.Value.Reset();
-	}
-	GlowPuffsDrawn = 0;
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
 	SyncWalls(Session);
@@ -1408,6 +1403,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	EnemiesOnScreen = 0;
 	UCameraComponent* Camera = FindCamera();
 	const FVector CamLoc = Camera ? Camera->GetComponentLocation() : FVector::ZeroVector;
+	// T63: the glow cards of this frame face the eye.
+	GlowFrame.Reset(CamLoc);
 	const FVector CamFwd = Camera ? Camera->GetForwardVector() : FVector::ForwardVector;
 
 	for (const FActor& Actor : Games.State.Actors)
@@ -1656,7 +1653,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 			Flight.Z = 0.0;
 			TArray<SpellVfx::FPuff> Puffs;
 			SpellVfx::BoltPuffs(Shot.Trail, At, Flight.GetSafeNormal(), FMath::Max(18.0, Projectile.Radius * 200.0), Projectile.Id, Now, Puffs);
-			AddPuffs(Shot.Glow.GetValue(), Puffs);
+			GlowFrame.Add(Shot.Glow.GetValue(), Puffs);
 		}
 		if (!bPlayerOwned)
 		{
@@ -2377,21 +2374,6 @@ int32 ASessionPresentation::CountGlowLayersDrawn() const
 	return Drawn;
 }
 
-void ASessionPresentation::AddPuffs(const FLinearColor& Colour, const TArray<SpellVfx::FPuff>& Puffs)
-{
-	TArray<FTransform>& Transforms = GlowFrame.FindOrAdd(Colour);
-	for (const SpellVfx::FPuff& Puff : Puffs)
-	{
-		if (GlowPuffsDrawn >= SpellVfx::MaxPuffs)
-		{
-			return;
-		}
-		// The engine sphere is 100 cm across.
-		Transforms.Emplace(Puff.Rotation, Puff.CentreCm, Puff.SizeCm / 100.0);
-		++GlowPuffsDrawn;
-	}
-}
-
 void ASessionPresentation::SyncBursts(const FGames& Games, const FActor& Player, const TSet<int32>& LiveShots, const FVector& EyeCm, double Now)
 {
 	// ResolveHit emits "perfect" (target: the thrower) before the "hit" of a perfect absorb, and counts a block before the
@@ -2457,17 +2439,17 @@ void ASessionPresentation::SyncBursts(const FGames& Games, const FActor& Player,
 		SpellVfx::SplashPuffs(Burst.Trail, Burst.AtCm, TowardEye, Elapsed / SpellVfx::SplashS, Burst.Seed, !Burst.bPerfect, Puffs);
 		if (Burst.bPerfect)
 		{
-			SpellVfx::PerfectRingPuffs(Burst.AtCm, TowardEye, Elapsed / SpellVfx::PerfectS, Puffs);
+			SpellVfx::PerfectRingPuffs(Burst.AtCm, TowardEye, Elapsed / SpellVfx::PerfectS, Puffs, Burst.Trail);
 		}
-		AddPuffs(Burst.Colour, Puffs);
+		GlowFrame.Add(Burst.Colour, Puffs);
 	}
 }
 
 void ASessionPresentation::FlushGlow()
 {
-	for (TPair<FLinearColor, TArray<FTransform>>& Frame : GlowFrame)
+	for (const TPair<FLinearColor, SpellVfx::FGlowFrame::FLayer>& Frame : GlowFrame.Layers)
 	{
-		const TArray<FTransform>& Transforms = Frame.Value;
+		const TArray<FTransform>& Transforms = Frame.Value.Transforms;
 		TObjectPtr<UInstancedStaticMeshComponent>& Layer = GlowLayers.FindOrAdd(Frame.Key);
 		if (!Layer)
 		{
@@ -2479,11 +2461,13 @@ void ASessionPresentation::FlushGlow()
 			{
 				GlowTints.Base = SpellVfx::GlowMaterial();
 			}
-			Layer = Greybox::MakeInstances(this, Greybox::LoadShape(TEXT("Sphere")), Greybox::SharedTint(GlowTints, this, Frame.Key));
+			// T63: a card per puff (the engine plane), its flipbook cell in the custom data.
+			Layer = Greybox::MakeInstances(this, Greybox::LoadShape(TEXT("Plane")), Greybox::SharedTint(GlowTints, this, Frame.Key));
 			if (!Layer)
 			{
 				continue;
 			}
+			Layer->SetNumCustomDataFloats(SpellVfx::CardCustomFloats);
 		}
 		if (Layer->GetInstanceCount() != Transforms.Num())
 		{
@@ -2496,6 +2480,10 @@ void ASessionPresentation::FlushGlow()
 		else if (!Transforms.IsEmpty())
 		{
 			Layer->BatchUpdateInstancesTransforms(0, Transforms, true, true, true);
+		}
+		if (!Transforms.IsEmpty())
+		{
+			Layer->SetCustomData(0, Transforms.Num() - 1, Frame.Value.CustomData, true);
 		}
 		Layer->SetVisibility(!Transforms.IsEmpty());
 	}
