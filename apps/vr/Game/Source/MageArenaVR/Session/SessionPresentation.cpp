@@ -731,6 +731,42 @@ void ASessionPresentation::SyncCuff(const FArenaSession& Session, const FActor& 
 	}
 }
 
+namespace
+{
+bool IsDrawn(const USceneComponent* Part)
+{
+	return Part && Part->IsVisible() && !Part->bHiddenInGame;
+}
+
+// The widget has drawn at least once. With no RHI (the automation run) nothing can draw, so only the draw order is checked.
+bool HasText(const UWidgetComponent* Widget)
+{
+	return GUsingNullRHI || Widget->GetRenderTarget() != nullptr;
+}
+}
+
+int32 ASessionPresentation::CountBlankCards() const
+{
+	int32 Blank = 0;
+	const auto Card = [&Blank](const UStaticMeshComponent* Plate, const UWidgetComponent* Text)
+	{
+		if (IsDrawn(Plate) && !(IsDrawn(Text) && HasText(Text)))
+		{
+			++Blank;
+		}
+	};
+	Card(DaisPlate, DaisWidget);
+	Card(TabletSlab, TabletText);
+	for (const UWidgetComponent* Label : StoneLabels)
+	{
+		if (IsDrawn(Label) && !HasText(Label))
+		{
+			++Blank;
+		}
+	}
+	return Blank;
+}
+
 void ASessionPresentation::EnsureTeachVisuals()
 {
 	if (bTeachVisuals || !GetRootComponent())
@@ -870,10 +906,13 @@ void ASessionPresentation::SyncTeachVisuals(const FArenaSession& Session, const 
 	// sits above both and above the dummy.
 	const FVector Sign = Pad + Forward * 220.0 + FVector(0.0, 0.0, 162.0);
 	const FRotator Facing = Forward.Rotation();
+	const bool bDaisRevealed = DaisReveal.Step(!Prompt.IsEmpty());
 	if (DaisWidget)
 	{
 		const bool bShow = !Prompt.IsEmpty();
+		// T64: the widget draws hidden in game first; the plate and the text show once it has drawn.
 		DaisWidget->SetVisibility(bShow);
+		DaisWidget->SetHiddenInGame(!bDaisRevealed);
 		DaisWidget->SetWorldLocation(Sign - Forward * 8.0);
 		DaisWidget->SetWorldRotation((-Forward).Rotation());
 		DaisWidget->SetWorldScale3D(FVector(0.16f));
@@ -888,7 +927,7 @@ void ASessionPresentation::SyncTeachVisuals(const FArenaSession& Session, const 
 	}
 	if (DaisPlate)
 	{
-		DaisPlate->SetVisibility(!Prompt.IsEmpty());
+		DaisPlate->SetVisibility(bDaisRevealed);
 		DaisPlate->SetWorldLocation(Sign + Forward * 2.0);
 		DaisPlate->SetWorldRotation(Facing);
 		Greybox::SetSized(DaisPlate, FVector(4.0, 196.0, 36.0));
@@ -1257,7 +1296,11 @@ void ASessionPresentation::SyncComfortVisuals(const FArenaSession& Session)
 		{
 			continue;
 		}
-		Label->SetVisibility(bStones && Seat != nullptr);
+		const bool bLabelWanted = bStones && Seat != nullptr;
+		// T64: a label draws hidden in game first, so it never shows an undrawn (white) card.
+		const bool bLabelRevealed = Index < 3 ? StoneReveal[Index].Step(bLabelWanted) : bLabelWanted;
+		Label->SetVisibility(bLabelWanted);
+		Label->SetHiddenInGame(!bLabelRevealed);
 		if (TSharedPtr<STextBlock> Text = StaticCastSharedPtr<STextBlock>(Label->GetSlateWidget()))
 		{
 			Text->SetText(FText::FromString(Keys[Index].IsEmpty() ? FString() : Session.TeachString(*Keys[Index])));
@@ -2109,9 +2152,10 @@ void ASessionPresentation::SyncTablet(const FArenaSession& Session)
 	const FVector Pad = Session.KernelToUnrealCm(Session.PadKernel(Session.GetActivePad()));
 	// On the dais, 150 cm ahead of the pad and below the rail prompt (220 cm ahead, 162 cm up), so both read at once.
 	const FVector At = Pad + Forward * 150.0 + FVector(0.0, 0.0, 70.0);
+	const bool bRevealed = TabletReveal.Step(bShow);
 	if (TabletSlab)
 	{
-		TabletSlab->SetVisibility(bShow);
+		TabletSlab->SetVisibility(bRevealed);
 		TabletSlab->SetWorldLocation(At);
 		TabletSlab->SetWorldRotation(Forward.Rotation());
 		Greybox::SetSized(TabletSlab, FVector(10.0, 160.0, 98.0));
@@ -2119,6 +2163,7 @@ void ASessionPresentation::SyncTablet(const FArenaSession& Session)
 	if (TabletText)
 	{
 		TabletText->SetVisibility(bShow);
+		TabletText->SetHiddenInGame(!bRevealed);
 		TabletText->SetWorldLocation(At - Forward * 6.0);
 		TabletText->SetWorldRotation((-Forward).Rotation());
 		TabletText->SetWorldScale3D(FVector(0.115f));

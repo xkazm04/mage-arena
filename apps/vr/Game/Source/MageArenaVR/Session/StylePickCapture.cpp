@@ -1,6 +1,7 @@
 #include "Session/StylePickCapture.h"
 
 #include "Session/ArenaSession.h"
+#include "Session/SessionPresentation.h"
 
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -226,6 +227,17 @@ void UStylePickCaptureDriver::Record()
 	{
 		Fail(FString::Printf(TEXT("frame skipped seq=%d tick=%d: the previous screenshot request is still open"), SequenceIndex, Tick));
 		return;
+	}
+	// T64: a frame with a text card drawn before its text is a defect in the footage, so the run fails (the death frame once
+	// showed a black plate and two white bars).
+	if (const ASessionPresentation* Presentation = Sys->GetPresentation())
+	{
+		const int32 Blank = Presentation->CountBlankCards();
+		if (Blank > 0)
+		{
+			Fail(FString::Printf(TEXT("%d text card(s) drawn without their text at seq=%d tick=%d stage=%s"), Blank, SequenceIndex + 1, Tick, *Session.GetStage()));
+			return;
+		}
 	}
 	LastFrameTick = Tick;
 	++SequenceIndex;

@@ -27,6 +27,33 @@ struct FHpBarParts
 	FVector FillOffsetCm;
 };
 
+/**
+ * T64: when a text card may be drawn. A widget component draws into its render target only while it is visible, so a card
+ * shown the frame it appears has no text yet (the death frame's black plate and white bars). The widget is made visible
+ * but hidden in game for PrimeSyncs syncs first; the plate and the label show on the sync after.
+ */
+struct FCardReveal
+{
+	static constexpr int32 PrimeSyncs = 2;
+	int32 Primed = 0;
+
+	/** One sync: true when the card is wanted and primed. A card that is not wanted starts over. */
+	bool Step(bool bWanted)
+	{
+		if (!bWanted)
+		{
+			Primed = 0;
+			return false;
+		}
+		if (Primed < PrimeSyncs)
+		{
+			++Primed;
+			return false;
+		}
+		return true;
+	}
+};
+
 namespace SessionHpBar
 {
 /** The bar at Fraction of full HP (clamped to 0..1); the fill is left-anchored on the back's length. */
@@ -72,6 +99,13 @@ public:
 	 * a folder that does not exist.
 	 */
 	void SetRivalFigureSource(const FString& Folder, const FString& Asset);
+	/**
+	 * T64: the text cards drawn without their text: an opaque plate or slab drawn while its widget has not drawn into a render
+	 * target, or a stone label drawn before its first render. A widget component draws only while visible, so a card that
+	 * appears the same frame it is first shown has no text yet. The captured death frame showed that as a black plate and
+	 * two white bars. Zero is the only right answer; the style-pick capture fails any frame that counts one.
+	 */
+	int32 CountBlankCards() const;
 	/** T38: Brennic's figure when it loaded, else null (the greybox body stands in). */
 	const URivalFigureComponent* GetRivalFigure() const { return RivalFigure; }
 	/** T38: the figure loaded and stands in for the rival this frame. */
@@ -259,6 +293,10 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> DaisPlate;
+
+	FCardReveal DaisReveal;
+	FCardReveal TabletReveal;
+	FCardReveal StoneReveal[3];
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> GlyphAnchor;
