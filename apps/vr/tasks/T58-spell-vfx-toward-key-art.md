@@ -1,6 +1,6 @@
 # T58 - spell VFX toward the key art
 
-Status: open
+Status: done - 3504116 (report docs/research/SPELL-VFX-T58-2026-10-25.md; code f1301dd..424f273)
 Max turns: 120
 
 ## Goal
