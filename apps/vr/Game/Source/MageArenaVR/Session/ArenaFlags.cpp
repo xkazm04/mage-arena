@@ -70,6 +70,11 @@ FString FArenaFlags::TiroKey(int32 WaveN, const TCHAR* Field)
 	return FString::Printf(TEXT("arena.tiro.1.w%d.%s"), WaveN, Field);
 }
 
+FString FArenaFlags::IntermissionKey(int32 N)
+{
+	return FString::Printf(TEXT("arena.intermission.%d.choice"), N);
+}
+
 bool FArenaFlags::Save(const FString& Path) const
 {
 	TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
