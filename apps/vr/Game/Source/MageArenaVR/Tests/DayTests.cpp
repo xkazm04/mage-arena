@@ -3,7 +3,10 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 // T21: the Tiro day. Literals and their sources:
-// - apps/vr/data/vr/day.json: prologueMaxS 10, ritualLineS 3, ritualTimeoutS 20, introS 3, aftermathTabletS 4.
+// - apps/vr/data/vr/day.json: prologueMaxS 45, ritualLineS 3, ritualTimeoutS 20, introS [8, 8, 12, 12],
+//   aftermathTabletS 16, closingCardS 34 (T28, from the C2 time budget).
+// - apps/vr/data/vr/story/slice.json (C2): the prologue's floor 6 s, the closing card's floor 6 s, and each intermission
+//   scene's floor 3 s and max 20 s. Below a floor the skip does nothing.
 // - teach.json offerHoldS 0.40 (the ritual's both-palms hold and every stone hold).
 // - pinned arena-tiers.json Tiro: wave n 1 soldiers, 2 creatures, 3 semifinal (one mage, competence 1),
 //   4 final (one mage, competence 1.5).
@@ -196,6 +199,18 @@ void RunLogged(FArenaSession& Session, FStageLog& Log, TFunctionRef<bool()> Done
 	}
 }
 
+// T28: a raised palm continues an intermission scene only from the scene's floor (slice.json scenes[].floorS). Steps to
+// the floor, then raises the palm and steps once: the next bout's intro.
+void ContinueAtFloor(FDayRig& Rig, FArenaSession& Session)
+{
+	const FStoryScene* Scene = Session.GetActiveScene();
+	const double Floor = Scene ? Scene->FloorS : 0.0;
+	RunUntil(Session, [&Session, Floor]()
+	{ return Session.GetSceneClock() + 1.0e-9 >= Floor; }, Floor + 1.0);
+	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+	Session.Advance(kDayTick, true);
+}
+
 // Ritual to the bout: waits for the offer line, plays the both-palms clip, then runs into the intro.
 bool OfferWrists(FDayRig& Rig, FArenaSession& Session)
 {
@@ -278,9 +293,12 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 	RunLogged(Session, Log, [&Session]() { return Session.GetStage() == TEXT("intro"); }, 150.0);
 	bPass &= TestEqual(TEXT("the finished teach saved bout=0"), Rig.ReadSave(), FString(TEXT("bout=0\n")));
 	const FString Intro1 = Session.GetPromptText();
+	bPass &= TestEqual(TEXT("the story slice loaded its three scenes"), Session.GetSlice().GetScenes().Num(), 3);
 	for (int32 Bout = 0; Bout < 4; ++Bout)
 	{
-		RunLogged(Session, Log, [&Session]() { return Session.GetStage() == TEXT("active"); }, 10.0);
+		// day.json introS [8, 8, 12, 12].
+		RunLogged(Session, Log, [&Session]()
+		{ return Session.GetStage() == TEXT("active"); }, 15.0);
 		bPass &= TestEqual(*FString::Printf(TEXT("bout %d is wave index %d"), Bout + 1, Bout), Session.GetGames().Wave, Bout);
 		if (Bout == 2)
 		{
@@ -301,12 +319,13 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 		if (Bout < 3)
 		{
 			bPass &= TestEqual(*FString::Printf(TEXT("intermission after bout %d"), Bout + 1), Session.GetStage(), FString(TEXT("intermission")));
-			Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-			Session.Advance(kDayTick, true);
+			ContinueAtFloor(Rig, Session);
 			Log.Note(Session);
 		}
 	}
-	RunLogged(Session, Log, [&Session]() { return Session.GetStage() == TEXT("closed"); }, 20.0);
+	// The tablet (16 s), then the closing card: the script palms the centre stone from the closing floor (6 s).
+	RunLogged(Session, Log, [&Session]()
+	{ return Session.GetStage() == TEXT("closed"); }, 30.0);
 	const TArray<FString> Expected = {
 	    TEXT("cold"), TEXT("prologue"), TEXT("teach"), TEXT("ritual"),
 	    TEXT("intro"), TEXT("active"), TEXT("intermission"),
@@ -353,7 +372,8 @@ bool FMageArenaDayOrderResume::RunTest(const FString& Parameters)
 	bPass &= TestTrue(TEXT("both palms lock the collar"), OfferWrists(Rig, Session));
 	Log.Note(Session);
 	bPass &= TestEqual(TEXT("bout 3 intro line"), Session.GetPromptText(), FString(TEXT("Brennic of the Ember. The ford remembers you both.")));
-	RunLogged(Session, Log, [&Session]() { return Session.GetStage() == TEXT("active"); }, 10.0);
+	RunLogged(Session, Log, [&Session]()
+	{ return Session.GetStage() == TEXT("active"); }, 20.0);
 	bPass &= TestEqual(TEXT("the kernel does not step during the intro"), Session.GetGames().State.Tick, 0);
 	const TArray<FString> Expected = {TEXT("offer"), TEXT("ritual"), TEXT("intro"), TEXT("active")};
 	bPass &= TestEqual(TEXT("resume phase order (no prologue, no teach)"), FString::Join(Log.Stages, TEXT(" > ")), FString::Join(Expected, TEXT(" > ")));
@@ -388,12 +408,18 @@ bool FMageArenaDayPrologue::RunTest(const FString& Parameters)
 		Session.Advance(kDayTick, true);
 		bPass &= TestEqual(TEXT("cold raise opens the prologue"), Session.GetStage(), FString(TEXT("prologue")));
 		bPass &= TestEqual(TEXT("tableau line"), Session.GetPromptText(), FString(TEXT("The ford. Four mages betrayed, four collars closed.")));
-		bPass &= TestTrue(TEXT("the centre stone offers the skip"), Session.AreStoryStonesShown() && Session.StoryStoneKey(1) == TEXT("stone.skip"));
+		// T28: slice.json prologue.floorS 6. The skip stone shows once it works.
+		bPass &= TestTrue(TEXT("prologue floor 6 s"), FMath::IsNearlyEqual(Session.BeatFloorS(TEXT("prologue")), 6.0));
+		bPass &= TestFalse(TEXT("no skip stone below the floor"), Session.AreStoryStonesShown());
+		RunUntil(Session, [&Session]()
+		{ return Session.GetPhaseClock() + 1.0e-9 >= 6.0; }, 7.0);
+		bPass &= TestTrue(TEXT("the centre stone offers the skip from the floor"), Session.AreStoryStonesShown() && Session.StoryStoneKey(1) == TEXT("stone.skip"));
 		// A raised palm is not the skip.
 		Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-		const double Lasted = RunWhileStage(Session, TEXT("prologue"), 15.0);
-		// day.json prologueMaxS 10: the teach opens on the tick the clock reaches 10 s (600 ticks of 1/60 s).
-		bPass &= TestTrue(*FString::Printf(TEXT("the prologue times out at 10 s (%.4f)"), Lasted), FMath::Abs(Lasted - 10.0) <= kDayTick + 1.0e-6);
+		const double FloorAt = Session.GetPhaseClock();
+		const double Lasted = FloorAt + RunWhileStage(Session, TEXT("prologue"), 45.0);
+		// day.json prologueMaxS 45: the teach opens on the tick the clock reaches 45 s (2700 ticks of 1/60 s).
+		bPass &= TestTrue(*FString::Printf(TEXT("the prologue times out at 45 s (%.4f)"), Lasted), FMath::Abs(Lasted - 45.0) <= 2.0 * kDayTick + 1.0e-6);
 		bPass &= TestEqual(TEXT("then the teach"), Session.GetStage(), FString(TEXT("teach")));
 		bPass &= TestEqual(TEXT("ended, not skipped"), CountLines(Session.GetChain(), TEXT("day prologue ended")), 1);
 		Rig.Close(Session);
@@ -410,15 +436,25 @@ bool FMageArenaDayPrologue::RunTest(const FString& Parameters)
 		bPass &= TestTrue(TEXT("day begins"), Session.BeginArc(1));
 		Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 		Session.Advance(kDayTick, true);
+		// T28: below the floor (6 s) a full hold on the centre stone does nothing.
 		Rig.Hands->PlayQuickAction(TEXT("stone-centre"), EClipVariant::Normal);
 		double Held = 0.0;
-		const double Lasted = RunUntil(Session, [&]()
+		RunUntil(Session, [&]()
 		{
 			Held = FMath::Max(Held, Session.GetStoryHoldFraction());
-			return Session.GetStage() != TEXT("prologue");
-		}, 9.0);
+			return Session.GetPhaseClock() + 1.0e-9 >= 5.0;
+		}, 6.0);
+		bPass &= TestTrue(*FString::Printf(TEXT("the early hold completed (%.2f)"), Held), Held >= 1.0);
+		bPass &= TestEqual(TEXT("below the floor the stone does not skip"), Session.GetStage(), FString(TEXT("prologue")));
+		bPass &= TestEqual(TEXT("not skipped yet"), CountLines(Session.GetChain(), TEXT("day prologue skipped")), 0);
+		RunUntil(Session, [&Session]()
+		{ return Session.GetPhaseClock() + 1.0e-9 >= 6.0; }, 2.0);
+		Rig.Hands->PlayQuickAction(TEXT("stone-centre"), EClipVariant::Normal);
+		const double ReachAt = Session.GetPhaseClock();
+		const double Lasted = ReachAt + RunUntil(Session, [&Session]()
+		{ return Session.GetStage() != TEXT("prologue"); }, 9.0);
 		bPass &= TestEqual(TEXT("the stone skips to the teach"), Session.GetStage(), FString(TEXT("teach")));
-		bPass &= TestTrue(*FString::Printf(TEXT("skipped before the timeout (%.3f s)"), Lasted), Lasted < 9.0);
+		bPass &= TestTrue(*FString::Printf(TEXT("skipped from the floor, before the timeout (%.3f s)"), Lasted), Lasted >= 6.0 && Lasted < 9.0);
 		bPass &= TestEqual(TEXT("skipped"), CountLines(Session.GetChain(), TEXT("day prologue skipped")), 1);
 		Rig.Close(Session);
 	}
@@ -674,7 +710,7 @@ bool FMageArenaDaySaveEachBout::RunTest(const FString& Parameters)
 		bPass &= TestEqual(*(Label + TEXT(" wave")), Session.GetGames().Wave, Bout);
 		Session.NotifyQuit();
 		bPass &= TestEqual(*(Label + TEXT(" quit in the intro keeps the bout")), Rig.ReadSave(), Saved);
-		RunWhileStage(Session, TEXT("intro"), 5.0);
+		RunWhileStage(Session, TEXT("intro"), 15.0);
 		bPass &= TestEqual(*(Label + TEXT(" fight")), Session.GetStage(), FString(TEXT("active")));
 		Session.NotifyQuit();
 		bPass &= TestEqual(*(Label + TEXT(" quit mid-bout keeps the bout")), Rig.ReadSave(), Saved);
@@ -690,8 +726,7 @@ bool FMageArenaDaySaveEachBout::RunTest(const FString& Parameters)
 		if (Bout < 3)
 		{
 			bPass &= TestEqual(*(Label + TEXT(" intermission")), Session.GetStage(), FString(TEXT("intermission")));
-			Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-			Session.Advance(kDayTick, true);
+			ContinueAtFloor(Rig, Session);
 			const FString Next = FString::Printf(TEXT("bout=%d\n"), Bout + 1) + Pick;
 			bPass &= TestEqual(*(Label + TEXT(" the next bout is saved")), Rig.ReadSave(), Next);
 			bPass &= TestEqual(*(Label + TEXT(" next intro")), Session.GetStage(), FString(TEXT("intro")));
@@ -725,7 +760,7 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kDayTick, true);
 	bPass &= TestTrue(TEXT("ritual to the final"), OfferWrists(Rig, Session));
-	RunWhileStage(Session, TEXT("intro"), 5.0);
+	RunWhileStage(Session, TEXT("intro"), 15.0);
 	LoseBout(Session);
 	bPass &= TestEqual(TEXT("defeat in the final"), Session.GetStage(), FString(TEXT("lost")));
 	bPass &= TestEqual(TEXT("the final's defeat prompt"), Session.GetPromptText(), FString(TEXT("Palm: fight again. Centre stone: end the day.")));
@@ -737,7 +772,7 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("the palm offers Bout 4 again"), Session.GetStage(), FString(TEXT("intro")));
 	bPass &= TestEqual(TEXT("the same bout"), Session.GetGames().Wave, 3);
 	bPass &= TestEqual(TEXT("the intro again"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. The final.")));
-	RunWhileStage(Session, TEXT("intro"), 5.0);
+	RunWhileStage(Session, TEXT("intro"), 15.0);
 	LoseBout(Session);
 	bPass &= TestEqual(TEXT("lost again"), Session.GetStage(), FString(TEXT("lost")));
 	double Attempts = 0.0;
@@ -750,7 +785,9 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	bPass &= TestFalse(TEXT("the final is recorded lost"), Session.WasFinalWon());
 	bPass &= TestEqual(TEXT("tablet line first"), Session.GetPromptText(), FString(TEXT("The day is cut into stone.")));
 	bPass &= TestTrue(TEXT("the tablet lists the final"), Session.GetTabletText().Contains(TEXT("4  final  lost")));
-	RunUntil(Session, [&Session]() { return Session.GetPhaseClock() >= 4.0 + kDayTick; }, 6.0);
+	const double TabletS = Session.GetDayTuning().AftermathTabletS;
+	RunUntil(Session, [&Session, TabletS]()
+	{ return Session.GetPhaseClock() >= TabletS + kDayTick; }, TabletS + 2.0);
 	bPass &= TestEqual(TEXT("closing line after a lost final"), Session.GetPromptText(), FString(TEXT("The sand drinks your blood. The collar holds.")));
 	bPass &= TestEqual(TEXT("a new day is saved"), Rig.ReadSave(), FString(TEXT("bout=0\n")));
 	Rig.Close(Session);
@@ -775,7 +812,7 @@ bool FMageArenaDayFlags::RunTest(const FString& Parameters)
 	bool bPass = TestTrue(TEXT("day begins"), Session.BeginArc(1));
 	Session.SkipTeach();
 	RunWhileStage(Session, TEXT("ritual"), 25.0);
-	RunWhileStage(Session, TEXT("intro"), 5.0);
+	RunWhileStage(Session, TEXT("intro"), 15.0);
 	bPass &= TestEqual(TEXT("Bout 1 live"), Session.GetStage(), FString(TEXT("active")));
 	bPass &= TestEqual(TEXT("Bout 1 starts at tick 0"), Session.GetGames().State.Tick, 0);
 	// Bout 1: 120 kernel ticks of an idle seat, then the opponents go down and the win lands on tick 121.
@@ -812,9 +849,8 @@ bool FMageArenaDayFlags::RunTest(const FString& Parameters)
 	// Bout 2: lost after 30 ticks (the defeat lands on the next tick: 31/60), then won on the retry. Downing the hounds
 	// queues their pinned ember_burst on tick 1 (a hazard, so the bout goes on); WinBout clears it and the win lands on
 	// tick 2 (2/60).
-	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-	Session.Advance(kDayTick, true);
-	RunWhileStage(Session, TEXT("intro"), 5.0);
+	ContinueAtFloor(Rig, Session);
+	RunWhileStage(Session, TEXT("intro"), 15.0);
 	for (int32 Tick = 0; Tick < 30; ++Tick)
 	{
 		Session.Advance(kDayTick, true);
@@ -828,7 +864,7 @@ bool FMageArenaDayFlags::RunTest(const FString& Parameters)
 	bPass &= TestEqual(TEXT("w2.perfects of the defeat"), Number(TEXT("arena.tiro.1.w2.perfects")), 0.0);
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kDayTick, true);
-	RunWhileStage(Session, TEXT("intro"), 5.0);
+	RunWhileStage(Session, TEXT("intro"), 15.0);
 	WinBout(Session);
 	bPass &= TestTrue(TEXT("w2.won after the retry"), Bool(TEXT("arena.tiro.1.w2.won"), bWon) && bWon);
 	bPass &= TestEqual(TEXT("w2.attempts"), Number(TEXT("arena.tiro.1.w2.attempts")), 2.0);

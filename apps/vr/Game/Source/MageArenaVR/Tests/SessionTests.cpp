@@ -659,9 +659,15 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFullSeated, "MageArenaDesign.Session.
 bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 {
 	// T21: the whole Tiro day as the reference script plays it, measured, not tuned. The ritual (the script holds both
-	// palms), four bouts with their intro lines, the intermissions (continued at once by a raised palm, as before; the
-	// T20 pick is not taken), and the aftermath (the script palms the centre stone). The prologue and the teach are
-	// skipped as before; a second, first-launch session measures cold + prologue + teach for the total with the teach.
+	// palms), four bouts with their intro lines, the intermissions (continued by a raised palm as soon as the scene's
+	// floor allows it, T28: the rushed path of C2 section 4; the T20 pick is not taken), and the aftermath (the script
+	// palms the centre stone from the closing floor). The prologue and the teach are skipped as before; a second,
+	// first-launch session measures cold + prologue + teach for the total with the teach.
+	// T28, the expected move from the day.json and slice.json deltas (rushed, the script's path): prologue skip at its
+	// 6 s floor +6 s; intros 3 s -> 8, 8, 12, 12 s +28 s over four bouts; intermissions 0 -> their 3 s floor +9 s over
+	// three; tablet 4 -> 16 s +12 s; closing floor +6 s. +61 s for a day that closes; +31 s for today's run, which
+	// stops at bout 3 (DF-011: +6 prologue, +19 three intros, +6 two intermissions). The intermissions' share is at most
+	// the three scenes' maxS, 60 s.
 	// Plan target: a 7-10 minute session (docs/campaign/04-vr-campaign-design.md section 1, Games day 6-10 min, and the
 	// V2-ROADMAP mechanics gate). A bout the script loses is the end of the run: the script is deterministic, so a retry
 	// of bouts 1-3 loses again; a lost final goes to the aftermath on the centre stone.
@@ -719,17 +725,25 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 	int32 Guard = 0;
 	bool bStopped = false;
 	FString LastStage;
+	bool bPalmed = false;
 	while (Session.GetStage() != TEXT("closed") && Guard < 72 * 1800)
 	{
 		const FString Stage = Session.GetStage();
 		if (Stage != LastStage)
 		{
 			UE_LOG(LogMageArena, Log, TEXT("FullSeated stage=%s bout=%d t=%.2f"), *Stage, Session.GetGames().Wave + 1, DayS);
-			if (Stage == TEXT("intermission"))
+			LastStage = Stage;
+			bPalmed = false;
+		}
+		if (Stage == TEXT("intermission") && !bPalmed)
+		{
+			// T28: below the scene's floor the palm does nothing, so the script raises it once the floor passed.
+			const FStoryScene* Scene = Session.GetActiveScene();
+			if (!Scene || Session.GetSceneClock() + 1.0e-9 >= Scene->FloorS)
 			{
 				Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+				bPalmed = true;
 			}
-			LastStage = Stage;
 		}
 		if (Stage == TEXT("lost") && Session.GetGames().Wave < 3)
 		{
