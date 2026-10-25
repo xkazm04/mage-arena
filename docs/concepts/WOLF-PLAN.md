@@ -287,7 +287,11 @@ the end.
   scale matching `FBody`; `SOURCE.md` with tool versions and prompts. A failed check goes back to Lynx as an exact defect;
   Wolf does not fix the mesh in the editor.
 - [ ] Import to `apps/vr/Game/Content/Characters/Brennic/` (LFS) with `A_Brennic_Idle`, `_Cast`, `_Hit`, `_Death`.
-- [ ] Done when: `MageArena.` green including `MageArena.Presentation.RivalFigure.ClipFollowsEvents` and
+- [x] Wolf kaziho 2026-10-25 a918062 UE 5.8.3 CL 58210709 (desktop proxy, not Quest truth) `MageArena.` 330/330 incl. both
+  RivalFigure tests (red first); `MageArenaDesign.` 5/7, only DF-011's two; `capture-rival.ps1` staged all four clips under
+  the DINOv3 hold (`mage-art-staging/t38-rival-2026-10-25/runs/T38/`; seed 1 for Idle/Cast/Hit, seed 2 for Death, since
+  Brennic wins seed 1); `-Prefix rival` x3: draw calls 120 / 124 max, BasePass max 194,992, particles max 1,468.
+  docs/research/T38-RIVAL-2026-10-25.md. Done when: `MageArena.` green including `MageArena.Presentation.RivalFigure.ClipFollowsEvents` and
   `.FallsBackToGreybox`; `capture-rival.ps1` (new) writes `runs/T38/` with all four clips visible;
   `capture-budget.ps1 -Runs 3 -Prefix rival` keeps the triangle row <=350k in all three.
 - [ ] **OWNER:** judges the capture (felt; K3 row 2 and the R0 verdict). The card cannot pass that part.

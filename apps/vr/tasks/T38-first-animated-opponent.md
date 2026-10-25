@@ -1,6 +1,8 @@
 # T38 - The first animated opponent: Brennic with idle, cast, hit and death, driven by kernel events
 
-Status: decided 2026-10-20 (`docs/DECISIONS.md` 2026-10-20), source is AI-assisted authoring by Claude + owner (option 2): an
+Status: ran on Wolf 2026-10-25, open for the owner's felt verdict - 3503694 (figure), 6768474 (tests), fc0aeb6 and
+a918062 (capture); report docs/research/T38-RIVAL-2026-10-25.md. Deliverable 1 (the committed import) is held by the
+DINOv3 hold: the imported assets live only in staging. Decided 2026-10-20 (`docs/DECISIONS.md` 2026-10-20), source is AI-assisted authoring by Claude + owner (option 2): an
 authored rig with four clips (idle, cast, hit, death), and Lynx's local TRELLIS + Blender rigging pipeline (PoF 3D
 rounds) may produce the mesh and rig. Build and verify happen on Wolf (the x64 UE host); nothing on Lynx counts as a UE
 result. Written 2026-10-20 on the ARM64 laptop for the Fri 23 Oct R0 checkpoint.
