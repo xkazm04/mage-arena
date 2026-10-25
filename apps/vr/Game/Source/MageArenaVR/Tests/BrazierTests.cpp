@@ -9,6 +9,7 @@
 #include "Greybox/ArenaGreyboxActor.h"
 #include "Greybox/ArenaLayout.h"
 #include "Greybox/BrazierFire.h"
+#include "Greybox/ThreatDemo.h"
 #include "Materials/Material.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -350,6 +351,72 @@ bool FMageArenaGreyboxBrazierFlicker::RunTest(const FString& Parameters)
 			TestFalse(FString::Printf(TEXT("braziers %d and %d are out of phase"), A, B), FMath::IsNearlyEqual(ZA, ZB, 0.01));
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxBrazierClearOfUnblockable, "MageArena.Greybox.Brazier.ClearOfUnblockable",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxBrazierClearOfUnblockable::RunTest(const FString& Parameters)
+{
+	// T61: from the centre seat no brazier, bowl or flame, stands in front of the demo unblockable anywhere on its flight,
+	// so a prop never hides part of the leave cue's red rim (BRAZIERS-T60 critic rounds 1-3, the brazier at (-2, 7.2)).
+	FArenaLayout Layout;
+	if (!LoadLayout(*this, Layout))
+	{
+		return false;
+	}
+	const FRunePad* CentrePad = Layout.FindPad(1);
+	if (!TestNotNull(TEXT("the centre pad"), CentrePad))
+	{
+		return false;
+	}
+	const FVector Eye = CentrePad->PositionM + FVector(0.0, 0.0, Layout.SeatedEyeHeightAbovePadM);
+	// Yaw and pitch from the eye, in degrees, and the horizontal distance.
+	const auto Angles = [&Eye](const FVector& PointM)
+	{
+		const FVector D = PointM - Eye;
+		const double Flat = FVector2D(D.X, D.Y).Size();
+		return FVector(FMath::RadiansToDegrees(FMath::Atan2(D.Y, D.X)), FMath::RadiansToDegrees(FMath::Atan2(D.Z, Flat)), Flat);
+	};
+	// The least angular gap kept between a brazier's screen box and the rim's disc.
+	constexpr double MarginDeg = 1.0;
+	int32 Checked = 0;
+	for (const FThreatLaunch& Launch : BuildThreatLaunches(Layout, *CentrePad))
+	{
+		if (!Launch.Spec.bRimmed)
+		{
+			continue;
+		}
+		++Checked;
+		const double RimRadiusM = Launch.Spec.RadiusM * Layout.ThreatRimScale;
+		for (int32 Index = 0; Index < Layout.Braziers.Num(); ++Index)
+		{
+			const FArenaProp& Brazier = Layout.Braziers[Index];
+			const FVector Base = Angles(FVector(Brazier.PositionM.X, Brazier.PositionM.Y, 0.0));
+			const double FlameTopM = Brazier.StandHeightM + Brazier.BowlHeightM + Brazier.FlameRadiusM * BrazierFire::MaxFlameTopRadii;
+			const double TopPitch = Angles(FVector(Brazier.PositionM.X, Brazier.PositionM.Y, FlameTopM)).Y;
+			const double HalfYaw = FMath::RadiansToDegrees(FMath::Atan2(Brazier.BowlRadiusM, Base.Z));
+			for (int32 Step = 0; Step <= 100; ++Step)
+			{
+				const FVector Threat = Angles(FMath::Lerp(Launch.StartM, Launch.EndM, Step / 100.0));
+				if (Threat.Z <= Base.Z)
+				{
+					// The rim is in front of the brazier here: it may cross it, never be hidden by it.
+					continue;
+				}
+				const double Rim = FMath::RadiansToDegrees(FMath::Atan2(RimRadiusM, Threat.Z)) + MarginDeg;
+				const bool bYawApart = Threat.X + Rim < Base.X - HalfYaw || Threat.X - Rim > Base.X + HalfYaw;
+				const bool bPitchApart = Threat.Y + Rim < Base.Y || Threat.Y - Rim > TopPitch;
+				if (!TestTrue(FString::Printf(TEXT("brazier %d at %s stays clear of the unblockable at %d%% of its flight"), Index, *Brazier.PositionM.ToString(), Step),
+				        bYawApart || bPitchApart))
+				{
+					break;
+				}
+			}
+		}
+	}
+	TestEqual(TEXT("one rimmed demo threat"), Checked, 1);
 	return true;
 }
 
