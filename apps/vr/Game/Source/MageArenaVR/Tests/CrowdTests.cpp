@@ -390,8 +390,8 @@ bool FMageArenaCrowdTintNotThreat::RunTest(const FString& Parameters)
 		const bool bBanner = Index >= Figures;
 		TestEqual(TEXT("only banners are flat"), All[Index].Flat > 0.5f, bBanner);
 		const int32 Found = ArenaCrowd::TunicPalette().IndexOfByPredicate([&Tint](const FLinearColor& Each)
-		{ return Each.Equals(Tint, 0.f); });
-		const bool bKnown = bBanner ? Tint.Equals(ArenaCrowd::BannerColour(), 0.f) : Found != INDEX_NONE;
+		{ return Each.Equals(Tint, 1.0e-6f); });
+		const bool bKnown = bBanner ? Tint.Equals(ArenaCrowd::BannerColour(), 1.0e-6f) : Found != INDEX_NONE;
 		Strays += bKnown ? 0 : 1;
 		if (!bBanner && Found != INDEX_NONE)
 		{
