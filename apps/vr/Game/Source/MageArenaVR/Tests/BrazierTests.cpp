@@ -282,11 +282,13 @@ bool FMageArenaGreyboxBrazierFlicker::RunTest(const FString& Parameters)
 			for (const SpellVfx::FPuff& Puff : *Layer)
 			{
 				const FVector Off = Puff.CentreCm - Spot;
-				// Every puff stays in a column over the bowl, no taller than the old cone: a lick, not a spark thrown off, and
-				// nothing that grows into a threat's flight line from the seat.
+				// Every puff stays inside the old cone's silhouette (radius R at the lip, a point MaxFlameTopRadii above it): a
+				// lick, not a spark thrown off, and nothing that covers more of a threat's flight line than the cone did.
 				const double Top = Off.Z + Puff.SizeCm.Z * 0.5;
-				if (!TestTrue(FString::Printf(TEXT("frame %d puff stays over the bowl (%s, top %.1f cm)"), Frame, *Off.ToString(), Top),
-				        FVector2D(Off.X, Off.Y).Size() <= R * 0.8 && Off.Z >= 0.0 && Top <= R * BrazierFire::MaxFlameTopRadii))
+				const double Reach = FVector2D(Off.X, Off.Y).Size() + FMath::Max(Puff.SizeCm.X, Puff.SizeCm.Y) * 0.5;
+				const double ConeHalfWidth = R * (1.0 - Off.Z / (R * BrazierFire::MaxFlameTopRadii));
+				if (!TestTrue(FString::Printf(TEXT("frame %d puff stays inside the cone (%s, reach %.1f of %.1f cm, top %.1f cm)"), Frame, *Off.ToString(), Reach, ConeHalfWidth, Top),
+				        Off.Z >= 0.0 && Top <= R * BrazierFire::MaxFlameTopRadii && Reach <= ConeHalfWidth + R * 0.05))
 				{
 					return false;
 				}

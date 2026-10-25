@@ -130,18 +130,18 @@ void BrazierFire::FlamePuffs(const FArenaProp& Brazier, int32 Seed, double TimeS
 	const double R = Brazier.FlameRadiusM * 100.0;
 	const FVector Base(Brazier.PositionM.X * 100.0, Brazier.PositionM.Y * 100.0, (Brazier.StandHeightM + Brazier.BowlHeightM) * 100.0);
 	const FWaves W = Waves(Seed, TimeS);
-	// A bed in the bowl's mouth and two tongues forked across the seat's view (Y), each swaying on its own wave; the sway
-	// grows with height. Nothing rises: every puff breathes and sways about its own place, so the flame licks instead of
-	// throwing sparks. The whole flame stays inside the old cone's envelope (MaxFlameTopRadii above the lip): a taller
-	// flame crossed the unblockable's flight line from the seat and broke its red ring (BRAZIERS-T60, critic round 1).
+	// One tapered flame: a bed in the bowl's mouth, a tall tongue and a side tongue, a low heart and a heart tip. Each
+	// breathes and leans on its own wave; nothing rises, so the flame licks instead of throwing sparks. The whole flame
+	// stays inside the old cone's silhouette (radius R at the lip, a point MaxFlameTopRadii above it): a wider, forked
+	// flame crossed the unblockable's flight line from the seat and broke its red ring (BRAZIERS-T60, critic rounds 1-2).
 	const FVector Low(W.A, W.C, 0.0);
 	const FVector High(W.C, W.A, 0.0);
-	const FVector Fork(0.0, R * 0.25, 0.0);
-	Lick(OutBody, Base, R * 0.20, Low * (R * 0.05), FVector(R * 2.4, R * 2.4, R * 1.2 * (1.0 + 0.06 * W.B)));
-	Lick(OutBody, Base, R * (1.10 + 0.15 * W.A), Fork + High * (R * 0.25), FVector(R * 1.0, R * 1.0, R * 2.2 * (1.0 + 0.12 * W.B)));
-	Lick(OutBody, Base, R * (0.90 + 0.15 * W.C), Low * (R * 0.20) - Fork, FVector(R * 1.0, R * 1.0, R * 1.8 * (1.0 + 0.12 * W.A)));
-	Lick(OutHeart, Base, R * 0.55, Low * (R * 0.08), FVector(R * 1.6, R * 1.6, R * 1.6 * (1.0 + 0.10 * W.A)));
-	Lick(OutHeart, Base, R * (1.20 + 0.15 * W.C), High * (R * 0.20), FVector(R * 0.7, R * 0.7, R * 1.4 * (1.0 + 0.12 * W.B)));
+	const FVector Side(0.0, R * 0.15, 0.0);
+	Lick(OutBody, Base, 0.0, Low * (R * 0.05), FVector(R * 1.8, R * 1.8, R * 1.0 * (1.0 + 0.06 * W.B)));
+	Lick(OutBody, Base, R * (0.95 + 0.10 * W.A), High * (R * 0.10), FVector(R * 0.8, R * 0.8, R * 2.2 * (1.0 + 0.12 * W.B)));
+	Lick(OutBody, Base, R * (0.80 + 0.10 * W.C), Side + Low * (R * 0.08), FVector(R * 0.7, R * 0.7, R * 1.6 * (1.0 + 0.12 * W.A)));
+	Lick(OutHeart, Base, R * 0.50, Low * (R * 0.08), FVector(R * 1.2, R * 1.2, R * 1.4 * (1.0 + 0.10 * W.A)));
+	Lick(OutHeart, Base, R * (1.30 + 0.10 * W.C), High * (R * 0.12), FVector(R * 0.5, R * 0.5, R * 1.2 * (1.0 + 0.12 * W.B)));
 }
 
 bool BrazierFire::IsSwitchedOff()
