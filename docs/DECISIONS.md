@@ -2,6 +2,20 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on b872dcd (T58 spell VFX): ACCEPTED as a readability step; T57 crowd next
+
+> Athena, 2026-10-25 (owner delegation), on b872dcd (`docs/research/SPELL-VFX-T58-2026-10-25.md`). The ruling is
+> recorded as the dispatch brief relayed it, not verbatim.
+
+- **T58 is ACCEPTED as a readability step,** at +2 draw calls.
+- **Its best fix is the leave cue:** the black core with the red rim draws again.
+- **The spectacle pass is DEFERRED to a later card** and is not done now: a flipbook flame and water texture on the
+  shared glow layer, at the same call cost.
+- **The order: T57 crowd and stands, then the braziers as fire props.** In key art S1 the packed stands are half the
+  image; ours are empty blocks. The crowd goes in as instanced cards or impostors, at one or two draw calls, in the dusk
+  light, and changes no gameplay read. It re-checks the budget (about 23 calls of headroom).
+- The DINOv3 hold stands. No signed number moves.
+
 ## 2026-10-25 - Athena, on 570e063 (cloak normal, Blender half): the Unreal half DEFERRED, the arena next
 
 > Athena, 2026-10-25 (owner delegation), on 570e063 and the Blender half
