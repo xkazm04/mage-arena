@@ -44,6 +44,7 @@ class UDayCaptureDriver;
 class UAirCaptureDriver;
 class UCollarCaptureDriver;
 class UColourAudioCaptureDriver;
+class USpellVfxCaptureDriver;
 class UWave1CaptureDriver;
 
 /**
@@ -620,6 +621,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UColourAudioCaptureDriver> ColourAudioCapture;
+
+	UPROPERTY()
+	TObjectPtr<USpellVfxCaptureDriver> SpellVfxCapture;
 
 	UPROPERTY()
 	TObjectPtr<class UStylePickCaptureDriver> StylePickCapture;

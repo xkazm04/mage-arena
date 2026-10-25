@@ -6,6 +6,7 @@
 #include "Session/PresetCapture.h"
 #include "Session/AirCapture.h"
 #include "Session/ColourAudioCapture.h"
+#include "Session/SpellVfxCapture.h"
 #include "Session/SessionPresentation.h"
 #include "Session/SettingsCapture.h"
 #include "Session/StylePickCapture.h"
@@ -2113,6 +2114,7 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	const bool bAirCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaAirCapture"));
 	const bool bCollarCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaCollarCapture"));
 	const bool bColourAudioCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaColourAudioCapture"));
+	const bool bSpellVfxCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSpellVfxCapture"));
 	const bool bGame = FParse::Param(FCommandLine::Get(), TEXT("game"));
 	if (!FApp::IsUnattended())
 	{
@@ -2176,6 +2178,12 @@ void UArenaSessionSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		ColourAudioCapture = NewObject<UColourAudioCaptureDriver>(this);
 		ColourAudioCapture->Start();
+		return;
+	}
+	if (bSpellVfxCapture)
+	{
+		SpellVfxCapture = NewObject<USpellVfxCaptureDriver>(this);
+		SpellVfxCapture->Start();
 		return;
 	}
 	const bool bStylePickCapture = FParse::Param(FCommandLine::Get(), TEXT("MageArenaStylePickCapture"));
