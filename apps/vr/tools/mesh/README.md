@@ -105,13 +105,28 @@ what they built.
   bake with no black after the first fill (Brennic, the hound) is byte-identical to before. One material `M_<Name>` with `T_<Name>_BaseColor.png`; the GLB embeds it.
   `--clamp posterize|hue|both` (`--strength` <= 0.6, `--levels` >= 4) pulls the texture part of the way toward the
   palette set plus the VISUAL-PLAN (c) accents (bronze, gold, crimson, iron); it never replaces it (`clamp.detail_kept`).
+- **`--normal on`** (bake mode only, off by default; off reproduces the bake record, GLB and albedo byte for byte): the
+  source's shading normal (its mesh plus its own normal texture) is baked with the albedo's rays (same cage, ray distance,
+  margin, repacked UVs, size) as Cycles `NORMAL` in `TANGENT` space, on the LOD0's own MikkTSpace tangents (every face
+  is already a triangle, as in the FBX). `T_<Name>_Normal.png` is 16-bit RGB, linear (no gAMA or sRGB chunk), **OpenGL
+  Y+**: UE wants DirectX Y-, so the importer sets `bFlipGreenChannel` (with `SRGB` off and `TC_Normalmap`). Misses (the
+  albedo's hit mask) become flat (0.5, 0.5, 1.0), never black; the margin is rebuilt from island texels alone, flat
+  beyond it. `normal.deviation_*` records the share of texels more than 10 and 20 degrees from flat and the mean, for the
+  whole map and the back region (face normal y > 0.5, centroid 0.5-1.5 m). `M_<Name>` takes it through a Normal Map
+  node, and the GLB carries it as `normalTexture`.
+- **`--expect <reference finish dir>`** fails the run (exit 1) when the finished card's geometry (tris, verts, edges,
+  components, height, bbox, area) or the section count differs from that run's: a surface pass must not move the mesh.
 - **Rigging a bake finish:** `rig_anim.py` exports the FBX with `path_mode='STRIP'`, so copy `T_<Name>_BaseColor.png`
-  next to the FBX before `evidence.mjs` or a UE import.
+  (and `T_<Name>_Normal.png`) next to the FBX before `evidence.mjs` or a UE import.
 
 Measured on Brennic seed 7 (docs/research/BRENNIC-MESH-REWORK-2026-10-24.md): finish.py 34 s at 2048, 0.64 % of island
 texels missed (mostly the inner cloak and between the legs), 0 black texels after the fill. On the 2026-10-24 maw (a torn
 shell filled by FILL) 23 % of island texels missed and 174,922 were black after the first fill; the refill left 0
 (docs/research/CREATURE-MESH-2026-10-24.md).
+
+`--normal on` on Brennic seed 7 (docs/research/BRENNIC-CLOAK-NORMAL-2026-10-25.md): +4.6 s bake, +6.6 s finishing, an
+18.7 MB 16-bit PNG; geometry identical; a blind critic read SAME at 8 m and a visible gain close up. 1,849 UV islands
+under 20 faces (16 % of the faces, 9 % of the texels) bake noisy normals; they hold three quarters of the texels where the map turns inward.
 
 ## Beasts
 
