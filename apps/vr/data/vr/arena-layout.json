@@ -109,8 +109,8 @@
   "braziers": [
     { "positionM": [6, 6], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
     { "positionM": [6, -6], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
-    { "positionM": [-2, 7.2], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
-    { "positionM": [-2, -7.2], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 }
+    { "positionM": [-3.5, 7.8], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 },
+    { "positionM": [-3.5, -7.8], "standHeightM": 0.48, "bowlRadiusM": 0.42, "bowlHeightM": 0.26, "flameRadiusM": 0.16 }
   ],
 
   "banners": [
@@ -119,7 +119,7 @@
     { "positionM": [9.5, 4.2], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] },
     { "positionM": [9.5, -4.2], "poleHeightM": 3.3, "poleRadiusM": 0.06, "clothSizeM": [0.05, 1.15, 1.85] }
   ],
-  "_propNote": "Braziers are the iron bowl on a stand from the prop sheet: cylinder stand, cylinder bowl, cone flame. Banners are a pole, a crossbar and a hanging cloth. clothSizeM is thickness, width, height. Four of each, inside the oval, off the centre flight line.",
+  "_propNote": "Braziers are the iron bowl on a stand from the prop sheet: a foot, a stem and a rounded bowl of flaring rings, with a flame of soft glow puffs whose colour is derived in code (Greybox/BrazierFire.h), never read from here. The two near braziers stand at (-3.5, +/-7.8), off the demo unblockable's flight line from the centre seat (T61). Banners are a pole, a crossbar and a hanging cloth. clothSizeM is thickness, width, height. Four of each, inside the oval, off the centre flight line.",
 
   "colours": {
     "_note": "Linear RGB, 0 to 1. Flat colours on BasicShapeMaterial. No textures.",
@@ -130,7 +130,6 @@
     "seat": [0.4, 0.39, 0.37],
     "marker": [0.15, 0.15, 0.16],
     "brazier": [0.18, 0.16, 0.15],
-    "flame": [0.95, 0.35, 0.06],
     "bannerCloth": [0.64, 0.59, 0.5],
     "bannerPole": [0.3, 0.24, 0.16],
     "hand": [0.75, 0.64, 0.54],
