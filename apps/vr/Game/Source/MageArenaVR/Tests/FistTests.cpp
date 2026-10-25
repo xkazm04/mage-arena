@@ -156,7 +156,7 @@ bool MissioReachBout(FAutomationTestBase& Test, FMissioRig& Rig, FArenaSession& 
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kMissioTick, true);
 	MissioRunUntil(Session, [&Session]()
-	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetRitualOfferS(); }, 15.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	MissioRunWhile(Session, TEXT("ritual"), 5.0);
 	MissioRunWhile(Session, TEXT("intro"), 15.0);

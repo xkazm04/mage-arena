@@ -69,14 +69,13 @@ bool FArenaSession::LoadDayData()
 	};
 	const FField Fields[] = {
 	    {TEXT("prologueMaxS"), &Next.PrologueMaxS},
-	    {TEXT("ritualLineS"), &Next.RitualLineS},
 	    {TEXT("ritualTimeoutS"), &Next.RitualTimeoutS},
 	    {TEXT("aftermathTabletS"), &Next.AftermathTabletS},
 	    {TEXT("closingCardS"), &Next.ClosingCardS},
 	};
 	for (const TPair<FString, TSharedPtr<FJsonValue>>& Pair : Root->Values)
 	{
-		bool bKnown = Pair.Key.StartsWith(TEXT("_")) || Pair.Key == TEXT("version") || Pair.Key == TEXT("introS");
+		bool bKnown = Pair.Key.StartsWith(TEXT("_")) || Pair.Key == TEXT("version") || Pair.Key == TEXT("introS") || Pair.Key == TEXT("ritualLineS");
 		for (const FField& Field : Fields)
 		{
 			bKnown |= Pair.Key == Field.Key;
@@ -97,34 +96,44 @@ bool FArenaSession::LoadDayData()
 		}
 		*Field.Out = Value;
 	}
-	// T28: introS is one number per Tiro wave index (C2 section 4: [8, 8, 12, 12]); a single number still means every bout.
-	Next.IntroS.Reset();
-	const TSharedPtr<FJsonValue> Intro = Root->TryGetField(TEXT("introS"));
-	const TArray<TSharedPtr<FJsonValue>>* IntroValues = nullptr;
-	if (Intro.IsValid() && Intro->Type == EJson::Number)
+	// A number, or an array of 1-8 numbers, each in (0, 120].
+	auto ReadSeconds = [&Root](const TCHAR* Key, TArray<double>& Out)
 	{
-		Next.IntroS.Add(Intro->AsNumber());
-	}
-	else if (Root->TryGetArrayField(TEXT("introS"), IntroValues) && IntroValues)
-	{
-		for (const TSharedPtr<FJsonValue>& Value : *IntroValues)
+		Out.Reset();
+		const TSharedPtr<FJsonValue> Field = Root->TryGetField(Key);
+		const TArray<TSharedPtr<FJsonValue>>* Values = nullptr;
+		if (Field.IsValid() && Field->Type == EJson::Number)
 		{
-			Next.IntroS.Add(Value.IsValid() && Value->Type == EJson::Number ? Value->AsNumber() : -1.0);
+			Out.Add(Field->AsNumber());
 		}
-	}
-	bool bIntroOk = Next.IntroS.Num() > 0 && Next.IntroS.Num() <= 8;
-	for (const double Seconds : Next.IntroS)
+		else if (Root->TryGetArrayField(Key, Values) && Values)
+		{
+			for (const TSharedPtr<FJsonValue>& Value : *Values)
+			{
+				Out.Add(Value.IsValid() && Value->Type == EJson::Number ? Value->AsNumber() : -1.0);
+			}
+		}
+		bool bOk = Out.Num() > 0 && Out.Num() <= 8;
+		for (const double Seconds : Out)
+		{
+			bOk &= Seconds > 0.0 && Seconds <= 120.0;
+		}
+		if (!bOk)
+		{
+			UE_LOG(LogMageArena, Error, TEXT("day.json %s must be a number or an array of 1-8 numbers, each in (0, 120]"), Key);
+		}
+		return bOk;
+	};
+	// T28: introS is one number per Tiro wave index (C2 section 4: [8, 8, 12, 12]); a single number still means every bout.
+	// T27: ritualLineS is one dwell per ritual line (C2 section 5: [12, 14, 12]).
+	if (!ReadSeconds(TEXT("introS"), Next.IntroS) || !ReadSeconds(TEXT("ritualLineS"), Next.RitualLineS))
 	{
-		bIntroOk &= Seconds > 0.0 && Seconds <= 120.0;
-	}
-	if (!bIntroOk)
-	{
-		UE_LOG(LogMageArena, Error, TEXT("day.json introS must be a number or an array of 1-8 numbers, each in (0, 120]"));
 		return false;
 	}
-	if (Next.RitualLineS >= Next.RitualTimeoutS)
+	// Every ritual line but the last must start before the timeout continues the day.
+	if (Next.RitualNaturalS() - Next.RitualLineS.Last() >= Next.RitualTimeoutS)
 	{
-		UE_LOG(LogMageArena, Error, TEXT("day.json ritualLineS must be shorter than ritualTimeoutS"));
+		UE_LOG(LogMageArena, Error, TEXT("day.json ritualLineS: every line but the last must start before ritualTimeoutS"));
 		return false;
 	}
 	DayTuning = Next;
@@ -638,8 +647,9 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 	if (Phase == TEXT("prologue"))
 	{
 		// T28: below the beat's floor the centre stone does nothing; the script reaches for it once the floor passed.
-		const bool bFloor = PhaseClock + 1.0e-9 >= BeatFloorS(TEXT("prologue"));
-		if (bFloor && bScripted && !bStoryCue)
+		const double Floor = BeatFloorS(TEXT("prologue"));
+		const bool bFloor = PhaseClock + 1.0e-9 >= Floor;
+		if (PhaseClock + 1.0e-9 >= ScriptLeaveS(TEXT("prologue"), Floor) && bScripted && !bStoryCue)
 		{
 			bStoryCue = true;
 			PlayAction(TEXT("stone-centre"));
@@ -654,13 +664,14 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 	}
 	if (Phase == TEXT("ritual"))
 	{
-		const bool bOffering = PhaseClock + 1.0e-9 >= DayTuning.RitualLineS;
-		if (bOffering && bScripted && !bStoryCue)
+		const double OfferS = GetRitualOfferS();
+		const bool bOffering = PhaseClock + 1.0e-9 >= OfferS;
+		if (PhaseClock + 1.0e-9 >= ScriptLeaveS(TEXT("ritual"), OfferS) && bScripted && !bStoryCue)
 		{
 			bStoryCue = true;
 			PlayAction(TEXT("both-palms"));
 		}
-		// The offer counts only once the offer line stands: Septima speaks first.
+		// T27: the offer counts from the ritual's floor (C2 section 4); without the slice once the offer line stands.
 		if (bOffering && BothPalmsRaised())
 		{
 			OfferHold += DeltaSeconds;
@@ -701,8 +712,9 @@ bool FArenaSession::AdvanceDay(double DeltaSeconds)
 		}
 		// T28: the closing card. The centre stone ends the day from the closing beat's floor; closingCardS ends it anyway.
 		const double CardS = PhaseClock - DayTuning.AftermathTabletS;
-		const bool bFloor = CardS + 1.0e-9 >= BeatFloorS(TEXT("closing"));
-		if (bFloor && bScripted && !bStoryCue)
+		const double Floor = BeatFloorS(TEXT("closing"));
+		const bool bFloor = CardS + 1.0e-9 >= Floor;
+		if (CardS + 1.0e-9 >= ScriptLeaveS(TEXT("closing"), Floor) && bScripted && !bStoryCue)
 		{
 			bStoryCue = true;
 			PlayAction(TEXT("stone-centre"));
@@ -836,34 +848,162 @@ void FArenaSession::BeginScene(const FStoryScene& Scene)
 
 FString FArenaSession::SceneLine() const
 {
+	int32 Index = INDEX_NONE;
+	const FStoryLine* Line = SceneStoryLine(Index);
+	return Line ? Line->Text : FString();
+}
+
+const FStoryLine* FArenaSession::SceneStoryLine(int32& OutIndex) const
+{
+	OutIndex = INDEX_NONE;
 	const FStoryScene* Scene = GetActiveScene();
 	if (!Scene || SceneWave != Games.Wave)
 	{
-		return FString();
-	}
-	TArray<const FStoryLine*> Lines;
-	if (Scene->Variants.IsValidIndex(SceneVariant))
-	{
-		for (const FStoryLine& Line : Scene->Variants[SceneVariant].Lines)
-		{
-			Lines.Add(&Line);
-		}
-	}
-	for (const FStoryLine& Line : Scene->Always)
-	{
-		Lines.Add(&Line);
+		return nullptr;
 	}
 	// One line at a time, each for its dwellS (C2 section 8: a line with no audio plays as text for its dwell).
+	const TArray<const FStoryLine*> Lines = FStorySlice::SceneLines(*Scene, SceneVariant);
 	double Until = 0.0;
-	for (const FStoryLine* Line : Lines)
+	for (int32 Index = 0; Index < Lines.Num(); ++Index)
 	{
-		Until += Line->DwellS;
+		Until += Lines[Index]->DwellS;
 		if (SceneClock + 1.0e-9 < Until)
 		{
-			return Line->Text;
+			OutIndex = Index;
+			return Lines[Index];
 		}
 	}
-	return FString();
+	return nullptr;
+}
+
+double FArenaSession::GetRitualOfferS() const
+{
+	if (Slice.FindBeat(TEXT("ritual")))
+	{
+		return Slice.BeatFloorS(TEXT("ritual"));
+	}
+	return DayTuning.RitualLineS.Num() > 0 ? DayTuning.RitualLineS[0] : 0.0;
+}
+
+double FArenaSession::ScriptLeaveS(const TCHAR* BeatId, double FloorS) const
+{
+	if (!bScriptNatural)
+	{
+		return FloorS;
+	}
+	// The ritual's natural length is its dwells (day.json owns them); the other beats read slice.json naturalS.
+	const double Natural = FCString::Strcmp(BeatId, TEXT("ritual")) == 0 ? DayTuning.RitualNaturalS() : Slice.BeatNaturalS(BeatId);
+	return FMath::Max(FloorS, Natural);
+}
+
+namespace
+{
+// The line standing Clock seconds into Lines, each for its dwellS; the last one stays once every dwell ran.
+int32 StoryLineIndexAt(const TArray<FStoryLine>& Lines, double Clock)
+{
+	double Until = 0.0;
+	for (int32 Index = 0; Index + 1 < Lines.Num(); ++Index)
+	{
+		Until += Lines[Index].DwellS;
+		if (Clock + 1.0e-9 < Until)
+		{
+			return Index;
+		}
+	}
+	return Lines.Num() - 1;
+}
+}
+
+const FStoryLine* FArenaSession::GetStoryLine(FString* OutEvent) const
+{
+	if (!bDay || !Slice.IsLoaded())
+	{
+		return nullptr;
+	}
+	const FString& Phase = Games.Phase;
+	const FStoryBeat* Beat = nullptr;
+	const TArray<FStoryLine>* Lines = nullptr;
+	int32 Index = INDEX_NONE;
+	if (Phase == TEXT("intermission"))
+	{
+		const FStoryScene* Scene = GetActiveScene();
+		const FStoryLine* Line = SceneStoryLine(Index);
+		if (Line && OutEvent)
+		{
+			*OutEvent = FStorySlice::LineEvent(Scene->Id, Index);
+		}
+		return Line;
+	}
+	const FVrRuleset* Rules = GetVrRules();
+	const FString FinalRival = Rules && !Rules->TiroFinal.Rival.IsEmpty() ? Rules->TiroFinal.Rival : FString(TEXT("corvo"));
+	if (Phase == TEXT("prologue") || Phase == TEXT("ritual"))
+	{
+		Beat = Slice.FindBeat(*Phase);
+		Lines = Beat ? Beat->SelectLines(FinalRival, bFinalWon) : nullptr;
+		if (Lines && Lines->Num() > 0)
+		{
+			// The ritual's dwells are day.json ritualLineS (T27); the prologue's are its lines' own.
+			Index = Phase == TEXT("ritual") ? DayTuning.RitualLineAt(PhaseClock, Lines->Num()) : StoryLineIndexAt(*Lines, PhaseClock);
+		}
+	}
+	else if (Phase == TEXT("intro"))
+	{
+		const FArenaTier* Tier = Tiro();
+		const int32 WaveN = Tier && Tier->Waves.IsValidIndex(Games.Wave) ? Tier->Waves[Games.Wave].N : Games.Wave + 1;
+		Beat = Slice.FindIntroBeat(WaveN);
+		Lines = Beat ? Beat->SelectLines(FinalRival, bFinalWon) : nullptr;
+		Index = Lines && Lines->Num() > 0 ? 0 : INDEX_NONE;
+	}
+	else if (Phase == TEXT("aftermath") || Phase == TEXT("closed"))
+	{
+		const bool bTablet = Phase == TEXT("aftermath") && PhaseClock + 1.0e-9 < DayTuning.AftermathTabletS;
+		Beat = Slice.FindBeat(bTablet ? TEXT("aftermath-tablet") : TEXT("closing"));
+		Lines = Beat ? Beat->SelectLines(FinalRival, bFinalWon) : nullptr;
+		if (Lines && Lines->Num() > 0)
+		{
+			// Once the day is closed the closing card's last line stays (OPH-10, the same text as story.closed).
+			Index = bTablet ? 0 : Phase == TEXT("closed") ? Lines->Num() - 1
+			                                              : StoryLineIndexAt(*Lines, PhaseClock - DayTuning.AftermathTabletS);
+		}
+	}
+	if (!Beat || !Lines || !Lines->IsValidIndex(Index))
+	{
+		return nullptr;
+	}
+	if (OutEvent)
+	{
+		*OutEvent = FStorySlice::LineEvent(Beat->Id, Index);
+	}
+	return &(*Lines)[Index];
+}
+
+void FArenaSession::TrackVoice()
+{
+	FString Event;
+	const FStoryLine* Line = GetStoryLine(&Event);
+	if (!Line || Line->Cue.IsEmpty())
+	{
+		VoiceEvent.Reset();
+		return;
+	}
+	if (Event == VoiceEvent)
+	{
+		return;
+	}
+	VoiceEvent = Event;
+	PushVoice(*Line, Event, Games.Phase == TEXT("intermission") ? SceneClock : PhaseClock);
+}
+
+void FArenaSession::PushVoice(const FStoryLine& Line, const FString& Event, double PhaseS)
+{
+	FVoiceCue Cue;
+	Cue.Cue = Line.Cue;
+	Cue.Speaker = Line.Speaker;
+	Cue.Event = Event;
+	Cue.Phase = Games.Phase;
+	Cue.PhaseS = PhaseS;
+	VoiceCues.Add(Cue);
+	Note(FString::Printf(TEXT("voice %s %s speaker=%s t=%.2f"), *Cue.Cue, *Event, Cue.Speaker.IsEmpty() ? TEXT("-") : *Cue.Speaker, PhaseS));
 }
 
 bool FArenaSession::AdvanceScene(double DeltaSeconds)

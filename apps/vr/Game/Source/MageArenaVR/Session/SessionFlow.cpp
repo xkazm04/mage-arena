@@ -352,6 +352,8 @@ bool FArenaSession::BeginArc(uint32 Seed)
 	StoryHoldStone = -1;
 	bStoryCue = false;
 	ResetScene();
+	VoiceCues.Reset();
+	VoiceEvent.Reset();
 	Flags.Load(FlagsFilePath());
 	// T22: the lifetime collar. A missing file is a new collar; a corrupt one starts at 0, like a corrupt save.
 	Collar.LoadLifetime(CollarFilePath());
@@ -616,13 +618,19 @@ FString FArenaSession::GetPromptText() const
 	{
 		return TeachString(TEXT("offer.continue"));
 	}
+	// T27: with the slice loaded each beat shows its C2 lines one at a time (C2 section 8); strings.json is the fallback.
+	const bool bBeat = Games.Phase == TEXT("prologue") || Games.Phase == TEXT("ritual") || Games.Phase == TEXT("intro") || Games.Phase == TEXT("aftermath") || Games.Phase == TEXT("closed");
+	if (const FStoryLine* Line = bBeat ? GetStoryLine() : nullptr)
+	{
+		return Line->Text;
+	}
 	if (Games.Phase == TEXT("prologue"))
 	{
 		return TeachString(TEXT("story.prologue.tableau"));
 	}
 	if (Games.Phase == TEXT("ritual"))
 	{
-		return TeachString(PhaseClock + 1.0e-9 >= DayTuning.RitualLineS ? TEXT("story.ritual.offer") : TEXT("story.ritual.septima"));
+		return TeachString(PhaseClock + 1.0e-9 >= GetRitualOfferS() ? TEXT("story.ritual.offer") : TEXT("story.ritual.septima"));
 	}
 	if (Games.Phase == TEXT("intro"))
 	{

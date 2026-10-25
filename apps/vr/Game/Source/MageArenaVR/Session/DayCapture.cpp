@@ -226,7 +226,7 @@ void UDayCaptureDriver::Advance()
 		Enter(EStep::WaitOfferLine);
 		break;
 	case EStep::WaitOfferLine:
-		if (Bout && Bout->GetStage() == TEXT("ritual") && Bout->GetPhaseClock() >= Bout->GetDayTuning().RitualLineS + 0.05)
+		if (Bout && Bout->GetStage() == TEXT("ritual") && Bout->GetPhaseClock() >= Bout->GetRitualOfferS() + 0.05)
 		{
 			Bout->SetFrameHold(true);
 			if (UHandInputSubsystem* Hands = HandsSys())
@@ -235,7 +235,7 @@ void UDayCaptureDriver::Advance()
 			}
 			Enter(EStep::WaitPalmsUp);
 		}
-		else if (Elapsed > 10.0)
+		else if (Elapsed > 20.0)
 		{
 			Fail(TEXT("no offer line"));
 		}

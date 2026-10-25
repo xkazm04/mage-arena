@@ -363,7 +363,7 @@ bool IntoBout(FCollarRig& Rig, FArenaSession& Session)
 {
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kCollarTick, true);
-	for (double Elapsed = 0.0; Elapsed < 5.0 && Session.GetPhaseClock() + 1.0e-9 < Session.GetDayTuning().RitualLineS; Elapsed += kCollarTick)
+	for (double Elapsed = 0.0; Elapsed < 15.0 && Session.GetPhaseClock() + 1.0e-9 < Session.GetRitualOfferS(); Elapsed += kCollarTick)
 	{
 		Session.Advance(kCollarTick, true);
 	}

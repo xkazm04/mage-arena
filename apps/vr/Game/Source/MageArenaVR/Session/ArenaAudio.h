@@ -202,8 +202,16 @@ public:
 	static bool ShouldMute(const UWorld* World);
 	/** Every request so far (sim seconds, cue, event, source, position), for the capture's cue log. */
 	const TArray<FAudioPlayRequest>& GetHistory() const { return History; }
+	/** T27: voice cues the session raised that had no imported asset and were skipped (Session/VoiceLines.h). */
+	int32 GetVoiceSkipped() const { return VoiceSkipped; }
 
 private:
+	/**
+	 * T27: plays the session's new voice cues from the speaker's place (C2 section 7). A cue with no asset under
+	 * /Game/Audio/Voice is skipped silently: voice is additive and nothing waits for it.
+	 */
+	void SyncVoice(const FArenaSession& Session, const FVector& CameraCm);
+	USoundWave* VoiceWaveFor(const FString& Cue);
 	USoundWave* WaveFor(FName Cue);
 	USoundAttenuation* AttenuationFor(FName Id);
 	USoundConcurrency* ConcurrencyFor(const struct FAudioCueSpec& Cue);
@@ -234,4 +242,13 @@ private:
 
 	double SwellUntil = -1.0;
 	double SwellDb = 0.0;
+
+	// T27: the session's voice cues already handled, the ones skipped for want of an asset, and the cue ids known to
+	// have none (looked up once).
+	int32 VoiceCursor = 0;
+	int32 VoiceSkipped = 0;
+	TSet<FString> VoiceMissing;
+
+	UPROPERTY()
+	TMap<FName, TObjectPtr<USoundWave>> VoiceWaves;
 };

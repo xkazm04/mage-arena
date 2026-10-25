@@ -12,12 +12,14 @@
 #include "Misc/App.h"
 #include "Misc/CommandLine.h"
 #include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Session/ArenaSession.h"
 #include "Session/ElementColour.h"
+#include "Session/VoiceLines.h"
 #include "Sound/SoundAttenuation.h"
 #include "Sound/SoundConcurrency.h"
 #include "Sound/SoundWave.h"
@@ -704,6 +706,87 @@ UArenaAudioComponent::UArenaAudioComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
+USoundWave* UArenaAudioComponent::VoiceWaveFor(const FString& Cue)
+{
+	if (VoiceMissing.Contains(Cue))
+	{
+		return nullptr;
+	}
+	const FName Key(*Cue);
+	if (TObjectPtr<USoundWave>* Found = VoiceWaves.Find(Key))
+	{
+		return *Found;
+	}
+	// Probe the package first: no load attempt, no warning, for a cue that was never imported (no WAV yet).
+	const FString Path = VoiceLines::AssetPath(Cue);
+	USoundWave* Wave = FPackageName::DoesPackageExist(FPackageName::ObjectPathToPackageName(Path))
+	    ? LoadObject<USoundWave>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet)
+	    : nullptr;
+	if (!Wave)
+	{
+		VoiceMissing.Add(Cue);
+		return nullptr;
+	}
+	VoiceWaves.Add(Key, Wave);
+	return Wave;
+}
+
+void UArenaAudioComponent::SyncVoice(const FArenaSession& Session, const FVector& CameraCm)
+{
+	const TArray<FVoiceCue>& Cues = Session.GetVoiceCues();
+	// A new day (BeginArc) starts its cue list again.
+	VoiceCursor = VoiceCursor > Cues.Num() ? 0 : VoiceCursor;
+	const FAudioAttenuationSpec* Threat = FAudioTable::Default().Attenuations.Find(TEXT("threat"));
+	for (; VoiceCursor < Cues.Num(); ++VoiceCursor)
+	{
+		const FVoiceCue& Cue = Cues[VoiceCursor];
+		const FGames& Games = Session.GetGames();
+		const FVrRuleset* Rules = Session.GetVrRules();
+		const FActor* Rival = Rules ? SimFindActor(Games.State, Rules->RivalRuntime.ActorId) : nullptr;
+		const FVector RivalCm = Rival ? Session.KernelToUnrealCm(Rival->Pos) : FVector::ZeroVector;
+		FVector AtCm = CameraCm;
+		const bool bPlaced = VoiceLines::SpeakerLocationCm(Cue.Speaker, CameraCm, RivalCm, AtCm);
+		USoundWave* Wave = VoiceWaveFor(Cue.Cue);
+		const FVector Rel = AtCm - CameraCm;
+		UE_LOG(LogMageArena, Log, TEXT("MAGEVR_VOICE cue=%s event=%s speaker=%s asset=%s rel=(%.0f,%.0f,%.0f)"), *Cue.Cue, *Cue.Event,
+		    Cue.Speaker.IsEmpty() ? TEXT("-") : *Cue.Speaker, Wave ? TEXT("yes") : TEXT("none, skipped"), Rel.X, Rel.Y, Rel.Z);
+		if (!Wave)
+		{
+			++VoiceSkipped;
+			continue;
+		}
+		FAudioPlayRequest Request;
+		Request.Cue = FName(*Cue.Cue);
+		Request.Event = TEXT("voice.") + Cue.Event;
+		Request.LocationCm = AtCm;
+		Request.AtS = Session.GetSimSeconds();
+		Request.GainDb = FAudioTable::Default().MasterDb;
+		if (History.Num() < 8192)
+		{
+			History.Add(Request);
+		}
+		if (bRecordOnly)
+		{
+			Recorded.Add(Request);
+			continue;
+		}
+		if (bMuted)
+		{
+			continue;
+		}
+		const float Volume = FMath::Pow(10.f, static_cast<float>(Request.GainDb) / 20.f);
+		if (bPlaced)
+		{
+			UGameplayStatics::SpawnSoundAtLocation(this, Wave, AtCm, FRotator::ZeroRotator, Volume, 1.f, 0.f,
+			    Threat ? AttenuationFor(Threat->Id) : nullptr, nullptr, true);
+		}
+		else
+		{
+			UGameplayStatics::SpawnSound2D(this, Wave, Volume, 1.f, 0.f, nullptr, false, true);
+		}
+	}
+}
+
 USoundWave* UArenaAudioComponent::WaveFor(FName Cue)
 {
 	if (TObjectPtr<USoundWave>* Found = Waves.Find(Cue))
@@ -916,6 +999,7 @@ void UArenaAudioComponent::Sync(const FArenaSession& Session, bool bPaused, cons
 			static_cast<int32>(Request.Kind), *Request.Cue.ToString(), *Request.Event, Request.SourceId, Rel.Size(), Rel.X, Rel.Y, Rel.Z, Request.GainDb);
 	}
 	Handle(Requests, NowS);
+	SyncVoice(Session, CameraCm);
 	if (bMuted || bRecordOnly)
 	{
 		return;

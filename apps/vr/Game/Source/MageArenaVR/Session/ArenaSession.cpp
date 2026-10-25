@@ -1741,6 +1741,15 @@ void FArenaSession::DrainEvents(const FActor* Player)
 			const FVrRival* Rival = PhaseRules ? PhaseRules->BoundRival() : nullptr;
 			Note(FString::Printf(TEXT("kernel phase %.0f/%d rival=%s actor=%d t=%.3f"), Event.Value, Rival ? Rival->Phases.Num() + 1 : 0,
 				Rival ? *Rival->Id : TEXT("-"), Event.ActorId, GetSimSeconds()));
+			// T27: the rival's taunt for the threshold that broke (TargetId), voice only (C2 section 7). In the day only.
+			const int32 Threshold = Event.TargetId.Get(-1);
+			if (bDay && Rival && Rival->Phases.IsValidIndex(Threshold))
+			{
+				if (const FStoryTaunt* Taunt = Slice.FindTaunt(Rival->Id, Rival->Phases[Threshold].AtHpFraction))
+				{
+					PushVoice(Taunt->Line, FStorySlice::LineEvent(TEXT("taunt.") + Rival->Id, Threshold), GetSimSeconds());
+				}
+			}
 		}
 		else if (Event.Kind == TEXT("cast") && Event.ActorId != Games.PlayerId && GetVrRules() && GetVrRules()->IsRival(Event.ActorId)
 			&& GetVrRules()->RivalRuntime.GrantTick == Event.Tick)
@@ -2042,6 +2051,7 @@ void FArenaSession::Advance(double DeltaSeconds, bool bStepHands)
 	if (IsArcPhase(Games.Phase))
 	{
 		AdvanceArc(DeltaSeconds);
+		TrackVoice();
 		bClipWasPlaying = ClipPlaying();
 		return;
 	}

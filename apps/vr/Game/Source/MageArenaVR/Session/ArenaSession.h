@@ -11,6 +11,7 @@
 #include "Session/PlayerPreset.h"
 #include "Session/SessionCue.h"
 #include "Session/StorySlice.h"
+#include "Session/VoiceLines.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ArenaSession.generated.h"
 
@@ -98,8 +99,9 @@ struct FTeachTuning
 struct FDayTuning
 {
 	double PrologueMaxS = 45.0;
-	double RitualLineS = 3.0;
-	double RitualTimeoutS = 20.0;
+	/** T27: one dwell per ritual line, in order (C2 section 5 beat 2). The last line stands until the offer or the timeout. */
+	TArray<double> RitualLineS = {12.0, 14.0, 12.0};
+	double RitualTimeoutS = 45.0;
 	/** T28: one intro length per Tiro wave index (C2 section 4). A wave past the end uses the last entry. */
 	TArray<double> IntroS = {8.0, 8.0, 12.0, 12.0};
 	double AftermathTabletS = 16.0;
@@ -109,6 +111,32 @@ struct FDayTuning
 	double IntroSeconds(int32 WaveIndex) const
 	{
 		return IntroS.Num() == 0 ? 0.0 : IntroS[FMath::Clamp(WaveIndex, 0, IntroS.Num() - 1)];
+	}
+
+	/** T27: the ritual line standing at Clock seconds into the ritual (0-based; the last line once every dwell ran). */
+	int32 RitualLineAt(double Clock, int32 Lines) const
+	{
+		double Until = 0.0;
+		for (int32 Index = 0; Index + 1 < Lines; ++Index)
+		{
+			Until += RitualLineS.IsValidIndex(Index) ? RitualLineS[Index] : 0.0;
+			if (Clock + 1.0e-9 < Until)
+			{
+				return Index;
+			}
+		}
+		return FMath::Max(0, Lines - 1);
+	}
+
+	/** T27: the sum of every ritual dwell, the ritual's natural length (38 s). */
+	double RitualNaturalS() const
+	{
+		double Sum = 0.0;
+		for (const double Seconds : RitualLineS)
+		{
+			Sum += Seconds;
+		}
+		return Sum;
 	}
 };
 
@@ -166,8 +194,9 @@ public:
 	 *   held offerHoldS spares, a fist held FFistThresholds::HoldS finishes, and no choice in 5 s spares.
 	 *   after the final, won or lost: aftermath -> closed (centre stone)
 	 * prologue: story.prologue.tableau for up to day.json prologueMaxS, skipped by a palm held over the centre stone.
-	 * ritual: Septima's line for ritualLineS, then the offer line; both palms held for teach.json offerHoldS lock the
-	 * collar, and ritualTimeoutS (from the start of the ritual) continues anyway.
+	 * ritual: Septima's lines one at a time, each for its ritualLineS dwell (T27: the slice's ritual lines, or without
+	 * the slice her fallback line, then the offer line); both palms held for teach.json offerHoldS lock the collar from
+	 * GetRitualOfferS, and ritualTimeoutS (from the start of the ritual) continues anyway.
 	 * intro: the bout's intro line for introS while the opponents stand; the kernel steps only from active on.
 	 * T28, with apps/vr/data/vr/story/slice.json loaded: each beat's floorS gates its skip (the prologue's centre stone,
 	 * the closing card's centre stone), the closing card ends itself after closingCardS, and each intermission plays its
@@ -215,6 +244,23 @@ public:
 	void SetSlicePath(const FString& Path) { SlicePath = Path; }
 	/** A beat's floorS from the slice: below it the beat's skip does nothing. 0 without the slice. */
 	double BeatFloorS(const TCHAR* BeatId) const { return Slice.BeatFloorS(BeatId); }
+	/**
+	 * T27: the ritual clock from which both palms lock the collar: the ritual beat's floor (C2 section 4: 10 s), or,
+	 * with the slice skipped, the moment the offer line stands (the first ritualLineS dwell).
+	 */
+	double GetRitualOfferS() const;
+	/**
+	 * T27: the slice line standing now (the prologue's, the ritual's, a bout intro's, an intermission scene's, the tablet
+	 * or the closing card's), or null (no slice, or a phase with no line). OutEvent gets its voice event name.
+	 */
+	const FStoryLine* GetStoryLine(FString* OutEvent = nullptr) const;
+	/** T27: every voice cue raised this day, in order, for the audio component's cursor (Session/VoiceLines.h). */
+	const TArray<FVoiceCue>& GetVoiceCues() const { return VoiceCues; }
+	/**
+	 * T27, measurement only (MageArenaDesign.Session.FullSeated's natural day): the script leaves the prologue, the
+	 * ritual and the closing card at each beat's naturalS (C2 section 4) instead of its floor. Off by default.
+	 */
+	void SetScriptNatural(bool bInNatural) { bScriptNatural = bInNatural; }
 	/** The scene of this intermission, or null (not a day, not an intermission, no slice, or no scene after this bout). */
 	const FStoryScene* GetActiveScene() const;
 	/** Seconds the current intermission scene has run (0 before its first step). */
@@ -383,7 +429,14 @@ private:
 	void WriteSceneChoice(const FStoryScene& Scene, int32 Stone);
 	/** The scene line standing at the scene clock; empty once the lines are done or outside a begun scene. */
 	FString SceneLine() const;
+	/** T27: the same line, and its index in the scene's order; null when SceneLine is empty. */
+	const FStoryLine* SceneStoryLine(int32& OutIndex) const;
 	void ResetScene();
+	/** T27: raises the voice cue of the slice line that started standing since the last call (C2 section 8). */
+	void TrackVoice();
+	void PushVoice(const FStoryLine& Line, const FString& Event, double PhaseS);
+	/** T27: when the script leaves a beat: its floorS, or its naturalS under SetScriptNatural (at least the floor). */
+	double ScriptLeaveS(const TCHAR* BeatId, double FloorS) const;
 	/** T25: after the kernel settled a bout won against a bound rival, before its intermission or aftermath. */
 	void EnterMissio();
 	/** Missio's phase clock is advanced by AdvanceDay; this reads the fist, the palm and the timeout. */
@@ -545,6 +598,10 @@ private:
 	int32 SceneVariant = INDEX_NONE;
 	double SceneHold = 0.0;
 	int32 SceneHoldStone = -1;
+	// T27: the voice cues raised this day, and the event of the slice line last seen standing (empty: none, or no cue).
+	TArray<FVoiceCue> VoiceCues;
+	FString VoiceEvent;
+	bool bScriptNatural = false;
 	FCollarLedger Collar;
 	// T25: fed every hand frame, read only in missio (reset on entry, so a fist from the bout does not count).
 	FFistDetector Fist;

@@ -3,10 +3,12 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 // T21: the Tiro day. Literals and their sources:
-// - apps/vr/data/vr/day.json: prologueMaxS 45, ritualLineS 3, ritualTimeoutS 20, introS [8, 8, 12, 12],
+// - apps/vr/data/vr/day.json: prologueMaxS 45, ritualLineS [12, 14, 12], ritualTimeoutS 45 (T27), introS [8, 8, 12, 12],
 //   aftermathTabletS 16, closingCardS 34 (T28, from the C2 time budget).
-// - apps/vr/data/vr/story/slice.json (C2): the prologue's floor 6 s, the closing card's floor 6 s, and each intermission
-//   scene's floor 3 s and max 20 s. Below a floor the skip does nothing.
+// - apps/vr/data/vr/story/slice.json (C2): the prologue's floor 6 s, the ritual's floor 10 s (both palms count from it),
+//   the closing card's floor 6 s, and each intermission scene's floor 3 s and max 20 s. Below a floor the skip does
+//   nothing. With the slice loaded each beat shows its C2 lines (section 5); strings.json holds the fallbacks.
+// - apps/vr/art/audio/voice/manifest.json: the C2 cue sheet (section 9), whose ids are the strings.json _story.* markers.
 // - teach.json offerHoldS 0.40 (the ritual's both-palms hold and every stone hold).
 // - pinned arena-tiers.json Tiro: wave n 1 soldiers, 2 creatures, 3 semifinal (one mage, competence 1),
 //   4 final (one mage, competence 1.5).
@@ -33,6 +35,8 @@
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "Session/ArenaSession.h"
+#include "Session/StorySlice.h"
+#include "Session/VoiceLines.h"
 
 namespace
 {
@@ -211,10 +215,12 @@ void ContinueAtFloor(FDayRig& Rig, FArenaSession& Session)
 	Session.Advance(kDayTick, true);
 }
 
-// Ritual to the bout: waits for the offer line, plays the both-palms clip, then runs into the intro.
+// Ritual to the bout: waits for the ritual's floor (T27: the offer counts from it), plays the both-palms clip, then runs
+// into the intro.
 bool OfferWrists(FDayRig& Rig, FArenaSession& Session)
 {
-	RunUntil(Session, [&Session]() { return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	RunUntil(Session, [&Session]()
+	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetRitualOfferS(); }, 15.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	RunWhileStage(Session, TEXT("ritual"), 5.0);
 	return Session.GetStage() == TEXT("intro");
@@ -333,10 +339,10 @@ bool FMageArenaDayOrderFirstLaunch::RunTest(const FString& Parameters)
 	    TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("intermission"),
 	    TEXT("intro"), TEXT("active"), TEXT("missio"), TEXT("aftermath"), TEXT("closed")};
 	bPass &= TestEqual(TEXT("first-launch phase order"), FString::Join(Log.Stages, TEXT(" > ")), FString::Join(Expected, TEXT(" > ")));
-	bPass &= TestEqual(TEXT("bout 1 intro line"), Intro1, FString(TEXT("Legion soldiers. Hold the dais.")));
+	bPass &= TestEqual(TEXT("bout 1 intro line"), Intro1, FString(TEXT("Legion soldiers, for the warm-up. Hold the dais.")));
 	bPass &= TestTrue(TEXT("the final was won"), Session.WasFinalWon());
 	bPass &= TestEqual(TEXT("the day over saves a new day from Bout 1"), Rig.ReadSave(), FString(TEXT("bout=0\n")));
-	bPass &= TestEqual(TEXT("closing line"), Session.GetPromptText(), FString(TEXT("Rest, Cassia. The Games resume tomorrow.")));
+	bPass &= TestEqual(TEXT("closing line"), Session.GetPromptText(), FString(TEXT("Rest, Tide. The sand will be raked by dawn.")));
 	bPass &= TestEqual(TEXT("the prologue was skipped on the stone"), CountLines(Session.GetChain(), TEXT("day prologue skipped")), 1);
 	bPass &= TestEqual(TEXT("the ritual was offered, not timed out"), CountLines(Session.GetChain(), TEXT("day ritual offered")), 1);
 	double Spared = 0.0;
@@ -368,7 +374,7 @@ bool FMageArenaDayOrderResume::RunTest(const FString& Parameters)
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kDayTick, true);
 	Log.Note(Session);
-	bPass &= TestEqual(TEXT("Septima speaks first"), Session.GetPromptText(), FString(TEXT("Septima: Kneel, Tide. The collar takes its due.")));
+	bPass &= TestEqual(TEXT("Septima speaks first (RIT-01)"), Session.GetPromptText(), FString(TEXT("The Vigil wakes the collar. Kneel, Tide.")));
 	bPass &= TestTrue(TEXT("both palms lock the collar"), OfferWrists(Rig, Session));
 	Log.Note(Session);
 	bPass &= TestEqual(TEXT("bout 3 intro line"), Session.GetPromptText(), FString(TEXT("Brennic of the Ember. The ford remembers you both.")));
@@ -407,7 +413,7 @@ bool FMageArenaDayPrologue::RunTest(const FString& Parameters)
 		Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 		Session.Advance(kDayTick, true);
 		bPass &= TestEqual(TEXT("cold raise opens the prologue"), Session.GetStage(), FString(TEXT("prologue")));
-		bPass &= TestEqual(TEXT("tableau line"), Session.GetPromptText(), FString(TEXT("The ford. Four mages betrayed, four collars closed.")));
+		bPass &= TestEqual(TEXT("tableau line (PRO-01)"), Session.GetPromptText(), FString(TEXT("The ford. Four mages held the line.")));
 		// T28: slice.json prologue.floorS 6. The skip stone shows once it works.
 		bPass &= TestTrue(TEXT("prologue floor 6 s"), FMath::IsNearlyEqual(Session.BeatFloorS(TEXT("prologue")), 6.0));
 		bPass &= TestFalse(TEXT("no skip stone below the floor"), Session.AreStoryStonesShown());
@@ -484,10 +490,13 @@ bool FMageArenaDayRitualHold::RunTest(const FString& Parameters)
 		Session.Advance(Dt, true);
 		bPass &= TestEqual(TEXT("ritual"), Session.GetStage(), FString(TEXT("ritual")));
 		bPass &= TestTrue(TEXT("offerHoldS 0.40"), FMath::IsNearlyEqual(Session.GetTuning().OfferHoldS, 0.40));
-		bPass &= TestTrue(TEXT("ritualLineS 3"), FMath::IsNearlyEqual(Session.GetDayTuning().RitualLineS, 3.0));
-		// Both palms from the first instant. The hold may only count once the offer line stands (3 s), so the ritual
-		// ends on the tick the hold reaches 0.40 s after it: at 72 Hz the line stands from tick 216 (3.000 s), and the
-		// hold of ceil(0.40 * 72) = 29 ticks completes on tick 216 + 28 = 244, 244/72 = 3.389 s of ritual clock.
+		const TArray<double> Dwells = {12.0, 14.0, 12.0};
+		bPass &= TestTrue(TEXT("ritualLineS [12, 14, 12]"), Session.GetDayTuning().RitualLineS == Dwells);
+		bPass &= TestTrue(TEXT("ritualTimeoutS 45"), FMath::IsNearlyEqual(Session.GetDayTuning().RitualTimeoutS, 45.0));
+		bPass &= TestTrue(TEXT("the offer counts from the ritual floor, 10 s"), FMath::IsNearlyEqual(Session.GetRitualOfferS(), 10.0));
+		// Both palms from the first instant. T27: the hold may only count from the ritual's floor (10 s), so the ritual
+		// ends on the tick the hold reaches 0.40 s after it: at 72 Hz the floor is reached on tick 720 (10.000 s), and the
+		// hold of ceil(0.40 * 72) = 29 ticks completes on tick 720 + 28 = 748, 748/72 = 10.389 s of ritual clock.
 		Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 		double Clock = 0.0;
 		const double Lasted = RunUntil(Session, [&]()
@@ -497,10 +506,10 @@ bool FMageArenaDayRitualHold::RunTest(const FString& Parameters)
 				Clock = Session.GetPhaseClock();
 			}
 			return Session.GetStage() != TEXT("ritual");
-		}, 6.0, Dt);
+		}, 13.0, Dt);
 		bPass &= TestEqual(TEXT("both palms lock the collar"), CountLines(Session.GetChain(), TEXT("day ritual offered")), 1);
-		bPass &= TestTrue(*FString::Printf(TEXT("not before the offer line plus the hold (ritual clock %.4f)"), Clock), Clock >= 3.0 + 0.40 - 2.0 * Dt);
-		bPass &= TestTrue(*FString::Printf(TEXT("on the hold (ritual clock %.4f, expected 244/72)"), Clock), FMath::Abs(Clock - 244.0 / 72.0) <= Dt + 1.0e-6);
+		bPass &= TestTrue(*FString::Printf(TEXT("not before the floor plus the hold (ritual clock %.4f)"), Clock), Clock >= 10.0 + 0.40 - 2.0 * Dt);
+		bPass &= TestTrue(*FString::Printf(TEXT("on the hold (ritual clock %.4f, expected 748/72)"), Clock), FMath::Abs(Clock - 748.0 / 72.0) <= Dt + 1.0e-6);
 		bPass &= TestEqual(TEXT("into Bout 1's intro"), Session.GetStage(), FString(TEXT("intro")));
 		(void)Lasted;
 		Rig.Close(Session);
@@ -519,10 +528,17 @@ bool FMageArenaDayRitualHold::RunTest(const FString& Parameters)
 		bPass &= TestTrue(TEXT("day begins"), Session.BeginArc(1));
 		Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 		Session.Advance(Dt, true);
-		RunUntil(Session, [&Session]() { return Session.GetPhaseClock() >= 3.1; }, 5.0, Dt);
-		bPass &= TestEqual(TEXT("offer line"), Session.GetPromptText(), FString(TEXT("Septima: Offer both wrists to the collar.")));
+		// T27: the ritual's three C2 lines one at a time, for 12 and 14 s; the offer line (RIT-03) stands from 26 s.
+		bPass &= TestEqual(TEXT("RIT-01 first"), Session.GetPromptText(), FString(TEXT("The Vigil wakes the collar. Kneel, Tide.")));
+		RunUntil(Session, [&Session]()
+		{ return Session.GetPhaseClock() >= 12.1; }, 13.0, Dt);
+		bPass &= TestEqual(TEXT("RIT-02 from 12 s"), Session.GetPromptText(), FString(TEXT("It will give back one tier each fifteen seconds.")));
+		RunUntil(Session, [&Session]()
+		{ return Session.GetPhaseClock() >= 26.1; }, 15.0, Dt);
+		bPass &= TestEqual(TEXT("the offer line, RIT-03, from 26 s"), Session.GetPromptText(), FString(TEXT("Offer both wrists. The Vigil does not ask twice.")));
 		Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
-		RunUntil(Session, [&Session]() { return Session.GetPhaseClock() >= 6.0; }, 4.0, Dt);
+		RunUntil(Session, [&Session]()
+		{ return Session.GetPhaseClock() >= 29.0; }, 4.0, Dt);
 		bPass &= TestEqual(TEXT("one palm does not lock the collar"), Session.GetStage(), FString(TEXT("ritual")));
 		bPass &= TestFalse(TEXT("one palm sets no absorb in the ritual"), Session.GetGames().State.Actors.Num() > 0
 			&& SimFindActor(Session.GetGames().State, Session.GetGames().PlayerId)->bAbsorb);
@@ -549,9 +565,9 @@ bool FMageArenaDayRitualTimeout::RunTest(const FString& Parameters)
 	bool bPass = TestTrue(TEXT("day begins"), Session.BeginArc(1));
 	Session.SkipTeach();
 	bPass &= TestEqual(TEXT("ritual"), Session.GetStage(), FString(TEXT("ritual")));
-	// day.json ritualTimeoutS 20, counted from the ritual's start: 1200 ticks of 1/60 s, then Bout 2's intro.
-	const double Lasted = RunWhileStage(Session, TEXT("ritual"), 25.0);
-	bPass &= TestTrue(*FString::Printf(TEXT("soft timeout at 20 s (%.4f)"), Lasted), FMath::Abs(Lasted - 20.0) <= kDayTick + 1.0e-6);
+	// day.json ritualTimeoutS 45 (T27), counted from the ritual's start: 2700 ticks of 1/60 s, then Bout 2's intro.
+	const double Lasted = RunWhileStage(Session, TEXT("ritual"), 50.0);
+	bPass &= TestTrue(*FString::Printf(TEXT("soft timeout at 45 s (%.4f)"), Lasted), FMath::Abs(Lasted - 45.0) <= kDayTick + 1.0e-6);
 	bPass &= TestEqual(TEXT("timeout continues anyway"), Session.GetStage(), FString(TEXT("intro")));
 	bPass &= TestEqual(TEXT("timeout line"), CountLines(Session.GetChain(), TEXT("day ritual timeout")), 1);
 	bPass &= TestEqual(TEXT("no offer"), CountLines(Session.GetChain(), TEXT("day ritual offered")), 0);
@@ -665,7 +681,7 @@ bool FMageArenaDayFinalOpponent::RunTest(const FString& Parameters)
 	Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
 	Session.Advance(kDayTick, true);
 	bPass &= TestTrue(TEXT("ritual to the final"), OfferWrists(Rig, Session));
-	bPass &= TestEqual(TEXT("final intro line"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. The final.")));
+	bPass &= TestEqual(TEXT("final intro line"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. She has never lost politely.")));
 	bPass &= TestEqual(TEXT("final wave index"), Session.GetGames().Wave, 3);
 	const FActor* Mage = OpponentMage(Session);
 	bPass &= TestTrue(TEXT("one opponent mage"), Mage != nullptr);
@@ -771,7 +787,7 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	Session.Advance(kDayTick, true);
 	bPass &= TestEqual(TEXT("the palm offers Bout 4 again"), Session.GetStage(), FString(TEXT("intro")));
 	bPass &= TestEqual(TEXT("the same bout"), Session.GetGames().Wave, 3);
-	bPass &= TestEqual(TEXT("the intro again"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. The final.")));
+	bPass &= TestEqual(TEXT("the intro again"), Session.GetPromptText(), FString(TEXT("Lio of the Gale. She has never lost politely.")));
 	RunWhileStage(Session, TEXT("intro"), 15.0);
 	LoseBout(Session);
 	bPass &= TestEqual(TEXT("lost again"), Session.GetStage(), FString(TEXT("lost")));
@@ -788,7 +804,7 @@ bool FMageArenaDayFinalDefeat::RunTest(const FString& Parameters)
 	const double TabletS = Session.GetDayTuning().AftermathTabletS;
 	RunUntil(Session, [&Session, TabletS]()
 	{ return Session.GetPhaseClock() >= TabletS + kDayTick; }, TabletS + 2.0);
-	bPass &= TestEqual(TEXT("closing line after a lost final"), Session.GetPromptText(), FString(TEXT("The sand drinks your blood. The collar holds.")));
+	bPass &= TestEqual(TEXT("closing line after a lost final"), Session.GetPromptText(), FString(TEXT("Missio. The crowd spares you. The collar keeps its due.")));
 	bPass &= TestEqual(TEXT("a new day is saved"), Rig.ReadSave(), FString(TEXT("bout=0\n")));
 	Rig.Close(Session);
 	return bPass;
@@ -811,7 +827,7 @@ bool FMageArenaDayFlags::RunTest(const FString& Parameters)
 	Session.SetScripted(false);
 	bool bPass = TestTrue(TEXT("day begins"), Session.BeginArc(1));
 	Session.SkipTeach();
-	RunWhileStage(Session, TEXT("ritual"), 25.0);
+	RunWhileStage(Session, TEXT("ritual"), 50.0);
 	RunWhileStage(Session, TEXT("intro"), 15.0);
 	bPass &= TestEqual(TEXT("Bout 1 live"), Session.GetStage(), FString(TEXT("active")));
 	bPass &= TestEqual(TEXT("Bout 1 starts at tick 0"), Session.GetGames().State.Tick, 0);
@@ -904,6 +920,68 @@ bool FMageArenaDayStrings::RunTest(const FString& Parameters)
 		return false;
 	}
 	bool bPass = true;
+	// T27, C2 section 10: every _story.* marker is its line's cue id on the cue sheet (the voice manifest), so the script,
+	// the string table and the manifest cannot drift apart. A line that is not its cue's own text must be the fallback
+	// of the slice beat that carries the cue (C2 section 5 keeps the prologue's and the ritual's placeholders as
+	// fallbacks). The marker "unvoiced" is allowed only for a line the slice also has with no cue (the tablet heading).
+	FVoiceManifest Manifest;
+	FString ManifestError;
+	bPass &= TestTrue(*FString::Printf(TEXT("the cue sheet loads (%s)"), *ManifestError), Manifest.LoadFromFile(FVoiceManifest::DefaultPath(), ManifestError));
+	TSharedPtr<FJsonObject> SliceRoot;
+	FString SliceText;
+	bPass &= TestTrue(TEXT("slice.json reads"), FFileHelper::LoadFileToString(SliceText, *FStorySlice::DefaultFilePath()) && FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(SliceText), SliceRoot) && SliceRoot.IsValid());
+	TMap<FString, TSet<FString>> FallbackCues;
+	TSet<FString> UncuedTexts;
+	const TArray<TSharedPtr<FJsonValue>>* Beats = nullptr;
+	if (SliceRoot.IsValid() && SliceRoot->TryGetArrayField(TEXT("beats"), Beats) && Beats)
+	{
+		for (const TSharedPtr<FJsonValue>& BeatValue : *Beats)
+		{
+			const TSharedPtr<FJsonObject> Beat = BeatValue->AsObject();
+			TArray<TSharedPtr<FJsonObject>> Holders = {Beat};
+			const TArray<TSharedPtr<FJsonValue>>* Variants = nullptr;
+			if (Beat->TryGetArrayField(TEXT("variants"), Variants) && Variants)
+			{
+				for (const TSharedPtr<FJsonValue>& Variant : *Variants)
+				{
+					Holders.Add(Variant->AsObject());
+				}
+			}
+			TSet<FString> BeatCues;
+			TArray<FString> Fallbacks;
+			for (const TSharedPtr<FJsonObject>& Holder : Holders)
+			{
+				for (const TCHAR* Field : {TEXT("fallback"), TEXT("fallbackSecond"), TEXT("fallbackLost")})
+				{
+					FString Fallback;
+					if (Holder->TryGetStringField(Field, Fallback))
+					{
+						Fallbacks.Add(Fallback);
+					}
+				}
+				const TArray<TSharedPtr<FJsonValue>>* Lines = nullptr;
+				if (Holder->TryGetArrayField(TEXT("lines"), Lines) && Lines)
+				{
+					for (const TSharedPtr<FJsonValue>& LineValue : *Lines)
+					{
+						FString Cue;
+						if (LineValue->AsObject()->TryGetStringField(TEXT("cue"), Cue))
+						{
+							BeatCues.Add(Cue);
+						}
+						else
+						{
+							UncuedTexts.Add(LineValue->AsObject()->GetStringField(TEXT("text")));
+						}
+					}
+				}
+			}
+			for (const FString& Fallback : Fallbacks)
+			{
+				FallbackCues.FindOrAdd(Fallback).Append(BeatCues);
+			}
+		}
+	}
 	int32 Story = 0;
 	for (const auto& Pair : Root->Values)
 	{
@@ -918,8 +996,17 @@ bool FMageArenaDayStrings::RunTest(const FString& Parameters)
 			bPass &= TestTrue(*FString::Printf(TEXT("%s has 10 words or fewer (%d)"), *Key, Words.Num()), Words.Num() > 0 && Words.Num() <= 10);
 			const FString Marker = TEXT("_story.") + Key.Mid(6);
 			FString MarkerText;
-			bPass &= TestTrue(*FString::Printf(TEXT("%s has its C2 marker"), *Key), Root->TryGetStringField(Marker, MarkerText)
-				&& MarkerText == TEXT("placeholder for C2"));
+			bPass &= TestTrue(*FString::Printf(TEXT("%s has its C2 marker"), *Key), Root->TryGetStringField(Marker, MarkerText));
+			if (MarkerText == TEXT("unvoiced"))
+			{
+				bPass &= TestTrue(*FString::Printf(TEXT("%s is unvoiced in slice.json too"), *Key), UncuedTexts.Contains(Value));
+				continue;
+			}
+			const FVoiceManifestRow* Row = Manifest.Find(MarkerText);
+			bPass &= TestNotNull(*FString::Printf(TEXT("%s marker %s matches a cue id in the cue sheet"), *Key, *MarkerText), Row);
+			const TSet<FString>* BeatCues = FallbackCues.Find(Key);
+			bPass &= TestTrue(*FString::Printf(TEXT("%s is %s's text, or the fallback of the beat that carries it"), *Key, *MarkerText),
+			    Row && (Row->Text == Value || (BeatCues && BeatCues->Contains(MarkerText))));
 		}
 		else if (Key.StartsWith(TEXT("_story.")))
 		{

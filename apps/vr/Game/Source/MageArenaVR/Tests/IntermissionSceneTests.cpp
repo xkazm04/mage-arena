@@ -149,7 +149,7 @@ bool SceneReachBout(FSceneRig& Rig, FArenaSession& Session, int32 Bout)
 	Rig.RaisePalm();
 	Session.Advance(kSceneTick, true);
 	SceneRunUntil(Session, [&Session]()
-	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetRitualOfferS(); }, 15.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	SceneRunWhile(Session, TEXT("ritual"), 5.0);
 	SceneRunWhile(Session, TEXT("intro"), 15.0);
@@ -672,7 +672,7 @@ bool FMageArenaIntermissionPickUnreachableInBout::RunTest(const FString& Paramet
 	Rig.RaisePalm();
 	Session.Advance(kSceneTick, true);
 	SceneRunUntil(Session, [&Session]()
-	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
+	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetRitualOfferS(); }, 15.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	SceneRunWhile(Session, TEXT("ritual"), 5.0);
 	bPass &= TestEqual(TEXT("the intro"), Session.GetStage(), FString(TEXT("intro")));
