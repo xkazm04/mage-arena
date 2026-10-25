@@ -18,7 +18,9 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Parse.h"
 #include "Misc/Paths.h"
+#include "Session/ArenaFlags.h"
 #include "Session/ArenaSession.h"
+#include "Session/StorySlice.h"
 #include "Tests/DesignMeasure.h"
 
 namespace
@@ -653,8 +655,145 @@ bool FMageArenaSessionChainDefeat::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+namespace
+{
+// One run of the reference day (MageArenaDesign.Session.FullSeated): a first-launch session for cold + prologue + teach,
+// then the day from the ritual. Seconds per stage, per bout intro and per intermission (by the bout it follows).
+struct FReferenceDay
+{
+	double FirstLaunchS = 0.0;
+	double PrologueS = 0.0;
+	double TeachS = 0.0;
+	double DayS = 0.0;
+	TMap<FString, double> PhaseS;
+	double IntroS[4] = {0.0, 0.0, 0.0, 0.0};
+	double IntermissionS[3] = {0.0, 0.0, 0.0};
+	int32 Guard = 0;
+	bool bStopped = false;
+	FString Stage;
+	int32 StopWave = -1;
+	TArray<FString> Chain;
+	FArenaFlags Flags;
+	int32 DayCracks = 0;
+	int32 DayTithe = 0;
+	int32 LifetimeCracks = 0;
+	int32 LifetimeTithe = 0;
+	FString Schools[4];
+};
+
+// bNatural false is the rushed path of C2 section 4 (every skip at its floor, the intermission palm at the scene's floor).
+// bNatural true (T27, measure only) leaves each beat at its natural seconds: the session's script dwells the prologue,
+// the ritual and the closing card (SetScriptNatural) and the palm is raised at each scene's naturalS.
+bool RunReferenceDay(FAutomationTestBase& Test, FSessionRig& Rig, bool bNatural, FReferenceDay& Out)
+{
+	const double Dt = 1.0 / 72.0;
+	const TCHAR* Tag = bNatural ? TEXT("natural ") : TEXT("");
+	// First launch: cold -> prologue -> teach, until the ritual.
+	{
+		FArenaSession First;
+		First.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+		First.SetScripted(true);
+		First.SetScriptNatural(bNatural);
+		const FString FirstDir = ScratchSaveDir();
+		First.SetSaveDirectory(FirstDir);
+		if (!First.BeginArc(1))
+		{
+			Test.AddError(TEXT("first launch BeginArc failed"));
+			First.Unbind();
+			return false;
+		}
+		int32 Guard = 0;
+		while (First.GetStage() != TEXT("ritual") && Guard < 72 * 300)
+		{
+			const FString Stage = First.GetStage();
+			First.Advance(Dt, true);
+			Out.FirstLaunchS += Dt;
+			Out.PrologueS += Stage == TEXT("prologue") ? Dt : 0.0;
+			Out.TeachS += Stage == TEXT("teach") ? Dt : 0.0;
+			++Guard;
+		}
+		UE_LOG(LogMageArena, Log, TEXT("FullSeated %sfirst launch: cold+prologue+teach=%.2f s (teach %.3f s) stage=%s"), Tag,
+		    Out.FirstLaunchS, First.GetTeachSeconds(), *First.GetStage());
+		Test.TestEqual(TEXT("the first launch reaches the ritual"), First.GetStage(), FString(TEXT("ritual")));
+		First.Unbind();
+		IFileManager::Get().DeleteDirectory(*FirstDir, false, true);
+	}
+
+	FArenaSession Session;
+	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
+	Session.SetScripted(true);
+	Session.SetScriptNatural(bNatural);
+	const FString Dir = ScratchSaveDir();
+	Session.SetSaveDirectory(Dir);
+	if (!Session.BeginArc(1))
+	{
+		Test.AddError(TEXT("BeginArc failed"));
+		Session.Unbind();
+		return false;
+	}
+	Session.SkipTeach();
+
+	FString LastStage;
+	bool bPalmed = false;
+	while (Session.GetStage() != TEXT("closed") && Out.Guard < 72 * 1800)
+	{
+		const FString Stage = Session.GetStage();
+		if (Stage != LastStage)
+		{
+			UE_LOG(LogMageArena, Log, TEXT("FullSeated %sstage=%s bout=%d t=%.2f"), Tag, *Stage, Session.GetGames().Wave + 1, Out.DayS);
+			LastStage = Stage;
+			bPalmed = false;
+		}
+		if (Stage == TEXT("intermission") && !bPalmed)
+		{
+			// T28: below the scene's floor the palm does nothing, so the script raises it once the floor passed (the
+			// natural day: once the scene's natural seconds passed).
+			const FStoryScene* Scene = Session.GetActiveScene();
+			if (!Scene || Session.GetSceneClock() + 1.0e-9 >= (bNatural ? Scene->NaturalS : Scene->FloorS))
+			{
+				Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
+				bPalmed = true;
+			}
+		}
+		if (Stage == TEXT("lost") && Session.GetGames().Wave < 3)
+		{
+			Out.bStopped = true;
+			break;
+		}
+		const int32 Wave = Session.GetGames().Wave;
+		Session.Advance(Dt, true);
+		Out.PhaseS.FindOrAdd(Stage) += Dt;
+		if (Stage == TEXT("intro") && Wave >= 0 && Wave < 4)
+		{
+			Out.IntroS[Wave] += Dt;
+		}
+		if (Stage == TEXT("intermission") && Wave >= 0 && Wave < 3)
+		{
+			Out.IntermissionS[Wave] += Dt;
+		}
+		Out.DayS += Dt;
+		++Out.Guard;
+	}
+	Out.Stage = Session.GetStage();
+	Out.StopWave = Session.GetGames().Wave;
+	Out.Chain = Session.GetChain();
+	Out.Flags = Session.GetFlags();
+	Out.DayCracks = Session.GetDayCracks();
+	Out.DayTithe = Session.GetDayTithe();
+	Out.LifetimeCracks = Session.GetCollar().GetLifetimeCracks();
+	Out.LifetimeTithe = Session.GetCollar().GetLifetimeTithe();
+	for (int32 Index = 0; Index < 4; ++Index)
+	{
+		Out.Schools[Index] = Session.DaySchool(Index);
+	}
+	IFileManager::Get().DeleteDirectory(*Dir, false, true);
+	Session.Unbind();
+	return true;
+}
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaFullSeated, "MageArenaDesign.Session.FullSeated",
-	EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
 bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 {
@@ -667,100 +806,34 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 	// 6 s floor +6 s; intros 3 s -> 8, 8, 12, 12 s +28 s over four bouts; intermissions 0 -> their 3 s floor +9 s over
 	// three; tablet 4 -> 16 s +12 s; closing floor +6 s. +61 s for a day that closes; +31 s for today's run, which
 	// stops at bout 3 (DF-011: +6 prologue, +19 three intros, +6 two intermissions). The intermissions' share is at most
-	// the three scenes' maxS, 60 s.
+	// the three scenes' maxS, 60 s. T27: the offer counts from the ritual's 10 s floor (was the 3 s offer line), +7 s.
+	// T27, measure only (DF-010 E): after the rushed day the same script plays the natural day of C2 section 4, each
+	// beat at its natural seconds (prologue 36, ritual 38, intermissions 16, 18, 18, closing 31; the intros and the
+	// tablet already run their natural length), and logs it as dayNaturalS beside dayWithTeachS. It decides nothing.
 	// Plan target: a 7-10 minute session (docs/campaign/04-vr-campaign-design.md section 1, Games day 6-10 min, and the
 	// V2-ROADMAP mechanics gate). A bout the script loses is the end of the run: the script is deterministic, so a retry
 	// of bouts 1-3 loses again; a lost final goes to the aftermath on the centre stone.
 	const bool bProposal = FParse::Param(FCommandLine::Get(), TEXT("MageArenaProposal"));
 	const double PlanLoS = 7.0 * 60.0;
 	const double PlanHiS = 10.0 * 60.0;
-	const double Dt = 1.0 / 72.0;
 	FSessionRig Rig;
-	if (!Rig.Open(*this)) return false;
+	if (!Rig.Open(*this))
+		return false;
 
-	// First launch: cold -> prologue -> teach, until the ritual.
-	double FirstLaunchS = 0.0;
+	FReferenceDay Rushed;
+	if (!RunReferenceDay(*this, Rig, false, Rushed))
 	{
-		FArenaSession First;
-		First.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
-		First.SetScripted(true);
-		const FString FirstDir = ScratchSaveDir();
-		First.SetSaveDirectory(FirstDir);
-		if (!First.BeginArc(1))
-		{
-			AddError(TEXT("first launch BeginArc failed"));
-			Rig.Close(First);
-			return false;
-		}
-		int32 Guard = 0;
-		while (First.GetStage() != TEXT("ritual") && Guard < 72 * 300)
-		{
-			First.Advance(Dt, true);
-			FirstLaunchS += Dt;
-			++Guard;
-		}
-		UE_LOG(LogMageArena, Log, TEXT("FullSeated first launch: cold+prologue+teach=%.2f s (teach %.3f s) stage=%s"),
-			FirstLaunchS, First.GetTeachSeconds(), *First.GetStage());
-		TestEqual(TEXT("the first launch reaches the ritual"), First.GetStage(), FString(TEXT("ritual")));
-		First.Unbind();
-		IFileManager::Get().DeleteDirectory(*FirstDir, false, true);
-	}
-
-	FArenaSession Session;
-	Session.Bind(Rig.Hands, Rig.Sigils, Rig.Wards, Rig.Blinks, Rig.Staff);
-	Session.SetScripted(true);
-	const FString Dir = ScratchSaveDir();
-	Session.SetSaveDirectory(Dir);
-	if (!Session.BeginArc(1))
-	{
-		AddError(TEXT("BeginArc failed"));
-		Rig.Close(Session);
+		FArenaSession Idle;
+		Rig.Close(Idle);
 		return false;
 	}
-	Session.SkipTeach();
+	const double FirstLaunchS = Rushed.FirstLaunchS;
+	const double DayS = Rushed.DayS;
+	const TMap<FString, double>& PhaseS = Rushed.PhaseS;
+	const bool bStopped = Rushed.bStopped;
+	const int32 Guard = Rushed.Guard;
 
-	TMap<FString, double> PhaseS;
-	double IntroS[4] = {0.0, 0.0, 0.0, 0.0};
-	double DayS = 0.0;
-	int32 Guard = 0;
-	bool bStopped = false;
-	FString LastStage;
-	bool bPalmed = false;
-	while (Session.GetStage() != TEXT("closed") && Guard < 72 * 1800)
-	{
-		const FString Stage = Session.GetStage();
-		if (Stage != LastStage)
-		{
-			UE_LOG(LogMageArena, Log, TEXT("FullSeated stage=%s bout=%d t=%.2f"), *Stage, Session.GetGames().Wave + 1, DayS);
-			LastStage = Stage;
-			bPalmed = false;
-		}
-		if (Stage == TEXT("intermission") && !bPalmed)
-		{
-			// T28: below the scene's floor the palm does nothing, so the script raises it once the floor passed.
-			const FStoryScene* Scene = Session.GetActiveScene();
-			if (!Scene || Session.GetSceneClock() + 1.0e-9 >= Scene->FloorS)
-			{
-				Rig.Wards->OnWardRaised.Broadcast(0.0, FVector::ForwardVector);
-				bPalmed = true;
-			}
-		}
-		if (Stage == TEXT("lost") && Session.GetGames().Wave < 3)
-		{
-			bStopped = true;
-			break;
-		}
-		Session.Advance(Dt, true);
-		PhaseS.FindOrAdd(Stage) += Dt;
-		if (Stage == TEXT("intro") && Session.GetGames().Wave >= 0 && Session.GetGames().Wave < 4)
-		{
-			IntroS[Session.GetGames().Wave] += Dt;
-		}
-		DayS += Dt;
-		++Guard;
-	}
-
-	const FString ChainText = FString::Join(Session.GetChain(), TEXT("\n"));
+	const FString ChainText = FString::Join(Rushed.Chain, TEXT("\n"));
 	FFileHelper::SaveStringToFile(ChainText, *ChainPath(*FString::Printf(TEXT("../T21/fullseated%s-chain.log"), bProposal ? TEXT("-proposal") : TEXT(""))));
 	int32 Won = 0;
 	double FightS = 0.0;
@@ -770,42 +843,72 @@ bool FMageArenaFullSeated::RunTest(const FString& Parameters)
 		double Seconds = -1.0;
 		double Attempts = 0.0;
 		double Perfects = 0.0;
-		const bool bFought = Session.GetFlags().GetBool(FArenaFlags::TiroKey(WaveN, TEXT("won")), bWon);
-		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
-		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts);
-		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), Perfects);
+		const bool bFought = Rushed.Flags.GetBool(FArenaFlags::TiroKey(WaveN, TEXT("won")), bWon);
+		Rushed.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
+		Rushed.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("attempts")), Attempts);
+		Rushed.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("perfects")), Perfects);
 		double Cracks = -1.0;
 		double Tithe = -1.0;
-		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), Cracks);
-		Session.GetFlags().GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), Tithe);
+		Rushed.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("cracks")), Cracks);
+		Rushed.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("tithe")), Tithe);
 		Won += bFought && bWon ? 1 : 0;
 		FightS += bFought ? Seconds : 0.0;
 		UE_LOG(LogMageArena, Log, TEXT("FullSeated bout %d %s outcome=%s fight=%.2f s intro=%.2f s attempts=%.0f perfects=%.0f cracks=%.0f tithe=%.0f school=%s"),
-			WaveN, bProposal ? TEXT("proposal") : TEXT("live"), bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"),
-			Seconds, IntroS[WaveN - 1], Attempts, Perfects, Cracks, Tithe, *Session.DaySchool(WaveN - 1));
+		    WaveN, bProposal ? TEXT("proposal") : TEXT("live"), bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"),
+		    Seconds, Rushed.IntroS[WaveN - 1], Attempts, Perfects, Cracks, Tithe, *Rushed.Schools[WaveN - 1]);
 	}
 	// T22, measured, not asserted: the day's collar (the -1 rows above were not fought) and the collar's lifetime.
 	UE_LOG(LogMageArena, Log, TEXT("FullSeated collar %s day cracks=%d tithe=%d lifetimeCracks=%d lifetimeTithe=%d"),
-		bProposal ? TEXT("proposal") : TEXT("live"), Session.GetDayCracks(), Session.GetDayTithe(), Session.GetCollar().GetLifetimeCracks(),
-		Session.GetCollar().GetLifetimeTithe());
+	    bProposal ? TEXT("proposal") : TEXT("live"), Rushed.DayCracks, Rushed.DayTithe, Rushed.LifetimeCracks, Rushed.LifetimeTithe);
 	const double WithTeachS = FirstLaunchS + DayS;
 	UE_LOG(LogMageArena, Log, TEXT("FullSeated phases ritual=%.2f intro=%.2f active=%.2f intermission=%.2f aftermath=%.2f lost=%.2f"),
 		PhaseS.FindRef(TEXT("ritual")), PhaseS.FindRef(TEXT("intro")), PhaseS.FindRef(TEXT("active")), PhaseS.FindRef(TEXT("intermission")),
 		PhaseS.FindRef(TEXT("aftermath")), PhaseS.FindRef(TEXT("lost")));
 	const bool bDayInside = MageArenaMeasure::Report(TEXT("Session.FullSeated"), TEXT("dayWithTeachS"), WithTeachS, PlanLoS, PlanHiS);
 	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_MEASURE Session.FullSeated FullSeated day %s: stage=%s won=%d/4 fights=%.2f s day=%.2f s (%.2f min) with teach=%.2f s (%.2f min) plan=7-10 min %s"),
-	    bProposal ? TEXT("proposal") : TEXT("live"), *Session.GetStage(), Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
+	    bProposal ? TEXT("proposal") : TEXT("live"), *Rushed.Stage, Won, FightS, DayS, DayS / 60.0, WithTeachS, WithTeachS / 60.0,
 	    bDayInside ? TEXT("INSIDE") : TEXT("OUTSIDE"));
+
+	// T27: the natural day, measured beside the rushed one and never asserted (DF-010 E). Each beat's seconds are logged,
+	// rushed and natural, so the 420-600 s comparison of C2 section 4 can be read beat by beat.
+	FReferenceDay Natural;
+	const bool bNaturalRan = RunReferenceDay(*this, Rig, true, Natural);
+	auto LogBeats = [](const TCHAR* Path, const FReferenceDay& Day)
+	{
+		UE_LOG(LogMageArena, Log,
+		    TEXT("FullSeated beats %s prologue=%.2f teach=%.2f firstLaunch=%.2f ritual=%.2f intro=%.2f/%.2f/%.2f/%.2f intermission=%.2f/%.2f/%.2f active=%.2f missio=%.2f aftermath=%.2f lost=%.2f stage=%s stopped=%d bout=%d"),
+		    Path, Day.PrologueS, Day.TeachS, Day.FirstLaunchS, Day.PhaseS.FindRef(TEXT("ritual")), Day.IntroS[0], Day.IntroS[1], Day.IntroS[2], Day.IntroS[3],
+		    Day.IntermissionS[0], Day.IntermissionS[1], Day.IntermissionS[2], Day.PhaseS.FindRef(TEXT("active")), Day.PhaseS.FindRef(TEXT("missio")),
+		    Day.PhaseS.FindRef(TEXT("aftermath")), Day.PhaseS.FindRef(TEXT("lost")), *Day.Stage, Day.bStopped ? 1 : 0, Day.StopWave + 1);
+		for (int32 WaveN = 1; WaveN <= 4; ++WaveN)
+		{
+			bool bWon = false;
+			double Seconds = -1.0;
+			const bool bFought = Day.Flags.GetBool(FArenaFlags::TiroKey(WaveN, TEXT("won")), bWon);
+			Day.Flags.GetNumber(FArenaFlags::TiroKey(WaveN, TEXT("time")), Seconds);
+			UE_LOG(LogMageArena, Log, TEXT("FullSeated beats %s bout %d outcome=%s fight=%.2f s"), Path, WaveN,
+			    bFought ? (bWon ? TEXT("won") : TEXT("lost")) : TEXT("not-fought"), Seconds);
+		}
+	};
+	LogBeats(TEXT("rushed"), Rushed);
+	if (bNaturalRan)
+	{
+		LogBeats(TEXT("natural"), Natural);
+		FFileHelper::SaveStringToFile(FString::Join(Natural.Chain, TEXT("\n")),
+		    *ChainPath(*FString::Printf(TEXT("../T21/fullseated-natural%s-chain.log"), bProposal ? TEXT("-proposal") : TEXT(""))));
+		MageArenaMeasure::Report(TEXT("Session.FullSeated"), TEXT("dayNaturalS"), Natural.FirstLaunchS + Natural.DayS, PlanLoS, PlanHiS);
+	}
 
 	bool bPass = true;
 	bPass &= TestTrue(TEXT("Did not stop in an infinite loop"), Guard < 72 * 1800);
-	bPass &= TestFalse(*FString::Printf(TEXT("the script did not lose bout %d"), Session.GetGames().Wave + 1), bStopped);
-	bPass &= TestEqual(TEXT("the day closes"), Session.GetStage(), FString(TEXT("closed")));
+	bPass &= TestFalse(*FString::Printf(TEXT("the script did not lose bout %d"), Rushed.StopWave + 1), bStopped);
+	bPass &= TestEqual(TEXT("the day closes"), Rushed.Stage, FString(TEXT("closed")));
 	bPass &= TestEqual(TEXT("all four bouts won"), Won, 4);
 	// T47, DF-010 ruled E (docs/DECISIONS.md 2026-10-21): the day's length is the MAGEVR_MEASURE dayWithTeachS line above,
-	// a logged measurement against the 7-10 min target, which stands; it no longer decides the verdict.
-	IFileManager::Get().DeleteDirectory(*Dir, false, true);
-	Rig.Close(Session);
+	// a logged measurement against the 7-10 min target, which stands; it no longer decides the verdict. T27: so is
+	// dayNaturalS, and the natural run's outcome is not asserted.
+	FArenaSession Idle;
+	Rig.Close(Idle);
 	return bPass;
 }
 
