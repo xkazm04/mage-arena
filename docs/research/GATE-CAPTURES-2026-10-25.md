@@ -72,6 +72,13 @@ capture-style-pick: ok
   The black rectangle and white bars look like unlabelled placeholder geometry; I cannot tell from the still what they are.
 - T55 (no debug text in views) was not judged here beyond the above.
 
+**Fix (T64, 2026-10-25).** The black rectangle was the prompt plate (`DaisPlate`) shown on the first frame of the "lost"
+prompt, before its widget had drawn (a widget component draws only while visible). Plate, tablet slab and stone labels now
+prime hidden in game for two syncs; `MageArena.Presentation.Cards.*` pins it and the capture driver fails a frame with a
+blank card. Re-run on the fixed tree: `capture-style-pick: ok`, events md5 unchanged; the new still 4 has no rectangle
+(before and after in `mage-art-staging/gate-2026-10-25/style-pick-fix/`). The two white bars are the T22 collar crack seams
+(a death is a Crack), a designed flash, left alone: the right one has no cuff under it. See `apps/vr/tasks/T64-death-frame-blank-card.md`.
+
 ## Verdicts
 
 - Row 8 stays **partly met**: re-measured on 5.8.3 with the T45 launcher, but nobody has heard it.
