@@ -441,7 +441,10 @@ flame in an environment colour of its own, out of every threat class (shortfall 
 were accepted, the flame was not. T61 (option B, `docs/research/BRAZIERS-T61-2026-10-25.md`, open) gives the flame a
 golden-white heart above the rim and below Fire and Earth, and moves the near braziers off the unblockable's line. No
 critic round read a threat colour in it, but it reads as fire only weakly, and the moved braziers crowd the fire and
-steel lines.
+steel lines. (4) Spell flipbook, T63: ran 2026-10-25 (`docs/research/SPELL-FLIPBOOK-T63-2026-10-25.md`, open for
+Athena): the T58 puffs became eye-facing cards showing a procedural flipbook atlas (water spray and crowns, fire licks
+with a darker ember rim, air swirls), one draw per glow colour, D-G4 +0 (max 126); the final blind round read the
+after frame closer to S1 in all 9 school pairs with no class break. The crowd tint is next.
 
 ## (c) The style contract
 

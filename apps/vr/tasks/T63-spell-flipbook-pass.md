@@ -1,6 +1,6 @@
 # T63 - the spell flipbook pass
 
-Status: open
+Status: ran, open for Athena - 3aabf27 (card), 5ebd656 (atlas), 06c73a6 (cards), 9df85af (material), a85a6a7 (tests); report docs/research/SPELL-FLIPBOOK-T63-2026-10-25.md
 Max turns: 120
 
 ## Goal
