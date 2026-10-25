@@ -13,9 +13,18 @@
 #include "IAssetTools.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionAppendVector.h"
+#include "Materials/MaterialExpressionComponentMask.h"
 #include "Materials/MaterialExpressionConstant.h"
+#include "Materials/MaterialExpressionConstant3Vector.h"
+#include "Materials/MaterialExpressionDivide.h"
+#include "Materials/MaterialExpressionDotProduct.h"
 #include "Materials/MaterialExpressionLinearInterpolate.h"
+#include "Materials/MaterialExpressionMax.h"
+#include "Materials/MaterialExpressionMin.h"
+#include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionPerInstanceCustomData.h"
+#include "Materials/MaterialExpressionSaturate.h"
+#include "Materials/MaterialExpressionSubtract.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "Misc/PackageName.h"
@@ -102,6 +111,14 @@ UTexture2D* ImportAtlas(const FString& Png)
 /**
  * Lit like the greybox (default lit, matte), masked at 0.5, one-sided, usable on instanced meshes. The UV is the quad's
  * 0..1 mapped into the instance's atlas rect: lerp((u0, top v), (u1, bottom v), uv).
+ *
+ * T65, the tint (custom floats 4..6, linear RGB) and the flat flag (float 7):
+ *   shade   = saturate(luminance(atlas) / ClayShadeRef), so a tunic never exceeds its tint
+ *   weight  = saturate((fraction down the figure - TunicStartFraction) / TunicEdgeFraction), 0 on the head and raised arms
+ *   colour  = lerp(lerp(atlas, tint * shade, weight), tint, flat)
+ *   opacity = lerp(atlas alpha, 1, flat)
+ * A flat instance is a banner: the tint at full opacity, the atlas never shows. The figure fraction comes from the sampled
+ * v between the rect's two v floats, whichever of them is the top.
  */
 UMaterial* BuildMaterial(UTexture2D* Atlas)
 {
@@ -125,7 +142,8 @@ UMaterial* BuildMaterial(UTexture2D* Atlas)
 		Data[Index] = NewObject<UMaterialExpressionPerInstanceCustomData>(Material);
 		Data[Index]->DataIndex = Index;
 		// Without custom data (a plain mesh in the editor) the quad shows the whole atlas.
-		Data[Index]->ConstDefaultValue = Index < 2 ? 0.f : 1.f;
+		// The tint defaults to white and the flat flag to off.
+		Data[Index]->ConstDefaultValue = (Index < 2 || Index == ArenaCrowd::FlatFloatIndex) ? 0.f : 1.f;
 		Add(Data[Index], -1000, -200 + Index * 100);
 	}
 	UMaterialExpressionAppendVector* TopLeft = NewObject<UMaterialExpressionAppendVector>(Material);
@@ -148,6 +166,76 @@ UMaterial* BuildMaterial(UTexture2D* Atlas)
 	Sample->SamplerType = SAMPLERTYPE_Color;
 	Sample->Coordinates.Expression = Rect;
 	Add(Sample, -400, 0);
+	auto Scalar = [&Add, Material](float Value, int32 X, int32 Y)
+	{
+		UMaterialExpressionConstant* Constant = NewObject<UMaterialExpressionConstant>(Material);
+		Constant->R = Value;
+		Add(Constant, X, Y);
+		return Constant;
+	};
+	auto Binary = [&Add](auto* Expression, UMaterialExpression* A, UMaterialExpression* B, int32 X, int32 Y)
+	{
+		Expression->A.Expression = A;
+		Expression->B.Expression = B;
+		Add(Expression, X, Y);
+		return Expression;
+	};
+	// The tint: floats 4..6 as one vector.
+	UMaterialExpressionAppendVector* TintRg = NewObject<UMaterialExpressionAppendVector>(Material);
+	TintRg->A.Expression = Data[ArenaCrowd::TintFloatIndex];
+	TintRg->B.Expression = Data[ArenaCrowd::TintFloatIndex + 1];
+	Add(TintRg, -800, 350);
+	UMaterialExpressionAppendVector* Tint = NewObject<UMaterialExpressionAppendVector>(Material);
+	Tint->A.Expression = TintRg;
+	Tint->B.Expression = Data[ArenaCrowd::TintFloatIndex + 2];
+	Add(Tint, -600, 350);
+	// The shade: the atlas luminance over the clay reference, saturated.
+	UMaterialExpressionConstant3Vector* LumaWeights = NewObject<UMaterialExpressionConstant3Vector>(Material);
+	LumaWeights->Constant = FLinearColor(0.2126f, 0.7152f, 0.0722f);
+	Add(LumaWeights, -400, 450);
+	UMaterialExpressionDotProduct* Luma = NewObject<UMaterialExpressionDotProduct>(Material);
+	Luma->A.Connect(0, Sample);
+	Luma->B.Expression = LumaWeights;
+	Add(Luma, -200, 450);
+	UMaterialExpressionMultiply* ShadeScaled = Binary(NewObject<UMaterialExpressionMultiply>(Material), Luma, Scalar(1.f / ArenaCrowd::ClayShadeRef, -200, 550), 0, 450);
+	UMaterialExpressionSaturate* Shade = NewObject<UMaterialExpressionSaturate>(Material);
+	Shade->Input.Expression = ShadeScaled;
+	Add(Shade, 200, 450);
+	UMaterialExpressionMultiply* Tunic = Binary(NewObject<UMaterialExpressionMultiply>(Material), Tint, Shade, 400, 400);
+	// The weight: how far down the figure the sampled v is, between the rect's top and bottom v (either order).
+	UMaterialExpressionComponentMask* SampledV = NewObject<UMaterialExpressionComponentMask>(Material);
+	SampledV->Input.Expression = Rect;
+	SampledV->R = false;
+	SampledV->G = true;
+	SampledV->B = false;
+	SampledV->A = false;
+	Add(SampledV, -400, 650);
+	UMaterialExpressionMin* RectTop = Binary(NewObject<UMaterialExpressionMin>(Material), Data[1], Data[3], -400, 750);
+	UMaterialExpressionMax* RectBottom = Binary(NewObject<UMaterialExpressionMax>(Material), Data[1], Data[3], -400, 850);
+	UMaterialExpressionSubtract* Down = Binary(NewObject<UMaterialExpressionSubtract>(Material), SampledV, RectTop, -200, 650);
+	UMaterialExpressionSubtract* Span = Binary(NewObject<UMaterialExpressionSubtract>(Material), RectBottom, RectTop, -200, 850);
+	UMaterialExpressionDivide* Fraction = Binary(NewObject<UMaterialExpressionDivide>(Material), Down, Span, 0, 650);
+	UMaterialExpressionSubtract* PastStart = Binary(NewObject<UMaterialExpressionSubtract>(Material), Fraction, Scalar(ArenaCrowd::TunicStartFraction, 0, 750), 200, 650);
+	UMaterialExpressionMultiply* Ramp = Binary(NewObject<UMaterialExpressionMultiply>(Material), PastStart, Scalar(1.f / ArenaCrowd::TunicEdgeFraction, 200, 750), 400, 650);
+	UMaterialExpressionSaturate* Weight = NewObject<UMaterialExpressionSaturate>(Material);
+	Weight->Input.Expression = Ramp;
+	Add(Weight, 600, 650);
+	// Clay or tunic by the weight, then the flat tint by the flag.
+	UMaterialExpressionLinearInterpolate* ClayOrTunic = NewObject<UMaterialExpressionLinearInterpolate>(Material);
+	ClayOrTunic->A.Connect(0, Sample);
+	ClayOrTunic->B.Expression = Tunic;
+	ClayOrTunic->Alpha.Expression = Weight;
+	Add(ClayOrTunic, 800, 400);
+	UMaterialExpressionLinearInterpolate* Colour = NewObject<UMaterialExpressionLinearInterpolate>(Material);
+	Colour->A.Expression = ClayOrTunic;
+	Colour->B.Expression = Tint;
+	Colour->Alpha.Expression = Data[ArenaCrowd::FlatFloatIndex];
+	Add(Colour, 1000, 400);
+	UMaterialExpressionLinearInterpolate* Opacity = NewObject<UMaterialExpressionLinearInterpolate>(Material);
+	Opacity->A.Connect(4, Sample);
+	Opacity->B.Expression = Scalar(1.f, 800, 550);
+	Opacity->Alpha.Expression = Data[ArenaCrowd::FlatFloatIndex];
+	Add(Opacity, 1000, 550);
 	UMaterialExpressionConstant* Roughness = NewObject<UMaterialExpressionConstant>(Material);
 	Roughness->R = 1.f;
 	Add(Roughness, -200, 200);
@@ -155,8 +243,8 @@ UMaterial* BuildMaterial(UTexture2D* Atlas)
 	Specular->R = 0.f;
 	Add(Specular, -200, 300);
 	// TextureSample outputs: 0 RGB, 1 R, 2 G, 3 B, 4 A.
-	Material->GetEditorOnlyData()->BaseColor.Connect(0, Sample);
-	Material->GetEditorOnlyData()->OpacityMask.Connect(4, Sample);
+	Material->GetEditorOnlyData()->BaseColor.Expression = Colour;
+	Material->GetEditorOnlyData()->OpacityMask.Expression = Opacity;
 	Material->GetEditorOnlyData()->Roughness.Expression = Roughness;
 	Material->GetEditorOnlyData()->Specular.Expression = Specular;
 	Material->PreEditChange(nullptr);
@@ -170,7 +258,7 @@ UMaterial* BuildMaterial(UTexture2D* Atlas)
 	{
 		return nullptr;
 	}
-	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CROWD_ASSETS %s blend=masked clip=0.5 shading=defaultlit twosided=0 instanced=1"), ArenaCrowd::MaterialName);
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CROWD_ASSETS %s blend=masked clip=0.5 shading=defaultlit twosided=0 instanced=1 customfloats=%d"), ArenaCrowd::MaterialName, ArenaCrowd::CustomDataFloats);
 	return Material;
 }
 
@@ -181,6 +269,8 @@ int32 UCreateCrowdAssetsCommandlet::Main(const FString& Params)
 {
 #if WITH_EDITOR
 	const bool bForce = FParse::Param(*Params, TEXT("force"));
+	// -material: rebuild M_Crowd_Atlas against the atlas on disk, which stays as it is.
+	const bool bForceMaterial = bForce || FParse::Param(*Params, TEXT("material"));
 	const FString Png = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("../art/environment-kit/crowd/crowd_atlas.png")));
 	if (!FPaths::FileExists(Png))
 	{
@@ -196,6 +286,10 @@ int32 UCreateCrowdAssetsCommandlet::Main(const FString& Params)
 			IFileManager::Get().Delete(*FPackageName::LongPackageNameToFilename(PackagePath(Name), FPackageName::GetAssetPackageExtension()), false, true, true);
 		}
 	}
+	if (bForceMaterial && !bForce)
+	{
+		IFileManager::Get().Delete(*FPackageName::LongPackageNameToFilename(PackagePath(ArenaCrowd::MaterialName), FPackageName::GetAssetPackageExtension()), false, true, true);
+	}
 	UTexture2D* Atlas = bForce ? nullptr : LoadExisting<UTexture2D>(ArenaCrowd::AtlasName);
 	if (Atlas)
 	{
@@ -205,7 +299,7 @@ int32 UCreateCrowdAssetsCommandlet::Main(const FString& Params)
 	{
 		return 1;
 	}
-	UMaterialInterface* Material = bForce ? nullptr : LoadExisting<UMaterialInterface>(ArenaCrowd::MaterialName);
+	UMaterialInterface* Material = bForceMaterial ? nullptr : LoadExisting<UMaterialInterface>(ArenaCrowd::MaterialName);
 	if (Material)
 	{
 		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CROWD_ASSETS %s unchanged"), ArenaCrowd::MaterialName);

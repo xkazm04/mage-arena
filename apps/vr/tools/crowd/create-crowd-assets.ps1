@@ -1,8 +1,9 @@
 # T57: builds the crowd assets under apps/vr/Game/Content/Environment/ArenaKit/Crowd (T_Crowd_Atlas and M_Crowd_Atlas;
 # the card is the engine plane) through the CreateCrowdAssets commandlet (Greybox/CreateCrowdAssetsCommandlet.cpp), from
 # apps/vr/art/environment-kit/crowd/crowd_atlas.png. Idempotent: an asset that already loads is reported and left alone;
-# -Force rebuilds both. Needs the editor target built (apps/vr/tools/build.ps1) and the atlas pulled from LFS.
-param([switch]$Force, [string]$Run = "T57")
+# -Force rebuilds both; -MaterialOnly (T65) rebuilds M_Crowd_Atlas against the atlas on disk. Needs the editor target
+# built (apps/vr/tools/build.ps1) and the atlas pulled from LFS.
+param([switch]$Force, [switch]$MaterialOnly, [string]$Run = "T57")
 
 $ErrorActionPreference = "Stop"
 $CrowdDir = $PSScriptRoot
@@ -26,6 +27,7 @@ New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
 if (Test-Path $LogPath) { Remove-Item -Force $LogPath }
 $Extra = @()
 if ($Force) { $Extra += "-force" }
+if ($MaterialOnly) { $Extra += "-material" }
 Write-Host "create-crowd-assets: running the CreateCrowdAssets commandlet $($Extra -join ' ')"
 & $Editor $Project -run=CreateCrowdAssets @Extra -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput "-abslog=$LogPath" | Out-Null
 $Code = $LASTEXITCODE
