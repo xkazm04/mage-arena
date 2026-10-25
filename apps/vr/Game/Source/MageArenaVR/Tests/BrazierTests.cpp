@@ -156,7 +156,10 @@ bool FMageArenaGreyboxBrazierFlameNotThreat::RunTest(const FString& Parameters)
 		const FThreat Threats[] = {
 		    {TEXT("water"), P.Water}, {TEXT("fire"), P.Fire}, {TEXT("air"), P.Air}, {TEXT("earth"), P.Earth},
 		    {TEXT("steel"), P.Steel}, {TEXT("unblockable rim"), P.UnblockableRim}, {TEXT("unblockable core"), P.UnblockableBody}};
-		const float Dimmest = BrazierFire::DimmestGlowLuminance(P);
+		// T61 (option B, DECISIONS 2026-10-25 on deaa15b): brighter than the rim, dimmer than the dimmer of Fire and Earth.
+		const float RimLuminance = P.UnblockableRim.GetLuminance();
+		const float FireEarthLuminance = FMath::Min(P.Fire.GetLuminance(), P.Earth.GetLuminance());
+		const float HeartLuminance = BrazierFire::FlameColour(P, BrazierFire::ELayer::Heart).GetLuminance();
 		for (const BrazierFire::ELayer Layer : {BrazierFire::ELayer::Body, BrazierFire::ELayer::Heart})
 		{
 			const FLinearColor Flame = BrazierFire::FlameColour(P, Layer);
@@ -172,16 +175,26 @@ bool FMageArenaGreyboxBrazierFlameNotThreat::RunTest(const FString& Parameters)
 				const float Distance = ChromaDistance(Flame, Sample);
 				bPass &= TestTrue(FString::Printf(TEXT("%s is not the style's fire or flame sample %s (%.3f)"), *What, *Sample.ToString(), Distance), Distance >= BrazierFire::ThreatChromaMargin);
 			}
-			// Dimmer than anything a threat glows in, the rim's unpulsed red included.
+			// A pale flame bright enough to read as fire against the lit wall, still dimmer than the two orange glows: hue
+			// and shape keep it off the fire bolt, not darkness. The body never outshines the heart.
 			const float Luminance = Flame.GetLuminance();
-			bPass &= TestTrue(FString::Printf(TEXT("%s luminance %.3f is under the dimmest glow %.3f"), *What, Luminance, Dimmest), Luminance < Dimmest);
+			bPass &= TestTrue(FString::Printf(TEXT("%s luminance %.3f is over the rim's %.3f"), *What, Luminance, RimLuminance), Luminance > RimLuminance);
+			bPass &= TestTrue(FString::Printf(TEXT("%s luminance %.3f is under min(Fire, Earth) %.3f"), *What, Luminance, FireEarthLuminance), Luminance < FireEarthLuminance);
+			bPass &= TestTrue(FString::Printf(TEXT("%s luminance %.3f is at or under the heart's %.3f"), *What, Luminance, HeartLuminance), Luminance <= HeartLuminance + 1.0e-6f);
 			// Not one of the layout's threat classes, and not either half of the leave pair.
 			bPass &= TestFalse(FString::Printf(TEXT("%s is not ember orange"), *What), IsEmberOrange(Flame));
 			bPass &= TestFalse(FString::Printf(TEXT("%s is not the red rim"), *What), IsRedRim(Flame));
 			bPass &= TestFalse(FString::Printf(TEXT("%s is not a black core"), *What), IsBlackCore(Flame));
 			bPass &= TestTrue(FString::Printf(TEXT("%s stays off the black core line"), *What), FMath::Max3(Flame.R, Flame.G, Flame.B) >= BrazierFire::MinBrightest - 1.0e-6f);
-			// Warm: an amber or an ochre, red over green over blue.
-			bPass &= TestTrue(FString::Printf(TEXT("%s is amber or ochre"), *What), Flame.R > Flame.G && Flame.G > Flame.B);
+			// Warm: red over green over blue.
+			bPass &= TestTrue(FString::Printf(TEXT("%s is warm"), *What), Flame.R > Flame.G && Flame.G > Flame.B);
+			if (Layer == BrazierFire::ELayer::Heart)
+			{
+				// Pale: its weakest channel stands higher against its brightest than Fire's or Earth's, so hue tells it from
+				// the orange glows (min over max, the inverse of saturation).
+				const auto Paleness = [](const FLinearColor& C) { return FMath::Min3(C.R, C.G, C.B) / FMath::Max(FMath::Max3(C.R, C.G, C.B), 1.0e-4f); };
+				bPass &= TestTrue(FString::Printf(TEXT("%s is paler than Fire and Earth (%.2f)"), *What, Paleness(Flame)), Paleness(Flame) > FMath::Max(Paleness(P.Fire), Paleness(P.Earth)) + 0.25f);
+			}
 		}
 	}
 
