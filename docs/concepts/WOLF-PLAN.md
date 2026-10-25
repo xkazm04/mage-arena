@@ -236,6 +236,7 @@ the end.
   `Result={Success}` (`MageArena.` 273/273); `-Styles 99` exits 1 on `FAIL events-99.jsonl is missing`.
   `MageArena.Replay.Deterministic` green; `capture-style-pick.ps1` writes 4 MP4s, 16 stills and 4 event logs, exits
   non-zero if any log is missing or differs, and the 4 logs are identical (md5 of each in the report).
+- [x] Wolf kaziho 2026-10-25 e9d8abc UE 5.8.3 CL 58210709 re-run on the post-T38 tree: `capture-style-pick: ok`, exit 0; `MAGEVR_CAPTURE_DONE shots=1870` x4; events-greybox/13/25/30.jsonl md5 `7b0715c871ac3399504c4f7a744896d4` x4 (unchanged from 2026-10-24); 4 MP4s + 16 stills staged outside the repo, `apps/vr/art/style-pick/` restored to HEAD (`docs/research/GATE-CAPTURES-2026-10-25.md`).
 - [x] Wolf kaziho 2026-10-24 3f6c5bd 4 MP4s + 16 PNGs in `apps/vr/art/style-pick/`, all 20 LFS pointers under the
   existing repo-wide `*.mp4`/`*.png` rules (`git check-attr`: `filter: lfs`; `.gitattributes` unchanged); linked from
   `apps/vr/art/index.html`. `apps/vr/art/style-pick/index.html` with the copied videos and stills (LFS rules checked in `.gitattributes`).
