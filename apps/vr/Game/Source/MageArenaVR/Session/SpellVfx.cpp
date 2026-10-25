@@ -129,7 +129,7 @@ void SpellVfx::BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector& Fligh
 	}
 }
 
-void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, TArray<FPuff>& Out)
+void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, bool bCrown, TArray<FPuff>& Out)
 {
 	const double Age = FMath::Clamp(Age01, 0.0, 1.0);
 	if (Age >= 1.0)
@@ -142,12 +142,15 @@ void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& Tow
 	Across(Facing, Side, Lift);
 	// The burst: a flat disc facing the eye that widens and thins. Its centre is dim and its edge bright, a splash crown.
 	const double Radius = FMath::Lerp(5.0, 18.0, EaseOut(Age));
-	const FQuat Flat = FRotationMatrix::MakeFromZ(Facing).ToQuat();
-	Add(Out, AtCm, FVector(Radius * 2.0, Radius * 2.0, FMath::Lerp(8.0, 1.5, Age)), Flat);
-	// Ten droplets (or embers) thrown out across the ward.
+	if (bCrown)
+	{
+		const FQuat Flat = FRotationMatrix::MakeFromZ(Facing).ToQuat();
+		Add(Out, AtCm, FVector(Radius * 2.0, Radius * 2.0, FMath::Lerp(8.0, 1.5, Age)), Flat);
+	}
+	// Ten droplets (or embers) thrown out across the ward, unevenly, each its own size.
 	for (int32 I = 0; I < 10; ++I)
 	{
-		const double Angle = 2.0 * PI * (I + Hash01(Seed, I) * 0.6) / 10.0;
+		const double Angle = 2.0 * PI * (I + (Hash01(Seed, I) - 0.5) * 1.2) / 10.0;
 		const FVector Radial = Side * FMath::Cos(Angle) + Lift * FMath::Sin(Angle);
 		const double Reach = FMath::Lerp(5.0, 26.0 + 8.0 * Hash01(Seed, I + 11), EaseOut(Age));
 		double Fall = 0.0;
@@ -160,7 +163,7 @@ void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& Tow
 			Fall = 18.0 * Age;
 		}
 		const FVector At = AtCm + Radial * Reach + Facing * (6.0 * Age) + FVector::UpVector * Fall;
-		const double Size = FMath::Lerp(5.0, 1.0, Age);
+		const double Size = FMath::Lerp(5.0, 1.0, Age) * (0.6 + 0.8 * Hash01(Seed, I + 23));
 		Add(Out, At, FVector(Size * 1.6, Size, Size), FRotationMatrix::MakeFromX(Radial).ToQuat());
 	}
 }
@@ -185,10 +188,6 @@ void SpellVfx::PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, d
 		const FVector Radial = Side * FMath::Cos(Angle) + Lift * FMath::Sin(Angle);
 		const FVector Tangent = FVector::CrossProduct(Facing, Radial).GetSafeNormal();
 		Add(Out, AtCm + Radial * Radius, FVector(Bead * 2.4, Bead, Bead), FRotationMatrix::MakeFromX(Tangent).ToQuat());
-	}
-	if (Age < 0.45)
-	{
-		Add(Out, AtCm, FVector(FMath::Lerp(26.0, 4.0, Age / 0.45)));
 	}
 }
 

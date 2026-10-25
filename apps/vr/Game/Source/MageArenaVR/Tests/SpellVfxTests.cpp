@@ -225,11 +225,11 @@ bool FMageArenaSpellVfxPuffs::RunTest(const FString& Parameters)
 	bPass &= TestTrue(*FString::Printf(TEXT("the rim pulse takes at most %d steps (took %d)"), static_cast<int32>(SpellVfx::RimPulseSteps) + 1, Steps.Num()),
 	    Steps.Num() >= 2 && Steps.Num() <= static_cast<int32>(SpellVfx::RimPulseSteps) + 1);
 	TArray<SpellVfx::FPuff> Done;
-	SpellVfx::SplashPuffs(SpellVfx::ETrail::Droplets, FVector::ZeroVector, FVector::BackwardVector, 1.0, 3, Done);
+	SpellVfx::SplashPuffs(SpellVfx::ETrail::Droplets, FVector::ZeroVector, FVector::BackwardVector, 1.0, 3, true, Done);
 	SpellVfx::PerfectRingPuffs(FVector::ZeroVector, FVector::BackwardVector, 1.0, Done);
 	bPass &= TestEqual(TEXT("a finished splash and ring draw nothing"), Done.Num(), 0);
 	TArray<SpellVfx::FPuff> Live;
-	SpellVfx::SplashPuffs(SpellVfx::ETrail::Embers, FVector::ZeroVector, FVector::BackwardVector, 0.2, 3, Live);
+	SpellVfx::SplashPuffs(SpellVfx::ETrail::Embers, FVector::ZeroVector, FVector::BackwardVector, 0.2, 3, true, Live);
 	SpellVfx::PerfectRingPuffs(FVector::ZeroVector, FVector::BackwardVector, 0.2, Live);
 	bPass &= TestTrue(TEXT("a live splash and ring draw puffs"), Live.Num() > 20);
 	// 1,468 live Niagara particles at the D-G4 max (DRAWCALL-BUDGET section 4) plus the cap stays at or under 2,000.

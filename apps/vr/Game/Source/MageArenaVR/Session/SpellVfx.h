@@ -50,10 +50,14 @@ MAGEARENAVR_API ETrail TrailFor(EElement Element);
 /** Puffs one bolt adds: the shell around its core and its trail behind it, against FlightDir (unit, world). */
 MAGEARENAVR_API void BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector& FlightDir, double CoreDiameterCm, int32 Seed, double TimeS, TArray<FPuff>& Out);
 
-/** The absorb splash at the ward, Age01 from 0 (contact) to 1 (gone), in the plane facing TowardEye. */
-MAGEARENAVR_API void SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, TArray<FPuff>& Out);
+/**
+ * The absorb splash at the ward, Age01 from 0 (contact) to 1 (gone), in the plane facing TowardEye: a crown disc (when
+ * bCrown) and ten droplets. A perfect absorb draws it without the crown: stacked additive puffs clip toward white or
+ * yellow, and the ring is its centre-piece.
+ */
+MAGEARENAVR_API void SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, bool bCrown, TArray<FPuff>& Out);
 
-/** The perfect-absorb ring at the palm: beads on a widening ring facing TowardEye, and a short flash at its centre. */
+/** The perfect-absorb ring at the palm: 20 beads on a widening ring facing TowardEye. */
 MAGEARENAVR_API void PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, double Age01, TArray<FPuff>& Out);
 
 /**

@@ -2443,7 +2443,7 @@ void ASessionPresentation::SyncBursts(const FGames& Games, const FActor& Player,
 		}
 		const FVector TowardEye = (EyeCm - Burst.AtCm).GetSafeNormal();
 		TArray<SpellVfx::FPuff> Puffs;
-		SpellVfx::SplashPuffs(Burst.Trail, Burst.AtCm, TowardEye, Elapsed / SpellVfx::SplashS, Burst.Seed, Puffs);
+		SpellVfx::SplashPuffs(Burst.Trail, Burst.AtCm, TowardEye, Elapsed / SpellVfx::SplashS, Burst.Seed, !Burst.bPerfect, Puffs);
 		if (Burst.bPerfect)
 		{
 			SpellVfx::PerfectRingPuffs(Burst.AtCm, TowardEye, Elapsed / SpellVfx::PerfectS, Puffs);
