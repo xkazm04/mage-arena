@@ -10,8 +10,9 @@ class UMaterialInterface;
  * embers for Fire, wisps for Air, grit for Earth), the absorb splash at the ward, the perfect-absorb ring at the palm
  * and the pulse of the unblockable's red ground rim.
  *
- * Every effect is a puff: a sphere instance drawn with one shared additive material (M_SpellGlow, unlit; only the far
- * hemisphere emits, so a bolt's opaque core hides the glow behind it and keeps its exact colour). ASessionPresentation draws all the puffs of one
+ * Every effect is a puff: a sphere instance drawn with one shared translucent material (M_SpellGlow, unlit, alpha
+ * blended toward exactly its colour; only the far hemisphere shows, so a bolt's opaque core hides the glow behind it and
+ * keeps its exact colour). ASessionPresentation draws all the puffs of one
  * colour with one instanced component, so the whole layer costs one draw call per colour on screen, whatever the number
  * of projectiles (docs/research/SPELL-VFX-T58-2026-10-25.md). Pure functions: no world, no RHI, so the tests run them.
  *
@@ -52,8 +53,8 @@ MAGEARENAVR_API void BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector&
 
 /**
  * The absorb splash at the ward, Age01 from 0 (contact) to 1 (gone), in the plane facing TowardEye: a crown disc (when
- * bCrown) and ten droplets. A perfect absorb draws it without the crown: stacked additive puffs clip toward white or
- * yellow, and the ring is its centre-piece.
+ * bCrown) and ten droplets. A perfect absorb draws it without the crown: the ring is its centre-piece, and a crown
+ * stacked under it muddied the ring.
  */
 MAGEARENAVR_API void SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, bool bCrown, TArray<FPuff>& Out);
 

@@ -235,11 +235,13 @@ int32 ApplyInputs(const FBudgetFxRow& Row, FVersionedNiagaraEmitterData& Data)
 }
 
 /**
- * T58: M_SpellGlow, the one material of every spell VFX puff (Session/SpellVfx.h). Unlit, additive, two-sided, usable on
- * instanced meshes: Emissive = Color x pow(saturate(-dot(N, V)), GlowFalloff) x GlowGain. Only the far hemisphere of a
- * sphere emits, brightest at its centre and fading to nothing at its silhouette: a soft glow without a texture. A bolt's
- * opaque core stands in front of that far half, so the glow never adds over the core and the core keeps its exact
- * threat colour; the halo shows only around it. Greybox::Tint writes Color. Returns false when the save fails.
+ * T58: M_SpellGlow, the one material of every spell VFX puff (Session/SpellVfx.h). Unlit, translucent (alpha blend),
+ * two-sided, usable on instanced meshes: Emissive = Color, Opacity = saturate(pow(saturate(-dot(N, V)), GlowFalloff) x
+ * GlowGain). Only the far hemisphere of a sphere shows, densest at its centre and fading to nothing at its silhouette: a
+ * soft glow without a texture. A blend moves a pixel from the background toward exactly Color and never past it, so a
+ * glow cannot clip into another hue over the bright sand and sky (an additive glow read fire as yellow-gold and air as
+ * lime to a blind critic). A bolt's opaque core stands in front of that far half and keeps its exact threat colour; the
+ * halo shows only around it. Greybox::Tint writes Color. Returns false when the save fails.
  */
 bool CreateSpellGlowMaterial(bool bForce)
 {
@@ -254,7 +256,7 @@ bool CreateSpellGlowMaterial(bool bForce)
 	UPackage* Package = CreatePackage(*PackagePath);
 	UMaterial* Material = NewObject<UMaterial>(Package, FName(*Name), RF_Public | RF_Standalone | RF_Transactional);
 	Material->MaterialDomain = MD_Surface;
-	Material->BlendMode = BLEND_Additive;
+	Material->BlendMode = BLEND_Translucent;
 	Material->SetShadingModel(MSM_Unlit);
 	Material->bUsedWithInstancedStaticMeshes = true;
 	Material->TwoSided = true;
@@ -270,7 +272,7 @@ bool CreateSpellGlowMaterial(bool bForce)
 	Add(Colour, -600, -200);
 	UMaterialExpressionScalarParameter* Gain = NewObject<UMaterialExpressionScalarParameter>(Material);
 	Gain->ParameterName = TEXT("GlowGain");
-	Gain->DefaultValue = 1.1f;
+	Gain->DefaultValue = 1.0f;
 	Add(Gain, -600, 200);
 	UMaterialExpressionScalarParameter* Falloff = NewObject<UMaterialExpressionScalarParameter>(Material);
 	Falloff->ParameterName = TEXT("GlowFalloff");
@@ -295,15 +297,15 @@ bool CreateSpellGlowMaterial(bool bForce)
 	Soft->Base.Expression = Clamped;
 	Soft->Exponent.Expression = Falloff;
 	Add(Soft, -450, 0);
-	UMaterialExpressionMultiply* Tinted = NewObject<UMaterialExpressionMultiply>(Material);
-	Tinted->A.Expression = Colour;
-	Tinted->B.Expression = Soft;
-	Add(Tinted, -300, -100);
-	UMaterialExpressionMultiply* Emissive = NewObject<UMaterialExpressionMultiply>(Material);
-	Emissive->A.Expression = Tinted;
-	Emissive->B.Expression = Gain;
-	Add(Emissive, -150, 0);
-	Material->GetEditorOnlyData()->EmissiveColor.Expression = Emissive;
+	UMaterialExpressionMultiply* Dense = NewObject<UMaterialExpressionMultiply>(Material);
+	Dense->A.Expression = Soft;
+	Dense->B.Expression = Gain;
+	Add(Dense, -300, 0);
+	UMaterialExpressionSaturate* Opacity = NewObject<UMaterialExpressionSaturate>(Material);
+	Opacity->Input.Expression = Dense;
+	Add(Opacity, -150, 0);
+	Material->GetEditorOnlyData()->EmissiveColor.Expression = Colour;
+	Material->GetEditorOnlyData()->Opacity.Expression = Opacity;
 	Material->PreEditChange(nullptr);
 	Material->PostEditChange();
 	Material->MarkPackageDirty();
@@ -320,7 +322,7 @@ bool CreateSpellGlowMaterial(bool bForce)
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s save %s"), *Name, *PackageFile);
 		return false;
 	}
-	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=additive shading=unlit twosided=1 instanced=1 -> %s"), *Name, *PackageFile);
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=translucent shading=unlit twosided=1 instanced=1 -> %s"), *Name, *PackageFile);
 	return true;
 }
 
