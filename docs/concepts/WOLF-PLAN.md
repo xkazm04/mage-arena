@@ -308,7 +308,21 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - [ ] **T24** `apps/vr/tasks/T24-mudra-seal-detector.md`. **OWNER (C1):** the seal shape, Claude + owner
   (`docs/design/V2-ROADMAP.md` lane B row 8). Start only when C1 is committed. Done when `MageArena.Mudra.*` green (red line
   quoted first; seal at 1.4 s casts, at 1.6 s does not), `MageArena.` green, no new design red.
-- [ ] DEFERRED 2026-10-24, ruling 6 (the audio half: voice and chorus generation; no audio spend). **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story
+- [ ] DEFERRED 2026-10-24, ruling 6 (the audio half: voice and chorus generation; no audio spend). **Non-audio half done on
+  Wolf 2026-10-25, UE 5.8.3 CL 58210709, `f94d1f7` / `0a58646` / `417477e` / `84a73c9` / `87448b2`:**
+  - `Result: Succeeded`.
+  - day.json `ritualLineS [12, 14, 12]` and `ritualTimeoutS 45`; the C2 lines and cue-id markers.
+  - The voice importer: `missing=27 failed=0`, no WAV.
+  - The wiring is unproven end to end, because no asset exists.
+  - `MageArena.Voice` 4/4. It was red first: `Expected 'BRE-02 words matches C2's count' to be 6, but it was 5.`
+  - `MageArena.` 325/325, `EXIT CODE: 0`.
+  - `MageArenaDesign.` 5/7, only DF-011's two.
+  - D-G4 max 126 (+0).
+  - `dayWithTeachS=212.31` (rushed) and `dayNaturalS=305.72` (natural). Both stop at the bout-3 loss.
+  - The intermission shift of later bouts is `DF-013` (open, needs a ruling).
+  
+  What stays open is the generation of the 14 cues and the capture line below.
+  **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story
   bible and cue sheet (roadmap row 12),
   and the owner's go for generation with the count stated on the card. Without committed WAVs, build the importer,
   wiring and tests against the manifest and report the wiring as unproven end to end. Done when `MageArena.Voice.*` and
