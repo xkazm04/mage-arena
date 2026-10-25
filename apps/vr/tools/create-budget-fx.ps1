@@ -2,8 +2,10 @@
 # commandlet (Tools/CreateBudgetFxCommandlet.cpp), from the BudgetStress::FxRows() table. Idempotent: a system that
 # already loads is reported and left alone, so a second run writes nothing. -Dump logs every rapid-iteration
 # parameter of freshly built systems and saves nothing; -Verify also dumps the saved systems; -Force rebuilds them.
+# T58: it also builds M_SpellGlow (apps/vr/Game/Content/Vfx), the spell VFX material, when missing; -SpellVfx rebuilds
+# that material alone.
 # Needs the editor target built (apps/vr/tools/build.ps1). No -nullrhi: the GPU emitter compiles shaders.
-param([switch]$Dump, [switch]$Verify, [switch]$Force, [string]$Run = "D-G4-fx")
+param([switch]$Dump, [switch]$Verify, [switch]$Force, [switch]$SpellVfx, [string]$Run = "D-G4-fx")
 
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
@@ -22,6 +24,7 @@ $Extra = @()
 if ($Dump) { $Extra += "-dump" }
 if ($Force) { $Extra += "-force" }
 if ($Verify) { $Extra += "-verify" }
+if ($SpellVfx) { $Extra += "-spellvfx" }
 Write-Host "create-budget-fx: running the CreateBudgetFx commandlet $($Extra -join ' ')"
 & $Editor $Project -run=CreateBudgetFx @Extra -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput "-abslog=$LogPath" | Out-Null
 $Code = $LASTEXITCODE

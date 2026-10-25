@@ -2,11 +2,21 @@
 
 #include "Budget/BudgetFx.h"
 #include "MageArenaVR.h"
+#include "Session/SpellVfx.h"
 
 #if WITH_EDITOR
 #include "HAL/FileManager.h"
 #include "Misc/PackageName.h"
 #include "EdGraph/EdGraphPin.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialExpressionCameraVectorWS.h"
+#include "Materials/MaterialExpressionDotProduct.h"
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionPower.h"
+#include "Materials/MaterialExpressionSaturate.h"
+#include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionVectorParameter.h"
+#include "Materials/MaterialExpressionVertexNormalWS.h"
 #include "NiagaraEditorUtilities.h"
 #include "NiagaraEmitter.h"
 #include "NiagaraEmitterHandle.h"
@@ -224,6 +234,96 @@ int32 ApplyInputs(const FBudgetFxRow& Row, FVersionedNiagaraEmitterData& Data)
 	return Set;
 }
 
+/**
+ * T58: M_SpellGlow, the one material of every spell VFX puff (Session/SpellVfx.h). Unlit, additive, two-sided, usable on
+ * instanced meshes: Emissive = Color x pow(saturate(-dot(N, V)), GlowFalloff) x GlowGain. Only the far hemisphere of a
+ * sphere emits, brightest at its centre and fading to nothing at its silhouette: a soft glow without a texture. A bolt's
+ * opaque core stands in front of that far half, so the glow never adds over the core and the core keeps its exact
+ * threat colour; the halo shows only around it. Greybox::Tint writes Color. Returns false when the save fails.
+ */
+bool CreateSpellGlowMaterial(bool bForce)
+{
+	const FString PackagePath = SpellVfx::GlowMaterialPackage;
+	const FString Name = FPackageName::GetShortName(PackagePath);
+	const FString ObjectPath = FString::Printf(TEXT("%s.%s"), *PackagePath, *Name);
+	if (!bForce && LoadObject<UMaterial>(nullptr, *ObjectPath, nullptr, LOAD_NoWarn | LOAD_Quiet))
+	{
+		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s unchanged"), *Name);
+		return true;
+	}
+	UPackage* Package = CreatePackage(*PackagePath);
+	UMaterial* Material = NewObject<UMaterial>(Package, FName(*Name), RF_Public | RF_Standalone | RF_Transactional);
+	Material->MaterialDomain = MD_Surface;
+	Material->BlendMode = BLEND_Additive;
+	Material->SetShadingModel(MSM_Unlit);
+	Material->bUsedWithInstancedStaticMeshes = true;
+	Material->TwoSided = true;
+	auto Add = [Material](UMaterialExpression* Expression, int32 X, int32 Y)
+	{
+		Expression->MaterialExpressionEditorX = X;
+		Expression->MaterialExpressionEditorY = Y;
+		Material->GetExpressionCollection().AddExpression(Expression);
+	};
+	UMaterialExpressionVectorParameter* Colour = NewObject<UMaterialExpressionVectorParameter>(Material);
+	Colour->ParameterName = TEXT("Color");
+	Colour->DefaultValue = FLinearColor::White;
+	Add(Colour, -600, -200);
+	UMaterialExpressionScalarParameter* Gain = NewObject<UMaterialExpressionScalarParameter>(Material);
+	Gain->ParameterName = TEXT("GlowGain");
+	Gain->DefaultValue = 1.1f;
+	Add(Gain, -600, 200);
+	UMaterialExpressionScalarParameter* Falloff = NewObject<UMaterialExpressionScalarParameter>(Material);
+	Falloff->ParameterName = TEXT("GlowFalloff");
+	Falloff->DefaultValue = 1.5f;
+	Add(Falloff, -600, 100);
+	UMaterialExpressionVertexNormalWS* Normal = NewObject<UMaterialExpressionVertexNormalWS>(Material);
+	Add(Normal, -900, 0);
+	UMaterialExpressionCameraVectorWS* View = NewObject<UMaterialExpressionCameraVectorWS>(Material);
+	Add(View, -900, 60);
+	UMaterialExpressionDotProduct* Facing = NewObject<UMaterialExpressionDotProduct>(Material);
+	Facing->A.Expression = Normal;
+	Facing->B.Expression = View;
+	Add(Facing, -750, 0);
+	UMaterialExpressionMultiply* Away = NewObject<UMaterialExpressionMultiply>(Material);
+	Away->A.Expression = Facing;
+	Away->ConstB = -1.f;
+	Add(Away, -700, 0);
+	UMaterialExpressionSaturate* Clamped = NewObject<UMaterialExpressionSaturate>(Material);
+	Clamped->Input.Expression = Away;
+	Add(Clamped, -650, 0);
+	UMaterialExpressionPower* Soft = NewObject<UMaterialExpressionPower>(Material);
+	Soft->Base.Expression = Clamped;
+	Soft->Exponent.Expression = Falloff;
+	Add(Soft, -450, 0);
+	UMaterialExpressionMultiply* Tinted = NewObject<UMaterialExpressionMultiply>(Material);
+	Tinted->A.Expression = Colour;
+	Tinted->B.Expression = Soft;
+	Add(Tinted, -300, -100);
+	UMaterialExpressionMultiply* Emissive = NewObject<UMaterialExpressionMultiply>(Material);
+	Emissive->A.Expression = Tinted;
+	Emissive->B.Expression = Gain;
+	Add(Emissive, -150, 0);
+	Material->GetEditorOnlyData()->EmissiveColor.Expression = Emissive;
+	Material->PreEditChange(nullptr);
+	Material->PostEditChange();
+	Material->MarkPackageDirty();
+	const FString PackageFile = FPackageName::LongPackageNameToFilename(PackagePath, FPackageName::GetAssetPackageExtension());
+	if (bForce)
+	{
+		IFileManager::Get().Delete(*PackageFile, false, true, true);
+	}
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+	SaveArgs.SaveFlags = SAVE_NoError;
+	if (!UPackage::SavePackage(Package, Material, *PackageFile, SaveArgs))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s save %s"), *Name, *PackageFile);
+		return false;
+	}
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=additive shading=unlit twosided=1 instanced=1 -> %s"), *Name, *PackageFile);
+	return true;
+}
+
 /** Builds the (unsaved) system of one row from its emitter template. Null when the template is missing. */
 UNiagaraSystem* BuildSystem(const FBudgetFxRow& Row, UPackage* Package)
 {
@@ -251,6 +351,11 @@ int32 UCreateBudgetFxCommandlet::Main(const FString& Params)
 	int32 Created = 0;
 	int32 Unchanged = 0;
 	int32 Failed = 0;
+	// T58: the spell VFX material. -spellvfx rebuilds it alone, without touching the Niagara systems.
+	if (!bDump && !CreateSpellGlowMaterial(FParse::Param(*Params, TEXT("spellvfx"))))
+	{
+		++Failed;
+	}
 	for (const FBudgetFxRow& Row : BudgetStress::FxRows())
 	{
 		const FString ObjectPath = FString::Printf(TEXT("%s.%s"), *Row.AssetPath, *Row.Name);
