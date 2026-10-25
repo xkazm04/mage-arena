@@ -2,6 +2,21 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on c69ef865 (T61 braziers): the flame colour ACCEPTED, the near positions NOT
+
+> Athena, 2026-10-25 08:06Z (owner delegation), on c69ef865 (`docs/research/BRAZIERS-T61-2026-10-25.md`). The ruling is
+> recorded as the dispatch brief relayed it, not verbatim.
+
+- **The flame colour is ACCEPTED.** It reads only weakly as fire; that is accepted for now. Spectacle belongs to the later
+  flipbook pass (DECISIONS 2026-10-25 on b872dcd). The colour constants in `Greybox/BrazierFire.{h,cpp}` do not change.
+- **The near-brazier positions (-3.5, +/-7.8) are NOT accepted.** From the centre seat no brazier may stand behind any
+  demo threat lane (the fire bolt, the steel line, the unblockable) in `04-threats-midflight` and
+  `10-unblockable-telegraph`. Prefer the wall or behind the seat; keep the pair mirrored; inside the oval, clear of the
+  banners, the crowd and the dais. The clearance test widens to every demo threat lane.
+- **One Unreal lane, in this order:** the brazier positions, the T28 part-2 proof, one overlay golden re-record (hash
+  lines only), then D-G4 and a blind critic. The card is T62 (`apps/vr/tasks/T62-brazier-lanes-t28-proof-golden.md`).
+- No signed number moves.
+
 ## 2026-10-25 - Athena, on deaa15b (T60 braziers): the bowls ACCEPTED, the flame NOT; option B
 
 > Athena, 2026-10-25 (owner delegation), on deaa15b (`docs/research/BRAZIERS-T60-2026-10-25.md`, section 6). The
