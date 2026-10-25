@@ -420,6 +420,93 @@ bool FMageArenaGreyboxBrazierClearOfUnblockable::RunTest(const FString& Paramete
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxBrazierClearOfThreatLanes, "MageArena.Greybox.Brazier.ClearOfThreatLanes",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaGreyboxBrazierClearOfThreatLanes::RunTest(const FString& Parameters)
+{
+	// T62: from the centre seat no brazier, bowl or flame, shares screen with any demo threat - water, the fire bolt, the
+	// steel line or the unblockable - at any point of its flight, in front of it or behind it. At (-3.5, +/-7.8) the fire bolt
+	// and the steel line of 04-threats-midflight passed in front of the near braziers, and the flame read as part of the bolt
+	// (BRAZIERS-T61 section 5). A brazier past the far spawn ring is backdrop, like the wall and the crowd: a threat inside the
+	// near spawn ring is large enough to pass in front of any backdrop, so that pair is not checked against it.
+	FArenaLayout Layout;
+	if (!LoadLayout(*this, Layout))
+	{
+		return false;
+	}
+	const FRunePad* CentrePad = Layout.FindPad(1);
+	if (!TestNotNull(TEXT("the centre pad"), CentrePad) || !TestTrue(TEXT("spawn markers"), Layout.SpawnMarkers.Num() > 0))
+	{
+		return false;
+	}
+	double NearRingM = TNumericLimits<double>::Max();
+	double FarRingM = 0.0;
+	for (const FSpawnMarker& Marker : Layout.SpawnMarkers)
+	{
+		NearRingM = FMath::Min(NearRingM, Marker.DistanceM);
+		FarRingM = FMath::Max(FarRingM, Marker.DistanceM);
+	}
+	const FVector Eye = CentrePad->PositionM + FVector(0.0, 0.0, Layout.SeatedEyeHeightAbovePadM);
+	// Yaw and pitch from the eye, in degrees, and the horizontal distance.
+	const auto Angles = [&Eye](const FVector& PointM)
+	{
+		const FVector D = PointM - Eye;
+		const double Flat = FVector2D(D.X, D.Y).Size();
+		return FVector(FMath::RadiansToDegrees(FMath::Atan2(D.Y, D.X)), FMath::RadiansToDegrees(FMath::Atan2(D.Z, Flat)), Flat);
+	};
+	// The least angular gap kept between a brazier's screen box and a threat's.
+	constexpr double MarginDeg = 1.0;
+	const TArray<FThreatLaunch> Launches = BuildThreatLaunches(Layout, *CentrePad);
+	TestEqual(TEXT("every demo threat has a lane"), Launches.Num(), Layout.Threats.Num());
+	for (int32 Index = 0; Index < Layout.Braziers.Num(); ++Index)
+	{
+		const FArenaProp& Brazier = Layout.Braziers[Index];
+		const FVector Base = Angles(FVector(Brazier.PositionM.X, Brazier.PositionM.Y, 0.0));
+		const double FlameTopM = Brazier.StandHeightM + Brazier.BowlHeightM + Brazier.FlameRadiusM * BrazierFire::MaxFlameTopRadii;
+		const double TopPitch = Angles(FVector(Brazier.PositionM.X, Brazier.PositionM.Y, FlameTopM)).Y;
+		const double HalfYaw = FMath::RadiansToDegrees(FMath::Atan2(Brazier.BowlRadiusM, Base.Z));
+		const bool bBackdrop = FVector2D(Brazier.PositionM.X - CentrePad->PositionM.X, Brazier.PositionM.Y - CentrePad->PositionM.Y).Size() > FarRingM;
+		for (const FThreatLaunch& Launch : Launches)
+		{
+			// The rim's outer edge for the unblockable; the body for the rest. The steel line is a rod along its flight.
+			const double RadiusM = Launch.Spec.bRimmed ? Launch.Spec.RadiusM * (Layout.ThreatRimScale + Layout.ThreatRimTubeScale * 0.5) : Launch.Spec.RadiusM;
+			const FVector Along = (Launch.EndM - Launch.StartM).GetSafeNormal();
+			const double HalfLengthM = Launch.Spec.bElongated ? Launch.Spec.LengthM * 0.5 : 0.0;
+			for (int32 Step = 0; Step <= 100; ++Step)
+			{
+				const FVector Centre = FMath::Lerp(Launch.StartM, Launch.EndM, Step / 100.0);
+				if (bBackdrop && Angles(Centre).Z < NearRingM)
+				{
+					continue;
+				}
+				double YawMin = TNumericLimits<double>::Max();
+				double YawMax = -YawMin;
+				double PitchMin = YawMin;
+				double PitchMax = -YawMin;
+				for (const double End : {-HalfLengthM, HalfLengthM})
+				{
+					const FVector PointM = Centre + Along * End;
+					const FVector Threat = Angles(PointM);
+					const double Radius = FMath::RadiansToDegrees(FMath::Atan2(RadiusM, (PointM - Eye).Size())) + MarginDeg;
+					YawMin = FMath::Min(YawMin, Threat.X - Radius);
+					YawMax = FMath::Max(YawMax, Threat.X + Radius);
+					PitchMin = FMath::Min(PitchMin, Threat.Y - Radius);
+					PitchMax = FMath::Max(PitchMax, Threat.Y + Radius);
+				}
+				const bool bYawApart = YawMax < Base.X - HalfYaw || YawMin > Base.X + HalfYaw;
+				const bool bPitchApart = PitchMax < Base.Y || PitchMin > TopPitch;
+				if (!TestTrue(FString::Printf(TEXT("brazier %d at %s stays clear of the %s lane at %d%% of its flight"), Index, *Brazier.PositionM.ToString(), *Launch.Spec.Kind, Step),
+				        bYawApart || bPitchApart))
+				{
+					break;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaGreyboxBrazierFireBatch, "MageArena.Greybox.Brazier.FireBatch",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
