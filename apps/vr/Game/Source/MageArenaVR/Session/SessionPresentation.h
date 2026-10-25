@@ -106,6 +106,11 @@ public:
 	 * two white bars. Zero is the only right answer; the style-pick capture fails any frame that counts one.
 	 */
 	int32 CountBlankCards() const;
+	/** T22 seam: the crack seams, the wrist cuff root and its plane, for the test that every visible seam sits on a shown cuff. */
+	int32 GetCrackSeamCount() const { return CrackSeams.Num(); }
+	const UStaticMeshComponent* GetCrackSeam(int32 Index) const { return CrackSeams.IsValidIndex(Index) ? CrackSeams[Index].Get() : nullptr; }
+	const USceneComponent* GetCuffRoot() const { return CuffRoot; }
+	const UStaticMeshComponent* GetCuffPlane() const { return CuffPlane; }
 	/** T38: Brennic's figure when it loaded, else null (the greybox body stands in). */
 	const URivalFigureComponent* GetRivalFigure() const { return RivalFigure; }
 	/** T38: the figure loaded and stands in for the rival this frame. */
@@ -373,7 +378,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UWidgetComponent> TabletText;
 
-	// T22 diegetic collar feedback, no numbers: a bright seam flashes on both wrist cuffs on each Crack, and two greybox
+	// T22 diegetic collar feedback, no numbers: a bright seam flashes on the wrist cuff (only over a shown cuff) on each Crack, and two greybox
 	// Wardstones at the arena edge (inside the front 70 degree arc) glow with the day's Tithe and pulse on each point.
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> CrackSeams;

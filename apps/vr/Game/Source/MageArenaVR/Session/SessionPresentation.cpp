@@ -1998,24 +1998,22 @@ void ASessionPresentation::EnsureCollarVisuals(const FArenaSession& Session)
 	{
 		return;
 	}
-	UCameraComponent* Camera = FindCamera();
-	if (!Camera)
+	// The seam runs along the top edge of the wrist cuff and is parented to it: the cuff sits at (58, -26, -14) on the camera
+	// (its Y flips for a left-handed player), so the seam is 2 cm nearer the eye and 3.5 cm up, in front of the cuff plane.
+	// Athena's T22 ruling (2026-10-25): a seam shows only over a cuff, never free-floating over a wrist that has none.
+	EnsureCuff();
+	if (!CuffRoot)
 	{
 		return;
 	}
 	bCollarVisuals = true;
-	// The seam runs along the top edge of each wrist cuff: the cuff sits at (58, -26, -14) on the camera, its mirror on
-	// the other wrist, so the seam is 2 cm nearer the eye and 3.5 cm up, in front of the cuff plane.
-	for (const double Side : {-26.0, 26.0})
+	UStaticMeshComponent* Seam = MakePart(TEXT("Cube"), CrackSeamColour);
+	if (Seam)
 	{
-		UStaticMeshComponent* Seam = MakePart(TEXT("Cube"), CrackSeamColour);
-		if (Seam)
-		{
-			Seam->AttachToComponent(Camera, FAttachmentTransformRules::KeepRelativeTransform);
-			Seam->SetRelativeLocation(FVector(56.0, Side, -10.5));
-			Seam->SetVisibility(false);
-			CrackSeams.Add(Seam);
-		}
+		Seam->AttachToComponent(CuffRoot, FAttachmentTransformRules::KeepRelativeTransform);
+		Seam->SetRelativeLocation(FVector(-2.0, 0.0, 3.5));
+		Seam->SetVisibility(false);
+		CrackSeams.Add(Seam);
 	}
 	// Two Wardstones on the floor edge, WardstoneBearingDeg either side of the centre pad's forward (inside the front
 	// 70 degree arc), found on the floor ellipse along each bearing.
@@ -2073,7 +2071,7 @@ void ASessionPresentation::SyncCollarVisuals(const FArenaSession& Session)
 	const bool bFight = Session.GetGames().Phase == TEXT("active") || Session.GetGames().Phase == TEXT("intermission")
 		|| Session.GetGames().Phase == TEXT("lost") || Session.GetGames().Phase == TEXT("complete");
 	const double SinceCrack = Collar.GetLastCrackSim() >= 0.0 ? Sim - Collar.GetLastCrackSim() : 1.0e9;
-	const bool bSeam = bFight && SinceCrack >= 0.0 && SinceCrack < CrackSeamS;
+	const bool bSeam = bFight && SinceCrack >= 0.0 && SinceCrack < CrackSeamS && IsDrawn(CuffPlane);
 	for (UStaticMeshComponent* Seam : CrackSeams)
 	{
 		if (!Seam)
