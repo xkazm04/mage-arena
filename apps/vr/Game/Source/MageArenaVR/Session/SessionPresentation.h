@@ -17,6 +17,7 @@ class UStaticMeshComponent;
 class UTextRenderComponent;
 class UWidgetComponent;
 class UTexture2D;
+class URivalFigureComponent;
 
 /** An enemy HP bar's two Cube parts: their sizes, and the fill centre's offset from the back centre. */
 struct FHpBarParts
@@ -65,6 +66,16 @@ public:
 	int32 GetGlowPuffsDrawn() const { return GlowFrame.Drawn; }
 	/** T58: the glow layers drawn this frame: one instanced component, so one draw call, per glow colour on screen. */
 	int32 CountGlowLayersDrawn() const;
+	/**
+	 * T38: where Brennic's rigged figure is loaded from (a Content folder and the asset name, Session/RivalFigure.h). The
+	 * default is the creature cast's scratch import. Read once, on the first frame his duel is drawn; a test points it at
+	 * a folder that does not exist.
+	 */
+	void SetRivalFigureSource(const FString& Folder, const FString& Asset);
+	/** T38: Brennic's figure when it loaded, else null (the greybox body stands in). */
+	const URivalFigureComponent* GetRivalFigure() const { return RivalFigure; }
+	/** T38: the figure loaded and stands in for the rival this frame. */
+	bool IsRivalFigureShown() const;
 
 private:
 	struct FBody
@@ -146,6 +157,10 @@ private:
 	void SyncBursts(const struct FGames& Games, const struct FActor& Player, const TSet<int32>& LiveShots, const FVector& EyeCm, double Now);
 	/** T58: writes this frame's puffs into the glow layers and hides the layers with none. */
 	void FlushGlow();
+	/** T38: Brennic is the bound rival of this bout and his figure loads (tried once). */
+	bool UsesRivalFigure(const FArenaSession& Session);
+	/** T38: the figure follows the rival's kernel position, facing and events, down included (Death holds). */
+	void SyncRivalFigure(const FArenaSession& Session, bool bPaused);
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> Root;
@@ -291,6 +306,14 @@ private:
 	};
 	TMap<int32, FOrbPath> OrbPaths;
 	void SyncOrbPaths(const FArenaSession& Session);
+
+	// T38: Brennic's rigged figure in place of his greybox column, when the scratch import is there (Session/RivalFigure.h).
+	UPROPERTY()
+	TObjectPtr<URivalFigureComponent> RivalFigure;
+
+	FString RivalFigureFolder;
+	FString RivalFigureAsset;
+	bool bRivalFigureTried = false;
 
 	// T19 phase break beat: the rival flares in its element colour, a ring pulses on both wrists (the surge), and the
 	// crowd band brightens (the swell placeholder; audio is T26). No new threat colours.

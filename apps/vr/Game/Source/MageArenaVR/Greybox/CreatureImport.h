@@ -222,6 +222,12 @@ FVector StandPointCm(const FArenaLayout& Layout, double DistanceM, double Latera
 ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, const FString& Name, const FVector& PointCm);
 
 /**
+ * The mesh's forward in component space, read from its ref pose (the head and ball_* bones), not assumed from the FBX
+ * axis conversion. PlaceCreature and the T38 rival figure (Session/RivalFigure.h) turn the mesh by it.
+ */
+FVector MeshForward(const USkeletalMesh& Mesh);
+
+/**
  * Moves a spawned creature to PointCm, turned to face the seated player and then YawOffsetDeg further (0 front, 45 three-
  * quarter, 180 back). The mesh's own forward is read from its bones, not assumed from the FBX axis conversion.
  */

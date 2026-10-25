@@ -56,27 +56,6 @@ FVector RefComponentLocation(const FReferenceSkeleton& Skeleton, int32 Bone)
 	return Accumulated.GetLocation();
 }
 
-/**
- * The mesh's forward in component space, from bones that sit ahead of the body on both rigs: the head (far forward on
- * the hound, slightly forward on Brennic) and the balls of the feet (Brennic's toes). Both FBX were exported facing -Y in
- * Blender by rig_anim.py; this reads the result of the import instead of assuming the axis conversion.
- */
-FVector MeshForward(const USkeletalMesh& Mesh)
-{
-	const FReferenceSkeleton& Skeleton = Mesh.GetRefSkeleton();
-	FVector Sum = FVector::ZeroVector;
-	for (int32 Bone = 0; Bone < Skeleton.GetNum(); ++Bone)
-	{
-		const FString Name = Skeleton.GetBoneName(Bone).ToString().ToLower();
-		if (Name == TEXT("head") || Name.StartsWith(TEXT("ball_")))
-		{
-			Sum += RefComponentLocation(Skeleton, Bone);
-		}
-	}
-	Sum.Z = 0.0;
-	return Sum.GetSafeNormal();
-}
-
 UAnimSequence* FindIdle(const FString& Name)
 {
 	IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
@@ -110,6 +89,27 @@ const FCreatureSpec* FindSpec(const FString& Name)
 		}
 	}
 	return nullptr;
+}
+
+/**
+ * The mesh's forward in component space, from bones that sit ahead of the body on both rigs: the head (far forward on
+ * the hound, slightly forward on Brennic) and the balls of the feet (Brennic's toes). Both FBX were exported facing -Y in
+ * Blender by rig_anim.py; this reads the result of the import instead of assuming the axis conversion.
+ */
+FVector MeshForward(const USkeletalMesh& Mesh)
+{
+	const FReferenceSkeleton& Skeleton = Mesh.GetRefSkeleton();
+	FVector Sum = FVector::ZeroVector;
+	for (int32 Bone = 0; Bone < Skeleton.GetNum(); ++Bone)
+	{
+		const FString Name = Skeleton.GetBoneName(Bone).ToString().ToLower();
+		if (Name == TEXT("head") || Name.StartsWith(TEXT("ball_")))
+		{
+			Sum += RefComponentLocation(Skeleton, Bone);
+		}
+	}
+	Sum.Z = 0.0;
+	return Sum.GetSafeNormal();
 }
 
 FString FolderPath(const FString& Name)

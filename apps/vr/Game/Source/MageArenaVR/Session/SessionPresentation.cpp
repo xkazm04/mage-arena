@@ -4,6 +4,7 @@
 #include "Session/ArenaAudio.h"
 #include "Session/ElementColour.h"
 #include "Session/PresentationLook.h"
+#include "Session/RivalFigure.h"
 #include "Session/SpellVfx.h"
 
 #include "Camera/CameraComponent.h"
@@ -17,6 +18,7 @@
 #include "Engine/Engine.h"
 #include "Engine/Texture2D.h"
 #include "EngineUtils.h"
+#include "Greybox/CreatureImport.h"
 #include "Greybox/GreyboxUtil.h"
 #include "Hands/MageArenaPawn.h"
 #include "Hands/MageSettings.h"
@@ -158,6 +160,64 @@ ASessionPresentation::ASessionPresentation()
 	SetRootComponent(Root);
 	Audio = CreateDefaultSubobject<UArenaAudioComponent>(TEXT("Audio"));
 	Audio->SetupAttachment(Root);
+	RivalFigureFolder = CreatureImport::FolderPath(RivalClips::BrennicAsset);
+	RivalFigureAsset = RivalClips::BrennicAsset;
+}
+
+void ASessionPresentation::SetRivalFigureSource(const FString& Folder, const FString& Asset)
+{
+	RivalFigureFolder = Folder;
+	RivalFigureAsset = Asset;
+}
+
+bool ASessionPresentation::IsRivalFigureShown() const
+{
+	return RivalFigure && RivalFigure->IsShown();
+}
+
+bool ASessionPresentation::UsesRivalFigure(const FArenaSession& Session)
+{
+	const FVrRuleset* Rules = Session.GetVrRules();
+	const FVrRival* Rival = Rules ? Rules->BoundRival() : nullptr;
+	if (!Rival || Rival->Id != RivalClips::BrennicRivalId)
+	{
+		return false;
+	}
+	if (!bRivalFigureTried)
+	{
+		bRivalFigureTried = true;
+		URivalFigureComponent* Figure = NewObject<URivalFigureComponent>(this, TEXT("RivalFigure"));
+		Figure->RegisterComponent();
+		if (Figure->Load(RivalFigureFolder, RivalFigureAsset))
+		{
+			RivalFigure = Figure;
+		}
+		else
+		{
+			Figure->DestroyComponent();
+		}
+	}
+	return RivalFigure != nullptr;
+}
+
+void ASessionPresentation::SyncRivalFigure(const FArenaSession& Session, bool bPaused)
+{
+	if (!RivalFigure)
+	{
+		return;
+	}
+	const FGames& Games = Session.GetGames();
+	const FVrRuleset* Rules = Session.GetVrRules();
+	// The rival's actor stays in the state when he is down, so Death holds where he fell.
+	const FActor* Rival = UsesRivalFigure(Session) ? SimFindActor(Games.State, Rules->RivalRuntime.ActorId) : nullptr;
+	if (!Rival)
+	{
+		RivalFigure->Hide();
+		return;
+	}
+	const FVector FeetCm = Session.KernelToUnrealCm(Rival->Pos);
+	const FVector FacingCm = Session.KernelToUnrealCm(SimAdd(Rival->Pos, Rival->Facing)) - FeetCm;
+	RivalFigure->Sync(Games.State.Events, Rival->Id, Games.State.Tick, FeetCm, FacingCm, bPaused);
 }
 
 UStaticMeshComponent* ASessionPresentation::MakePart(const TCHAR* Shape, const FLinearColor& Colour)
@@ -1406,6 +1466,9 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	// T63: the glow cards of this frame face the eye.
 	GlowFrame.Reset(CamLoc);
 	const FVector CamFwd = Camera ? Camera->GetForwardVector() : FVector::ForwardVector;
+	const FVrRuleset* Rules = Session.GetVrRules();
+	// T38: Brennic's figure stands in for his column; his HP bar stays.
+	const bool bRivalFigure = UsesRivalFigure(Session);
 
 	for (const FActor& Actor : Games.State.Actors)
 	{
@@ -1431,7 +1494,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		Centre.Z += Height * 0.5;
 		if (Body.Mesh)
 		{
-			Body.Mesh->SetVisibility(true);
+			Body.Mesh->SetVisibility(!(bRivalFigure && Rules->IsRival(Actor.Id)));
 			// For cinder_hound and other creatures, use Actor.Facing
 			FVector FacingDir = Session.KernelToUnrealCm(SimAdd(Actor.Pos, Actor.Facing)) - Session.KernelToUnrealCm(Actor.Pos);
 			FacingDir.Z = 0;
@@ -1465,7 +1528,8 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 		}
 	}
 
-	const FVrRuleset* Rules = Session.GetVrRules();
+	SyncRivalFigure(Session, bPaused);
+
 	const FVrAttackMode* SpearMode = Rules ? Rules->FindThrow(TEXT("conscript")) : nullptr;
 	UStaticMesh* CubeMesh = Greybox::LoadShape(TEXT("Cube"));
 	UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
