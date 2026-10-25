@@ -159,7 +159,7 @@ bool MissioReachBout(FAutomationTestBase& Test, FMissioRig& Rig, FArenaSession& 
 	{ return Session.GetPhaseClock() + 1.0e-9 >= Session.GetDayTuning().RitualLineS; }, 5.0);
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	MissioRunWhile(Session, TEXT("ritual"), 5.0);
-	MissioRunWhile(Session, TEXT("intro"), 5.0);
+	MissioRunWhile(Session, TEXT("intro"), 15.0);
 	bPass &= Test.TestEqual(TEXT("the bout is live"), Session.GetStage(), FString(TEXT("active")));
 	bPass &= Test.TestEqual(TEXT("the saved bout"), Session.GetGames().Wave, Bout);
 	return bPass;

@@ -304,8 +304,9 @@ bool FMageArenaTeachMiss::RunTest(const FString& Parameters)
 		return false;
 	}
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
-	// T21: the unscripted prologue runs its full day.json prologueMaxS (10 s) before the teach.
-	const bool bEntered = AdvanceUntil(Session, [&Session]() { return Session.GetStage() == TEXT("teach"); }, 16.0);
+	// T21: the unscripted prologue runs its full day.json prologueMaxS (45 s) before the teach.
+	const bool bEntered = AdvanceUntil(Session, [&Session]()
+	{ return Session.GetStage() == TEXT("teach"); }, 51.0);
 	bool bPass = TestTrue(TEXT("ward raise enters the teach"), bEntered);
 	const FActor* Entered = PlayerOf(Session);
 	const double Hp = Entered ? Entered->Hp : -1.0;
@@ -407,8 +408,8 @@ bool FMageArenaTeachWaiver::RunTest(const FString& Parameters)
 	FString PlayedOn;
 	double SeenClock = 0.0;
 	double Elapsed = 0.0;
-	// T21: 10 s of the unscripted prologue come first.
-	while (Elapsed < 45.0 && CountPrefix(Session.GetChain(), TEXT("teach perfect waived")) == 0)
+	// T21: 45 s of the unscripted prologue come first.
+	while (Elapsed < 80.0 && CountPrefix(Session.GetChain(), TEXT("teach perfect waived")) == 0)
 	{
 		const double Clock = Session.GetTeachClock();
 		if (Clock + 0.05 < SeenClock)

@@ -226,8 +226,8 @@ bool FMageArenaPauseTracking::RunTest(const FString& Parameters)
 	Rig.Hands->SetTrackingDropped(false);
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
 	double Enter = 0.0;
-	// T21: the first-launch prologue (10 s, day.json prologueMaxS) comes between cold and the teach.
-	while (Teach.GetStage() != TEXT("teach") && Enter < 16.0)
+	// T21: the first-launch prologue (45 s, day.json prologueMaxS) comes between cold and the teach.
+	while (Teach.GetStage() != TEXT("teach") && Enter < 51.0)
 	{
 		Teach.Advance(kDt, true);
 		Enter += kDt;
@@ -502,8 +502,8 @@ bool FMageArenaPauseTeachResume::RunTest(const FString& Parameters)
 	bool bPass = TestTrue(TEXT("arc"), Session.BeginArc(1));
 	Rig.Hands->PlayQuickAction(TEXT("ward-raise"), EClipVariant::Normal);
 	double Elapsed = 0.0;
-	// T21: the first-launch prologue (10 s) comes between cold and the teach.
-	while (Session.GetStage() != TEXT("teach") && Elapsed < 16.0)
+	// T21: the first-launch prologue (45 s) comes between cold and the teach.
+	while (Session.GetStage() != TEXT("teach") && Elapsed < 51.0)
 	{
 		Session.Advance(kDt, true);
 		Elapsed += kDt;

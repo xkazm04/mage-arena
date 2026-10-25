@@ -369,7 +369,7 @@ bool IntoBout(FCollarRig& Rig, FArenaSession& Session)
 	}
 	Rig.Hands->PlayQuickAction(TEXT("both-palms"), EClipVariant::Normal);
 	RunWhile(Session, TEXT("ritual"), 5.0);
-	RunWhile(Session, TEXT("intro"), 5.0);
+	RunWhile(Session, TEXT("intro"), 15.0);
 	return Session.GetStage() == TEXT("active");
 }
 
