@@ -2,6 +2,20 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on 7fd7d11 (T57 crowd and stands): ACCEPTED; the braziers next
+
+> Athena, 2026-10-25 (owner delegation), on 7fd7d11 (`docs/research/CROWD-T57-2026-10-25.md`). The ruling is recorded
+> as the dispatch brief relayed it, not verbatim.
+
+- **T57 is ACCEPTED.** The stands read as an audience.
+- **The D-G4 max stays 126 of 150.**
+- **The crowd tint pass is DEFERRED,** not done now: warm, varied tunics and the red stand banners, on the atlas or the
+  per-instance custom data, kept muted.
+- **NEXT: the braziers as fire props** (T60, `apps/vr/tasks/T60-brazier-fire-props.md`). The greybox flame takes the
+  style's `projectiles.fire`, the fire spell's threat colour; the brazier flame gets its own environment colour, out of
+  every threat class.
+- The DINOv3 hold stands. No signed number moves.
+
 ## 2026-10-25 - Athena, on b872dcd (T58 spell VFX): ACCEPTED as a readability step; T57 crowd next
 
 > Athena, 2026-10-25 (owner delegation), on b872dcd (`docs/research/SPELL-VFX-T58-2026-10-25.md`). The ruling is
