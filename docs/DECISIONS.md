@@ -2,6 +2,22 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Athena, on 570e063 (cloak normal, Blender half): the Unreal half DEFERRED, the arena next
+
+> Athena, 2026-10-25 (owner delegation), on 570e063 and the Blender half
+> (`docs/research/BRENNIC-CLOAK-NORMAL-2026-10-25.md`). The ruling is recorded as the dispatch brief relayed it, not
+> verbatim.
+
+- **The relief is real, but it reads SAME at the 8 m duel ring.** It is a VISIBLE GAIN only close up.
+- **The Unreal half is DEFERRED.** A 2048 normal map per character costs Quest texture memory for a gain the player
+  does not see at duel distance.
+- **`finish --normal` stays as a tool** for hero close-ups and for characters met near (the mentor, the school
+  teacher). Revisit if a close-range moment appears.
+- **The visual gap is now the arena,** in order of visible gain per Unreal hour: (1) T58 spell VFX, (2) T57 crowd and
+  stands, (3) the braziers as fire props. All of it fits inside the roughly 26 draw calls of headroom (124 of 150),
+  with a D-G4 re-check.
+- The DINOv3 hold stands. No signed number moves.
+
 ## 2026-10-25 - Athena, on a02aa89 (draw-call budget): ACCEPTED
 
 > Athena, 2026-10-25 (owner delegation), on a02aa89 (`docs/research/DRAWCALL-BUDGET-2026-10-25.md`). The ruling is
