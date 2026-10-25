@@ -1,5 +1,7 @@
 # Runs the greybox capture: real RHI, offscreen 1920x1080, scripted shots, desktop budget.
 # Success is MAGEVR_CAPTURE_DONE plus the six pngs and budget.json. The editor Quit code is not the gate.
+# Usage: capture-greybox.ps1 [-Run A02] [-ExtraArgs "-MageArenaNoCrowd"]   (T57: the stands without the crowd)
+param([ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Run = "A02", [string[]]$ExtraArgs = @())
 $ErrorActionPreference = "Stop"
 $ToolsDir = $PSScriptRoot
 $VrDir = Split-Path -Parent $ToolsDir
@@ -8,7 +10,7 @@ $AppsDir = Split-Path -Parent $VrDir
 $Repo = Split-Path -Parent $AppsDir
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
-$RunDir = Join-Path $Repo "runs\A02"
+$RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 $BudgetPath = Join-Path $RunDir "budget.json"
 $LogPath = Join-Path $RunDir "capture.log"
@@ -38,7 +40,7 @@ $ArgumentList = @(
 	"-MageArenaGreyboxCapture",
 	"-csvprofile",
 	"-csvCaptureFrames=240"
-)
+) + $ExtraArgs
 
 Write-Host "capture: starting UnrealEditor-Cmd"
 $Process = Start-Process -FilePath $Editor -ArgumentList $ArgumentList -PassThru -WindowStyle Hidden -RedirectStandardOutput $StdoutPath -RedirectStandardError $StderrPath
