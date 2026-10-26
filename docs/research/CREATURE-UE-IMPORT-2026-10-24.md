@@ -247,3 +247,36 @@ their LOD0 triangles.
 - **The maw s7202 was not imported** (out of this lane's scope). The same commandlet and script take it with one
   more spec row.
 - Nothing here ships while the DINOv3 hold stands. The imported assets live only in staging.
+
+## 10. Imported (2026-10-26, commits `ad38b9b` assets, `16ffa56` runtime paths, `c2c34dd` licence entry)
+
+The DINOv3 hold was lifted by the owner on 2026-10-25 (DECISIONS ruling 4; licence ledger entry in the 2026-10-21 entry).
+The three casts are committed under `apps/vr/Game/Content/Characters/{Brennic,CinderHound,MireMaw}/` (25 `.uasset`,
+plus each FBX and base-colour PNG in `<Name>/Source/`; 31 files, all Git LFS: `git check-attr filter` says `lfs` for
+every path and `git lfs ls-files` lists all 31; `node tools/check-repo-law.mjs` is 4/4). Imported by the same
+`ImportCreatureMesh` commandlet from the in-repo `Source/` copies. The Brennic source is the bake LOD0 FBX
+`dc0a4f38...`, not the 2026-10-25 cloak-normal FBX `fa04d75d...` (its normal map is not part of this import). The maw
+is the seam-fixed texture of CREATURE-CAST-UE section 2.2, not the earlier 6fc79bf one.
+
+sha256, checked against the values the scripts pin (`capture-creature-import.ps1` `$Sources`) before the copy and again
+on the copies in the repo; all six matched:
+
+| File | sha256 |
+|---|---|
+| `Brennic/Source/Brennic.fbx` | `dc0a4f38eef1b8486f72e1ec81859bcba1605be3df412c4c6c72368b203967b0` |
+| `Brennic/Source/T_Brennic_BaseColor.png` | `024d4aaa888d94b2f257be993a96e8ed7a80176cedffaa5b0735620b031facae` |
+| `CinderHound/Source/CinderHound.fbx` | `a650bc3e0ad23abc34291bd3da0dba35698598c430484c095aafc711d07e5449` |
+| `CinderHound/Source/T_CinderHound_BaseColor.png` | `b36529c7f1c79e093cde253ba59087f5120e391eec9169b480a33fbb73ece08d` |
+| `MireMaw/Source/MireMaw.fbx` | `6498f40c8ca4efd7da32abc903f2f537bd1e155e8b4756b9fbfb255ea8bbdcfd` |
+| `MireMaw/Source/T_MireMaw_BaseColor.png` | `d46f288fb31ab978e3ba033d044d6ee7184fec6a88e49cf42459a9dd27ed6e1c` |
+
+Runtime: `CreatureImport::CharactersRoot` (`/Game/Characters`) replaces the scratch root; `RivalFigure` still draws the
+greybox body when the asset or a clip does not load. New test `MageArena.CreatureImport.CharactersResolve` loads mesh,
+texture and material of all three and checks each height; it failed on the scratch root first (staging
+`characters-commit-2026-10-26/red-before-path-change.log`) and passes after.
+
+Evidence (Wolf kaziho, UE 5.8.3 CL 58210709, desktop proxy, not Quest truth): `MageArena.` 336/336, 0 failed, exit 0;
+`capture-rival.ps1 -Budget -BudgetRuns 2` ok (113 shots, MAGEVR_CAPTURE_DONE, rival figure loaded from
+`/Game/Characters/Brennic`), D-G4 draw calls max 124 and 124 (median 120), BasePass about 193-195k of 350k; frames and
+logs in `C:/Users/kazda/mage-art-staging/characters-commit-2026-10-26/` (`runs/T38/`, `capture-rival.log`). The capture
+scripts still re-import into the (now committed) folder first; that left `git status` clean.

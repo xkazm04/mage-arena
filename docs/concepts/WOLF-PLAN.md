@@ -289,7 +289,7 @@ the end.
   `Hit`, `Death`, none empty; LOD0 triangles recorded; one flat colour per material; origin at the feet, +X forward, unit
   scale matching `FBody`; `SOURCE.md` with tool versions and prompts. A failed check goes back to Lynx as an exact defect;
   Wolf does not fix the mesh in the editor.
-- [ ] Import to `apps/vr/Game/Content/Characters/Brennic/` (LFS) with `A_Brennic_Idle`, `_Cast`, `_Hit`, `_Death`.
+- [x] Wolf kaziho 2026-10-26 ad38b9b / 16ffa56 UE 5.8.3 CL 58210709: Brennic, the cinder hound and the mire maw committed under `apps/vr/Game/Content/Characters/` (LFS, 31 files in `git lfs ls-files`); clips are named `SK_<Name>_Anim_<Clip>`, which `RivalFigure` accepts beside `A_<Name>_<Clip>`; `MageArena.` 336/336; `capture-rival.ps1` ok; D-G4 draw calls max 124. docs/research/CREATURE-UE-IMPORT-2026-10-24.md section 10. Was: Import to `apps/vr/Game/Content/Characters/Brennic/` (LFS) with `A_Brennic_Idle`, `_Cast`, `_Hit`, `_Death`.
 - [x] Wolf kaziho 2026-10-25 a918062 UE 5.8.3 CL 58210709 (desktop proxy, not Quest truth) `MageArena.` 330/330 incl. both
   RivalFigure tests (red first); `MageArenaDesign.` 5/7, only DF-011's two; `capture-rival.ps1` staged all four clips under
   the DINOv3 hold (`mage-art-staging/t38-rival-2026-10-25/runs/T38/`; seed 1 for Idle/Cast/Hit, seed 2 for Death, since
