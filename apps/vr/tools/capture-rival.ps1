@@ -1,19 +1,20 @@
 # T38 the first animated opponent (apps/vr/tasks/T38-first-animated-opponent.md, docs/research/T38-RIVAL-2026-10-25.md).
-# One run: imports Brennic, the cinder hound and the mire maw into the scratch folder
-# apps/vr/Game/Content/CreatureImportScratch through the ImportCreatureMesh commandlet, as capture-creature-import.ps1
-# does; stills the hound and the maw at 8 m under the T56 dusk; replays the seated Brennic duel with his rigged figure
+# One run: draws Brennic, the cinder hound and the mire maw from the committed assets under
+# apps/vr/Game/Content/Characters (/Game/Characters, CreatureImport::CharactersRoot) and imports nothing: the commandlet
+# writes into /Game/Characters now, and a re-import over a committed asset reads at scale 1 and fails its height check
+# (Brennic 0.018 m, T68). Stills the hound and the maw at 8 m under the T56 dusk; replays the seated Brennic duel with his rigged figure
 # (-MageArenaCreatureImportCapture -MageArenaRivalReplay, Greybox/CreatureImportCapture.h): seed 1, the reference seated
 # script, then seed 2, the lowest seed where the same script downs him (Brennic wins seed 1, DF-011, so it never shows
 # Death); with -Budget, re-runs the D-G4 budget with the figures in the scene (capture-budget.ps1 -ExtraArgs
 # -MageArenaCreatureImportScene -MageArenaCreatureSkip=Brennic: the session draws Brennic as the figure, the scene adds
-# the hound and the maw); and moves everything it made to -Staging: the imported .uasset files, runs/T38/ (the frames,
-# the crop sheets, the manifest, the clip timeline, SHA256SUMS.txt), the budget runs and the logs. The scratch folder is
-# deleted before the script exits, success or not. The DINOv3 licence hold stands: nothing imported is ever committed.
+# the hound and the maw); and moves everything it made to -Staging: runs/T38/ (the frames, the crop sheets, the manifest,
+# the clip timeline, SHA256SUMS.txt), the budget runs and the logs. It refuses to start when a committed asset is missing
+# or Content/Characters is not clean, and fails when the run leaves a tracked file there changed.
 # Success is MAGEVR_CAPTURE_DONE with no MAGEVR_CAPTURE_FAIL, every manifest shot landed and past the pixel floor, a full
 # frame set for each of the four clips, and, with -Budget, capture-budget.ps1's own ok.
 # Usage: capture-rival.ps1 [-Run T38-rival] [-Seeds 1,2] [-Budget] [-BudgetRuns 3] [-BudgetPrefix rival] [-Staging <dir>]
-# The helpers (the Unreal lane wait, the Blender and ComfyUI refusal, the scratch removal) and the sha256-pinned sources
-# are capture-creature-import.ps1's: they are read from that script, not copied.
+# The helpers (the Unreal lane wait, the Blender and ComfyUI refusal) are capture-creature-import.ps1's: they are read
+# from that script, not copied.
 param(
 	[ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Run = "T38-rival",
 	[ValidatePattern('^[0-9]+(,[0-9]+)*$')][string]$Seeds = "1,2",
@@ -21,9 +22,6 @@ param(
 	[int]$BudgetRuns = 3,
 	[ValidatePattern('^[A-Za-z0-9_-]+$')][string]$BudgetPrefix = "rival",
 	[string]$Staging = "C:\Users\kazda\mage-art-staging\t38-rival-2026-10-25",
-	[string]$BrennicDir = "C:\Users\kazda\mage-art-staging\brennic-mesh-rework-2026-10-24\rig",
-	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig",
-	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-2026-10-24\rig",
 	# Appended to the replay's command line (e.g. -MageArenaRivalHold=1).
 	[string[]]$ExtraArgs = @()
 )
@@ -35,25 +33,21 @@ $AppsDir = Split-Path -Parent $VrDir
 $Repo = Split-Path -Parent $AppsDir
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
-$Scratch = Join-Path $VrDir "Game\Content\CreatureImportScratch"
+$Characters = Join-Path $VrDir "Game\Content\Characters"
 $RunDir = Join-Path $Repo "runs\$Run"
 $StageRuns = Join-Path $Staging "runs\T38"
 
-# capture-creature-import.ps1's helpers and its $Sources table (each FBX and texture with the sha256 its research doc
-# records), taken from that script's syntax tree so there is one copy. A missing piece is a loud failure.
+# capture-creature-import.ps1's helpers, taken from that script's syntax tree so there is one copy. A missing piece is a
+# loud failure.
 $HelperScript = Join-Path $ToolsDir "capture-creature-import.ps1"
 $ParseErrors = $null
 $Ast = [System.Management.Automation.Language.Parser]::ParseFile($HelperScript, [ref]$null, [ref]$ParseErrors)
 if ($ParseErrors.Count -gt 0) { throw "capture-creature-import.ps1 does not parse: $($ParseErrors[0])" }
-foreach ($Name in @("Wait-UnrealLane", "Assert-NoNeighbours", "Remove-Scratch")) {
+foreach ($Name in @("Wait-UnrealLane", "Assert-NoNeighbours")) {
 	$Function = $Ast.Find({ param($Node) $Node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $Node.Name -eq $Name }, $true)
 	if (-not $Function) { throw "capture-creature-import.ps1 has no function $Name" }
 	. ([ScriptBlock]::Create($Function.Extent.Text))
 }
-$SourcesAst = $Ast.Find({ param($Node) $Node -is [System.Management.Automation.Language.AssignmentStatementAst] -and $Node.Left.Extent.Text -eq '$Sources' }, $true)
-if (-not $SourcesAst) { throw "capture-creature-import.ps1 has no `$Sources table" }
-. ([ScriptBlock]::Create($SourcesAst.Extent.Text))
-if ($Sources.Count -ne 3) { throw "capture-creature-import.ps1's `$Sources lists $($Sources.Count) creatures, not 3" }
 
 function Get-Sha([string]$Path) { (Get-FileHash -Algorithm SHA256 -Path $Path).Hash.ToLower() }
 
@@ -61,30 +55,22 @@ if (Test-Path $RunDir) { Remove-Item -Recurse -Force $RunDir }
 New-Item -ItemType Directory -Force -Path $RunDir | Out-Null
 New-Item -ItemType Directory -Force -Path $Staging | Out-Null
 
-foreach ($Source in $Sources) {
-	foreach ($Pair in @(@($Source.Fbx, $Source.FbxSha), @($Source.Texture, $Source.TextureSha))) {
-		if (-not (Test-Path $Pair[0])) { throw "missing input $($Pair[0]) (stop and report; never re-run Blender here)" }
-		$Sha = Get-Sha $Pair[0]
-		if ($Sha -ne $Pair[1]) { throw "sha256 mismatch on $($Pair[0]): $Sha, the research doc records $($Pair[1])" }
-		Write-Host "rival: input ok $($Pair[0]) $Sha"
-	}
+# The committed cast (Git LFS): each mesh and material must be on disk and real, not an LFS pointer.
+foreach ($File in @("Brennic\SK_Brennic.uasset", "Brennic\M_Brennic.uasset", "CinderHound\SK_CinderHound.uasset", "CinderHound\M_CinderHound.uasset", "MireMaw\SK_MireMaw.uasset", "MireMaw\M_MireMaw.uasset")) {
+	$Path = Join-Path $Characters $File
+	if (-not (Test-Path $Path)) { throw "missing committed asset $Path (git lfs pull; this script never imports)" }
+	if ((Get-Item $Path).Length -lt 2048) { throw "$Path is an LFS pointer, not the asset (git lfs pull)" }
 }
+function Get-CharactersChanges {
+	Push-Location $Repo
+	try { return @(& git status --porcelain -- "apps/vr/Game/Content/Characters") } finally { Pop-Location }
+}
+$Dirty = Get-CharactersChanges
+if ($Dirty.Count -gt 0) { throw "Content/Characters has uncommitted changes before the run: $($Dirty -join '; ')" }
+Write-Host "rival: committed cast ok under $Characters"
 
 $Ok = $false
 try {
-	Remove-Scratch
-	foreach ($Source in $Sources) {
-		Assert-NoNeighbours
-		$Log = Join-Path $RunDir "import-$($Source.Name).log"
-		Write-Host "rival: importing $($Source.Name)"
-		& $Editor $Project -run=ImportCreatureMesh "-name=$($Source.Name)" "-fbx=$($Source.Fbx)" "-texture=$($Source.Texture)" -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput "-abslog=$Log" | Out-Null
-		$Code = $LASTEXITCODE
-		Select-String -Path $Log -Pattern "MAGEVR_CREATURE_IMPORT (mesh|clip|done|fail)" | ForEach-Object { Write-Host $_.Line }
-		if ($Code -ne 0 -or -not (Select-String -Path $Log -Pattern "MAGEVR_CREATURE_IMPORT done" -Quiet)) {
-			throw "import of $($Source.Name) failed exit=$Code (log: $Log)"
-		}
-	}
-
 	Assert-NoNeighbours
 	$LogPath = Join-Path $RunDir "capture.log"
 	$ArgumentList = @(
@@ -201,12 +187,12 @@ try {
 		}
 	}
 
+	# The committed cast is only read: a run that changed it is a failure.
+	$Dirty = Get-CharactersChanges
+	foreach ($Line in $Dirty) { Write-Host "rival: FAIL Content/Characters changed: $Line" }
+	$CaptureOk = $CaptureOk -and $Dirty.Count -eq 0
+
 	# Everything this run made goes to staging; nothing of it stays in the worktree.
-	if (Test-Path $Scratch) {
-		$AssetStage = Join-Path $Staging "uasset"
-		if (Test-Path $AssetStage) { Remove-Item -Recurse -Force $AssetStage }
-		Copy-Item -Recurse -Force -Path $Scratch -Destination $AssetStage
-	}
 	if (Test-Path $StageRuns) { Remove-Item -Recurse -Force $StageRuns }
 	New-Item -ItemType Directory -Force -Path (Split-Path -Parent $StageRuns) | Out-Null
 	Copy-Item -Recurse -Force -Path $RunDir -Destination $StageRuns
@@ -222,7 +208,6 @@ try {
 	$Ok = $CaptureOk -and $BudgetOk
 }
 finally {
-	Remove-Scratch
 }
 
 if ($Ok) {

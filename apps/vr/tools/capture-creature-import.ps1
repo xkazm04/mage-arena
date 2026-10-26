@@ -1,14 +1,18 @@
-# The creature cast in UE (docs/research/CREATURE-UE-IMPORT-2026-10-24.md, CREATURE-CAST-UE-2026-10-24.md): imports
-# Brennic (LOD0, bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed) into the scratch
-# folder apps/vr/Game/Content/CreatureImportScratch through the ImportCreatureMesh commandlet
-# (Tools/ImportCreatureMeshCommandlet.cpp), takes the stills (-MageArenaCreatureImportCapture, the greybox arena under the
-# T56 dusk) into runs/<Run>/shots, optionally re-runs the D-G4 budget with all three in the scene (capture-budget.ps1
-# -ExtraArgs -MageArenaCreatureImportScene), copies the imported .uasset files, the shots and the logs to -Staging, and
-# deletes the scratch folder before it exits, success or not. The DINOv3 licence hold stands: none of the imported
-# assets is ever committed.
+# The creature cast in UE (docs/research/CREATURE-UE-IMPORT-2026-10-24.md, CREATURE-CAST-UE-2026-10-24.md): Brennic (LOD0,
+# bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed), committed under
+# apps/vr/Game/Content/Characters (/Game/Characters). The default run draws that committed cast and imports nothing: the
+# commandlet (Tools/ImportCreatureMeshCommandlet.cpp) writes into /Game/Characters, and a re-import over a committed asset
+# fails its height check (T68: Brennic 0.018 m), so -Import names the creatures to import and is for an EMPTY
+# /Game/Characters/<Name> only. Takes the stills (-MageArenaCreatureImportCapture, the greybox arena under the T56 dusk)
+# into runs/<Run>/shots, optionally re-runs the D-G4 budget with all three in the scene (capture-budget.ps1 -ExtraArgs
+# -MageArenaCreatureImportScene), and copies the shots and the logs to -Staging. It refuses to start when
+# Content/Characters has uncommitted changes and fails when the run leaves any.
 # Success is the seventeen pngs, MAGEVR_CAPTURE_DONE and, with -Budget, capture-budget.ps1's own ok.
-# Usage: capture-creature-import.ps1 [-Run creature-cast] [-Budget] [-BudgetRuns 2] [-BaselineRuns 0]
-#        [-EmberIntensity <n>] [-GlowIntensity <n>] [-GlowRim <n>] [-GlowSoft <n>] [-Staging <dir>]
+# Usage: capture-creature-import.ps1 [-Run creature-cast] [-Budget] [-BudgetRuns 2] [-BaselineRuns 0] [-DistanceM <m>]
+#        [-EmberIntensity <n>] [-GlowIntensity <n>] [-GlowRim <n>] [-GlowSoft <n>] [-Import Brennic,CinderHound,MireMaw]
+#        [-Staging <dir>]
+# -DistanceM stands the cast at that distance (default the 8 m opponent distance). The "chosen" glow shots read the
+# committed material's own parameter values (MAGEVR_CREATURE_IMPORT committed ... in the log).
 # -EmberIntensity overrides the chosen glow's crack intensity; the -Glow* values override the intensity, rim and soft
 # candidates (CreatureImportCapture.cpp), so a candidate is tuned without a rebuild. A negative value keeps the default.
 # One Unreal process at a time: every launch waits for the lane, and the script refuses to start beside Blender or
@@ -22,6 +26,8 @@ param(
 	[double]$GlowIntensity = -1,
 	[double]$GlowRim = -1,
 	[double]$GlowSoft = -1,
+	[double]$DistanceM = -1,
+	[string[]]$Import = @(),
 	[string]$Staging = "C:\Users\kazda\mage-art-staging\creature-cast-ue-2026-10-24",
 	[string]$BrennicDir = "C:\Users\kazda\mage-art-staging\brennic-mesh-rework-2026-10-24\rig",
 	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig",
@@ -35,7 +41,7 @@ $AppsDir = Split-Path -Parent $VrDir
 $Repo = Split-Path -Parent $AppsDir
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
-$Scratch = Join-Path $VrDir "Game\Content\CreatureImportScratch"
+$Characters = Join-Path $VrDir "Game\Content\Characters"
 $RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 
@@ -69,18 +75,26 @@ function Assert-NoNeighbours {
 	if (-not (Wait-UnrealLane)) { throw "the Unreal lane stayed busy for 30 minutes" }
 }
 
-function Remove-Scratch {
-	if (Test-Path $Scratch) {
-		Remove-Item -Recurse -Force $Scratch
-		Write-Host "creature-import: removed the scratch folder $Scratch"
-	}
+function Get-CharactersChanges {
+	Push-Location $Repo
+	try { return @(& git status --porcelain -- "apps/vr/Game/Content/Characters") } finally { Pop-Location }
 }
 
 New-Item -ItemType Directory -Force -Path $ShotDir | Out-Null
 Get-ChildItem -Path $ShotDir -Filter *.png -ErrorAction SilentlyContinue | Remove-Item -Force
 New-Item -ItemType Directory -Force -Path $Staging | Out-Null
 
+$ToImport = @($Sources | Where-Object { $Import -contains $_.Name })
+if ($Import.Count -ne $ToImport.Count) { throw "-Import names a creature this script does not know: $($Import -join ', ')" }
 foreach ($Source in $Sources) {
+	if ($Import -notcontains $Source.Name) {
+		foreach ($File in @("SK_$($Source.Name).uasset", "M_$($Source.Name).uasset")) {
+			$Path = Join-Path $Characters (Join-Path $Source.Name $File)
+			if (-not (Test-Path $Path)) { throw "missing committed asset $Path (git lfs pull, or -Import $($Source.Name) into an empty folder)" }
+			if ((Get-Item $Path).Length -lt 2048) { throw "$Path is an LFS pointer, not the asset (git lfs pull)" }
+		}
+		continue
+	}
 	foreach ($Pair in @(@($Source.Fbx, $Source.FbxSha), @($Source.Texture, $Source.TextureSha))) {
 		if (-not (Test-Path $Pair[0])) { throw "missing input $($Pair[0]) (stop and report; never re-run Blender here)" }
 		$Sha = (Get-FileHash -Algorithm SHA256 -Path $Pair[0]).Hash.ToLower()
@@ -89,10 +103,11 @@ foreach ($Source in $Sources) {
 	}
 }
 
+$Dirty = Get-CharactersChanges
+if ($Dirty.Count -gt 0 -and $ToImport.Count -eq 0) { throw "Content/Characters has uncommitted changes before the run: $($Dirty -join '; ')" }
 $Ok = $false
 try {
-	Remove-Scratch
-	foreach ($Source in $Sources) {
+	foreach ($Source in $ToImport) {
 		Assert-NoNeighbours
 		$Log = Join-Path $RunDir "import-$($Source.Name).log"
 		if (Test-Path $Log) { Remove-Item -Force $Log }
@@ -124,6 +139,7 @@ try {
 		"-MageArenaCreatureImportCapture",
 		"-MageArenaRun=$Run"
 	)
+	if ($DistanceM -gt 0) { $ArgumentList += "-MageArenaCreatureDistanceM=$DistanceM" }
 	if ($EmberIntensity -ge 0) { $ArgumentList += "-MageArenaEmberIntensity=$EmberIntensity" }
 	if ($GlowIntensity -ge 0) { $ArgumentList += "-MageArenaGlowIntensity=$GlowIntensity" }
 	if ($GlowRim -ge 0) { $ArgumentList += "-MageArenaGlowRim=$GlowRim" }
@@ -182,12 +198,11 @@ try {
 		}
 	}
 
-	# The imported assets, the shots and the logs go to staging; nothing of them stays in the worktree.
-	if (Test-Path $Scratch) {
-		$AssetStage = Join-Path $Staging "uasset"
-		if (Test-Path $AssetStage) { Remove-Item -Recurse -Force $AssetStage }
-		Copy-Item -Recurse -Force -Path $Scratch -Destination $AssetStage
+	# The committed cast is only read (an -Import run changes it on purpose and is committed by the caller).
+	if ($ToImport.Count -eq 0) {
+		foreach ($Line in (Get-CharactersChanges)) { Write-Host "creature-import: FAIL Content/Characters changed: $Line"; $CaptureOk = $false }
 	}
+	# The shots and the logs go to staging; nothing of them stays in the worktree.
 	$ShotStage = Join-Path $Staging "shots"
 	New-Item -ItemType Directory -Force -Path $ShotStage | Out-Null
 	Copy-Item -Force -Path (Join-Path $ShotDir "*") -Destination $ShotStage
@@ -197,7 +212,6 @@ try {
 	$Ok = $CaptureOk -and $BudgetOk
 }
 finally {
-	Remove-Scratch
 }
 
 if ($Ok) {
