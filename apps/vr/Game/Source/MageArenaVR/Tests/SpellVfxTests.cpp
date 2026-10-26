@@ -468,4 +468,94 @@ bool FMageArenaSpellVfxFlipbookAsset::RunTest(const FString& Parameters)
 #endif
 }
 
+// T67. Fire reads with volume: the fire shell is a taller card than it is wide (flames lick upward), Water's and Air's stay
+// as T63 drew them, and no bolt adds a puff. The shell stays centred on the core and nothing here is a colour.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireVolume, "MageArena.SpellVfx.FireShellHasVolume",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFireVolume::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	constexpr double Core = 22.0;
+	TArray<SpellVfx::FPuff> Fire;
+	TArray<SpellVfx::FPuff> Water;
+	TArray<SpellVfx::FPuff> Air;
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::Embers, FVector(100.0, 0.0, 120.0), FVector(-1.0, 0.0, 0.0), Core, 7, 1.25, Fire);
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::Droplets, FVector(100.0, 0.0, 120.0), FVector(-1.0, 0.0, 0.0), Core, 7, 1.25, Water);
+	SpellVfx::BoltPuffs(SpellVfx::ETrail::Wisps, FVector(100.0, 0.0, 120.0), FVector(-1.0, 0.0, 0.0), Core, 7, 1.25, Air);
+	if (!TestTrue(TEXT("each bolt has a shell"), Fire.Num() > 0 && Water.Num() > 0 && Air.Num() > 0))
+	{
+		return false;
+	}
+	bPass &= TestTrue(*FString::Printf(TEXT("the fire shell is taller than wide (%.1f x %.1f cm)"), Fire[0].SizeCm.X, Fire[0].SizeCm.Y), Fire[0].SizeCm.Y > Fire[0].SizeCm.X * 1.2);
+	bPass &= TestTrue(TEXT("the fire shell covers more than the water shell"), Fire[0].SizeCm.X * Fire[0].SizeCm.Y > Water[0].SizeCm.X * Water[0].SizeCm.Y);
+	bPass &= TestEqual(TEXT("the water shell stays square"), Water[0].SizeCm.X, Water[0].SizeCm.Y);
+	bPass &= TestEqual(TEXT("the air shell stays square"), Air[0].SizeCm.X, Air[0].SizeCm.Y);
+	bPass &= TestTrue(TEXT("the fire shell stays centred on the core"), Fire[0].CentreCm.Equals(FVector(100.0, 0.0, 120.0)));
+	bPass &= TestEqual(TEXT("the fire bolt keeps T63's nine puffs (a shell and eight embers)"), Fire.Num(), 9);
+	TArray<SpellVfx::FPuff> FireRing;
+	TArray<SpellVfx::FPuff> WaterRing;
+	SpellVfx::PerfectRingPuffs(FVector::ZeroVector, FVector::BackwardVector, 0.3, FireRing, SpellVfx::ETrail::Embers);
+	SpellVfx::PerfectRingPuffs(FVector::ZeroVector, FVector::BackwardVector, 0.3, WaterRing, SpellVfx::ETrail::Droplets);
+	if (TestTrue(TEXT("both rings have beads"), FireRing.Num() > 0 && FireRing.Num() == WaterRing.Num()))
+	{
+		bPass &= TestTrue(TEXT("a fire ring bead is a larger card than a water one"), FireRing[0].SizeCm.X > WaterRing[0].SizeCm.X * 1.2);
+	}
+	return bPass;
+}
+
+// T67. The fire cells have a dark body and a hot heart: the outline and the outer flame are darker tones of the fire
+// colour (contrast against the orange sand) and the heart is the full element colour (shade 1, never brighter).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireContrast, "MageArena.SpellVfx.FireCellsHaveHotCoreAndDarkBody",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFireContrast::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	const int32 Size = Atlas->Source.GetSizeX();
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	bool bPass = true;
+	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireCrown})
+	{
+		const int32 Index = static_cast<int32>(Which);
+		int32 Opaque = 0;
+		int32 Dark = 0;
+		int32 Hot = 0;
+		for (int32 Y = 0; Y < Cell; ++Y)
+		{
+			for (int32 X = 0; X < Cell; ++X)
+			{
+				const int64 At = (static_cast<int64>((Index / SpellVfx::FlipbookGrid) * Cell + Y) * Size + (Index % SpellVfx::FlipbookGrid) * Cell + X) * 4;
+				if (Mip[At + 3] < 200)
+				{
+					continue;
+				}
+				++Opaque;
+				Dark += Mip[At] < 179 ? 1 : 0;
+				Hot += Mip[At] > 235 ? 1 : 0;
+			}
+		}
+		const float DarkShare = Opaque > 0 ? static_cast<float>(Dark) / Opaque : 0.f;
+		const float HotShare = Opaque > 0 ? static_cast<float>(Hot) / Opaque : 0.f;
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: at least half the flame is a darker tone (%.2f)"), Index, DarkShare), DarkShare >= 0.5f);
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: a hot heart of full colour (%.2f)"), Index, HotShare), HotShare >= 0.08f);
+	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
 #endif

@@ -164,6 +164,17 @@ inline constexpr double CrownCardScale = 1.4;
 /** T63: a perfect-ring bead's streak card is this much larger than T58's bead: the streak's head is a part of its card. */
 inline constexpr double RingCardScale = 1.7;
 /**
+ * T67: Fire's volume at the same puff count. The shell card is this much wider and taller than the other schools' (a flame
+ * licks upward, so more tall than wide), a trail ember cluster this much wider, and the absorb flame star this much larger.
+ * Size only: the colour, the cells' shade (at most 1) and the puff count are T63's.
+ */
+inline constexpr double FireShellWidth = 1.15;
+inline constexpr double FireShellHeight = 1.45;
+inline constexpr double FireEmberScale = 1.25;
+inline constexpr double FireCrownScale = 1.15;
+/** T67: Fire's streak beads (the perfect ring, the splash) are this much larger. */
+inline constexpr double FireStreakScale = 1.3;
+/**
  * The most puffs drawn in a frame. A puff is counted against the 2,000-particle budget (PROJECT-PLAN section 7) as if it
  * were a particle: D-G4 measured 1,468 live Niagara particles at the max, and 1,468 + 500 stays under 2,000.
  */

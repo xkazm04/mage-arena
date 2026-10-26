@@ -90,6 +90,18 @@ SpellVfx::ECell CrownCell(SpellVfx::ETrail Trail)
 	}
 }
 
+// T67: Fire's flame star is a larger card than the other crowns, so its layered licks fill more of the ward.
+double CrownScaleFor(SpellVfx::ETrail Trail)
+{
+	return Trail == SpellVfx::ETrail::Embers ? SpellVfx::FireCrownScale : 1.0;
+}
+
+// T67: Fire's flung sparks and ring beads are larger cards, so each reads as a small flame.
+double StreakScaleFor(SpellVfx::ETrail Trail)
+{
+	return Trail == SpellVfx::ETrail::Embers ? SpellVfx::FireStreakScale : 1.0;
+}
+
 // The streak a school's splash and perfect ring throw.
 SpellVfx::ECell StreakCell(SpellVfx::ETrail Trail)
 {
@@ -156,7 +168,10 @@ void SpellVfx::BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector& Fligh
 	{
 		Roll = 0.07 * FMath::Sin(TimeS * 5.0 + Seed);
 	}
-	Card(Add(Out, AtCm, FVector(D * ShellScale)), ShellCell(Trail, Frame), false, static_cast<float>(Roll), (Frame & 2) != 0);
+	// T67: a flame is taller than it is wide, so Fire's shell card is a taller card (the flames lick up) and a little wider
+	// than the other schools', for volume at the same one puff.
+	const FVector ShellSize = Trail == ETrail::Embers ? FVector(D * ShellScale * FireShellWidth, D * ShellScale * FireShellHeight, D * ShellScale) : FVector(D * ShellScale);
+	Card(Add(Out, AtCm, ShellSize), ShellCell(Trail, Frame), false, static_cast<float>(Roll), (Frame & 2) != 0);
 	const FVector Dir = FlightDir.IsNearlyZero() ? FVector::ForwardVector : FlightDir.GetSafeNormal();
 	FVector Side;
 	FVector Lift;
@@ -185,7 +200,7 @@ void SpellVfx::BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector& Fligh
 			const FVector At = AtCm - Dir * Back + Side * ((Hash01(Seed, I) - 0.5) * 2.0 * Spread) + Lift * ((Hash01(Seed, I + 31) - 0.5) * 2.0 * Spread) + FVector::UpVector * (1.6 * I);
 			const double Flicker = 0.7 + 0.3 * FMath::Sin(TimeS * 23.0 + I * 1.7 + Seed);
 			const double EmberRoll = 2.0 * PI * Hash01(Seed, I + 57) + TimeS * 2.0;
-			Card(Add(Out, At, FVector(D * (0.36 - 0.03 * I) * Flicker * ClusterCardScale), Along), ECell::FireEmbers, false, static_cast<float>(EmberRoll),
+			Card(Add(Out, At, FVector(D * (0.36 - 0.03 * I) * Flicker * ClusterCardScale * FireEmberScale), Along), ECell::FireEmbers, false, static_cast<float>(EmberRoll),
 			    Hash01(Seed, I + 73) > 0.5);
 		}
 		break;
@@ -231,7 +246,7 @@ void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& Tow
 	{
 		const FQuat Flat = FRotationMatrix::MakeFromZ(Facing).ToQuat();
 		// T63: the school's crown cell (crests and drops, flame licks and sparks, curling wisps), each burst turned its own way.
-		Card(Add(Out, AtCm, FVector(Radius * 2.0 * CrownCardScale, Radius * 2.0 * CrownCardScale, FMath::Lerp(8.0, 1.5, Age)), Flat), CrownCell(Trail), false,
+		Card(Add(Out, AtCm, FVector(Radius * 2.0 * CrownCardScale * CrownScaleFor(Trail), Radius * 2.0 * CrownCardScale * CrownScaleFor(Trail), FMath::Lerp(8.0, 1.5, Age)), Flat), CrownCell(Trail), false,
 		    static_cast<float>(2.0 * PI * Hash01(Seed, 97)));
 	}
 	// Ten droplets (or embers) thrown out across the ward, unevenly, each its own size.
@@ -252,7 +267,7 @@ void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& Tow
 		const FVector At = AtCm + Radial * Reach + Facing * (6.0 * Age) + FVector::UpVector * Fall;
 		const double Size = FMath::Lerp(5.0, 1.0, Age) * (0.6 + 0.8 * Hash01(Seed, I + 23));
 		// T63: a flung drop, spark or wisp with its tail, head outward.
-		Card(Add(Out, At, FVector(Size * 2.2, Size * 1.1, Size), FRotationMatrix::MakeFromX(Radial).ToQuat()), StreakCell(Trail), true);
+		Card(Add(Out, At, FVector(Size * 2.2, Size * 1.1, Size) * StreakScaleFor(Trail), FRotationMatrix::MakeFromX(Radial).ToQuat()), StreakCell(Trail), true);
 	}
 }
 
@@ -276,7 +291,7 @@ void SpellVfx::PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, d
 		const FVector Radial = Side * FMath::Cos(Angle) + Lift * FMath::Sin(Angle);
 		const FVector Tangent = FVector::CrossProduct(Facing, Radial).GetSafeNormal();
 		// T63: each bead a streak of the school, head along the ring, so the ring reads as spinning out.
-		Card(Add(Out, AtCm + Radial * Radius, FVector(Bead * 2.4 * RingCardScale, Bead * RingCardScale, Bead), FRotationMatrix::MakeFromX(Tangent).ToQuat()), StreakCell(Trail), true);
+		Card(Add(Out, AtCm + Radial * Radius, FVector(Bead * 2.4 * RingCardScale, Bead * RingCardScale, Bead) * StreakScaleFor(Trail), FRotationMatrix::MakeFromX(Tangent).ToQuat()), StreakCell(Trail), true);
 	}
 }
 

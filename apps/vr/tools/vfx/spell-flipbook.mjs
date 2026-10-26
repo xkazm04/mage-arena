@@ -150,10 +150,16 @@ function spark(cx, cy, r) {
 }
 
 // A filled signed-distance shape (negative inside) with a darker rim: shade rises from 0.45 at the edge to 1 deep in.
-function sdfLayer(sd, alphaIn = 1, seed = 0) {
+function sdfLayer(sd, alphaIn = 1, seed = 0, shades = null) {
   return (x, y) => {
     const d = sd(x, y);
     if (d >= 0.012) return null;
+    if (shades) {
+      // T67: a layer with its own shades [rim, lo, hi], for the nested flame star.
+      const depth = -d;
+      if (depth < 0.04) return [alphaIn * smoothstep(-0.012, 0.012, depth), lerp(shades[0], shades[1], smoothstep(0.012, 0.04, depth))];
+      return [alphaIn * smoothstep(-0.012, 0.012, depth), lerp(shades[1], shades[2], smoothstep(0.35, 0.75, fbm(seed + 11, x * 5.0, y * 3.2 - 0.7)))];
+    }
     return [alphaIn * smoothstep(-0.012, 0.012, -d), layeredShade(-d, seed, x, y)];
   };
 }
@@ -168,7 +174,7 @@ function layeredShade(depth, seed, x, y) {
 }
 
 // A splash or flame star: a body of radius r0 with n fingers reaching between rMin and rMax further out.
-function burst(seed, r0, n, rMin, rMax, width, alphaIn) {
+function burst(seed, r0, n, rMin, rMax, width, alphaIn, shades) {
   const fingers = [];
   for (let i = 0; i < n; i++) {
     const a = ((i + 0.5 * hash01(seed, i + 500)) / n) * 2 * Math.PI;
@@ -191,7 +197,7 @@ function burst(seed, r0, n, rMin, rMax, width, alphaIn) {
       d = smin(d, dist - finger.width * Math.pow(1 - t, 0.8), 0.06);
     }
     return d;
-  }, alphaIn, seed);
+  }, alphaIn, seed, shades);
 }
 
 // ---- cells ------------------------------------------------------------------------------------------------------
@@ -276,65 +282,83 @@ function smin(a, b, k) {
   return lerp(b, a, h) - k * h * (1 - h);
 }
 
-function fireFlame(seed) {
-  // Flame tongues licking up out of a body round the core, as one signed distance with a noisy edge: bright inside,
-  // a dark ember rim along the edge (shade 0.4), so the flame keeps its outline on the orange sand.
+// T67: a flame layer, a body round the core with tongues licking up, as one signed distance with a noisy edge. Shade runs
+// from rim at the edge, through lo, to hi deep in and low in the layer (heat rises from the base), never above 1.
+function flameLayer(seed, o) {
   const tongues = [];
-  const count = 7;
-  for (let i = 0; i < count; i++) {
-    const theta = lerp(-0.12, 1.12, (i + 0.25 + 0.5 * hash01(seed, i)) / count) * Math.PI;
+  for (let i = 0; i < o.count; i++) {
+    const theta = lerp(-0.12, 1.12, (i + 0.25 + 0.5 * hash01(seed, i)) / o.count) * Math.PI;
     const side = Math.cos(theta);
-    const length = (0.34 + 0.3 * hash01(seed, i + 10)) * (1 - 0.45 * Math.abs(side));
-    const sway = (hash01(seed, i + 20) - 0.5) * 0.22;
-    const bx = 0.46 * side;
-    const by = 0.46 * Math.sin(theta) - 0.06;
+    const length = (o.length + 0.3 * hash01(seed, i + 10)) * (1 - 0.4 * Math.abs(side)) * o.scale;
+    const sway = (hash01(seed, i + 20) - 0.5) * 0.24 * o.scale;
+    const bx = o.body * side * o.scale;
+    const by = (o.body * Math.sin(theta) - 0.06) * o.scale + o.lift;
     const pts = [];
     for (let k = 0; k <= 20; k++) {
       const t = k / 20;
       // Up and out first, then curling back over the top.
-      pts.push([bx + side * 0.12 * t + sway * Math.sin(t * Math.PI * 1.3), by + length * t]);
+      pts.push([bx + side * 0.12 * t * o.scale + sway * Math.sin(t * Math.PI * 1.3), by + length * t]);
     }
-    tongues.push({ pts, width: 0.12 + 0.05 * hash01(seed, i + 30) });
+    tongues.push({ pts, width: (o.width + 0.04 * hash01(seed, i + 30)) * o.scale });
   }
-  const body = [
-    (x, y) => {
-      const nx = x + 0.09 * (fbm(seed, x * 3.1, y * 3.1 - 2.3) - 0.5) * 2;
-      const ny = y + 0.06 * (fbm(seed + 7, x * 3.1, y * 3.1) - 0.5) * 2;
-      let d = Math.hypot(nx, ny + 0.04) - 0.53;
-      for (const tongue of tongues) {
-        const [dist, t] = polylineDistance(tongue.pts, nx, ny);
-        d = smin(d, dist - tongue.width * Math.pow(1 - t, 0.9), 0.09);
-      }
-      if (d >= 0.012 || ny > 0.92) return null;
-      const depth = -d;
-      const alpha = smoothstep(-0.012, 0.012, depth);
-      const shade = layeredShade(depth, seed, nx, ny);
-      return [alpha, shade];
-    },
+  return (x, y) => {
+    const nx = x + 0.09 * (fbm(seed, x * 3.1, y * 3.1 - 2.3) - 0.5) * 2;
+    const ny = y + 0.06 * (fbm(seed + 7, x * 3.1, y * 3.1) - 0.5) * 2;
+    let d = Math.hypot(nx, ny + 0.04 - o.lift) - o.body * 1.15 * o.scale;
+    for (const tongue of tongues) {
+      const [dist, t] = polylineDistance(tongue.pts, nx, ny);
+      d = smin(d, dist - tongue.width * Math.pow(1 - t, 0.9), 0.09 * o.scale);
+    }
+    if (d >= 0.012 || ny > 0.92) return null;
+    const depth = -d;
+    const alpha = smoothstep(-0.012, 0.012, depth);
+    if (depth < 0.04) return [alpha, lerp(o.rim, o.lo, smoothstep(0.012, 0.04, depth))];
+    const inner = smoothstep(0.04, 0.16, depth);
+    const streak = smoothstep(0.35, 0.75, fbm(seed + 11, nx * 5.0, ny * 3.2 - 0.7));
+    const heat = clamp01((0.5 - ny) * 0.8) * 0.5 + 0.5 * streak;
+    return [alpha, lerp(o.lo, lerp(o.lo, o.hi, heat), inner)];
+  };
+}
+
+function fireFlame(seed) {
+  // T67: three nested flames, so the fire has volume. The outer flame is the darker body with a dark rim (outline on the
+  // orange sand), a mid flame sits in it and a small hot core at the base is the full element colour (shade 1, never
+  // brighter than the threat). The rim of each inner flame is darker than the body round it, so the layers read apart.
+  const layers = [
+    // T67 round 2: a darker backing flame a hair larger than the body, the outline that separates the fire from the sand.
+    flameLayer(seed, { scale: 1.08, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.4, lo: 0.42, hi: 0.46, lift: 0.01 }),
+    flameLayer(seed, { scale: 1.0, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.46, lo: 0.52, hi: 0.68, lift: 0 }),
+    flameLayer(seed + 100, { scale: 0.72, count: 7, body: 0.46, length: 0.34, width: 0.115, rim: 0.6, lo: 0.74, hi: 0.9, lift: -0.02 }),
+    flameLayer(seed + 200, { scale: 0.4, count: 5, body: 0.46, length: 0.3, width: 0.13, rim: 0.86, lo: 0.94, hi: 1.0, lift: -0.08 }),
   ];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 9; i++) {
     const a = lerp(0.3, Math.PI - 0.3, hash01(seed, 50 + i));
-    const r = 0.74 + 0.12 * hash01(seed, 60 + i);
-    body.push(spark(r * Math.cos(a), Math.min(0.86, r * Math.sin(a) + 0.05), 0.02 + 0.016 * hash01(seed, 70 + i)));
+    const r = 0.72 + 0.14 * hash01(seed, 60 + i);
+    layers.push(spark(r * Math.cos(a), Math.min(0.86, r * Math.sin(a) + 0.05), 0.022 + 0.018 * hash01(seed, 70 + i)));
   }
-  return over(body);
+  return over(layers);
 }
 
 function fireEmbers(seed) {
-  // An ember cluster for the trail: a few sparks with dark rims and faint halos.
+  // An ember cluster for the trail: many sparks (T67: eleven) with dark rims and faint halos, bigger ones toward the head.
   const layers = [];
-  for (let i = 0; i < 6; i++) {
-    const x = (hash01(seed, i) - 0.5) * 1.3;
-    const y = (hash01(seed, i + 20) - 0.5) * 1.3;
-    layers.push(spark(x, y, 0.07 + 0.08 * hash01(seed, i + 40)));
+  for (let i = 0; i < 11; i++) {
+    const t = hash01(seed, i + 100);
+    const x = lerp(-0.7, 0.6, t);
+    const y = (hash01(seed, i + 20) - 0.5) * 1.2 * (0.5 + 0.5 * (1 - t));
+    layers.push(spark(x, y, 0.05 + 0.09 * hash01(seed, i + 40) * (0.5 + t)));
   }
   return over(layers);
 }
 
 function fireCrown(seed) {
-  // The absorb burst: a solid flame star with licks thrown outward, a dark ember rim, and sparks beyond.
-  const layers = [burst(seed, 0.28, 11, 0.24, 0.5, 0.09, 1.0)];
-  for (let i = 0; i < 12; i++) {
+  // The absorb burst: a solid flame star (T67: twelve licks, a mid star and a hot heart) with licks thrown outward, and sparks beyond.
+  const layers = [
+    burst(seed, 0.3, 12, 0.26, 0.52, 0.09, 1.0, [0.46, 0.6, 0.82]),
+    burst(seed + 5, 0.2, 9, 0.12, 0.3, 0.075, 1.0, [0.62, 0.8, 0.96]),
+    burst(seed + 9, 0.1, 6, 0.02, 0.1, 0.06, 1.0, [0.86, 0.95, 1.0]),
+  ];
+  for (let i = 0; i < 16; i++) {
     const a = hash01(seed, 100 + i) * 2 * Math.PI;
     const r = 0.66 + 0.2 * hash01(seed, 200 + i);
     layers.push(spark(r * Math.cos(a), r * Math.sin(a), 0.025 + 0.02 * hash01(seed, 300 + i)));
@@ -400,10 +424,14 @@ function dropletStreak() {
 }
 
 function sparkStreak() {
-  // A thrown spark (head at +x) with an ember tail, for the splash and the perfect ring of Fire.
+  // A thrown spark (head at +x) with an ember tail, for the splash and the perfect ring of Fire. T67: a wider tail with a
+  // darker outer band and a hot lit core, and two trailing sparks, so each bead is a small flame, not a thin line.
   return over([
-    stroke((t) => [lerp(0.4, -0.85, t), 0.05 * t], 0.22, 0.0, (t, e) => (e > 0.6 ? 0.5 : t < 0.4 ? 0.95 : 0.65)),
-    spark(0.45, 0, 0.26),
+    stroke((t) => [lerp(0.4, -0.85, t), 0.05 * t], 0.3, 0.0, () => 0.46),
+    stroke((t) => [lerp(0.4, -0.8, t), 0.05 * t], 0.2, 0.0, (t, e) => (e > 0.6 ? 0.62 : t < 0.4 ? 1.0 : 0.78)),
+    spark(-0.2, 0.08, 0.07),
+    spark(-0.5, -0.04, 0.05),
+    spark(0.45, 0, 0.3),
   ]);
 }
 
