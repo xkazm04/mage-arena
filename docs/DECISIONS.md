@@ -458,6 +458,22 @@ creature spawns, each with a command-line switch to measure it off). Athena may 
   confirmed, is open and its class does not ship until it closes. As written on 2026-10-21, the ElevenLabs conditions
   (a paid plan, and the music "Studio Games" carve-out) and the Leonardo terms (not read) are open in the ledger.
 - **Where it is used:** a hand-modelled Blender part (no AI) is the entrant's own work and takes its own ledger row.
+- **Ledger entry, DINOv3 (owner accepted ruling #4 on 2026-10-25; entered 2026-10-26 by the asset-commit lane).**
+  - Model: DINOv3 (Meta), the image encoder TRELLIS.2 loads (`dino_v3_L_naf_fp32`) for the creature meshes: Brennic, the
+    cinder hound and the mire maw (`apps/vr/Game/Content/Characters/`).
+  - Licence: the "DINOv3 License" (last updated 2025-08-19). A non-exclusive, worldwide, non-transferable, royalty-free
+    limited licence (1a). No commercial-use bar and no user-count or revenue limit appear in it.
+  - Terms as they bear on derived game assets: outputs are provided "as is" (3); the licensee owns its derivative works
+    and modifications (5a). Redistribution of the DINO Materials themselves (the weights, not the meshes) needs the
+    agreement's terms and a copy of it (1b.i); the game ships meshes and textures, not the weights. The
+    acknowledgement clause (1b.ii) is written for publications. Barred: reverse engineering the model, and the
+    military, nuclear and espionage end uses (1b.iv, 1b.v), which this game does not touch. Meta may terminate for breach,
+    after which the licensee must delete and stop using the DINO Materials (6). Whether termination reaches already
+    generated outputs is not stated.
+  - Source: https://github.com/facebookresearch/dinov3/blob/main/LICENSE.md. Date checked: 2026-10-26, read through a
+    web fetch summary, not a lawyer: the clause numbers above are as that fetch reported them.
+  - Effect: the DINOv3 hold on the creature assets is lifted; `docs/submission/ASSET-LEDGER.md` rows still apply
+    (not edited here). No signed number or pinned band moved.
 - Lost: certainty on the originality rule. Nothing in the repo can settle how Meta reads it.
 
 ## 2026-10-21 - Asset transport and ElevenLabs as the audio source
