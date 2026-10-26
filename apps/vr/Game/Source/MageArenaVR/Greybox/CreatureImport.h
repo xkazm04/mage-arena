@@ -59,6 +59,19 @@ FString MaterialObjectPath(const FString& Name);
 FString FlatMaterialObjectPath(const FString& Name);
 
 /**
+ * The asset names one import of <Name> writes into FolderPath(Name), sorted: T_<Name>_BaseColor, M_<Name>, M_<Name>_Flat
+ * (with a flat slot), SK_<Name>, SK_<Name>_Skeleton and SK_<Name>_Anim_<Clip> for each clip of the FBX.
+ */
+TArray<FString> ExpectedAssetNames(const FCreatureSpec& Spec, TConstArrayView<const TCHAR*> Clips);
+/**
+ * The package files an -replace import deletes before it imports (T70): the .uasset files directly in Dir, sorted, never
+ * one in a subfolder (Source/ keeps the FBX and PNG of record). A re-import over the committed assets kept their old
+ * import settings and failed the height check (T68: Brennic 0.018 m), so the commandlet deletes the creature's package
+ * set and imports the same names fresh: one package per name, no redirector.
+ */
+TArray<FString> ReplaceablePackageFiles(const FString& Dir);
+
+/**
  * The ember key's parameter values, shared by the material the commandlet builds and the C++ mirror below.
  * Measured offline on T_CinderHound_BaseColor.png (sRGB-encoded, island texels): the body is V 0.20-0.30, S 0.53, hue
  * 15 deg; the lava cracks are V 0.40-0.55, S 0.77-0.80, hue 19-20 deg; the eyes V 0.6-0.9, hue 30-41 deg. Hue alone

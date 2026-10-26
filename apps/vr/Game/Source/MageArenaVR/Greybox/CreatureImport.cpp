@@ -10,6 +10,7 @@
 #include "Engine/SkinnedAssetCommon.h"
 #include "Engine/World.h"
 #include "Greybox/ArenaLayout.h"
+#include "HAL/FileManager.h"
 #include "MageArenaVR.h"
 #include "MeshDescription.h"
 #include "Misc/CommandLine.h"
@@ -135,6 +136,34 @@ FString MaterialObjectPath(const FString& Name)
 FString FlatMaterialObjectPath(const FString& Name)
 {
 	return FString::Printf(TEXT("%s/M_%s_Flat.M_%s_Flat"), *FolderPath(Name), *Name, *Name);
+}
+
+TArray<FString> ExpectedAssetNames(const FCreatureSpec& Spec, TConstArrayView<const TCHAR*> Clips)
+{
+	const FString Name = Spec.Name;
+	TArray<FString> Names = {TEXT("T_") + Name + TEXT("_BaseColor"), TEXT("M_") + Name, TEXT("SK_") + Name, TEXT("SK_") + Name + TEXT("_Skeleton")};
+	if (Spec.FlatSlot)
+	{
+		Names.Add(TEXT("M_") + Name + TEXT("_Flat"));
+	}
+	for (const TCHAR* Clip : Clips)
+	{
+		Names.Add(TEXT("SK_") + Name + TEXT("_Anim_") + Clip);
+	}
+	Names.Sort();
+	return Names;
+}
+
+TArray<FString> ReplaceablePackageFiles(const FString& Dir)
+{
+	TArray<FString> Files;
+	IFileManager::Get().FindFiles(Files, *(Dir / TEXT("*.uasset")), true, false);
+	for (FString& File : Files)
+	{
+		File = Dir / File;
+	}
+	Files.Sort();
+	return Files;
 }
 
 const FEmberParams& DefaultEmber()

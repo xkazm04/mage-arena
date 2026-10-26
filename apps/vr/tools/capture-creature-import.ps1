@@ -2,15 +2,16 @@
 # bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed), committed under
 # apps/vr/Game/Content/Characters (/Game/Characters). The default run draws that committed cast and imports nothing: the
 # commandlet (Tools/ImportCreatureMeshCommandlet.cpp) writes into /Game/Characters, and a re-import over a committed asset
-# fails its height check (T68: Brennic 0.018 m), so -Import names the creatures to import and is for an EMPTY
-# /Game/Characters/<Name> only. Takes the stills (-MageArenaCreatureImportCapture, the greybox arena under the T56 dusk)
+# fails its height check (T68: Brennic 0.018 m), so -Import names the creatures to import into an EMPTY
+# /Game/Characters/<Name>; -Replace with exactly one -Import name deletes that creature's committed packages first (the
+# commandlet's -replace; the Source/ FBX and PNG stay) and imports the same names fresh (T70). Takes the stills (-MageArenaCreatureImportCapture, the greybox arena under the T56 dusk)
 # into runs/<Run>/shots, optionally re-runs the D-G4 budget with all three in the scene (capture-budget.ps1 -ExtraArgs
 # -MageArenaCreatureImportScene), and copies the shots and the logs to -Staging. It refuses to start when
 # Content/Characters has uncommitted changes and fails when the run leaves any.
 # Success is the seventeen pngs, MAGEVR_CAPTURE_DONE and, with -Budget, capture-budget.ps1's own ok.
 # Usage: capture-creature-import.ps1 [-Run creature-cast] [-Budget] [-BudgetRuns 2] [-BaselineRuns 0] [-DistanceM <m>]
 #        [-EmberIntensity <n>] [-GlowIntensity <n>] [-GlowRim <n>] [-GlowSoft <n>] [-Import Brennic,CinderHound,MireMaw]
-#        [-Staging <dir>]
+#        [-Replace] [-Staging <dir>]
 # -DistanceM stands the cast at that distance (default the 8 m opponent distance). The "chosen" glow shots read the
 # committed material's own parameter values (MAGEVR_CREATURE_IMPORT committed ... in the log).
 # -EmberIntensity overrides the chosen glow's crack intensity; the -Glow* values override the intensity, rim and soft
@@ -28,10 +29,11 @@ param(
 	[double]$GlowSoft = -1,
 	[double]$DistanceM = -1,
 	[string[]]$Import = @(),
+	[switch]$Replace,
 	[string]$Staging = "C:\Users\kazda\mage-art-staging\creature-cast-ue-2026-10-24",
 	[string]$BrennicDir = "C:\Users\kazda\mage-art-staging\brennic-mesh-rework-2026-10-24\rig",
 	[string]$HoundDir = "C:\Users\kazda\mage-art-staging\creature-mesh-2026-10-24\hound\rig",
-	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-2026-10-24\rig"
+	[string]$MawDir = "C:\Users\kazda\mage-art-staging\maw-seam-ledge-2026-10-26\fix\rig"
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,14 +48,15 @@ $RunDir = Join-Path $Repo "runs\$Run"
 $ShotDir = Join-Path $RunDir "shots"
 
 # The inputs and the sha256 their research docs record (BRENNIC-MESH-REWORK-2026-10-24, CREATURE-MESH-2026-10-24,
-# CREATURE-CAST-UE-2026-10-24 for the maw: the s7 fit re-rig of the 17,490-tri merge and its seam-fixed texture).
+# MAW-SEAM-LEDGE-T70-2026-10-26 for the maw: the s7 fit re-rig of the 17,490-tri merge with its cut smoothed, and the
+# seam fix re-run on it).
 $Sources = @(
 	@{ Name = "Brennic"; Fbx = (Join-Path $BrennicDir "Brennic.fbx"); FbxSha = "dc0a4f38eef1b8486f72e1ec81859bcba1605be3df412c4c6c72368b203967b0";
 		Texture = (Join-Path $BrennicDir "T_Brennic_BaseColor.png"); TextureSha = "024d4aaa888d94b2f257be993a96e8ed7a80176cedffaa5b0735620b031facae" },
 	@{ Name = "CinderHound"; Fbx = (Join-Path $HoundDir "CinderHound.fbx"); FbxSha = "a650bc3e0ad23abc34291bd3da0dba35698598c430484c095aafc711d07e5449";
 		Texture = (Join-Path $HoundDir "T_CinderHound_BaseColor.png"); TextureSha = "b36529c7f1c79e093cde253ba59087f5120e391eec9169b480a33fbb73ece08d" },
-	@{ Name = "MireMaw"; Fbx = (Join-Path $MawDir "MireMaw.fbx"); FbxSha = "6498f40c8ca4efd7da32abc903f2f537bd1e155e8b4756b9fbfb255ea8bbdcfd";
-		Texture = (Join-Path $MawDir "T_MireMaw_BaseColor.png"); TextureSha = "d46f288fb31ab978e3ba033d044d6ee7184fec6a88e49cf42459a9dd27ed6e1c" }
+	@{ Name = "MireMaw"; Fbx = (Join-Path $MawDir "MireMaw.fbx"); FbxSha = "e7a2cd73c959a523015c68ff0db7f8efd5e8ae094c16eb98c66ebfdc84eca59c";
+		Texture = (Join-Path $MawDir "T_MireMaw_BaseColor.png"); TextureSha = "e6c4df4293b87ab8d006b717e297f2759358597468cd2fd8759db1caab52bf77" }
 )
 
 function Wait-UnrealLane {
@@ -86,6 +89,7 @@ New-Item -ItemType Directory -Force -Path $Staging | Out-Null
 
 $ToImport = @($Sources | Where-Object { $Import -contains $_.Name })
 if ($Import.Count -ne $ToImport.Count) { throw "-Import names a creature this script does not know: $($Import -join ', ')" }
+if ($Replace -and $ToImport.Count -ne 1) { throw "-Replace takes exactly one -Import name (it deletes that creature's committed packages)" }
 foreach ($Source in $Sources) {
 	if ($Import -notcontains $Source.Name) {
 		foreach ($File in @("SK_$($Source.Name).uasset", "M_$($Source.Name).uasset")) {
@@ -112,7 +116,9 @@ try {
 		$Log = Join-Path $RunDir "import-$($Source.Name).log"
 		if (Test-Path $Log) { Remove-Item -Force $Log }
 		Write-Host "creature-import: importing $($Source.Name)"
-		& $Editor $Project -run=ImportCreatureMesh "-name=$($Source.Name)" "-fbx=$($Source.Fbx)" "-texture=$($Source.Texture)" -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput "-abslog=$Log" | Out-Null
+		$ImportArgs = @("-name=$($Source.Name)", "-fbx=$($Source.Fbx)", "-texture=$($Source.Texture)")
+		if ($Replace) { $ImportArgs += "-replace" }
+		& $Editor $Project -run=ImportCreatureMesh @ImportArgs -unattended -nosplash -nop4 -stdout -FullStdOutLogOutput "-abslog=$Log" | Out-Null
 		$Code = $LASTEXITCODE
 		Select-String -Path $Log -Pattern "MAGEVR_CREATURE_IMPORT" | ForEach-Object { Write-Host $_.Line }
 		if ($Code -ne 0 -or -not (Select-String -Path $Log -Pattern "MAGEVR_CREATURE_IMPORT done" -Quiet)) {

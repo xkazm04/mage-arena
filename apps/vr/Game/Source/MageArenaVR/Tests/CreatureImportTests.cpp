@@ -2,10 +2,16 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "AssetRegistry/IAssetRegistry.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Texture2D.h"
 #include "Greybox/CreatureImport.h"
+#include "HAL/FileManager.h"
 #include "Materials/MaterialInterface.h"
+#include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
+#include "Misc/Paths.h"
+#include "UObject/ObjectRedirector.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreatureImportEmberKey, "MageArena.CreatureImport.EmberKey",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -116,6 +122,64 @@ bool FMageArenaCreatureImportCharacters::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("%s stands the researched height (%.3f m)"), Name, HeightM), Spec && FMath::Abs(HeightM - Spec->HeightM) <= 0.05 * Spec->HeightM);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreatureImportReplace, "MageArena.CreatureImport.ReplaceOnePackagePerName",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaCreatureImportReplace::RunTest(const FString& Parameters)
+{
+	// T70: the mire maw was re-imported with -replace (the commandlet deletes the creature's package files, then imports
+	// the same names). The delete takes only the .uasset files directly in the folder, never Source/ (the FBX and PNG of
+	// record) or another file.
+	const FString Scratch = FPaths::ConvertRelativePathToFull(FPaths::ProjectIntermediateDir() / TEXT("ReplaceTest"));
+	IFileManager::Get().DeleteDirectory(*Scratch, false, true);
+	for (const TCHAR* File : {TEXT("SK_A.uasset"), TEXT("M_A.uasset"), TEXT("notes.txt"), TEXT("Source/SK_B.uasset"), TEXT("Source/A.fbx")})
+	{
+		FFileHelper::SaveStringToFile(TEXT("x"), *(Scratch / File));
+	}
+	const TArray<FString> Replaceable = CreatureImport::ReplaceablePackageFiles(Scratch);
+	TestEqual(TEXT("-replace deletes the two packages in the folder itself"), Replaceable, TArray<FString>{Scratch / TEXT("M_A.uasset"), Scratch / TEXT("SK_A.uasset")});
+	IFileManager::Get().DeleteDirectory(*Scratch, false, true);
+
+	// The committed maw after the re-import: exactly one package per expected name, nothing else, no redirector.
+	const CreatureImport::FCreatureSpec* Maw = CreatureImport::FindSpec(TEXT("MireMaw"));
+	if (!TestNotNull(TEXT("the maw has a spec"), Maw))
+	{
+		return false;
+	}
+	const TArray<FString> Expected = CreatureImport::ExpectedAssetNames(*Maw, {TEXT("Attack"), TEXT("Death"), TEXT("Hit"), TEXT("Idle")});
+	TestEqual(TEXT("nine maw assets: texture, two materials, mesh, skeleton, four clips"), Expected.Num(), 9);
+	const FString Folder = CreatureImport::FolderPath(Maw->Name);
+	IAssetRegistry& Registry = IAssetRegistry::GetChecked();
+	Registry.ScanPathsSynchronous({Folder}, true);
+	TArray<FAssetData> Assets;
+	Registry.GetAssetsByPath(FName(*Folder), Assets, false);
+	TArray<FString> Names;
+	TMap<FString, int32> PackagesPerName;
+	for (const FAssetData& Asset : Assets)
+	{
+		const FString AssetName = Asset.AssetName.ToString();
+		Names.Add(AssetName);
+		++PackagesPerName.FindOrAdd(AssetName);
+		TestFalse(*FString::Printf(TEXT("%s is not a redirector"), *Asset.PackageName.ToString()), Asset.AssetClassPath == UObjectRedirector::StaticClass()->GetClassPathName());
+		TestEqual(*FString::Printf(TEXT("%s sits in a package of its own name"), *AssetName), Asset.PackageName.ToString(), Folder / AssetName);
+	}
+	Names.Sort();
+	TestEqual(TEXT("the maw folder holds exactly the expected assets"), Names, Expected);
+	for (const TPair<FString, int32>& Pair : PackagesPerName)
+	{
+		TestEqual(*FString::Printf(TEXT("one package named %s"), *Pair.Key), Pair.Value, 1);
+	}
+	FString Dir;
+	TestTrue(TEXT("the maw folder is on disk"), FPackageName::TryConvertLongPackageNameToFilename(Folder + TEXT("/"), Dir));
+	TArray<FString> Files = CreatureImport::ReplaceablePackageFiles(FPaths::ConvertRelativePathToFull(Dir));
+	for (FString& File : Files)
+	{
+		File = FPaths::GetBaseFilename(File);
+	}
+	TestEqual(TEXT("one .uasset file per expected name, no leftover"), Files, Expected);
 	return true;
 }
 

@@ -8,6 +8,7 @@
 #include "Animation/AnimSequence.h"
 #include "AssetCompilingManager.h"
 #include "AssetImportTask.h"
+#include "AssetRegistry/IAssetRegistry.h"
 #include "AssetToolsModule.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/Texture2D.h"
@@ -15,6 +16,7 @@
 #include "Factories/FbxFactory.h"
 #include "Factories/FbxImportUI.h"
 #include "Factories/FbxSkeletalMeshImportData.h"
+#include "HAL/FileManager.h"
 #include "IAssetTools.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionAdd.h"
@@ -29,10 +31,12 @@
 #include "Materials/MaterialExpressionTextureObjectParameter.h"
 #include "Materials/MaterialExpressionTextureSampleParameter2D.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
+#include "Misc/PackageName.h"
 #include "Misc/SecureHash.h"
 #include "ReferenceSkeleton.h"
 #include "Rendering/SkeletalMeshRenderData.h"
 #include "ShaderCompiler.h"
+#include "UObject/ObjectRedirector.h"
 #include "UObject/Package.h"
 #include "UObject/SavePackage.h"
 #include "UObject/UObjectIterator.h"
@@ -263,6 +267,49 @@ UObject* ImportOne(IAssetTools& AssetTools, const FString& File, const FString& 
 	}
 	return Objects.Num() > 0 ? Objects[0] : nullptr;
 }
+
+/**
+ * Before an import into /Game/Characters/<Name>: an empty folder imports as it is; a folder with packages fails unless
+ * -replace, which deletes exactly that creature's package files (CreatureImport::ReplaceablePackageFiles, never Source/)
+ * while none of them is loaded, then rescans the folder, so the import writes the same names fresh (T70).
+ */
+bool ClearForImport(const FString& Name, const FString& Folder, bool bReplace)
+{
+	FString Dir;
+	if (!FPackageName::TryConvertLongPackageNameToFilename(Folder + TEXT("/"), Dir))
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s has no folder on disk"), *Folder);
+		return false;
+	}
+	Dir = FPaths::ConvertRelativePathToFull(Dir);
+	const TArray<FString> Existing = CreatureImport::ReplaceablePackageFiles(Dir);
+	if (Existing.Num() > 0 && !bReplace)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s already holds %d packages in %s; an import over them keeps their old settings (T68), pass -replace"), *Name,
+		    Existing.Num(), *Dir);
+		return false;
+	}
+	for (const FString& File : Existing)
+	{
+		FString PackageName;
+		if (!FPackageName::TryConvertFilenameToLongPackageName(File, PackageName) || FindPackage(nullptr, *PackageName))
+		{
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail replace %s: not a package of %s, or already loaded"), *File, *Folder);
+			return false;
+		}
+		if (!IFileManager::Get().Delete(*File, true, true))
+		{
+			UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail replace could not delete %s"), *File);
+			return false;
+		}
+		UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT replace deleted %s"), *PackageName);
+	}
+	if (Existing.Num() > 0)
+	{
+		IAssetRegistry::GetChecked().ScanPathsSynchronous({Folder}, true);
+	}
+	return true;
+}
 }
 #endif
 
@@ -278,11 +325,15 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	const CreatureImport::FCreatureSpec* Spec = CreatureImport::FindSpec(Name);
 	if (!Spec || !FPaths::FileExists(Fbx) || !FPaths::FileExists(TexturePath))
 	{
-		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail usage: -name=<Brennic|CinderHound|MireMaw> -fbx=<existing file> -texture=<existing file> (got name=%s fbx=%s texture=%s)"),
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail usage: -name=<Brennic|CinderHound|MireMaw> -fbx=<existing file> -texture=<existing file> [-replace] (got name=%s fbx=%s texture=%s)"),
 		    *Name, *Fbx, *TexturePath);
 		return 1;
 	}
 	const FString Folder = CreatureImport::FolderPath(Name);
+	if (!ClearForImport(Name, Folder, FParse::Param(*Params, TEXT("replace"))))
+	{
+		return 1;
+	}
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT start %s fbx=%s md5=%s texture=%s md5=%s -> %s"), *Name, *Fbx, *LexToString(FMD5Hash::HashFile(*Fbx)),
 	    *TexturePath, *LexToString(FMD5Hash::HashFile(*TexturePath)), *Folder);
 	IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools").Get();
@@ -407,6 +458,22 @@ int32 UImportCreatureMeshCommandlet::Main(const FString& Params)
 	int32 Saved = 0;
 	if (!SavePackagesUnder(Folder, Saved))
 	{
+		return 1;
+	}
+	// One package per name and no redirector in the folder (what MageArena.CreatureImport.ReplaceOnePackagePerName pins on the committed set).
+	IAssetRegistry& Registry = IAssetRegistry::GetChecked();
+	Registry.ScanPathsSynchronous({Folder}, true);
+	TArray<FAssetData> Assets;
+	Registry.GetAssetsByPath(FName(*Folder), Assets, false);
+	int32 Redirectors = 0;
+	for (const FAssetData& Asset : Assets)
+	{
+		Redirectors += Asset.AssetClassPath == UObjectRedirector::StaticClass()->GetClassPathName() ? 1 : 0;
+	}
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT packages %s assets=%d redirectors=%d"), *Folder, Assets.Num(), Redirectors);
+	if (Redirectors > 0)
+	{
+		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_CREATURE_IMPORT fail %s left %d redirectors"), *Folder, Redirectors);
 		return 1;
 	}
 	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT done %s saved=%d"), *Name, Saved);
