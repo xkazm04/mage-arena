@@ -139,25 +139,20 @@ function stroke(path, w0, w1, shadeAt, steps = 48) {
   };
 }
 
-// A spark: a bright point with a dark ember rim and a faint halo. T72: the rim is a dark band (0.26) and the halo a dark
-// smudge (0.22), so a spark is a lit point on a dark edge against the sand, not an orange dot on orange. T72b: t67 keeps
-// T67's spark (rim graded to 0.5, halo 0.55) for the spark streak only, whose perfect ring read as rope with T72's.
-function spark(cx, cy, r, t67 = false) {
+// A spark: a bright point with a dark ember rim and a faint halo.
+function spark(cx, cy, r) {
   return (x, y) => {
     const d = Math.hypot(x - cx, y - cy) / r;
     if (d >= 2.4) return null;
-    if (d >= 1) return [0.3 * (1 - (d - 1) / 1.4), t67 ? 0.55 : 0.22];
-    if (t67) return [1, lerp(1.0, 0.5, smoothstep(0.4, 1.0, d))];
-    if (d >= 0.72) return [1, 0.26];
-    return [1, lerp(1.0, 0.62, smoothstep(0.3, 0.72, d))];
+    if (d >= 1) return [0.3 * (1 - (d - 1) / 1.4), 0.55];
+    return [1, lerp(1.0, 0.5, smoothstep(0.4, 1.0, d))];
   };
 }
 
 // A filled signed-distance shape (negative inside) with a darker rim: shade rises from 0.45 at the edge to 1 deep in.
-function sdfLayer(sd, alphaIn = 1, seed = 0, shades = null, grow = 0) {
+function sdfLayer(sd, alphaIn = 1, seed = 0, shades = null) {
   return (x, y) => {
-    // T72: grow dilates the shape evenly, so a backing layer is an outline of even width round the shape it backs.
-    const d = sd(x, y) - grow;
+    const d = sd(x, y);
     if (d >= 0.012) return null;
     if (shades) {
       // T67: a layer with its own shades [rim, lo, hi], for the nested flame star.
@@ -179,7 +174,7 @@ function layeredShade(depth, seed, x, y) {
 }
 
 // A splash or flame star: a body of radius r0 with n fingers reaching between rMin and rMax further out.
-function burst(seed, r0, n, rMin, rMax, width, alphaIn, shades, grow = 0) {
+function burst(seed, r0, n, rMin, rMax, width, alphaIn, shades) {
   const fingers = [];
   for (let i = 0; i < n; i++) {
     const a = ((i + 0.5 * hash01(seed, i + 500)) / n) * 2 * Math.PI;
@@ -202,7 +197,7 @@ function burst(seed, r0, n, rMin, rMax, width, alphaIn, shades, grow = 0) {
       d = smin(d, dist - finger.width * Math.pow(1 - t, 0.8), 0.06);
     }
     return d;
-  }, alphaIn, seed, shades, grow);
+  }, alphaIn, seed, shades);
 }
 
 // ---- cells ------------------------------------------------------------------------------------------------------
@@ -309,22 +304,14 @@ function flameLayer(seed, o) {
   return (x, y) => {
     const nx = x + 0.09 * (fbm(seed, x * 3.1, y * 3.1 - 2.3) - 0.5) * 2;
     const ny = y + 0.06 * (fbm(seed + 7, x * 3.1, y * 3.1) - 0.5) * 2;
-    // T72: grow dilates the flame (the dark backing is an outline round the body). T72b: tipGrow tapers that growth along
-    // each tongue the way its width tapers, so the backing follows the outline and closes to a point at every lick tip
-    // instead of rounding it into a dark blob.
-    const grow = o.grow || 0;
-    const tipGrow = o.tipGrow === undefined ? grow : o.tipGrow;
-    let d = Math.hypot(nx, ny + 0.04 - o.lift) - o.body * 1.15 * o.scale - grow;
+    let d = Math.hypot(nx, ny + 0.04 - o.lift) - o.body * 1.15 * o.scale;
     for (const tongue of tongues) {
       const [dist, t] = polylineDistance(tongue.pts, nx, ny);
-      const taper = Math.pow(1 - t, 0.9);
-      d = smin(d, dist - tongue.width * taper - lerp(tipGrow, grow, taper), 0.09 * o.scale);
+      d = smin(d, dist - tongue.width * Math.pow(1 - t, 0.9), 0.09 * o.scale);
     }
-    // T72: soft widens the alpha ramp at the edge (default 0.012), so the dark backing is a soft rim, not a hard outline.
-    const soft = o.soft || 0.012;
-    if (d >= soft || ny > 0.92) return null;
+    if (d >= 0.012 || ny > 0.92) return null;
     const depth = -d;
-    const alpha = smoothstep(-soft, soft, depth);
+    const alpha = smoothstep(-0.012, 0.012, depth);
     if (depth < 0.04) return [alpha, lerp(o.rim, o.lo, smoothstep(0.012, 0.04, depth))];
     const inner = smoothstep(0.04, 0.16, depth);
     const streak = smoothstep(0.35, 0.75, fbm(seed + 11, nx * 5.0, ny * 3.2 - 0.7));
@@ -338,16 +325,11 @@ function fireFlame(seed) {
   // orange sand), a mid flame sits in it and a small hot core at the base is the full element colour (shade 1, never
   // brighter than the threat). The rim of each inner flame is darker than the body round it, so the layers read apart.
   const layers = [
-    // T72: the dark backing is the body's own flame grown (T67's was 1.08x the body at 0.4-0.46), a deep ember tone graded
-    // from the edge up toward the body, so the fire is a lit shape on a dark edge against the sand: value contrast, the hue
-    // unchanged. T72b (Athena, 2026-10-26): half T72's growth (0.05, T72 0.1), tapered to 0.01 at each lick tip, with T67's
-    // crisp edge ramp (T72's soft 0.03 dropped) and a shade a touch deeper (0.22-0.34, T72 0.24-0.36) for the narrower band.
-    // T72's even 0.1 filled every lick into a rounded dark blob, and the bolt read as brown at 8 m.
-    flameLayer(seed, { scale: 1.0, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.22, lo: 0.28, hi: 0.34, lift: 0, grow: 0.05, tipGrow: 0.01 }),
+    // T67 round 2: a darker backing flame a hair larger than the body, the outline that separates the fire from the sand.
+    flameLayer(seed, { scale: 1.08, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.4, lo: 0.42, hi: 0.46, lift: 0.01 }),
     flameLayer(seed, { scale: 1.0, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.46, lo: 0.52, hi: 0.68, lift: 0 }),
     flameLayer(seed + 100, { scale: 0.72, count: 7, body: 0.46, length: 0.34, width: 0.115, rim: 0.6, lo: 0.74, hi: 0.9, lift: -0.02 }),
-    // T72: the full-colour heart a little larger (0.46, T67 0.4), so the lit shape keeps its share inside the wider dark edge.
-    flameLayer(seed + 200, { scale: 0.46, count: 5, body: 0.46, length: 0.3, width: 0.13, rim: 0.86, lo: 0.94, hi: 1.0, lift: -0.08 }),
+    flameLayer(seed + 200, { scale: 0.4, count: 5, body: 0.46, length: 0.3, width: 0.13, rim: 0.86, lo: 0.94, hi: 1.0, lift: -0.08 }),
   ];
   for (let i = 0; i < 9; i++) {
     const a = lerp(0.3, Math.PI - 0.3, hash01(seed, 50 + i));
@@ -372,13 +354,9 @@ function fireEmbers(seed) {
 function fireCrown(seed) {
   // The absorb burst: a solid flame star (T67: twelve licks, a mid star and a hot heart) with licks thrown outward, and sparks beyond.
   const layers = [
-    // T72: the outer star grown evenly by 0.07 in a deep ember tone graded inward, the dark edge against the sand (round 2:
-    // 0.07 and lighter, round 1's 0.08 at 0.2 filled the gaps between the licks).
-    burst(seed, 0.3, 12, 0.26, 0.52, 0.09, 1.0, [0.24, 0.28, 0.3], 0.07),
     burst(seed, 0.3, 12, 0.26, 0.52, 0.09, 1.0, [0.46, 0.6, 0.82]),
     burst(seed + 5, 0.2, 9, 0.12, 0.3, 0.075, 1.0, [0.62, 0.8, 0.96]),
-    // T72: a larger full-colour heart (0.2, T67 0.1), the lit centre inside the wider dark edge.
-    burst(seed + 9, 0.2, 6, 0.04, 0.16, 0.08, 1.0, [0.86, 0.95, 1.0]),
+    burst(seed + 9, 0.1, 6, 0.02, 0.1, 0.06, 1.0, [0.86, 0.95, 1.0]),
   ];
   for (let i = 0; i < 16; i++) {
     const a = hash01(seed, 100 + i) * 2 * Math.PI;
@@ -449,12 +427,11 @@ function sparkStreak() {
   // A thrown spark (head at +x) with an ember tail, for the splash and the perfect ring of Fire. T67: a wider tail with a
   // darker outer band and a hot lit core, and two trailing sparks, so each bead is a small flame, not a thin line.
   return over([
-    // T72b: T67's cell exactly (Athena, 2026-10-26): every darker tail T72 tried made the perfect ring read as rope.
     stroke((t) => [lerp(0.4, -0.85, t), 0.05 * t], 0.3, 0.0, () => 0.46),
     stroke((t) => [lerp(0.4, -0.8, t), 0.05 * t], 0.2, 0.0, (t, e) => (e > 0.6 ? 0.62 : t < 0.4 ? 1.0 : 0.78)),
-    spark(-0.2, 0.08, 0.07, true),
-    spark(-0.5, -0.04, 0.05, true),
-    spark(0.45, 0, 0.3, true),
+    spark(-0.2, 0.08, 0.07),
+    spark(-0.5, -0.04, 0.05),
+    spark(0.45, 0, 0.3),
   ]);
 }
 
