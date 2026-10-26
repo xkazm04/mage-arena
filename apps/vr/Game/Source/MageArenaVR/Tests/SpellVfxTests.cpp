@@ -630,61 +630,10 @@ FFireBands FireEdgeBands(const TArray64<uint8>& Mip, int32 Size, SpellVfx::ECell
 }
 }
 
-// T72. Fire separates from the orange sand by value: every fire flame and the flame star have a dark rim at their
-// silhouette, a deep ember tone of the fire colour (T67's outline was a hair-wide band at 0.47-0.59). The star keeps it
-// wide: the band 4-6 px in is dark too (T67: 0.69). T72b: the flames' band is narrow (half T72's growth, Athena
-// 2026-10-26), so their 1-3 px band is bounded at 0.40, still darker than T67's 0.47, and their 4-6 px band is not held;
-// the spark streak is T67's again and is held by SparkStreakIsT67sCell instead. The rim stays a tone of the fire colour,
-// not black, so it never reads as the unblockable's black core.
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireDarkRim, "MageArena.SpellVfx.FireCellsHaveDarkRimAtSilhouette",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
-
-bool FMageArenaSpellVfxFireDarkRim::RunTest(const FString& Parameters)
-{
-#if WITH_EDITORONLY_DATA
-	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
-	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
-	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
-	{
-		return false;
-	}
-	TArray64<uint8> Mip;
-	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
-	{
-		return false;
-	}
-	constexpr float EdgeMost = 0.34f;
-	constexpr float FlameEdgeMost = 0.40f;
-	constexpr float InnerMost = 0.45f;
-	constexpr float EdgeLeast = 0.15f;
-	bool bPass = true;
-	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireCrown})
-	{
-		const int32 Index = static_cast<int32>(Which);
-		const FFireBands Bands = FireEdgeBands(Mip, Atlas->Source.GetSizeX(), Which);
-		const bool bStar = Which == SpellVfx::ECell::FireCrown;
-		const float Most = bStar ? EdgeMost : FlameEdgeMost;
-		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the 1-3 px edge band is dark (mean shade %.3f, at most %.2f)"), Index, Bands.Edge, Most),
-		    Bands.EdgeCount > 0 && Bands.Edge <= Most);
-		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the edge band is an ember tone, not black (mean shade %.3f, at least %.2f)"), Index, Bands.Edge, EdgeLeast),
-		    Bands.Edge >= EdgeLeast);
-		if (bStar)
-		{
-			bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark band is wide, 4-6 px in (mean shade %.3f, at most %.2f)"), Index, Bands.Inner, InnerMost),
-			    Bands.InnerCount > 0 && Bands.Inner <= InnerMost);
-		}
-	}
-	return bPass;
-#else
-	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
-	return true;
-#endif
-}
-
-// T72b. Each flame lick keeps a crisp tip: the dark backing follows the outline and closes to a point at the tip, not a
-// filled halo. Measured per column of flame A and B as the run from the topmost opaque pixel (A >= 200) down to the first
-// lit one (shade >= 0.40, above the backing's 0.22-0.34): the dark cap over the licks. T67 had none (0 px), T72's even 0.1
-// growth capped them by 11.3 / 8.6 px; the bound is about half of that.
+// T72b. Each flame lick keeps a crisp tip: no dark backing caps the licks as a filled halo. Measured per column of flame A
+// and B as the run from the topmost opaque pixel (A >= 200) down to the first lit one (shade >= 0.40): the dark cap over
+// the licks. T67 has none (0 px), T72's even 0.1 growth capped them by 11.3 / 8.6 px; the bound is about half of that.
+// T72b's narrow backing (3.1 / 3.2 px) did not pass Athena's critic bar, and the Fire cells went back to T67's.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireTips, "MageArena.SpellVfx.FireLickTipsStayCrisp",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -793,7 +742,7 @@ bool FMageArenaSpellVfxStreakT67::RunTest(const FString& Parameters)
 #endif
 }
 
-// T72. The dark rim adds no other colour and no white core: every fire cell is a grey mask (R = G = B, so M_SpellGlow draws
+// T72. The fire cells add no other colour and no white core: every fire cell is a grey mask (R = G = B, so M_SpellGlow draws
 // the element colour times a shade of at most 1, never a whiter or yellower hue) and its heart is the full element colour.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireNoWhite, "MageArena.SpellVfx.FireShadeNeverAboveOne",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
