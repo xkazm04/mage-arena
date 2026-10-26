@@ -459,6 +459,7 @@ above the top tread have nothing to stand on (the stands end at tier 2, 5.20 m, 
 forbids both support geometry and a layout edit. The card writes up options for Athena. The recommended one is
 `stands.tiers` 3 -> 5 in the layout, a one-number change that the crowd and the shell already follow (804 cards, the same
 one draw), and it needs her ruling.
+(9) Fire value contrast, T72 (`docs/research/FIRE-VALUE-T72-2026-10-26.md`, desktop proxy, not Quest truth; Athena's acceptance is open): the Fire cells sit on a graded dark ember rim (the body grown by 0.1 at 0.24-0.36, sparks and streaks darkened, the full-colour heart kept), the fire silhouette's edge-to-sand contrast went from -0.39 / -0.30 / -0.17 to -0.58 / -0.54 / -0.45 (bolt at 8 m, absorb, perfect), every blind round read the separation on all 3 fire pairs with no white core and no unblockable read, but also a drift toward brown, rust or rope, and the final round put the before frame closer to S1 on all three; D-G4 max 127 in every run (+0); her options are written in the report.
 
 ## (c) The style contract
 

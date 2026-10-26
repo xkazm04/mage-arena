@@ -1,6 +1,6 @@
 # T72 - Fire value contrast against the sand
 
-Status: open
+Status: ran, open for Athena - report docs/research/FIRE-VALUE-T72-2026-10-26.md
 Max turns: 120
 
 ## Goal
