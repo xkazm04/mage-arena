@@ -630,10 +630,11 @@ FFireBands FireEdgeBands(const TArray64<uint8>& Mip, int32 Size, SpellVfx::ECell
 }
 }
 
-// T72b. Each flame lick keeps a crisp tip: no dark backing caps the licks as a filled halo. Measured per column of flame A
-// and B as the run from the topmost opaque pixel (A >= 200) down to the first lit one (shade >= 0.40): the dark cap over
-// the licks. T67 has none (0 px), T72's even 0.1 growth capped them by 11.3 / 8.6 px; the bound is about half of that.
-// T72b's narrow backing (3.1 / 3.2 px) did not pass Athena's critic bar, and the Fire cells went back to T67's.
+// T72b / T72c. Each flame lick keeps a crisp tip: the dark backing follows the outline and closes to a point at the tip,
+// not a filled halo. Measured per column of flame A and B as the run from the topmost opaque pixel (A >= 200) down to the
+// first lit one (shade >= 0.40, above the backing's 0.22-0.34): the dark cap over the licks. T67 has none (0 px), T72's even
+// 0.1 growth capped them by 11.3 / 8.6 px; the ceiling is about half of that. T72c (Athena's option C, 2026-10-26) brings
+// T72b's bolt back, so there is a floor too: the backing itself, a dark ember tone at the 1-3 px edge (T67's is 0.47).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireTips, "MageArena.SpellVfx.FireLickTipsStayCrisp",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -652,6 +653,9 @@ bool FMageArenaSpellVfxFireTips::RunTest(const FString& Parameters)
 		return false;
 	}
 	constexpr float CapMost = 4.5f;
+	constexpr float CapLeast = 1.0f;
+	constexpr float EdgeMost = 0.40f;
+	constexpr float EdgeLeast = 0.15f;
 	constexpr uint8 Lit = 102;
 	const int32 Size = Atlas->Source.GetSizeX();
 	const int32 Cell = Size / SpellVfx::FlipbookGrid;
@@ -683,8 +687,11 @@ bool FMageArenaSpellVfxFireTips::RunTest(const FString& Parameters)
 			}
 		}
 		const float Cap = Columns > 0 ? static_cast<float>(CapSum) / Columns : 0.f;
-		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark cap over the lick tips is thin (mean %.2f px over %d columns, at most %.1f)"), Index, Cap, Columns, CapMost),
-		    Columns > 0 && Cap <= CapMost);
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark cap over the lick tips is thin but present (mean %.2f px over %d columns, %.1f to %.1f)"), Index, Cap, Columns, CapLeast, CapMost),
+		    Columns > 0 && Cap >= CapLeast && Cap <= CapMost);
+		const FFireBands Bands = FireEdgeBands(Mip, Size, Which);
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the 1-3 px edge band is a dark ember tone (mean shade %.3f, %.2f to %.2f)"), Index, Bands.Edge, EdgeLeast, EdgeMost),
+		    Bands.EdgeCount > 0 && Bands.Edge >= EdgeLeast && Bands.Edge <= EdgeMost);
 	}
 	return bPass;
 #else
@@ -693,9 +700,9 @@ bool FMageArenaSpellVfxFireTips::RunTest(const FString& Parameters)
 #endif
 }
 
-// T72b. The spark streak (the perfect ring's bead) is T67's cell exactly (Athena, 2026-10-26: T72's darker tail and spark
-// rim read as rope). FNV-1a 32 over each pixel's shade and alpha, row-major; the cell is a grey mask, so the source's BGRA
-// order reads the same bytes as the PNG. 0xd64783f6 is T67's cell (spell-flipbook.mjs at 6cbe7d9); T72's was 0x6e768181.
+// T72b / T72c. The spark streak (the perfect ring's bead, cell 14) and the flame star (the absorb burst, cell 7) are T67's
+// cells exactly (Athena, 2026-10-26: T72's darker tail and spark rim read as rope, its star as rust or mud). FNV-1a 32 over each pixel's shade and alpha, row-major; the cell is a grey mask, so the source's BGRA
+// order reads the same bytes as the PNG. 0xd64783f6 is T67's streak (spell-flipbook.mjs at 6cbe7d9; T72's was 0x6e768181), 0xbea049f2 T67's star (T72's 0x7f1a8906).
 // Its 1-3 px edge band stays T67's light outline (0.567), not a dark rim.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxStreakT67, "MageArena.SpellVfx.SparkStreakIsT67sCell",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -715,24 +722,32 @@ bool FMageArenaSpellVfxStreakT67::RunTest(const FString& Parameters)
 		return false;
 	}
 	constexpr uint32 T67Streak = 0xd64783f6u;
+	constexpr uint32 T67Star = 0xbea049f2u;
 	const int32 Size = Atlas->Source.GetSizeX();
 	const int32 Cell = Size / SpellVfx::FlipbookGrid;
-	const int32 Index = static_cast<int32>(SpellVfx::ECell::SparkStreak);
-	const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
-	const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
-	uint32 Hash = 0x811c9dc5u;
-	for (int32 Y = 0; Y < Cell; ++Y)
+	const auto CellHash = [&](SpellVfx::ECell Which)
 	{
-		for (int32 X = 0; X < Cell; ++X)
+		const int32 Index = static_cast<int32>(Which);
+		const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
+		const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
+		uint32 Hash = 0x811c9dc5u;
+		for (int32 Y = 0; Y < Cell; ++Y)
 		{
-			const int64 At = (static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4;
-			for (const uint8 Byte : {Mip[At + 2], Mip[At + 3]})
+			for (int32 X = 0; X < Cell; ++X)
 			{
-				Hash = (Hash ^ Byte) * 0x01000193u;
+				const int64 At = (static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4;
+				for (const uint8 Byte : {Mip[At + 2], Mip[At + 3]})
+				{
+					Hash = (Hash ^ Byte) * 0x01000193u;
+				}
 			}
 		}
-	}
+		return Hash;
+	};
+	const uint32 Hash = CellHash(SpellVfx::ECell::SparkStreak);
+	const uint32 StarHash = CellHash(SpellVfx::ECell::FireCrown);
 	bool bPass = TestTrue(*FString::Printf(TEXT("the spark streak is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), Hash, T67Streak), Hash == T67Streak);
+	bPass &= TestTrue(*FString::Printf(TEXT("the flame star is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), StarHash, T67Star), StarHash == T67Star);
 	const FFireBands Bands = FireEdgeBands(Mip, Size, SpellVfx::ECell::SparkStreak);
 	bPass &= TestTrue(*FString::Printf(TEXT("the spark streak keeps T67's light outline (1-3 px band %.3f, at least 0.50)"), Bands.Edge), Bands.EdgeCount > 0 && Bands.Edge >= 0.5f);
 	return bPass;
