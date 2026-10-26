@@ -1481,7 +1481,13 @@ void FArenaSession::AdvanceArc(double DeltaSeconds)
 			{
 				Inputs.Add(Games.PlayerId, SimIdleInput(FSimVec{Player->Pos.X + 8.0, Player->Pos.Y}));
 			}
-			StepArena(Games.State, Inputs, nullptr);
+			// DF-013 (a), owner ruling 2026-10-25: the kernel is frozen in the intermission. Idle steps there moved the tick and
+			// the random stream, so a longer intermission handed the next bout a different start. The offer and the lost
+			// phase keep their pump. Nothing steps, so FreezeTeachClock and SeatOnActivePad below change nothing new.
+			if (Games.Phase != TEXT("intermission"))
+			{
+				StepArena(Games.State, Inputs, nullptr);
+			}
 			if (FActor* Player = SimFindActor(Games.State, Games.PlayerId))
 			{
 				FreezeTeachClock(*Player);

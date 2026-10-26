@@ -789,4 +789,63 @@ bool FMageArenaIntermissionDayLengthBudget::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+// DF-013 (a), owner ruling 2026-10-25: nothing steps the kernel in an intermission, whatever its length. The offer keeps
+// its pump (the tick advances there as before). Stepping idle in the intermission moved the tick and the random stream
+// that bouts 2 to 4 inherit.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaIntermissionFreezesKernel, "MageArena.Intermission.FreezesKernel",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaIntermissionFreezesKernel::RunTest(const FString& Parameters)
+{
+	(void)Parameters;
+	FSceneRig Rig;
+	if (!Rig.Open(*this))
+	{
+		return false;
+	}
+	FArenaSession Session;
+	// The offer before the day still pumps: the tick moves with session time.
+	Rig.WriteSave(TEXT("bout=0\n"));
+	Rig.Bind(Session);
+	Session.SetScripted(false);
+	bool bPass = TestTrue(TEXT("the arc begins"), Session.BeginArc(1));
+	bPass &= TestEqual(TEXT("the offer"), Session.GetStage(), FString(TEXT("offer")));
+	const int32 OfferTick = Session.GetGames().State.Tick;
+	for (int32 Step = 0; Step < 60; ++Step)
+	{
+		Session.Advance(kSceneTick, true);
+	}
+	bPass &= TestTrue(*FString::Printf(TEXT("the offer still steps the kernel (%d -> %d)"), OfferTick, Session.GetGames().State.Tick),
+	    Session.GetGames().State.Tick > OfferTick);
+	Rig.Close(Session);
+
+	FSceneRig DayRig;
+	if (!DayRig.Open(*this))
+	{
+		return false;
+	}
+	FArenaSession Day;
+	if (!TestTrue(TEXT("into Bout 1"), SceneReachBout(DayRig, Day, 0)))
+	{
+		DayRig.Close(Day);
+		return false;
+	}
+	SceneWinIntoNext(Day);
+	bPass &= TestEqual(TEXT("intermission 1"), Day.GetStage(), FString(TEXT("intermission")));
+	// One frame lets FreezeTeachClock stamp the player's WaveStartTick with the tick; with the tick frozen, that is idempotent.
+	Day.Advance(kSceneTick, true);
+	const int32 TickBefore = Day.GetGames().State.Tick;
+	const FString HashBefore = StateHash(Day.GetGames().State);
+	// 10 s of an intermission whose scene lasts up to 20 s: long enough that the old idle pump moved the tick by 600.
+	for (int32 Step = 0; Step < 600; ++Step)
+	{
+		Day.Advance(kSceneTick, true);
+	}
+	bPass &= TestEqual(TEXT("still in the intermission"), Day.GetStage(), FString(TEXT("intermission")));
+	bPass &= TestEqual(TEXT("the kernel tick is frozen"), Day.GetGames().State.Tick, TickBefore);
+	bPass &= TestEqual(TEXT("the state hash is frozen"), StateHash(Day.GetGames().State), HashBefore);
+	DayRig.Close(Day);
+	return bPass;
+}
+
 #endif
