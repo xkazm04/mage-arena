@@ -12,6 +12,7 @@ LTS headless does the measuring (set `BLENDER` to use another `blender.exe`).
 | `trellis-mv.mjs` + `trellis-mv.test.mjs` | the two-view (front + back) TRELLIS.2 workflow builder and runner, and its offline test |
 | `merge_halves.py` + `halves_lib.py` (+ `test_merge_halves.py`) | split-and-merge: the front half of the front-image mesh and the back half of a back-image mesh, posed in the finish frame and joined into one textured source GLB for `finish.mjs --rot 0` (see "Split and merge") |
 | `bake_source_id.py`, `seam_fix.py` + `seam_lib.py` (+ `test_seam_lib.py`) | the flank seam of a merge, fixed on the finished bake in UV space: which half each texel came from, a local colour match of the back half onto the front, a feather across the seam, and the seam report (see "The flank seam") |
+| `seam_ledge.py` + `ledge_lib.py` (+ `test_ledge_lib.py`) | the geometric ledge and ground notch of a merge at the cut: measured on orthographic side depth maps, and smoothed on the finished LOD0 (positions only) (see "The seam ledge") |
 | `mesh-card.mjs` + `mesh_metrics.py` | gates 2 and 3: the structural card of a GLB, FBX or .blend |
 | `finish.mjs` + `export_glb.py` | raw card, `../assets/finish.py` (runs on Blender 4.2.1), export, finished card. `--mode bake` (default): the TRELLIS albedo baked onto LOD0 as `T_<Name>_BaseColor.png`; `--mode flat`: one flat palette colour per material (see "Finish modes") |
 | `finish-args.mjs` + `finish-args.test.mjs` | the finish.py argument list finish.mjs builds (flat stays the pre-bake list exactly) |
@@ -218,6 +219,35 @@ python apps/vr/tools/mesh/seam_fix.py <finish>/<Name>_finish.glb <finish>/T_<Nam
   overlap band before the join. On the maw it overshot (the band's front statistics are dominated by the lighter jaw and
   belly, so the back came out lighter than the flank it meets); the bake fix above is the one of record.
 - `python -m unittest apps/vr/tools/mesh/test_seam_lib.py` (numpy and scipy). First run: docs/research/CREATURE-CAST-UE-2026-10-24.md.
+
+### The seam ledge (geometry at the cut, on the finished LOD0)
+
+The finish's voxel remesh is the union of the two capped halves, so where the front half's skin stands proud of the back
+half's, the front's cap plane shows as a straight vertical ledge down each flank and a square notch where a leg is cut at
+the ground (two blind critics on the 2026-10-24 maw). A texture fix cannot remove that. Smooth the LOD0 at the cut, then
+re-run the seam fix on the moved surface and rig as before:
+
+```
+blender -b <finish>/<Name>_finish.blend --python-exit-code 1 -P apps/vr/tools/mesh/seam_ledge.py -- measure <before>/ledge.json
+blender -b <finish>/<Name>_finish.blend --python-exit-code 1 -P apps/vr/tools/mesh/seam_ledge.py -- smooth <fix>/finish/<Name>_finish.blend <fix>/smooth.json
+blender -b <fix>/finish/<Name>_finish.blend -P apps/vr/tools/mesh/export_glb.py -- <fix>/finish/<Name>_finish.glb
+node apps/vr/tools/mesh/mesh-card.mjs <fix>/finish/<Name>_finish.glb --stage finished --class <Class> --out <fix>/card-finished.json
+python apps/vr/tools/mesh/seam_fix.py <fix>/finish/<Name>_finish.glb <the unfixed bake> <fix>/uvfix/T_<Name>_BaseColor.png --source <the source-id png> --record <fix>/uvfix/seam_fix.json
+blender -b <fix>/finish/<Name>_finish.blend --python-exit-code 1 -P apps/vr/tools/mesh/seam_ledge.py -- measure <fix>/ledge.json
+```
+
+- `smooth` runs Taubin lambda/mu pairs of the umbrella operator on `SM_<Name>`'s vertices, each scaled by a band weight
+  around the cut (default centre y -0.32, full within 0.12 m, zero past 0.24 m, 120 pairs) with the top 3 cm pinned, so
+  the height holds. Triangles and UVs do not change: the card stays one watertight component at the same triangle count.
+  The record counts the faces whose normal turned past 90 degrees (folds).
+- Re-run `seam_fix.py` from the unfixed bake with the same source-id PNG (it is UV-tied, so it still fits): its anchors and
+  report read texel positions, which moved. Carrying the old fixed texture onto the moved surface measured 0.015 on the
+  maw's right flank band, over the 0.012 of record; the re-run measured 0.011.
+- `measure` casts rays along -X and +X every 2 mm (500 px/m, the critic renders' scale) and reports per flank the tallest
+  line of 1 cm depth jumps in the band (default the cut -0.30 +- 0.15 m) against the tallest outside it, the same for 45
+  degree normal turns, the outline steps and the ground notch, with the depth maps in `<out>.npz`.
+- `python -m unittest apps/vr/tools/mesh/test_ledge_lib.py` (numpy, scipy for one test). First run:
+  docs/research/MAW-SEAM-LEDGE-T70-2026-10-26.md.
 
 ## Starting and stopping the local ComfyUI
 
