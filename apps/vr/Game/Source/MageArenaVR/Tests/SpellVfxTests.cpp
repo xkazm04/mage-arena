@@ -558,4 +558,174 @@ bool FMageArenaSpellVfxFireContrast::RunTest(const FString& Parameters)
 #endif
 }
 
+// T72. The edge bands of a fire cell (an atlas cell's opaque pixels, A >= 200, by their distance in pixels to the nearest
+// clear one, A < 128, the cell's outside counting as clear): the mean shade of the band 1-3 px in and of the band 4-6 px in.
+namespace
+{
+struct FFireBands
+{
+	float Edge = 0.f;
+	float Inner = 0.f;
+	int32 EdgeCount = 0;
+	int32 InnerCount = 0;
+};
+
+FFireBands FireEdgeBands(const TArray64<uint8>& Mip, int32 Size, SpellVfx::ECell Which)
+{
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	const int32 Index = static_cast<int32>(Which);
+	const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
+	const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
+	auto Alpha = [&](int32 X, int32 Y) -> int32
+	{
+		if (X < 0 || Y < 0 || X >= Cell || Y >= Cell)
+		{
+			return 0;
+		}
+		return Mip[(static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4 + 3];
+	};
+	double EdgeSum = 0.0;
+	double InnerSum = 0.0;
+	FFireBands Bands;
+	for (int32 Y = 0; Y < Cell; ++Y)
+	{
+		for (int32 X = 0; X < Cell; ++X)
+		{
+			if (Alpha(X, Y) < 200)
+			{
+				continue;
+			}
+			// Chebyshev distance to the nearest clear pixel, up to 7.
+			int32 Distance = 7;
+			for (int32 Ring = 1; Ring < 7 && Distance == 7; ++Ring)
+			{
+				for (int32 J = -Ring; J <= Ring && Distance == 7; ++J)
+				{
+					for (int32 I = -Ring; I <= Ring; ++I)
+					{
+						if ((FMath::Abs(I) == Ring || FMath::Abs(J) == Ring) && Alpha(X + I, Y + J) < 128)
+						{
+							Distance = Ring;
+							break;
+						}
+					}
+				}
+			}
+			const double Shade = Mip[(static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4 + 2] / 255.0;
+			if (Distance <= 3)
+			{
+				EdgeSum += Shade;
+				++Bands.EdgeCount;
+			}
+			else if (Distance <= 6)
+			{
+				InnerSum += Shade;
+				++Bands.InnerCount;
+			}
+		}
+	}
+	Bands.Edge = Bands.EdgeCount > 0 ? static_cast<float>(EdgeSum / Bands.EdgeCount) : 1.f;
+	Bands.Inner = Bands.InnerCount > 0 ? static_cast<float>(InnerSum / Bands.InnerCount) : 1.f;
+	return Bands;
+}
+}
+
+// T72. Fire separates from the orange sand by value: every fire flame, flame star and spark streak has a dark rim at its
+// silhouette, a deep ember tone of the fire colour (T67's outline was a hair-wide band at 0.47-0.59). The flames and the
+// star keep it wider: the band 4-6 px in is dark too (T67: 0.52-0.69). The spark streak's bound is looser (0.40, T67 0.57):
+// a darker streak made the perfect ring of them read as a rope in the blind critic. The rim stays a tone of the fire
+// colour, not black, so it never reads as the unblockable's black core.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireDarkRim, "MageArena.SpellVfx.FireCellsHaveDarkRimAtSilhouette",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFireDarkRim::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	constexpr float EdgeMost = 0.34f;
+	constexpr float StreakEdgeMost = 0.40f;
+	constexpr float InnerMost = 0.45f;
+	constexpr float EdgeLeast = 0.15f;
+	bool bPass = true;
+	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireCrown, SpellVfx::ECell::SparkStreak})
+	{
+		const int32 Index = static_cast<int32>(Which);
+		const FFireBands Bands = FireEdgeBands(Mip, Atlas->Source.GetSizeX(), Which);
+		const float Most = Which == SpellVfx::ECell::SparkStreak ? StreakEdgeMost : EdgeMost;
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the 1-3 px edge band is dark (mean shade %.3f, at most %.2f)"), Index, Bands.Edge, Most),
+		    Bands.EdgeCount > 0 && Bands.Edge <= Most);
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the edge band is an ember tone, not black (mean shade %.3f, at least %.2f)"), Index, Bands.Edge, EdgeLeast),
+		    Bands.Edge >= EdgeLeast);
+		if (Which != SpellVfx::ECell::SparkStreak)
+		{
+			bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark band is wide, 4-6 px in (mean shade %.3f, at most %.2f)"), Index, Bands.Inner, InnerMost),
+			    Bands.InnerCount > 0 && Bands.Inner <= InnerMost);
+		}
+	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
+// T72. The dark rim adds no other colour and no white core: every fire cell is a grey mask (R = G = B, so M_SpellGlow draws
+// the element colour times a shade of at most 1, never a whiter or yellower hue) and its heart is the full element colour.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireNoWhite, "MageArena.SpellVfx.FireShadeNeverAboveOne",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFireNoWhite::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	const int32 Size = Atlas->Source.GetSizeX();
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	bool bPass = true;
+	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireEmbers, SpellVfx::ECell::FireCrown, SpellVfx::ECell::SparkStreak})
+	{
+		const int32 Index = static_cast<int32>(Which);
+		int32 Tinted = 0;
+		int32 Heart = 0;
+		for (int32 Y = 0; Y < Cell; ++Y)
+		{
+			for (int32 X = 0; X < Cell; ++X)
+			{
+				const int64 At = (static_cast<int64>((Index / SpellVfx::FlipbookGrid) * Cell + Y) * Size + (Index % SpellVfx::FlipbookGrid) * Cell + X) * 4;
+				Tinted += (Mip[At] != Mip[At + 1] || Mip[At] != Mip[At + 2]) ? 1 : 0;
+				if (Mip[At + 3] >= 200)
+				{
+					Heart = FMath::Max(Heart, static_cast<int32>(Mip[At + 2]));
+				}
+			}
+		}
+		bPass &= TestEqual(*FString::Printf(TEXT("fire cell %d: a grey mask, R = G = B (pixels off: %d)"), Index, Tinted), Tinted, 0);
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the heart is the full element colour (shade %d of 255)"), Index, Heart), Heart >= 250);
+	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
 #endif
