@@ -700,9 +700,9 @@ bool FMageArenaSpellVfxFireTips::RunTest(const FString& Parameters)
 #endif
 }
 
-// T72b / T72c. The spark streak (the perfect ring's bead, cell 14) and the flame star (the absorb burst, cell 7) are T67's
-// cells exactly (Athena, 2026-10-26: T72's darker tail and spark rim read as rope, its star as rust or mud). FNV-1a 32 over each pixel's shade and alpha, row-major; the cell is a grey mask, so the source's BGRA
-// order reads the same bytes as the PNG. 0xd64783f6 is T67's streak (spell-flipbook.mjs at 6cbe7d9; T72's was 0x6e768181), 0xbea049f2 T67's star (T72's 0x7f1a8906).
+// T72b / T72c. The spark streak (the perfect ring's bead, cell 14) is T67's cell exactly (Athena, 2026-10-26: T72's darker
+// tail and spark rim read as rope). FNV-1a 32 over each pixel's shade and alpha, row-major; the cell is a grey mask, so the source's BGRA
+// order reads the same bytes as the PNG. 0xd64783f6 is T67's streak (spell-flipbook.mjs at 6cbe7d9; T72's was 0x6e768181),
 // Its 1-3 px edge band stays T67's light outline (0.567), not a dark rim.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxStreakT67, "MageArena.SpellVfx.SparkStreakIsT67sCell",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -722,7 +722,6 @@ bool FMageArenaSpellVfxStreakT67::RunTest(const FString& Parameters)
 		return false;
 	}
 	constexpr uint32 T67Streak = 0xd64783f6u;
-	constexpr uint32 T67Star = 0xbea049f2u;
 	const int32 Size = Atlas->Source.GetSizeX();
 	const int32 Cell = Size / SpellVfx::FlipbookGrid;
 	const auto CellHash = [&](SpellVfx::ECell Which)
@@ -745,11 +744,57 @@ bool FMageArenaSpellVfxStreakT67::RunTest(const FString& Parameters)
 		return Hash;
 	};
 	const uint32 Hash = CellHash(SpellVfx::ECell::SparkStreak);
-	const uint32 StarHash = CellHash(SpellVfx::ECell::FireCrown);
 	bool bPass = TestTrue(*FString::Printf(TEXT("the spark streak is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), Hash, T67Streak), Hash == T67Streak);
-	bPass &= TestTrue(*FString::Printf(TEXT("the flame star is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), StarHash, T67Star), StarHash == T67Star);
 	const FFireBands Bands = FireEdgeBands(Mip, Size, SpellVfx::ECell::SparkStreak);
 	bPass &= TestTrue(*FString::Printf(TEXT("the spark streak keeps T67's light outline (1-3 px band %.3f, at least 0.50)"), Bands.Edge), Bands.EdgeCount > 0 && Bands.Edge >= 0.5f);
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
+// T72c. The flame star (the absorb burst, cell 7) is T67's cell exactly too (Athena's option C, 2026-10-26: T72's star, kept by
+// an earlier ruling, read as rust or mud in every blind round). Same FNV-1a 32 over shade and alpha as the streak's test;
+// 0xbea049f2 is T67's star (spell-flipbook.mjs at 6cbe7d9; T72's was 0x7f1a8906). Its 1-3 px edge band stays T67's 0.587.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxStarT67, "MageArena.SpellVfx.FlameStarIsT67sCell",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxStarT67::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	constexpr uint32 T67Star = 0xbea049f2u;
+	const int32 Size = Atlas->Source.GetSizeX();
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	const int32 Index = static_cast<int32>(SpellVfx::ECell::FireCrown);
+	const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
+	const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
+	uint32 Hash = 0x811c9dc5u;
+	for (int32 Y = 0; Y < Cell; ++Y)
+	{
+		for (int32 X = 0; X < Cell; ++X)
+		{
+			const int64 At = (static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4;
+			for (const uint8 Byte : {Mip[At + 2], Mip[At + 3]})
+			{
+				Hash = (Hash ^ Byte) * 0x01000193u;
+			}
+		}
+	}
+	bool bPass = TestTrue(*FString::Printf(TEXT("the flame star is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), Hash, T67Star), Hash == T67Star);
+	const FFireBands Bands = FireEdgeBands(Mip, Size, SpellVfx::ECell::FireCrown);
+	bPass &= TestTrue(*FString::Printf(TEXT("the flame star keeps T67's light outline (1-3 px band %.3f, at least 0.50)"), Bands.Edge), Bands.EdgeCount > 0 && Bands.Edge >= 0.5f);
 	return bPass;
 #else
 	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
