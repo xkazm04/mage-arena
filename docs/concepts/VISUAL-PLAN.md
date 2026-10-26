@@ -451,6 +451,14 @@ heart and larger shell, ember and flame-star cards at the same puff count; D-G4 
 baseline's 127, +0), the blind critic read the after frame closer to S1 in all 3 fire pairs and no worse in the others.
 (6) Hound glow at 8 m, T69 (Athena, 10-26, recorded, not a lane; `docs/research/HOUND-GLOW-8M-2026-10-26.md`): Fire reads orange on orange sand; the remaining gap is VALUE contrast (a darker backing or rim against the sand), not hue; no white core.
 (7) Maw seam ledge, T70 (`docs/research/MAW-SEAM-LEDGE-T70-2026-10-26.md`, desktop proxy): a smoothing band at the cut on the finished LOD0 (positions only, 17,490 tris, watertight) took the flank ledge from 0.458 / 0.302 m tall to 0.110 / 0.128 m and the ground notch from 12.0 to 2.6 cm; a blind critic reads both flanks better but not gone, with a new texture smear on the right join; the committed maw is replaced (same names); the head-to-rump two-tone and the palette remain.
+Athena's T70 rulings (2026-10-26) are recorded as low-priority OPTIONS, not lanes: (i) the right flank's texture re-bake
+onto the smoothed LOD0 (about 30 texels of smear at the join, accepted for now); (ii) the left flank's route 3, a tighter
+back fit at the merge (a geometry lever with smaller returns).
+(8) Crowd density toward S1, T71 (`apps/vr/tasks/T71-crowd-density.md`, 2026-10-26): BLOCKED before any Unreal work. Rows
+above the top tread have nothing to stand on (the stands end at tier 2, 5.20 m, then the 70 m sky dome), and the card
+forbids both support geometry and a layout edit. The card writes up options for Athena. The recommended one is
+`stands.tiers` 3 -> 5 in the layout, a one-number change that the crowd and the shell already follow (804 cards, the same
+one draw), and it needs her ruling.
 
 ## (c) The style contract
 
