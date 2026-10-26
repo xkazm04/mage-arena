@@ -318,9 +318,7 @@ void UCreatureImportCaptureDriver::Advance()
 					float Rim = 0.f;
 					float Radius = 0.f;
 					UMaterialInstanceDynamic* First = HoundMaterials[0];
-					const bool bRead = First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("EmberIntensity")), Ember)
-					    && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("SoftIntensity")), Soft)
-					    && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("RimIntensity")), Rim);
+					const bool bRead = First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("EmberIntensity")), Ember) && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("SoftIntensity")), Soft) && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("RimIntensity")), Rim);
 					First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("SoftRadiusUv")), Radius);
 					UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT committed %s ember=%.3f soft=%.3f rim=%.3f softRadiusUv=%.4f read=%d (C++ defaults ember=%.3f soft=%.3f rim=%.3f softRadiusUv=%.4f)"),
 					    *First->GetBaseMaterial()->GetName(), Ember, Soft, Rim, Radius, bRead ? 1 : 0, CreatureImport::DefaultEmber().EmberIntensity, CreatureImport::DefaultEmber().SoftIntensity,
