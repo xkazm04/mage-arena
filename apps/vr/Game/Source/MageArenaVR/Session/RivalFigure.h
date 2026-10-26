@@ -14,8 +14,8 @@ struct FArenaEvent;
  * alone: Idle by default, Cast on his cast event, Hit on a hit that removed HP, Death on his down event (his 0 HP, the end
  * of the duel), held. The pick is a pure function over the event log (RivalClips::Step); the component only plays what it
  * returns. Nothing here writes into the kernel.
- * The figure is the scratch import of the creature cast (Greybox/CreatureImport.h): the DINOv3 hold keeps it out of the
- * repo, so a clean clone has no figure and the presentation draws the greybox body.
+ * The figure is the committed import of the creature cast (/Game/Characters/Brennic, Greybox/CreatureImport.h). When
+ * the asset or a clip fails to load, the presentation draws the greybox body exactly as before.
  */
 enum class ERivalClip : uint8
 {
@@ -28,7 +28,7 @@ enum class ERivalClip : uint8
 namespace RivalClips
 {
 inline constexpr int32 Count = 4;
-/** The rival the figure stands in for (FVrRival::Id) and the scratch asset name (FCreatureSpec::Name). */
+/** The rival the figure stands in for (FVrRival::Id) and the Characters asset name (FCreatureSpec::Name). */
 inline const TCHAR* BrennicRivalId = TEXT("brennic");
 inline const TCHAR* BrennicAsset = TEXT("Brennic");
 

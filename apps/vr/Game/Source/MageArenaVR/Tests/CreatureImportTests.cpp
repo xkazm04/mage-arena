@@ -2,7 +2,10 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Engine/SkeletalMesh.h"
+#include "Engine/Texture2D.h"
 #include "Greybox/CreatureImport.h"
+#include "Materials/MaterialInterface.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreatureImportEmberKey, "MageArena.CreatureImport.EmberKey",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
@@ -86,6 +89,33 @@ bool FMageArenaCreatureImportEmberKey::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the maw stands clear of Brennic"), CreatureImport::FindSpec(TEXT("Brennic"))->SceneLateralM - Maw->SceneLateralM >= 1.55 + 0.52 + 0.3);
 	TestTrue(TEXT("Brennic and the hound stand apart"),
 	    CreatureImport::FindSpec(TEXT("CinderHound"))->SceneLateralM - CreatureImport::FindSpec(TEXT("Brennic"))->SceneLateralM >= 2.0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCreatureImportCharacters, "MageArena.CreatureImport.CharactersResolve",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaCreatureImportCharacters::RunTest(const FString& Parameters)
+{
+	// The committed DINOv3 assets live under /Game/Characters/<Name>/ (docs/research/CREATURE-UE-IMPORT-2026-10-24.md,
+	// "Imported"), no longer in a scratch folder: the runtime paths point there, and every asset loads from them.
+	TestEqual(TEXT("the runtime root is /Game/Characters"), FString(CreatureImport::CharactersRoot), FString(TEXT("/Game/Characters")));
+	for (const TCHAR* Name : {TEXT("Brennic"), TEXT("CinderHound"), TEXT("MireMaw")})
+	{
+		const FString Folder = FString::Printf(TEXT("/Game/Characters/%s"), Name);
+		TestEqual(*FString::Printf(TEXT("%s folder"), Name), CreatureImport::FolderPath(Name), Folder);
+		TestEqual(*FString::Printf(TEXT("%s mesh path"), Name), CreatureImport::MeshObjectPath(Name), FString::Printf(TEXT("%s/SK_%s.SK_%s"), *Folder, Name, Name));
+		const USkeletalMesh* Mesh = LoadObject<USkeletalMesh>(nullptr, *FString::Printf(TEXT("%s/SK_%s.SK_%s"), *Folder, Name, Name));
+		TestNotNull(*FString::Printf(TEXT("%s skeletal mesh loads from /Game/Characters"), Name), Mesh);
+		TestNotNull(*FString::Printf(TEXT("%s texture loads"), Name), LoadObject<UTexture2D>(nullptr, *CreatureImport::TextureObjectPath(Name)));
+		TestNotNull(*FString::Printf(TEXT("%s material loads"), Name), LoadObject<UMaterialInterface>(nullptr, *CreatureImport::MaterialObjectPath(Name)));
+		if (Mesh)
+		{
+			const CreatureImport::FCreatureSpec* Spec = CreatureImport::FindSpec(Name);
+			const double HeightM = Mesh->GetBounds().BoxExtent.Z * 2.0 / 100.0;
+			TestTrue(*FString::Printf(TEXT("%s stands the researched height (%.3f m)"), Name, HeightM), Spec && FMath::Abs(HeightM - Spec->HeightM) <= 0.05 * Spec->HeightM);
+		}
+	}
 	return true;
 }
 

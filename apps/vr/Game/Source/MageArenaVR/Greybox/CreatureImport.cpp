@@ -114,7 +114,7 @@ FVector MeshForward(const USkeletalMesh& Mesh)
 
 FString FolderPath(const FString& Name)
 {
-	return FString::Printf(TEXT("%s/%s"), ScratchRoot, *Name);
+	return FString::Printf(TEXT("%s/%s"), CharactersRoot, *Name);
 }
 
 FString MeshObjectPath(const FString& Name)

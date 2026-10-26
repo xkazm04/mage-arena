@@ -12,15 +12,15 @@ struct FMeshDescription;
 /**
  * The creature UE import (docs/research/CREATURE-UE-IMPORT-2026-10-24.md, CREATURE-CAST-UE-2026-10-24.md): Brennic (LOD0,
  * bake finish), the cinder hound s7101 and the mire maw (split-and-merge, seam fixed), imported by
- * Tools/ImportCreatureMeshCommandlet into a scratch Content folder that the capture script deletes before it ends.
- * Nothing here is committed content: the DINOv3 licence hold stands, so no TRELLIS asset ships.
+ * Tools/ImportCreatureMeshCommandlet into Content/Characters/<Name>, where they are committed (Git LFS). The runtime
+ * loads them from /Game/Characters; a figure whose asset fails to load keeps the greybox body.
  * -MageArenaCreatureImportScene places all three in the greybox arena at opponent distance (the D-G4 budget re-run passes
  * it through capture-budget.ps1 -ExtraArgs); -MageArenaCreatureImportCapture takes the stills (CreatureImportCapture.h).
  */
 namespace CreatureImport
 {
-/** The scratch Content folder. Never committed; capture-creature-import.ps1 removes it before it exits. */
-inline const TCHAR* ScratchRoot = TEXT("/Game/CreatureImportScratch");
+/** The Content folder of the committed character assets: /Game/Characters/<Name>. */
+inline const TCHAR* CharactersRoot = TEXT("/Game/Characters");
 
 struct FCreatureSpec
 {
@@ -49,7 +49,7 @@ struct FCreatureSpec
 TConstArrayView<FCreatureSpec> Specs();
 const FCreatureSpec* FindSpec(const FString& Name);
 
-/** /Game/CreatureImportScratch/<Name> */
+/** /Game/Characters/<Name> */
 FString FolderPath(const FString& Name);
 /** Object paths of the imported mesh, texture and material. */
 FString MeshObjectPath(const FString& Name);
@@ -217,7 +217,7 @@ FVector StandPointCm(const FArenaLayout& Layout, double DistanceM, double Latera
 
 /**
  * Spawns the imported mesh of Name at Point, facing the seated player, with its idle clip looping when one was
- * imported. Null (with a MAGEVR_CREATURE_IMPORT fail line) when the scratch asset does not load.
+ * imported. Null (with a MAGEVR_CREATURE_IMPORT fail line) when the /Game/Characters asset does not load.
  */
 ASkeletalMeshActor* SpawnCreature(UWorld& World, const FArenaLayout& Layout, const FString& Name, const FVector& PointCm);
 

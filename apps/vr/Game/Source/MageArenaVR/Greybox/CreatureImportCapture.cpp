@@ -639,7 +639,7 @@ void URivalReplayCaptureDriver::StepDuel()
 		// The presentation tries the import on the first frame it draws the duel.
 		if (DuelFrame > 30)
 		{
-			Fail(TEXT("the rival figure did not load (run the Brennic import into the scratch folder first)"));
+			Fail(TEXT("the rival figure did not load (Content/Characters/Brennic is missing or did not load)"));
 		}
 		return;
 	}
