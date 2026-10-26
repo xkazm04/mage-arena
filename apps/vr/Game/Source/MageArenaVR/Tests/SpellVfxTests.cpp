@@ -630,11 +630,12 @@ FFireBands FireEdgeBands(const TArray64<uint8>& Mip, int32 Size, SpellVfx::ECell
 }
 }
 
-// T72. Fire separates from the orange sand by value: every fire flame, flame star and spark streak has a dark rim at its
-// silhouette, a deep ember tone of the fire colour (T67's outline was a hair-wide band at 0.47-0.59). The flames and the
-// star keep it wider: the band 4-6 px in is dark too (T67: 0.52-0.69). The spark streak's bound is looser (0.40, T67 0.57):
-// a darker streak made the perfect ring of them read as a rope in the blind critic. The rim stays a tone of the fire
-// colour, not black, so it never reads as the unblockable's black core.
+// T72. Fire separates from the orange sand by value: every fire flame and the flame star have a dark rim at their
+// silhouette, a deep ember tone of the fire colour (T67's outline was a hair-wide band at 0.47-0.59). The star keeps it
+// wide: the band 4-6 px in is dark too (T67: 0.69). T72b: the flames' band is narrow (half T72's growth, Athena
+// 2026-10-26), so their 1-3 px band is bounded at 0.40, still darker than T67's 0.47, and their 4-6 px band is not held;
+// the spark streak is T67's again and is held by SparkStreakIsT67sCell instead. The rim stays a tone of the fire colour,
+// not black, so it never reads as the unblockable's black core.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireDarkRim, "MageArena.SpellVfx.FireCellsHaveDarkRimAtSilhouette",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -653,25 +654,138 @@ bool FMageArenaSpellVfxFireDarkRim::RunTest(const FString& Parameters)
 		return false;
 	}
 	constexpr float EdgeMost = 0.34f;
-	constexpr float StreakEdgeMost = 0.40f;
+	constexpr float FlameEdgeMost = 0.40f;
 	constexpr float InnerMost = 0.45f;
 	constexpr float EdgeLeast = 0.15f;
 	bool bPass = true;
-	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireCrown, SpellVfx::ECell::SparkStreak})
+	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB, SpellVfx::ECell::FireCrown})
 	{
 		const int32 Index = static_cast<int32>(Which);
 		const FFireBands Bands = FireEdgeBands(Mip, Atlas->Source.GetSizeX(), Which);
-		const float Most = Which == SpellVfx::ECell::SparkStreak ? StreakEdgeMost : EdgeMost;
+		const bool bStar = Which == SpellVfx::ECell::FireCrown;
+		const float Most = bStar ? EdgeMost : FlameEdgeMost;
 		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the 1-3 px edge band is dark (mean shade %.3f, at most %.2f)"), Index, Bands.Edge, Most),
 		    Bands.EdgeCount > 0 && Bands.Edge <= Most);
 		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the edge band is an ember tone, not black (mean shade %.3f, at least %.2f)"), Index, Bands.Edge, EdgeLeast),
 		    Bands.Edge >= EdgeLeast);
-		if (Which != SpellVfx::ECell::SparkStreak)
+		if (bStar)
 		{
 			bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark band is wide, 4-6 px in (mean shade %.3f, at most %.2f)"), Index, Bands.Inner, InnerMost),
 			    Bands.InnerCount > 0 && Bands.Inner <= InnerMost);
 		}
 	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
+// T72b. Each flame lick keeps a crisp tip: the dark backing follows the outline and closes to a point at the tip, not a
+// filled halo. Measured per column of flame A and B as the run from the topmost opaque pixel (A >= 200) down to the first
+// lit one (shade >= 0.40, above the backing's 0.22-0.34): the dark cap over the licks. T67 had none (0 px), T72's even 0.1
+// growth capped them by 11.3 / 8.6 px; the bound is about half of that.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireTips, "MageArena.SpellVfx.FireLickTipsStayCrisp",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxFireTips::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	constexpr float CapMost = 4.5f;
+	constexpr uint8 Lit = 102;
+	const int32 Size = Atlas->Source.GetSizeX();
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	bool bPass = true;
+	for (const SpellVfx::ECell Which : {SpellVfx::ECell::FireFlameA, SpellVfx::ECell::FireFlameB})
+	{
+		const int32 Index = static_cast<int32>(Which);
+		const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
+		const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
+		int32 CapSum = 0;
+		int32 Columns = 0;
+		for (int32 X = 0; X < Cell; ++X)
+		{
+			int32 Top = -1;
+			for (int32 Y = 0; Y < Cell; ++Y)
+			{
+				const int64 At = (static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4;
+				if (Mip[At + 3] < 200)
+				{
+					continue;
+				}
+				Top = Top < 0 ? Y : Top;
+				if (Mip[At + 2] >= Lit)
+				{
+					CapSum += Y - Top;
+					++Columns;
+					break;
+				}
+			}
+		}
+		const float Cap = Columns > 0 ? static_cast<float>(CapSum) / Columns : 0.f;
+		bPass &= TestTrue(*FString::Printf(TEXT("fire cell %d: the dark cap over the lick tips is thin (mean %.2f px over %d columns, at most %.1f)"), Index, Cap, Columns, CapMost),
+		    Columns > 0 && Cap <= CapMost);
+	}
+	return bPass;
+#else
+	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
+	return true;
+#endif
+}
+
+// T72b. The spark streak (the perfect ring's bead) is T67's cell exactly (Athena, 2026-10-26: T72's darker tail and spark
+// rim read as rope). FNV-1a 32 over each pixel's shade and alpha, row-major; the cell is a grey mask, so the source's BGRA
+// order reads the same bytes as the PNG. 0xd64783f6 is T67's cell (spell-flipbook.mjs at 6cbe7d9); T72's was 0x6e768181.
+// Its 1-3 px edge band stays T67's light outline (0.567), not a dark rim.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxStreakT67, "MageArena.SpellVfx.SparkStreakIsT67sCell",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxStreakT67::RunTest(const FString& Parameters)
+{
+#if WITH_EDITORONLY_DATA
+	const FString TexturePath = FString::Printf(TEXT("%s.%s"), SpellVfx::FlipbookTexturePackage, *FPackageName::GetShortName(SpellVfx::FlipbookTexturePackage));
+	UTexture2D* Atlas = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!TestNotNull(TEXT("T_SpellFlipbook loads (create-budget-fx.ps1 -SpellVfx)"), Atlas))
+	{
+		return false;
+	}
+	TArray64<uint8> Mip;
+	if (!TestTrue(TEXT("the atlas source is readable"), Atlas->Source.GetFormat() == TSF_BGRA8 && Atlas->Source.GetMipData(Mip, 0)))
+	{
+		return false;
+	}
+	constexpr uint32 T67Streak = 0xd64783f6u;
+	const int32 Size = Atlas->Source.GetSizeX();
+	const int32 Cell = Size / SpellVfx::FlipbookGrid;
+	const int32 Index = static_cast<int32>(SpellVfx::ECell::SparkStreak);
+	const int32 X0 = (Index % SpellVfx::FlipbookGrid) * Cell;
+	const int32 Y0 = (Index / SpellVfx::FlipbookGrid) * Cell;
+	uint32 Hash = 0x811c9dc5u;
+	for (int32 Y = 0; Y < Cell; ++Y)
+	{
+		for (int32 X = 0; X < Cell; ++X)
+		{
+			const int64 At = (static_cast<int64>(Y0 + Y) * Size + X0 + X) * 4;
+			for (const uint8 Byte : {Mip[At + 2], Mip[At + 3]})
+			{
+				Hash = (Hash ^ Byte) * 0x01000193u;
+			}
+		}
+	}
+	bool bPass = TestTrue(*FString::Printf(TEXT("the spark streak is T67's cell (FNV-1a 0x%08x, T67 0x%08x)"), Hash, T67Streak), Hash == T67Streak);
+	const FFireBands Bands = FireEdgeBands(Mip, Size, SpellVfx::ECell::SparkStreak);
+	bPass &= TestTrue(*FString::Printf(TEXT("the spark streak keeps T67's light outline (1-3 px band %.3f, at least 0.50)"), Bands.Edge), Bands.EdgeCount > 0 && Bands.Edge >= 0.5f);
 	return bPass;
 #else
 	AddInfo(TEXT("no editor-only data: the atlas source is not readable here"));
