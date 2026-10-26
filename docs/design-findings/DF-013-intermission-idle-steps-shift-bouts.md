@@ -1,7 +1,8 @@
 # DF-013 - The intermission's idle kernel steps move the later bouts of the day
 
 Found 2026-10-25 on Wolf (UE 5.8.3 CL 58210709). T28 part 2 first saw it in T62's run, and T27 measured it on branch
-`autopilot/accepted-idea-delivery-51306867`. Status: **OPEN, needs an owner ruling.** Nothing in this file is decided in
+`autopilot/accepted-idea-delivery-51306867`. Status: **RESOLVED by owner ruling (a), 2026-10-25** (built as T66, commit 4ac011d; measured after-numbers in
+"Resolution" at the end). Before the ruling nothing in this file was decided in
 code. The two options below were built only as uncommitted experiments, measured, and reverted.
 Raw logs (gitignored): `runs/T27/design1.log` (the branch as committed), `runs/T27/expA.log`, `runs/T27/expB.log`.
 
@@ -91,3 +92,16 @@ moves the numbers without decoupling them.
 
 The ruling is the owner's, because either option moves `Session.FullSeated`'s logged numbers and the bout-3 time
 DF-011 accepted (29.00 s today; 42.50 s under (a)).
+
+## Resolution (owner ruling (a), 2026-10-25; T66, commit 4ac011d)
+
+`FArenaSession::AdvanceArc` no longer calls `StepArena` while `Games.Phase == "intermission"`; the offer and lost phases
+keep their pump. Measured with `MageArenaDesign.Session.FullSeated` (seed 1), same as the experiment above:
+
+| Path | Bout 1 | Bout 2 | Bout 3 | Day |
+|---|---|---|---|---|
+| rushed | 39.38 s | 27.50 s | 42.50 s, lost | `dayWithTeachS` 212.31 -> **225.83** |
+| natural | 39.38 s | 27.50 s | 42.50 s, lost | `dayNaturalS` 305.72 -> **311.83** |
+
+Rushed and natural fights are identical and equal the T56 numbers. Bout 3 is lost at 42.50 s as DF-011 accepted (it was
+29.00 s). `MageArena.` 335/335 (334 plus the new `MageArena.Intermission.FreezesKernel`), no recorded hash moved.

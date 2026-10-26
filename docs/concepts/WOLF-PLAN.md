@@ -326,7 +326,8 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
   - `MageArenaDesign.` 5/7, only DF-011's two.
   - D-G4 max 126 (+0).
   - `dayWithTeachS=212.31` (rushed) and `dayNaturalS=305.72` (natural). Both stop at the bout-3 loss.
-  - The intermission shift of later bouts is `DF-013` (open, needs a ruling).
+  - The intermission shift of later bouts was `DF-013`: RESOLVED 2026-10-25 by owner ruling (a), the kernel is frozen in
+    intermissions (T66, 4ac011d). FullSeated now reads `dayWithTeachS=225.83`, `dayNaturalS=311.83`, bout 3 lost at 42.50 s.
   
   What stays open is the generation of the 14 cues and the capture line below.
   **T27** `apps/vr/tasks/T27-voice-and-chorus.md`. **OWNER (C2) - now on the critical path, see H3:** the story

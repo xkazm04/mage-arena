@@ -2,6 +2,25 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-25 - Owner rulings of the evening (owner-ruled 2026-10-25): DF-013 (a), DF-011 reds kept, PC D1, DINOv3, D2, PC audio, PayPal
+
+> The owner, 2026-10-25 evening. Recorded as the dispatch brief relayed them, not verbatim. Seven rulings.
+
+- **(1) DF-013 option (a), freeze the kernel during intermissions** (owner-ruled 2026-10-25). `StepArena` no longer runs
+  while the phase is `intermission`; the offer and lost phases keep their pump. Built as T66
+  (`apps/vr/tasks/T66-df013-intermission-freeze.md`, commit 4ac011d). The measured result is in
+  `docs/design-findings/DF-013-intermission-idle-steps-shift-bouts.md`: rushed and natural fights identical, bout 3 back to
+  42.50 s.
+- **(2) The DF-011 reds are kept; option A stands** (owner-ruled 2026-10-25). No work on the bout-3 loss or on the day length
+  beyond DF-013. `Duel.FireSeated` and `Session.FullSeated` stay the two accepted reds.
+- **(3) PC D1 duel duration is adopted as lag plus rank defence 0.05 behind the skill-book flag, off by default**
+  (owner-ruled 2026-10-25). A PC-channel tuning; it touches nothing in VR.
+- **(4) The DINOv3 licence is accepted and the hold is lifted** (owner-ruled 2026-10-25). The asset commit is the next VR
+  lane. The licence-ledger entry itself is left to that lane.
+- **(5) D2 is parked until the owner's `?slice=d2s` pick** (owner-ruled 2026-10-25).
+- **(6) PC `935a3a33` audio cue pack stays deferred and its branch is kept** (owner-ruled 2026-10-25).
+- **(7) PayPal is handled in a separate owner session** (owner-ruled 2026-10-25). Nothing in this repo.
+
 ## 2026-10-25 - Athena lifts her own crowd-tint deferral (T65); the tint pass built, one gate open
 
 > Athena, 2026-10-25 (owner delegation), lifting her own T57 deferral (the "crowd tint pass is DEFERRED" line under
