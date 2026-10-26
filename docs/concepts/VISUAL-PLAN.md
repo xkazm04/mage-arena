@@ -450,6 +450,7 @@ Quest truth; Athena's visual acceptance is pending): Fire gets nested flame laye
 heart and larger shell, ember and flame-star cards at the same puff count; D-G4 max 127 in all 6 runs (the same as the
 baseline's 127, +0), the blind critic read the after frame closer to S1 in all 3 fire pairs and no worse in the others.
 (6) Hound glow at 8 m, T69 (Athena, 10-26, recorded, not a lane; `docs/research/HOUND-GLOW-8M-2026-10-26.md`): Fire reads orange on orange sand; the remaining gap is VALUE contrast (a darker backing or rim against the sand), not hue; no white core.
+(7) Maw seam ledge, T70 (`docs/research/MAW-SEAM-LEDGE-T70-2026-10-26.md`, desktop proxy): a smoothing band at the cut on the finished LOD0 (positions only, 17,490 tris, watertight) took the flank ledge from 0.458 / 0.302 m tall to 0.110 / 0.128 m and the ground notch from 12.0 to 2.6 cm; a blind critic reads both flanks better but not gone, with a new texture smear on the right join; the committed maw is replaced (same names); the head-to-rump two-tone and the palette remain.
 
 ## (c) The style contract
 
