@@ -445,6 +445,10 @@ steel lines. (4) Spell flipbook, T63: ran 2026-10-25 (`docs/research/SPELL-FLIPB
 Athena): the T58 puffs became eye-facing cards showing a procedural flipbook atlas (water spray and crowns, fire licks
 with a darker ember rim, air swirls), one draw per glow colour, D-G4 +0 (max 126); the final blind round read the
 after frame closer to S1 in all 9 school pairs with no class break. The crowd tint is next.
+(5) Spell spectacle round 2, T67: ran 2026-10-26 (`docs/research/SPELL-SPECTACLE-R2-T67-2026-10-26.md`, desktop proxy, not
+Quest truth; Athena's visual acceptance is pending): Fire gets nested flame layers with a darker outline, a full-colour
+heart and larger shell, ember and flame-star cards at the same puff count; D-G4 max 127 in all 6 runs (the same as the
+baseline's 127, +0), the blind critic read the after frame closer to S1 in all 3 fire pairs and no worse in the others.
 
 ## (c) The style contract
 
