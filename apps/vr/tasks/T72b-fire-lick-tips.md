@@ -1,6 +1,6 @@
 # T72b - Fire value contrast with flame-lick tips
 
-Status: open
+Status: ran, pass bar not met, Fire cells reverted to T67 (fallback) - report docs/research/FIRE-VALUE-T72B-2026-10-26.md
 Max turns: 120
 
 ## Goal
