@@ -309,6 +309,30 @@ void UCreatureImportCaptureDriver::Advance()
 						HoundMaterials.Add(Dynamic);
 					}
 				}
+				// The "chosen" shots show the COMMITTED material (T69): its own parameter values, read before any shot overrides
+				// them, not the C++ defaults it was built from. -MageArenaEmberIntensity still wins.
+				if (HoundMaterials.Num() > 0)
+				{
+					float Ember = 0.f;
+					float Soft = 0.f;
+					float Rim = 0.f;
+					float Radius = 0.f;
+					UMaterialInstanceDynamic* First = HoundMaterials[0];
+					const bool bRead = First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("EmberIntensity")), Ember)
+					    && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("SoftIntensity")), Soft)
+					    && First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("RimIntensity")), Rim);
+					First->GetScalarParameterValue(FHashedMaterialParameterInfo(TEXT("SoftRadiusUv")), Radius);
+					UE_LOG(LogMageArena, Display, TEXT("MAGEVR_CREATURE_IMPORT committed %s ember=%.3f soft=%.3f rim=%.3f softRadiusUv=%.4f read=%d (C++ defaults ember=%.3f soft=%.3f rim=%.3f softRadiusUv=%.4f)"),
+					    *First->GetBaseMaterial()->GetName(), Ember, Soft, Rim, Radius, bRead ? 1 : 0, CreatureImport::DefaultEmber().EmberIntensity, CreatureImport::DefaultEmber().SoftIntensity,
+					    CreatureImport::DefaultEmber().RimIntensity, CreatureImport::DefaultEmber().SoftRadiusUv);
+					Evidence.Note(TEXT("committedMaterial"), FString::Printf(TEXT("ember=%.3f soft=%.3f rim=%.3f softRadiusUv=%.4f read=%d"), Ember, Soft, Rim, Radius, bRead ? 1 : 0));
+					double EmberOverride = -1.0;
+					FParse::Value(FCommandLine::Get(), TEXT("MageArenaEmberIntensity="), EmberOverride);
+					if (bRead && Glows.IsValidIndex(4))
+					{
+						Glows[4] = FGlow{TEXT("chosen"), EmberOverride >= 0.0 ? EmberOverride : static_cast<double>(Ember), static_cast<double>(Soft), static_cast<double>(Rim)};
+					}
+				}
 			}
 			for (const FGlow& Glow : Glows)
 			{
