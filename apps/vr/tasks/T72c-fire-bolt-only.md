@@ -1,6 +1,6 @@
 # T72c - Fire bolt only: T72b's flame A/B cells on T67
 
-Status: open
+Status: ran, bolt bar not met (rust named in 3 of 3 rounds, round 3 ranked it last on separation), Fire cells reverted to T67 (fallback) - report docs/research/FIRE-VALUE-T72C-2026-10-26.md
 Max turns: 120
 
 ## Goal
