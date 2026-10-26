@@ -449,6 +449,7 @@ after frame closer to S1 in all 9 school pairs with no class break. The crowd ti
 Quest truth; Athena's visual acceptance is pending): Fire gets nested flame layers with a darker outline, a full-colour
 heart and larger shell, ember and flame-star cards at the same puff count; D-G4 max 127 in all 6 runs (the same as the
 baseline's 127, +0), the blind critic read the after frame closer to S1 in all 3 fire pairs and no worse in the others.
+(6) Hound glow at 8 m, T69 (Athena, 10-26, recorded, not a lane; `docs/research/HOUND-GLOW-8M-2026-10-26.md`): Fire reads orange on orange sand; the remaining gap is VALUE contrast (a darker backing or rim against the sand), not hue; no white core.
 
 ## (c) The style contract
 
