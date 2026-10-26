@@ -139,12 +139,15 @@ function stroke(path, w0, w1, shadeAt, steps = 48) {
   };
 }
 
-// A spark: a bright point with a dark ember rim and a faint halo.
-function spark(cx, cy, r) {
+// A spark: a bright point with a dark ember rim and a faint halo. T72c: dark (T72's values, rim band 0.26, halo 0.22) is
+// passed only by the flame A/B cells' sparks; every other spark keeps T67's rim graded to 0.5 and halo 0.55.
+function spark(cx, cy, r, dark = false) {
   return (x, y) => {
     const d = Math.hypot(x - cx, y - cy) / r;
     if (d >= 2.4) return null;
-    if (d >= 1) return [0.3 * (1 - (d - 1) / 1.4), 0.55];
+    if (d >= 1) return [0.3 * (1 - (d - 1) / 1.4), dark ? 0.22 : 0.55];
+    if (dark && d >= 0.72) return [1, 0.26];
+    if (dark) return [1, lerp(1.0, 0.62, smoothstep(0.3, 0.72, d))];
     return [1, lerp(1.0, 0.5, smoothstep(0.4, 1.0, d))];
   };
 }
@@ -304,14 +307,21 @@ function flameLayer(seed, o) {
   return (x, y) => {
     const nx = x + 0.09 * (fbm(seed, x * 3.1, y * 3.1 - 2.3) - 0.5) * 2;
     const ny = y + 0.06 * (fbm(seed + 7, x * 3.1, y * 3.1) - 0.5) * 2;
-    let d = Math.hypot(nx, ny + 0.04 - o.lift) - o.body * 1.15 * o.scale;
+    // T72c: grow dilates the flame (a dark backing, only the flame A/B backing passes it) and tipGrow tapers that growth
+    // along each tongue the way its width tapers, so the backing closes to a point at every lick tip. Without grow the
+    // layer is T67's.
+    const grow = o.grow || 0;
+    const tipGrow = o.tipGrow === undefined ? grow : o.tipGrow;
+    let d = Math.hypot(nx, ny + 0.04 - o.lift) - o.body * 1.15 * o.scale - grow;
     for (const tongue of tongues) {
       const [dist, t] = polylineDistance(tongue.pts, nx, ny);
-      d = smin(d, dist - tongue.width * Math.pow(1 - t, 0.9), 0.09 * o.scale);
+      const taper = Math.pow(1 - t, 0.9);
+      d = smin(d, dist - tongue.width * taper - lerp(tipGrow, grow, taper), 0.09 * o.scale);
     }
-    if (d >= 0.012 || ny > 0.92) return null;
+    const soft = o.soft || 0.012;
+    if (d >= soft || ny > 0.92) return null;
     const depth = -d;
-    const alpha = smoothstep(-0.012, 0.012, depth);
+    const alpha = smoothstep(-soft, soft, depth);
     if (depth < 0.04) return [alpha, lerp(o.rim, o.lo, smoothstep(0.012, 0.04, depth))];
     const inner = smoothstep(0.04, 0.16, depth);
     const streak = smoothstep(0.35, 0.75, fbm(seed + 11, nx * 5.0, ny * 3.2 - 0.7));
@@ -325,16 +335,20 @@ function fireFlame(seed) {
   // orange sand), a mid flame sits in it and a small hot core at the base is the full element colour (shade 1, never
   // brighter than the threat). The rim of each inner flame is darker than the body round it, so the layers read apart.
   const layers = [
-    // T67 round 2: a darker backing flame a hair larger than the body, the outline that separates the fire from the sand.
-    flameLayer(seed, { scale: 1.08, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.4, lo: 0.42, hi: 0.46, lift: 0.01 }),
+    // T72c (Athena's option C, 2026-10-26): the backing is the body's own flame grown 0.05, tapered to 0.01 at each lick tip,
+    // with T67's crisp edge ramp and a deep ember shade (0.22-0.34), so the fire is a lit shape on a dark edge against the
+    // sand and every lick keeps a crisp tip. T67's backing was 1.08x the body at 0.4-0.46. The flame star and the spark
+    // streak stay T67's.
+    flameLayer(seed, { scale: 1.0, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.22, lo: 0.28, hi: 0.34, lift: 0, grow: 0.05, tipGrow: 0.01 }),
     flameLayer(seed, { scale: 1.0, count: 10, body: 0.46, length: 0.42, width: 0.1, rim: 0.46, lo: 0.52, hi: 0.68, lift: 0 }),
     flameLayer(seed + 100, { scale: 0.72, count: 7, body: 0.46, length: 0.34, width: 0.115, rim: 0.6, lo: 0.74, hi: 0.9, lift: -0.02 }),
-    flameLayer(seed + 200, { scale: 0.4, count: 5, body: 0.46, length: 0.3, width: 0.13, rim: 0.86, lo: 0.94, hi: 1.0, lift: -0.08 }),
+    // T72c: the full-colour heart a little larger (0.46, T67 0.4), so the lit shape keeps its share inside the dark edge.
+    flameLayer(seed + 200, { scale: 0.46, count: 5, body: 0.46, length: 0.3, width: 0.13, rim: 0.86, lo: 0.94, hi: 1.0, lift: -0.08 }),
   ];
   for (let i = 0; i < 9; i++) {
     const a = lerp(0.3, Math.PI - 0.3, hash01(seed, 50 + i));
     const r = 0.72 + 0.14 * hash01(seed, 60 + i);
-    layers.push(spark(r * Math.cos(a), Math.min(0.86, r * Math.sin(a) + 0.05), 0.022 + 0.018 * hash01(seed, 70 + i)));
+    layers.push(spark(r * Math.cos(a), Math.min(0.86, r * Math.sin(a) + 0.05), 0.022 + 0.018 * hash01(seed, 70 + i), true));
   }
   return over(layers);
 }
