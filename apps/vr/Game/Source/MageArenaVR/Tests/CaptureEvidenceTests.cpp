@@ -144,6 +144,23 @@ bool FMageArenaCaptureStylePickFailsWithoutSession::RunTest(const FString& Param
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCaptureStylePickSeedKnob, "MageArena.Capture.StylePick.SeedKnob",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaCaptureStylePickSeedKnob::RunTest(const FString& Parameters)
+{
+	// No knob: seed 1, so every existing run (and the committed seed-1 stills) is unchanged.
+	TestEqual(TEXT("default seed constant"), UStylePickCaptureDriver::DefaultSeed, 1);
+	TestEqual(TEXT("no knob is seed 1"), UStylePickCaptureDriver::SeedFromCommandLine(TEXT("-game -MageArenaStylePickCapture -MageArenaStyle=13")), 1);
+	TestEqual(TEXT("an empty command line is seed 1"), UStylePickCaptureDriver::SeedFromCommandLine(TEXT("")), 1);
+	// The knob reaches the value Start passes to UArenaSessionSubsystem::Start.
+	TestEqual(TEXT("seed 2"), UStylePickCaptureDriver::SeedFromCommandLine(TEXT("-game -MageArenaStylePickCapture -MageArenaStylePickSeed=2 -fps=60")), 2);
+	TestEqual(TEXT("seed 17"), UStylePickCaptureDriver::SeedFromCommandLine(TEXT("-MageArenaStylePickSeed=17")), 17);
+	// A below-1 value is read as given; Start() fails the run on it.
+	TestEqual(TEXT("seed 0 is read, then rejected by Start"), UStylePickCaptureDriver::SeedFromCommandLine(TEXT("-MageArenaStylePickSeed=0")), 0);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCaptureStylePickShortRunFails, "MageArena.Capture.StylePick.ShortRunFails",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 

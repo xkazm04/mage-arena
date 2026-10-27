@@ -27,6 +27,12 @@ public:
 
 	UStylePickCaptureDriver();
 
+	/** The duel seed when -MageArenaStylePickSeed is absent: seed 1, the committed stills. */
+	static constexpr int32 DefaultSeed = 1;
+
+	/** The seed -MageArenaStylePickSeed=<n> names in CommandLine, else DefaultSeed. Start() rejects a value below 1. */
+	static int32 SeedFromCommandLine(const TCHAR* CommandLine);
+
 	void Start();
 
 	/** Logs MAGEVR_CAPTURE_FAIL short run ... and returns false when Seq is short of MinSequenceFrames. */
@@ -66,6 +72,7 @@ private:
 	int32 SequenceEnd = SequenceTarget;
 	int32 LastFrameTick = -1;
 	int32 BoutWave = 2;
+	int32 Seed = DefaultSeed;
 
 	int32 LastTick = -1;
 	FString LastEventKind;

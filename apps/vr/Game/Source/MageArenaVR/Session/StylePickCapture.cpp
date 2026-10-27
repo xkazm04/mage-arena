@@ -31,12 +31,20 @@
 // - Nothing waits on a screenshot, so the kernel never stalls behind one: each frame's shot is watched by
 //   FCaptureEvidence, which fails the run when a shot does not land within its budget or lands under the pixel floor.
 // - Proof knobs: -MageArenaStylePickFrames=<n> ends the run after n frames; -MageArenaStylePickBout=<n> starts another
-//   bout (an index outside Tiro's waves cannot start).
+//   bout (an index outside Tiro's waves cannot start); -MageArenaStylePickSeed=<n> (default 1, at least 1) is the duel's
+//   seed: seed 1 ends with the player's death (DF-011), seed 2 shows Brennic's Death (T38, L3).
 
 namespace
 {
 // Wall-clock budget for the whole run, inside the launcher's 20 minute timeout so the driver FAILs first.
 constexpr double RunBudgetS = 1080.0;
+}
+
+int32 UStylePickCaptureDriver::SeedFromCommandLine(const TCHAR* CommandLine)
+{
+	int32 Result = DefaultSeed;
+	FParse::Value(CommandLine, TEXT("MageArenaStylePickSeed="), Result);
+	return Result;
 }
 
 UStylePickCaptureDriver::UStylePickCaptureDriver()
@@ -52,13 +60,19 @@ void UStylePickCaptureDriver::Start()
 	}
 	FParse::Value(FCommandLine::Get(), TEXT("MageArenaStylePickFrames="), SequenceEnd);
 	FParse::Value(FCommandLine::Get(), TEXT("MageArenaStylePickBout="), BoutWave);
+	Seed = SeedFromCommandLine(FCommandLine::Get());
 	Evidence.Begin(TEXT("StylePick"));
 	Evidence.Note(TEXT("style"), StyleId);
 	bRunning = true;
 	RunStartWall = FPlatformTime::Seconds();
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_STYLEPICK start style=%s frames=%d bout=%d"), *StyleId, SequenceEnd, BoutWave);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_STYLEPICK start style=%s frames=%d bout=%d seed=%d"), *StyleId, SequenceEnd, BoutWave, Seed);
+	if (Seed < 1)
+	{
+		Fail(FString::Printf(TEXT("-MageArenaStylePickSeed=%d: the seed must be at least 1"), Seed));
+		return;
+	}
 	if (!SessionSys())
 	{
 		Fail(TEXT("no session subsystem"));
@@ -199,9 +213,9 @@ void UStylePickCaptureDriver::StartDuel()
 	}
 	Sys->GetSession().SetSaveDirectory(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("stylepick-capture")));
 	Sys->GetSession().SetBout(BoutWave, true);
-	if (!Sys->Start(1, true))
+	if (!Sys->Start(Seed, true))
 	{
-		Fail(FString::Printf(TEXT("session did not start bout=%d"), BoutWave));
+		Fail(FString::Printf(TEXT("session did not start bout=%d seed=%d"), BoutWave, Seed));
 		return;
 	}
 	Enter(EStep::Running);
