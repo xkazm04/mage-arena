@@ -817,4 +817,55 @@ bool FMageArenaSpellVfxFireNoWhite::RunTest(const FString& Parameters)
 #endif
 }
 
+// T75. The perfect ring reads as beads, not rope (owner ruling 4, 2026-10-27): T63's 20 streak cards, each about ten times
+// its share of the ring, merged into one twisted band. At age 0, 0.5 and 0.9 every school's neighbouring bead cards stay
+// apart along the ring, the gap at least half a bead. A bead's length is its card's width on screen (the card lies along
+// the tangent), so the clear border of the card counts as bead: the measure is on the safe side.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxRingBeads, "MageArena.SpellVfx.PerfectRingBeadsApart",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxRingBeads::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	constexpr double MinGapShare = 0.5;
+	const FVector Eye(0.0, 0.0, 120.0);
+	const FVector Ward(110.0, 0.0, 120.0);
+	struct FSchool
+	{
+		SpellVfx::ETrail Trail;
+		const TCHAR* Name;
+	};
+	const FSchool Schools[] = {
+	    {SpellVfx::ETrail::Embers, TEXT("fire")},
+	    {SpellVfx::ETrail::Droplets, TEXT("water")},
+	    {SpellVfx::ETrail::Wisps, TEXT("air")},
+	    {SpellVfx::ETrail::Grit, TEXT("earth")},
+	};
+	for (const FSchool& School : Schools)
+	{
+		for (const double Age : {0.0, 0.5, 0.9})
+		{
+			TArray<SpellVfx::FPuff> Ring;
+			SpellVfx::PerfectRingPuffs(Ward, Eye - Ward, Age, Ring, School.Trail);
+			if (!TestTrue(*FString::Printf(TEXT("%s ring at age %.1f has beads"), School.Name, Age), Ring.Num() >= 3))
+			{
+				bPass = false;
+				continue;
+			}
+			double Worst = TNumericLimits<double>::Max();
+			for (int32 Index = 0; Index < Ring.Num(); ++Index)
+			{
+				const SpellVfx::FPuff& Bead = Ring[Index];
+				const SpellVfx::FPuff& Next = Ring[(Index + 1) % Ring.Num()];
+				const double Length = 0.5 * (SpellVfx::CardTransform(Bead, Eye).GetScale3D().X + SpellVfx::CardTransform(Next, Eye).GetScale3D().X) * 100.0;
+				Worst = FMath::Min(Worst, (FVector::Dist(Bead.CentreCm, Next.CentreCm) - Length) / Length);
+			}
+			AddInfo(FString::Printf(TEXT("MAGEVR_MEASURE SpellVfx.PerfectRingBeadsApart %s age=%.1f beads=%d gap/bead=%.2f"), School.Name, Age, Ring.Num(), Worst));
+			bPass &= TestTrue(*FString::Printf(TEXT("%s ring at age %.1f: neighbouring beads stay apart, the gap at least %.2f of a bead (worst %.2f)"), School.Name, Age, MinGapShare, Worst),
+			    Worst >= MinGapShare);
+		}
+	}
+	return bPass;
+}
+
 #endif
