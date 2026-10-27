@@ -4,6 +4,7 @@
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimMath.h"
+#include "Kernel/VrRules.h"
 
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -28,11 +29,15 @@
 //   ResolveHit does. The still is ImpactS (0.12 s) and at least ImpactFrames frames later.
 // - The unblockable: an area telegraph of the Fire mage 5 m out, half way through its windup.
 // - The steel stone: a physical projectile of the Fire mage, posed as the bolt is.
+// - T73, only under -MageArenaSpellVfxWall (DF-014 evidence): the Fire bolt again, in front of a fire wall of the Fire
+//   mage posed as the D-G4 stress driver poses one (the overlay's distance and arc, facing the seat). The wall keeps the
+//   live bout's colour, ActiveElementPalette().Fire; nothing else in the run changes.
 namespace
 {
 constexpr int32 PosedMageIdBase = 930000;
 constexpr int32 PosedShotId = 931000;
 constexpr int32 PosedTelegraphId = 932000;
+constexpr int32 PosedWallId = 933000;
 constexpr int32 SettleFrames = 8;
 // Wall seconds a pose holds before its still: longer than the presentation's 0.28 s ghost of the previous scene's shot.
 constexpr double SettleS = 0.6;
@@ -55,6 +60,8 @@ struct FStagedShot
 	// 0 Water, 1 Fire, 2 Air.
 	int32 School;
 	EPose Pose;
+	// T73: a posed fire wall of the scene's mage stands behind the bolt.
+	bool bWall = false;
 };
 
 const FStagedShot Scenes[] = {
@@ -69,8 +76,15 @@ const FStagedShot Scenes[] = {
     {TEXT("09-air-perfect.png"), 2, EPose::Perfect},
     {TEXT("10-unblockable-telegraph.png"), 1, EPose::Telegraph},
     {TEXT("11-steel-stone.png"), 1, EPose::Steel},
+    {TEXT("12-fire-bolt-wall.png"), 1, EPose::Bolt, true},
 };
-constexpr int32 SceneCount = UE_ARRAY_COUNT(Scenes);
+
+// The eleven stills, and the twelfth (the wall) only under -MageArenaSpellVfxWall, so a default run is the T58 set.
+int32 SceneCount()
+{
+	static const int32 Count = FParse::Param(FCommandLine::Get(), TEXT("MageArenaSpellVfxWall")) ? UE_ARRAY_COUNT(Scenes) : UE_ARRAY_COUNT(Scenes) - 1;
+	return Count;
+}
 
 AMageArenaPawn* FindPawn(UWorld* World)
 {
@@ -98,7 +112,7 @@ void USpellVfxCaptureDriver::Start()
 {
 	FParse::Value(FCommandLine::Get(), TEXT("MageArenaRun="), RunId);
 	bRunning = true;
-	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T58 start run=%s scenes=%d"), *RunId, SceneCount);
+	UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T58 start run=%s scenes=%d"), *RunId, SceneCount());
 	Enter(EStep::WaitStable);
 	SetTickableTickType(ETickableTickType::Always);
 	Evidence.Begin(TEXT("SpellVfx"));
@@ -180,6 +194,34 @@ void USpellVfxCaptureDriver::PoseScene(int32 Index)
 	State.Projectiles.Reset();
 	State.Telegraphs.Reset();
 	const int32 Owner = PosedMageIdBase + Staged.School;
+	if (Games.VrRules.IsSet())
+	{
+		FVrRuleset& Rules = Games.VrRules.GetValue();
+		Rules.Walls.RemoveAll([](const FVrWall& Wall)
+		{ return Wall.Id == PosedWallId; });
+		if (Staged.bWall)
+		{
+			if (!Rules.FireWall.bEnabled)
+			{
+				Fail(TEXT("the overlay has no fire wall to pose"));
+				return;
+			}
+			const FSimVec MageAt = Along(Seat, Ahead, 8.0, 0.0);
+			FVrWall& Wall = Rules.Walls.AddDefaulted_GetRef();
+			Wall.Id = PosedWallId;
+			Wall.OwnerId = Owner;
+			Wall.Centre = MageAt;
+			Wall.Facing = SimUnit(SimSub(Seat, MageAt));
+			Wall.DistanceM = Rules.FireWall.DistanceM;
+			Wall.ArcDeg = Rules.FireWall.ArcDeg;
+			Wall.UntilTick = TNumericLimits<int32>::Max();
+		}
+	}
+	else if (Staged.bWall)
+	{
+		Fail(TEXT("no VR overlay: no fire wall to pose"));
+		return;
+	}
 	if (Staged.Pose == EPose::Telegraph)
 	{
 		FTelegraph& Telegraph = State.Telegraphs.AddDefaulted_GetRef();
@@ -280,7 +322,7 @@ void USpellVfxCaptureDriver::Tick(float DeltaTime)
 			return;
 		}
 		++Scene;
-		Enter(Scene < SceneCount ? EStep::Pose : EStep::Finish);
+		Enter(Scene < SceneCount() ? EStep::Pose : EStep::Finish);
 	}
 	const double Now = FPlatformTime::Seconds();
 	const double Elapsed = Now - StepStartWall;
@@ -364,7 +406,7 @@ void USpellVfxCaptureDriver::Tick(float DeltaTime)
 			Bout->SetFrameHold(false);
 		}
 		FString ManifestError;
-		if (ShotCount == SceneCount && Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/shots/manifest.json"), *RunId)), ManifestError))
+		if (ShotCount == SceneCount() && Evidence.WriteManifest(MageArenaCapture::RepoPath(FString::Printf(TEXT("runs/%s/shots/manifest.json"), *RunId)), ManifestError))
 		{
 			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_CAPTURE_DONE shots=%d"), ShotCount);
 		}
