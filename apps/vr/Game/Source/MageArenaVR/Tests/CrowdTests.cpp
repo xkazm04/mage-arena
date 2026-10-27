@@ -195,13 +195,14 @@ bool FMageArenaCrowdPlacement::RunTest(const FString& Parameters)
 	}
 	const TArray<ArenaCrowd::FCard> Cards = ArenaCrowd::Place(Layout);
 	AddInfo(FString::Printf(TEXT("cards=%d"), Cards.Num()));
-	// About the 470 of the hand-off: three rows at the 0.55 m pitch round the oval, four segments left as aisles.
-	TestTrue(FString::Printf(TEXT("about 470 cards (%d)"), Cards.Num()), Cards.Num() >= 420 && Cards.Num() <= 560);
+	// T71 option C: five rows at the 0.55 m pitch round the oval, four segments left as aisles (804 cards; 436 on tiers 0 to 2).
+	TestEqual(TEXT("five tiers in the layout"), Layout.StandTiers, 5);
+	TestTrue(FString::Printf(TEXT("about 800 cards (%d)"), Cards.Num()), Cards.Num() >= 780 && Cards.Num() <= 830);
 
 	const int32 Segments = FMath::Max(Layout.WallSegments, 3);
 	int32 PerVariant[4] = {0, 0, 0, 0};
-	int32 Seated[3] = {0, 0, 0};
-	int32 PerTier[3] = {0, 0, 0};
+	int32 Seated[5] = {0, 0, 0, 0, 0};
+	int32 PerTier[5] = {0, 0, 0, 0, 0};
 	int32 Off = 0;
 	for (const ArenaCrowd::FCard& Card : Cards)
 	{
@@ -232,7 +233,7 @@ bool FMageArenaCrowdPlacement::RunTest(const FString& Parameters)
 				    bOnTop, bInside, bInAisle, bFaces, bRect));
 			}
 		}
-		if (Card.Tier >= 0 && Card.Tier < 3)
+		if (Card.Tier >= 0 && Card.Tier < 5)
 		{
 			++PerTier[Card.Tier];
 			Seated[Card.Tier] += Variant.bSeated ? 1 : 0;
@@ -243,7 +244,7 @@ bool FMageArenaCrowdPlacement::RunTest(const FString& Parameters)
 	{
 		TestTrue(FString::Printf(TEXT("variant %s is used"), ArenaCrowd::Variants()[Index].Name), PerVariant[Index] > 0);
 	}
-	for (int32 Tier = 0; Tier < 3; ++Tier)
+	for (int32 Tier = 0; Tier < 5; ++Tier)
 	{
 		TestTrue(FString::Printf(TEXT("tier %d holds cards"), Tier), PerTier[Tier] > 0);
 	}
@@ -252,7 +253,7 @@ bool FMageArenaCrowdPlacement::RunTest(const FString& Parameters)
 	{
 		TestTrue(TEXT("the front tier sits more than the back tier"), static_cast<double>(Seated[0]) / PerTier[0] > static_cast<double>(Seated[2]) / PerTier[2]);
 	}
-	AddInfo(FString::Printf(TEXT("per variant %d %d %d %d; per tier %d %d %d"), PerVariant[0], PerVariant[1], PerVariant[2], PerVariant[3], PerTier[0], PerTier[1], PerTier[2]));
+	AddInfo(FString::Printf(TEXT("per variant %d %d %d %d; per tier %d %d %d %d %d"), PerVariant[0], PerVariant[1], PerVariant[2], PerVariant[3], PerTier[0], PerTier[1], PerTier[2], PerTier[3], PerTier[4]));
 
 	// A fixed seed: the same layout places the same crowd.
 	const TArray<ArenaCrowd::FCard> Again = ArenaCrowd::Place(Layout);
@@ -262,6 +263,47 @@ bool FMageArenaCrowdPlacement::RunTest(const FString& Parameters)
 		bSame = Again[Index].Variant == Cards[Index].Variant && Again[Index].Transform.Equals(Cards[Index].Transform, 1.0e-6);
 	}
 	TestTrue(TEXT("placement is deterministic"), bSame);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaCrowdStableBase, "MageArena.Greybox.Crowd.StableBase",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+// T71 option C: the rows on tiers 3 and up draw from their own seeded stream after the existing 436, so no T57/T65 card
+// changes position, variant or tint when the stands grow from three tiers to five.
+bool FMageArenaCrowdStableBase::RunTest(const FString& Parameters)
+{
+	FArenaLayout Layout;
+	if (!LoadLayout(*this, Layout))
+	{
+		return false;
+	}
+	FArenaLayout Three = Layout;
+	Three.StandTiers = 3;
+	FArenaLayout Five = Layout;
+	Five.StandTiers = 5;
+	const TArray<ArenaCrowd::FCard> Base = ArenaCrowd::Place(Three);
+	const TArray<ArenaCrowd::FCard> Full = ArenaCrowd::Place(Five);
+	TestEqual(TEXT("three tiers hold 436 cards"), Base.Num(), 436);
+	TestEqual(TEXT("five tiers hold 804 cards"), Full.Num(), 804);
+	int32 Moved = 0;
+	for (int32 Index = 0; Index < Base.Num() && Index < Full.Num(); ++Index)
+	{
+		const ArenaCrowd::FCard& A = Base[Index];
+		const ArenaCrowd::FCard& B = Full[Index];
+		const bool bSame = A.Variant == B.Variant && A.Segment == B.Segment && A.Tier == B.Tier && A.Transform.Equals(B.Transform, 1.0e-6)
+		    && FMemory::Memcmp(A.Tint, B.Tint, sizeof(A.Tint)) == 0 && FMemory::Memcmp(A.Rect, B.Rect, sizeof(A.Rect)) == 0;
+		Moved += bSame ? 0 : 1;
+	}
+	TestEqual(TEXT("the first 436 cards keep position, variant, rect and tint"), Moved, 0);
+	for (int32 Index = Base.Num(); Index < Full.Num(); ++Index)
+	{
+		if (Full[Index].Tier < 3)
+		{
+			AddError(FString::Printf(TEXT("card %d after the base sits on tier %d"), Index, Full[Index].Tier));
+			break;
+		}
+	}
 	return true;
 }
 
@@ -334,6 +376,7 @@ bool FMageArenaCrowdOneBatch::RunTest(const FString& Parameters)
 		// T65: the banners are instances of this one component too.
 		const int32 Banners = ArenaCrowd::PlaceBanners(Layout).Num();
 		TestTrue(TEXT("the stands carry banners"), Banners > 0);
+		TestEqual(TEXT("T71: 804 cards"), ArenaCrowd::Place(Layout).Num(), 804);
 		TestEqual(TEXT("one instance per card and banner"), Crowd->GetInstanceCount(), ArenaCrowd::Place(Layout).Num() + Banners);
 		TestEqual(TEXT("eight custom floats per instance (the atlas rect, the tint, the flat flag)"), Crowd->NumCustomDataFloats, 8);
 		TestEqual(TEXT("the code says eight"), ArenaCrowd::CustomDataFloats, 8);
