@@ -2,6 +2,47 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-27 - Owner rulings (standup, relayed by Athena): T71 stands.tiers 3 -> 5 (option C), PC mood bands, Fire second rim hue, darker steel, bead ring
+
+> The owner, 2026-10-27 standup, relayed by Athena (Director) while the owner is away. Recorded as the dispatch brief
+> relayed them, not verbatim. Four rulings and an order. This entry authorizes the lanes below; it changes no number itself.
+
+- **(1) T71 crowd: `stands.tiers` 3 -> 5 in `apps/vr/data/vr/arena-layout.json`, OPTION C** (owner-ruled 2026-10-27).
+  804 cards, one draw, the existing 436 cards held stable (the new rows drawn from their own seeded stream). The owner
+  approved the layout edit and the `Overlay.Golden` re-record; each lands in its own commit with before/after values, in
+  a later Unreal lane. *Forced by:* the stands end at tier 2 (5.20 m) with only the 70 m sky dome behind, so rows above the
+  top tread have nothing to stand on, and T71 forbids support geometry and a layout edit
+  (`apps/vr/tasks/T71-crowd-density.md:60-65`; `docs/concepts/VISUAL-PLAN.md:457-461`). Today's value is
+  `"tiers": 3` (`apps/vr/data/vr/arena-layout.json:26`). *Closed:* **A** (same geometry, but the draw order re-seeds every
+  card after segment 0, so variant and tint change per slot; `T71-crowd-density.md:82-89`); **B** (support boxes outside
+  the layout, forbidden support geometry, "A gives the same thing honestly"; `:90-92`); **D** (denser rows on today's
+  treads: the top edge does not rise; `:97-100`). Figures to hold: 5 tiers = 804 cards, crowd top 8.80 m
+  (`:69-74`). Layout edit and golden re-record are layout/overlay files, not pinned data. Note
+  `docs/research` has no T71 report yet; the card's "Blocked" section is the record.
+- **(2) PC trust-to-mood bands 15/40 CONFIRMED** (owner-ruled 2026-10-27). A PC-channel matter; it touches nothing in VR
+  (as with the PC D1 ruling of 2026-10-25 below).
+- **(3) Fire SECOND RIM HUE lane approved** (owner-ruled 2026-10-27): a 4th custom float or a material rim term carrying a
+  deeper red-orange. *Forced by:* T72 gained value contrast against the sand but a darker vermilion reads as brown, rust
+  or rope, and T72b and T72c failed the blind bar and fell back to T67 (`docs/research/FIRE-VALUE-T72-2026-10-26.md:151-160`;
+  `docs/concepts/VISUAL-PLAN.md:462-463`, `:467-468`). *Closed:* T72 option **A** (accept the darker rim as is, separation
+  over S1 likeness) and **B** (keep T72's flame and star rims, T67 streak), the latter run as T72b/T72c and failed
+  (`FIRE-VALUE-T72-2026-10-26.md:154-157`). The two routes left are the 4th custom float or the material rim term; it
+  changes the custom-data shape (`:157-159`). **Pass bar:** blind critics on shuffled pairs vs S1 at 8 m; the edge must
+  read as Fire, never rust. **D-G4 still binds:** draw calls at most 150 (127 is the guide), BasePass at most 350k, and every
+  figure names its scene.
+- **(4) DARKER STEEL stone and BEAD RING reshape approved as two small lanes, one at a time** (owner-ruled 2026-10-27).
+  *Steel:* the steel stone reads near off-white, a "flat sticker disc", to every critic in T72 and T72b, a colour-language
+  call (`docs/concepts/VISUAL-PLAN.md:464`; `FIRE-VALUE-T72-2026-10-26.md:161-163`). *Bead ring:* the perfect ring (cell 14)
+  reads as rope even in T67's own cell in all three T72b rounds, a shape problem
+  (`VISUAL-PLAN.md:466`; `docs/research/FIRE-VALUE-T72B-2026-10-26.md:199`; `FIRE-VALUE-T72C-2026-10-26.md:125`). It must
+  read as beads, not rope. *Closed:* leaving both as "option only" notes (VISUAL-PLAN.md:464, :466). Steel is the dodge colour in the
+  threat language, so the lane darkens it and must keep it distinct from the element colours and the black core.
+- **The order:** the 10-31 gate rehearsal first, then rulings 1, 3 and 4 as Unreal lanes, at most one Unreal process at a
+  time. Standing limits unchanged: no combat-number or pinned-data edits; new `.uasset`, `.fbx` and `.png` through LFS;
+  Leonardo at most 30 a day; builders never push.
+- No earlier DECISIONS entry marks these four as "owner to decide"; the open points sat in the cited research docs and
+  `VISUAL-PLAN.md`, so there is no pointer to add.
+
 ## 2026-10-25 - Owner rulings of the evening (owner-ruled 2026-10-25): DF-013 (a), DF-011 reds kept, PC D1, DINOv3, D2, PC audio, PayPal
 
 > The owner, 2026-10-25 evening. Recorded as the dispatch brief relayed them, not verbatim. Seven rulings.
