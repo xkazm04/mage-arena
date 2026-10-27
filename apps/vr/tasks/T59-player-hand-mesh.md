@@ -1,6 +1,7 @@
 # T59 - player hand mesh
 
-Status: open
+Status: done 2026-10-27 (desktop proxy, not Quest truth; `docs/research/HANDS-T59-2026-10-27.md`): palm and fingers from two
+code-built meshes posed per bone, D-G4 -2 draw calls in both scenes, `MageArena.` 346 green
 Max turns: 120
 
 ## Goal
