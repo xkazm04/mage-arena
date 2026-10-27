@@ -43,11 +43,14 @@ FElementPalette FElementPalette::Greybox()
 	// old vermilion (sRGB about 226, 66, 30) sat next to the unblockable rim red (about 224, 31, 24); an absorb cue must
 	// not borrow the leave cue's colour, so fire moved toward orange, away from the rim.
 	Palette.Fire = FLinearColor(0.90f, 0.26f, 0.02f);
-	// T23 wind green: linear 0.20, 0.85, 0.22, about sRGB 124, 238, 130. Not cyan (Water), not white (steel).
+	// T23 wind green: linear 0.20, 0.85, 0.22, about sRGB 124, 238, 130. Not cyan (Water), not grey (steel).
 	Palette.Air = FLinearColor(0.20f, 0.85f, 0.22f);
 	// Reserved for the Earth school (no Earth caster in the slice): ochre, about sRGB 196, 140, 52.
 	Palette.Earth = FLinearColor(0.55f, 0.26f, 0.035f);
-	Palette.Steel = FLinearColor(0.68f, 0.68f, 0.68f);
+	// T74 (owner ruling 4, 2026-10-27): a dark gunmetal, about sRGB 101, 105, 111. The old 0.68 grey (sRGB 216) read as an
+	// off-white "flat sticker disc" to every T72 and T72b critic. Its brightest channel is twice the black core line (0.08)
+	// and its chroma a faint cool cast on neutral, off every element and the leave red (MageArena.Colour.SteelStandsApart).
+	Palette.Steel = FLinearColor(0.13f, 0.14f, 0.16f);
 	Palette.UnblockableBody = FLinearColor(0.006995f, 0.006995f, 0.008023f);
 	Palette.UnblockableRim = FLinearColor(0.745404f, 0.014444f, 0.009134f);
 	return Palette;

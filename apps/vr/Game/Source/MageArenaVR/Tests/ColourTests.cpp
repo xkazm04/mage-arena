@@ -18,14 +18,15 @@
 // T26, element-correct colour. ElementLook is the one function the presentation (SessionPresentation LookOf) calls for
 // every projectile, telegraph and cast, so these tests hold the drawn colours. Expected values are the greybox palette
 // literals (ElementColour.cpp): Water turquoise 0.009721/0.745404/0.745404, Fire ember orange 0.90/0.26/0.02, Air wind
-// green 0.20/0.85/0.22, steel 0.68 grey, unblockable body 0.006995/0.006995/0.008023 with rim 0.745404/0.014444/0.009134.
+// green 0.20/0.85/0.22, steel 0.13/0.14/0.16 gunmetal (T74; was 0.68 grey), unblockable body 0.006995/0.006995/0.008023
+// with rim 0.745404/0.014444/0.009134.
 
 namespace
 {
 const FLinearColor Water(0.009721f, 0.745404f, 0.745404f);
 const FLinearColor Fire(0.90f, 0.26f, 0.02f);
 const FLinearColor Air(0.20f, 0.85f, 0.22f);
-const FLinearColor Steel(0.68f, 0.68f, 0.68f);
+const FLinearColor Steel(0.13f, 0.14f, 0.16f);
 const FLinearColor Black(0.006995f, 0.006995f, 0.008023f);
 const FLinearColor Red(0.745404f, 0.014444f, 0.009134f);
 
