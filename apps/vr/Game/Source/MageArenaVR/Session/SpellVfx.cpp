@@ -2,11 +2,8 @@
 
 #include "Greybox/GreyboxUtil.h"
 #include "MageArenaVR.h"
-#include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
-#include "Misc/CommandLine.h"
 #include "Misc/PackageName.h"
-#include "Misc/Parse.h"
 
 namespace
 {
@@ -404,74 +401,6 @@ FLinearColor SpellVfx::RimPulseColour(const FLinearColor& Rim, float Pulse)
 {
 	const float Gain = FMath::Lerp(1.f, RimPulseGain, FMath::Clamp(Pulse, 0.f, 1.f));
 	return FLinearColor(Rim.R * Gain, Rim.G * Gain, Rim.B * Gain, Rim.A);
-}
-
-FLinearColor SpellVfx::GlowEmissive(const FLinearColor& Colour, const FLinearColor& Rim, float RimMix, float Shade)
-{
-	// M_SpellGlow: lerp(Color, RimColor, RimMix x saturate((RimShadeTop - shade) / (RimShadeTop - RimShadeBottom))) x shade.
-	const float Weight = RimMix * FMath::Clamp((FireRimShadeTop - Shade) / (FireRimShadeTop - FireRimShadeBottom), 0.f, 1.f);
-	const FLinearColor Hue = Colour + (Rim - Colour) * Weight;
-	return FLinearColor(Hue.R * Shade, Hue.G * Shade, Hue.B * Shade, Colour.A);
-}
-
-FLinearColor SpellVfx::FireRimColour(const FElementPalette& Palette)
-{
-	const FLinearColor& Fire = Palette.Fire;
-	// RGB only: FLinearColor::GetMax counts the alpha.
-	const float Most = FMath::Max3(Fire.R, Fire.G, Fire.B);
-	const FLinearColor& Red = Palette.UnblockableRim;
-	const float LeaveMost = FMath::Max3(Red.R, Red.G, Red.B);
-	if (Most <= 1.0e-4f || LeaveMost <= 1.0e-4f)
-	{
-		return Fire;
-	}
-	// Chroma: each colour over its brightest channel, so the step is a hue step, not a value step.
-	const FLinearColor From(Fire.R / Most, Fire.G / Most, Fire.B / Most);
-	const FLinearColor Leave(Red.R / LeaveMost, Red.G / LeaveMost, Red.B / LeaveMost);
-	const float Span = FMath::Sqrt(FMath::Square(Leave.R - From.R) + FMath::Square(Leave.G - From.G) + FMath::Square(Leave.B - From.B));
-	if (Span <= FireRimLeaveMargin)
-	{
-		return Fire;
-	}
-	const float Step = FMath::Min(1.f - FireRimLeaveMargin / Span, FireRimMostShift);
-	const FLinearColor Toward = From + (Leave - From) * Step;
-	const float TowardMost = FMath::Max(FMath::Max3(Toward.R, Toward.G, Toward.B), 1.0e-4f);
-	// Back at Fire's brightest channel, and never above Fire in any channel: the rim is never brighter than the threat.
-	return FLinearColor(FMath::Min(Toward.R / TowardMost * Most, Fire.R), FMath::Min(Toward.G / TowardMost * Most, Fire.G), FMath::Min(Toward.B / TowardMost * Most, Fire.B), Fire.A);
-}
-
-TOptional<FLinearColor> SpellVfx::GlowRimFor(const FElementPalette& Palette, const FLinearColor& Colour)
-{
-	if (Colour == Palette.Fire)
-	{
-		return FireRimColour(Palette);
-	}
-	return {};
-}
-
-bool SpellVfx::FireRimEnabled()
-{
-	static const bool bEnabled = []
-	{
-		int32 Value = 1;
-		return !FParse::Value(FCommandLine::Get(), TEXT("MageArenaFireRim="), Value) || Value != 0;
-	}();
-	return bEnabled;
-}
-
-void SpellVfx::ApplyGlowRim(UMaterialInstanceDynamic* Tint, const TOptional<FLinearColor>& Rim)
-{
-	if (!Tint)
-	{
-		return;
-	}
-	Tint->SetScalarParameterValue(TEXT("RimMix"), Rim.IsSet() ? 1.f : 0.f);
-	if (Rim.IsSet())
-	{
-		Tint->SetVectorParameterValue(TEXT("RimColor"), Rim.GetValue());
-		Tint->SetScalarParameterValue(TEXT("RimShadeTop"), FireRimShadeTop);
-		Tint->SetScalarParameterValue(TEXT("RimShadeBottom"), FireRimShadeBottom);
-	}
 }
 
 UMaterialInterface* SpellVfx::GlowMaterial()
