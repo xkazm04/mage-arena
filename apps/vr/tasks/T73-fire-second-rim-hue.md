@@ -1,6 +1,6 @@
 # T73 - Fire second rim hue
 
-Status: open
+Status: ran, blind bar not met (rust named on the rim in rounds 1 and 3 of 3; separation won 3 of 3), Fire reverted to T67 (fallback) - report docs/research/FIRE-RIM-HUE-T73-2026-10-27.md
 Max turns: 120
 
 ## Goal
