@@ -23,12 +23,12 @@
   },
 
   "stands": {
-    "tiers": 3,
+    "tiers": 5,
     "depthM": 1.55,
     "gapOutsideWallM": 0.2,
     "firstTopAboveWallM": 0.5,
     "stepRiseM": 0.85,
-    "_note": "Three stepped tiers outside the wall, the cavea from the stands kit. The first tread top sits just above the 3 m wall so the far stands are visible from the dais. Each tier is a ring of boxes, taller and further out than the one inside it."
+    "_note": "Five stepped tiers outside the wall (T71, owner ruling 2026-10-27: 3 to 5, crowd top 7.10 m to 8.80 m), the cavea from the stands kit. The first tread top sits just above the 3 m wall so the far stands are visible from the dais. Each tier is a ring of boxes, taller and further out than the one inside it."
   },
 
   "dais": {
