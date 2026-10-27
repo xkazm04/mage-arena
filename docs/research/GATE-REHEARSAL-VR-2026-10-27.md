@@ -142,6 +142,7 @@ Lane: **L2, fire-wall read** - slats on the flipbook glow layer (T63/T67 cells),
 Evidence: no Brennic in stills 1, 2 and 4 nor at tick 1850 (`greybox-tick1850-no-rival.png`), in all four palettes. The
 capture's seed 1 ends with the player's death (Brennic wins, DF-011), so the stills never show his death clip. That clip
 exists and plays (`rival-death-seed2.png`).
+L3 status (10-27, Wolf): the stills now cut where Brennic is in frame (`docs/research/L3-SESSION-CAPTURE-2026-10-27.md`); his death clip is not captured, because the driver hard-codes seed 1 and a seed knob is C++.
 Lane: **L3, session capture framing** (capture tool only) - add a seed-2 pass to `capture-style-pick.ps1` (where Brennic
 goes down), or cut the stills where the rival is in frame, so the gate's row-1 capture shows the animated opponent. No
 gameplay change.
