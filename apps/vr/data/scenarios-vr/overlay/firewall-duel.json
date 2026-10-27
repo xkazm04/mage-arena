@@ -1,10 +1,10 @@
 {
   "card": "T54",
   "variant": "live",
-  "overlaySha256": "a1fbe712c816f8551f024e23fc75eca17edde9f7c5b9df34be073f43d9220078",
+  "overlaySha256": "cbb6b8ed569b26a618eca03b1e051b927e85c5be2df207a24c53852cb7da3fd8",
   "files": {
     "combat.vr.json": "23305434a78440e3cf32f8bc4b609099166cc38d16d7f866094b683845c8aaac",
-    "arena-layout.json": "c16fb0fe9cba37ea2f9fc0a761212e1bb6372440e52515138a9fc87772956ada",
+    "arena-layout.json": "2237c88c8e48e8dc22f869a0ad08db612e248a2d198bc6f1334b934f0a73a2e8",
     "collar.json": "2d8885e3d66a5ee5340a39224d835d9ed405af996a7657ad453be7eb6913188a",
     "schools/spells-air.csv": "45df014c42cb414dc6c7be96eb4dbb7a0fe58b40425ea1d8426cd98f1f0657aa"
   },
