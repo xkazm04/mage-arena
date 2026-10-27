@@ -1,6 +1,7 @@
 # T75 - Bead ring
 
-Status: open
+Status: ran, blind bar not met (beads, not rope, in 3 of 3 rounds; but the reward read only "weakly" in 9 of 9 cells and the
+water beads read as water bolts in 2 of 3), ring restored to T67 (fallback) - report docs/research/BEAD-RING-T75-2026-10-27.md
 Max turns: 120
 
 ## Goal
