@@ -970,6 +970,7 @@ bool FMageArenaSpellVfxFireRimBand::RunTest(const FString& Parameters)
 		const float FromFire = T73ChromaDistance(Rim, Fire);
 		const float FromLeave = T73ChromaDistance(Rim, Palette.UnblockableRim);
 		const float FireToLeave = T73ChromaDistance(Fire, Palette.UnblockableRim);
+		AddInfo(FString::Printf(TEXT("MAGEVR_T73_RIM %s fire=%s rim=%s fromFire=%.3f fromLeave=%.3f"), *Name, *Fire.ToString(), *Rim.ToString(), FromFire, FromLeave));
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim is a second hue, not Fire's chroma (%.3f from it, at least 0.05)"), *Name, FromFire), FromFire >= 0.05f);
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim stays in Fire's family, at most half way to the leave red (%.3f of %.3f)"), *Name, FromFire, FireToLeave),
 		    FromFire <= FireToLeave * SpellVfx::FireRimMostShift + 1.0e-4f);
@@ -991,7 +992,7 @@ bool FMageArenaSpellVfxFireRimBand::RunTest(const FString& Parameters)
 			bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim stands off %s (%.3f)"), *Name, Other.Key, Distance), Distance >= BrazierFire::ThreatChromaMargin);
 		}
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim is never brighter than Fire in any channel (%s vs %s)"), *Name, *Rim.ToString(), *Fire.ToString()),
-		    Rim.R <= Fire.R + 1.0e-6f && Rim.G <= Fire.G + 1.0e-6f && Rim.B <= Fire.B + 1.0e-6f && FMath::IsNearlyEqual(Rim.GetMax(), Fire.GetMax(), 1.0e-5f));
+		    Rim.R <= Fire.R + 1.0e-6f && Rim.G <= Fire.G + 1.0e-6f && Rim.B <= Fire.B + 1.0e-6f && FMath::IsNearlyEqual(FMath::Max3(Rim.R, Rim.G, Rim.B), FMath::Max3(Fire.R, Fire.G, Fire.B), 1.0e-5f));
 		const FLinearColor Edge = SpellVfx::GlowEmissive(Fire, Rim, 1.f, SpellVfx::FireRimShadeBottom);
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: at the rim's shade the edge is the rim colour"), *Name), Edge.Equals(T73Shaded(Rim, SpellVfx::FireRimShadeBottom), 1.0e-5f));
 		const float EdgeLuminance = T73Luminance(Edge);

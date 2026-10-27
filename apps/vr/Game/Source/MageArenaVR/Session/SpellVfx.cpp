@@ -417,15 +417,17 @@ FLinearColor SpellVfx::GlowEmissive(const FLinearColor& Colour, const FLinearCol
 FLinearColor SpellVfx::FireRimColour(const FElementPalette& Palette)
 {
 	const FLinearColor& Fire = Palette.Fire;
-	const float Most = Fire.GetMax();
-	const float LeaveMost = Palette.UnblockableRim.GetMax();
+	// RGB only: FLinearColor::GetMax counts the alpha.
+	const float Most = FMath::Max3(Fire.R, Fire.G, Fire.B);
+	const FLinearColor& Red = Palette.UnblockableRim;
+	const float LeaveMost = FMath::Max3(Red.R, Red.G, Red.B);
 	if (Most <= 1.0e-4f || LeaveMost <= 1.0e-4f)
 	{
 		return Fire;
 	}
 	// Chroma: each colour over its brightest channel, so the step is a hue step, not a value step.
-	const FLinearColor From = Fire / Most;
-	const FLinearColor Leave = Palette.UnblockableRim / LeaveMost;
+	const FLinearColor From(Fire.R / Most, Fire.G / Most, Fire.B / Most);
+	const FLinearColor Leave(Red.R / LeaveMost, Red.G / LeaveMost, Red.B / LeaveMost);
 	const float Span = FMath::Sqrt(FMath::Square(Leave.R - From.R) + FMath::Square(Leave.G - From.G) + FMath::Square(Leave.B - From.B));
 	if (Span <= FireRimLeaveMargin)
 	{
@@ -433,7 +435,7 @@ FLinearColor SpellVfx::FireRimColour(const FElementPalette& Palette)
 	}
 	const float Step = FMath::Min(1.f - FireRimLeaveMargin / Span, FireRimMostShift);
 	const FLinearColor Toward = From + (Leave - From) * Step;
-	const float TowardMost = FMath::Max(Toward.GetMax(), 1.0e-4f);
+	const float TowardMost = FMath::Max(FMath::Max3(Toward.R, Toward.G, Toward.B), 1.0e-4f);
 	// Back at Fire's brightest channel, and never above Fire in any channel: the rim is never brighter than the threat.
 	return FLinearColor(FMath::Min(Toward.R / TowardMost * Most, Fire.R), FMath::Min(Toward.G / TowardMost * Most, Fire.G), FMath::Min(Toward.B / TowardMost * Most, Fire.B), Fire.A);
 }
