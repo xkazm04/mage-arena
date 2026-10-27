@@ -359,6 +359,10 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
 - [ ] **Gate record:** a dated `docs/research/` record with the 15 rows of the desktop core gate (`docs/PROJECT-PLAN.md:47`,
   the K3 table in `docs/research/KPI-2026-10-20.md`), each with its Wolf evidence or "not met". Row 15 is the owner's
   (felt). The gate date is soft; the record is what releases the device decision (section g).
+- Rehearsal, not ticked: `Wolf kaziho 2026-10-27 64c1dc2 UE 5.8.3 CL 58210709`,
+  `docs/research/GATE-REHEARSAL-VR-2026-10-27.md`. `MageArena.` 342/342; `MageArenaDesign.` 5/7 (DF-011's two);
+  style-pick ok; D-G4 ok (max 118 stress, 127 creature-import); `capture-colour-audio.ps1` FAIL x2 (WAV 28.6 / 27.4 s of
+  30.8); no Win64 stage script. Tally met 4, partly 3, not met 7, owner's 1.
 
 ### P9. [DEFERRED 2026-10-24, ruling 2, `docs/DECISIONS.md` "P5/P9 deferred"] Device: V1 bring-up, V2 hands, V3 beta and RC (soft: V1 Sun 1 - Wed 4 Nov, V2 Thu 5 - Sun 8 Nov, V3 Mon 9 - Fri 13 Nov)
 
