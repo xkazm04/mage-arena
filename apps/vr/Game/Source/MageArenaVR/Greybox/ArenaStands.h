@@ -86,6 +86,13 @@ constexpr int32 FlatFloatIndex = 7;
 constexpr int32 CustomDataFloats = 8;
 /** Tint stream: its own mulberry32, so the tint pick never moves a card. */
 constexpr uint32 TintSeed = Seed ^ 0x7165u;
+/**
+ * T71 option C: tiers from this one up (the rows the layout gained beyond the original three) draw their variant, jitter and
+ * tint from their own two streams, after every card of the original tiers, so no T57/T65 card changes.
+ */
+constexpr int32 FirstOwnStreamTier = 3;
+constexpr uint32 UpperSeed = Seed ^ 0x7131u;
+constexpr uint32 UpperTintSeed = TintSeed ^ 0x7131u;
 /** The tunic starts this far down the figure (the head, hands and raised arms above it keep their clay) and fades in over the edge. */
 constexpr float TunicStartFraction = 0.22f;
 constexpr float TunicEdgeFraction = 0.10f;

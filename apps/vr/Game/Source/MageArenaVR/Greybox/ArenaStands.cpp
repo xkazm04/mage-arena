@@ -191,56 +191,67 @@ bool ArenaCrowd::IsAisle(int32 Segment, int32 Segments)
 TArray<ArenaCrowd::FCard> ArenaCrowd::Place(const FArenaLayout& Layout)
 {
 	TArray<FCard> Cards;
+	const int32 Segments = FMath::Max(Layout.WallSegments, 3);
+	// Tiers 0 to 2 first, in the order and from the streams T57/T65 fixed; then the upper tiers from their own streams.
+	const int32 LowerEnd = FMath::Min(Layout.StandTiers, FirstOwnStreamTier);
 	FCrowdRng Rng{Seed};
 	FCrowdRng TintRng{TintSeed};
-	const int32 Segments = FMath::Max(Layout.WallSegments, 3);
-	for (int32 Segment = 0; Segment < Segments; ++Segment)
+	FCrowdRng UpperRng{UpperSeed};
+	FCrowdRng UpperTintRng{UpperTintSeed};
+	for (const bool bUpper : {false, true})
 	{
-		if (IsAisle(Segment, Segments))
+		const int32 FirstTier = bUpper ? LowerEnd : 0;
+		const int32 EndTier = bUpper ? Layout.StandTiers : LowerEnd;
+		FCrowdRng& CardRng = bUpper ? UpperRng : Rng;
+		FCrowdRng& CardTintRng = bUpper ? UpperTintRng : TintRng;
+		for (int32 Segment = 0; Segment < Segments; ++Segment)
 		{
-			continue;
-		}
-		for (int32 Tier = 0; Tier < Layout.StandTiers; ++Tier)
-		{
-			const ArenaStands::FStandBox Box = ArenaStands::StandBox(Layout, Segment, Tier);
-			// One row along the middle of the tread, spread evenly so the rows of neighbouring boxes meet at the pitch.
-			const int32 Slots = FMath::FloorToInt32(Box.RowLengthM / PitchM);
-			if (Slots <= 0)
+			if (IsAisle(Segment, Segments))
 			{
 				continue;
 			}
-			const double Step = Box.RowLengthM / Slots;
-			for (int32 Slot = 0; Slot < Slots; ++Slot)
+			for (int32 Tier = FirstTier; Tier < EndTier; ++Tier)
 			{
-				FCard Card;
-				Card.Variant = PickVariant(Rng, Tier);
-				const double Lateral = (Rng.Next() - 0.5) * LateralJitterM;
-				const double YawJitter = (Rng.Next() - 0.5) * YawJitterDeg;
-				Card.Scale = ScaleMin + Rng.Next() * ScaleSpan;
-				Card.Segment = Segment;
-				Card.Tier = Tier;
-				// Alternate cards stand 6 cm further back, so overlapping neighbours never z-fight.
-				const double Back = (Slot % 2) ? AlternateBackM : 0.0;
-				const double Along = (Slot - (Slots - 1) * 0.5) * Step + Lateral;
-				Card.FeetM = Box.MidM + Box.Along * Along + Box.Outward * Back;
-				Card.FeetM.Z = Box.TopM;
+				const ArenaStands::FStandBox Box = ArenaStands::StandBox(Layout, Segment, Tier);
+				// One row along the middle of the tread, spread evenly so the rows of neighbouring boxes meet at the pitch.
+				const int32 Slots = FMath::FloorToInt32(Box.RowLengthM / PitchM);
+				if (Slots <= 0)
+				{
+					continue;
+				}
+				const double Step = Box.RowLengthM / Slots;
+				for (int32 Slot = 0; Slot < Slots; ++Slot)
+				{
+					FCard Card;
+					Card.Variant = PickVariant(CardRng, Tier);
+					const double Lateral = (CardRng.Next() - 0.5) * LateralJitterM;
+					const double YawJitter = (CardRng.Next() - 0.5) * YawJitterDeg;
+					Card.Scale = ScaleMin + CardRng.Next() * ScaleSpan;
+					Card.Segment = Segment;
+					Card.Tier = Tier;
+					// Alternate cards stand 6 cm further back, so overlapping neighbours never z-fight.
+					const double Back = (Slot % 2) ? AlternateBackM : 0.0;
+					const double Along = (Slot - (Slots - 1) * 0.5) * Step + Lateral;
+					Card.FeetM = Box.MidM + Box.Along * Along + Box.Outward * Back;
+					Card.FeetM.Z = Box.TopM;
 
-				Card.YawDeg = FacingYawDeg(Layout, Card.FeetM, Box) + YawJitter;
+					Card.YawDeg = FacingYawDeg(Layout, Card.FeetM, Box) + YawJitter;
 
-				const FVariant& Variant = VariantTable[Card.Variant];
-				bool bVDown = false;
-				Card.Transform = CardTransform(Card.FeetM, Card.YawDeg, Variant.WidthM * Card.Scale, Variant.HeightM * Card.Scale, Variant.CentreRightM * Card.Scale, bVDown);
-				const float Top = static_cast<float>(1.0 - Variant.V1);
-				const float Bottom = static_cast<float>(1.0 - Variant.V0);
-				Card.Rect[0] = static_cast<float>(Variant.U0);
-				Card.Rect[1] = bVDown ? Top : Bottom;
-				Card.Rect[2] = static_cast<float>(Variant.U1);
-				Card.Rect[3] = bVDown ? Bottom : Top;
-				const int32 TintIndex = FMath::Min(FMath::FloorToInt32(TintRng.Next() * UE_ARRAY_COUNT(TunicTints)), static_cast<int32>(UE_ARRAY_COUNT(TunicTints)) - 1);
-				Card.Tint[0] = TunicTints[TintIndex].R;
-				Card.Tint[1] = TunicTints[TintIndex].G;
-				Card.Tint[2] = TunicTints[TintIndex].B;
-				Cards.Add(Card);
+					const FVariant& Variant = VariantTable[Card.Variant];
+					bool bVDown = false;
+					Card.Transform = CardTransform(Card.FeetM, Card.YawDeg, Variant.WidthM * Card.Scale, Variant.HeightM * Card.Scale, Variant.CentreRightM * Card.Scale, bVDown);
+					const float Top = static_cast<float>(1.0 - Variant.V1);
+					const float Bottom = static_cast<float>(1.0 - Variant.V0);
+					Card.Rect[0] = static_cast<float>(Variant.U0);
+					Card.Rect[1] = bVDown ? Top : Bottom;
+					Card.Rect[2] = static_cast<float>(Variant.U1);
+					Card.Rect[3] = bVDown ? Bottom : Top;
+					const int32 TintIndex = FMath::Min(FMath::FloorToInt32(CardTintRng.Next() * UE_ARRAY_COUNT(TunicTints)), static_cast<int32>(UE_ARRAY_COUNT(TunicTints)) - 1);
+					Card.Tint[0] = TunicTints[TintIndex].R;
+					Card.Tint[1] = TunicTints[TintIndex].G;
+					Card.Tint[2] = TunicTints[TintIndex].B;
+					Cards.Add(Card);
+				}
 			}
 		}
 	}

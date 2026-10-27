@@ -291,8 +291,7 @@ bool FMageArenaCrowdStableBase::RunTest(const FString& Parameters)
 	{
 		const ArenaCrowd::FCard& A = Base[Index];
 		const ArenaCrowd::FCard& B = Full[Index];
-		const bool bSame = A.Variant == B.Variant && A.Segment == B.Segment && A.Tier == B.Tier && A.Transform.Equals(B.Transform, 1.0e-6)
-		    && FMemory::Memcmp(A.Tint, B.Tint, sizeof(A.Tint)) == 0 && FMemory::Memcmp(A.Rect, B.Rect, sizeof(A.Rect)) == 0;
+		const bool bSame = A.Variant == B.Variant && A.Segment == B.Segment && A.Tier == B.Tier && A.Transform.Equals(B.Transform, 1.0e-6) && FMemory::Memcmp(A.Tint, B.Tint, sizeof(A.Tint)) == 0 && FMemory::Memcmp(A.Rect, B.Rect, sizeof(A.Rect)) == 0;
 		Moved += bSame ? 0 : 1;
 	}
 	TestEqual(TEXT("the first 436 cards keep position, variant, rect and tint"), Moved, 0);
