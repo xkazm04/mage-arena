@@ -8,8 +8,8 @@
 # -Styles runs a subset (a smoke run; the art page is only written from a full four-style run). -ExtraArgs is appended
 # to every editor's command line (the T45 negative proofs use it). -Seed is the duel's seed (-MageArenaStylePickSeed,
 # default 1). A seed other than 1 writes to runs\T16-seed<n> and art\style-pick\seed<n>, so the committed seed-1 stills
-# stay untouched; seed 2 is the duel Brennic loses, so his Death (a `down` event of his) is a candidate for the stills.
-param([string[]]$Styles = @("greybox", "13", "25", "30"), [string]$ExtraArgs = "", [int]$TimeoutMinutes = 20, [int]$Seed = 1)
+# stay untouched; -SkipRun re-reads the driver output already in runs\T16 (no editor) to redo the checks, MP4s and stills; seed 2 is the duel Brennic loses, so his Death (his `death` event) is a candidate for the stills.
+param([string[]]$Styles = @("greybox", "13", "25", "30"), [string]$ExtraArgs = "", [int]$TimeoutMinutes = 20, [int]$Seed = 1, [switch]$SkipRun)
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -17,6 +17,8 @@ $VrDir = (Resolve-Path "$ScriptDir\..").Path
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
 if ($Seed -lt 1) { Write-Host "capture-style-pick: FAIL -Seed must be at least 1"; exit 1 }
 $RunsDir = Join-Path $VrDir $(if ($Seed -eq 1) { "..\..\runs\T16" } else { "..\..\runs\T16-seed$Seed" })
+# The driver writes shots-<style>/ and events-<style>.jsonl to runs\T16 whatever the seed; logs, MP4s and stills go to $RunsDir.
+$DriverDir = Join-Path $VrDir "..\..\runs\T16"
 $OutputShotsDir = Join-Path $RunsDir "shots"
 $AllStyles = @("greybox", "13", "25", "30")
 # The four stills aim at the events a quarter, half and three quarters into the log, and at its last event (the duel's
@@ -35,6 +37,7 @@ $RivalBarMinPixels = 60
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
 if (-not (Test-Path $RunsDir)) { New-Item -ItemType Directory -Path $RunsDir | Out-Null }
+if (-not (Test-Path $DriverDir)) { New-Item -ItemType Directory -Path $DriverDir | Out-Null }
 if (-not (Test-Path $OutputShotsDir)) { New-Item -ItemType Directory -Path $OutputShotsDir | Out-Null }
 
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @"
@@ -67,11 +70,11 @@ function Add-Failure([string]$Why) {
 	$script:Failures += $Why
 }
 
-foreach ($Style in $Styles) {
+foreach ($Style in $(if ($SkipRun) { @() } else { $Styles })) {
 	Write-Host "capture-style-pick: running style $Style"
-	$ShotsDir = Join-Path $RunsDir "shots-$Style"
+	$ShotsDir = Join-Path $DriverDir "shots-$Style"
 	if (Test-Path $ShotsDir) { Remove-Item -Recurse -Force $ShotsDir }
-	$EventsLog = Join-Path $RunsDir "events-$Style.jsonl"
+	$EventsLog = Join-Path $DriverDir "events-$Style.jsonl"
 	if (Test-Path $EventsLog) { Remove-Item -Force $EventsLog }
 	$LogPath = Join-Path $RunsDir "capture-$Style.log"
 	if (Test-Path $LogPath) { Remove-Item -Force $LogPath }
@@ -115,7 +118,7 @@ foreach ($Style in $Styles) {
 # Per style: the manifest is the list of frames. Frames are checked against it, never against a hard-coded count.
 $Manifests = @{}
 foreach ($Style in $Styles) {
-	$ManifestPath = Join-Path $RunsDir "shots-$Style\manifest.json"
+	$ManifestPath = Join-Path $DriverDir "shots-$Style\manifest.json"
 	if (-not (Test-Path $ManifestPath)) { Add-Failure "missing $ManifestPath"; continue }
 	$Manifest = Get-Content -Raw -Path $ManifestPath | ConvertFrom-Json
 	$Shots = @($Manifest.shots)
@@ -138,7 +141,7 @@ foreach ($Style in $Styles) {
 $FirstHash = $null
 $FirstStyle = $null
 foreach ($Style in $Styles) {
-	$EventsLog = Join-Path $RunsDir "events-$Style.jsonl"
+	$EventsLog = Join-Path $DriverDir "events-$Style.jsonl"
 	if (-not (Test-Path $EventsLog)) { Add-Failure "events-$Style.jsonl is missing"; continue }
 	if ((Get-Item $EventsLog).Length -eq 0) { Add-Failure "events-$Style.jsonl is empty"; continue }
 	$Hash = (Get-FileHash -Algorithm MD5 $EventsLog).Hash
@@ -151,7 +154,7 @@ foreach ($Style in $Styles) {
 $ErrorActionPreference = "Continue"
 foreach ($Style in $Styles) {
 	if (-not $Manifests.ContainsKey($Style)) { continue }
-	$FramesDir = Join-Path $RunsDir "shots-$Style\seq"
+	$FramesDir = Join-Path $DriverDir "shots-$Style\seq"
 	$Mp4Path = Join-Path $RunsDir "style-$Style.mp4"
 	if (Test-Path $Mp4Path) { Remove-Item -Force $Mp4Path }
 	Write-Host "capture-style-pick: encoding $Mp4Path"
@@ -160,7 +163,7 @@ foreach ($Style in $Styles) {
 	elseif (-not (Test-Path $Mp4Path) -or (Get-Item $Mp4Path).Length -eq 0) { Add-Failure "$Mp4Path is missing or empty" }
 
 	# The stills: the frame whose manifest sim tick is the event's tick, or the run fails.
-	$EventsLog = Join-Path $RunsDir "events-$Style.jsonl"
+	$EventsLog = Join-Path $DriverDir "events-$Style.jsonl"
 	if (-not (Test-Path $EventsLog) -or (Get-Item $EventsLog).Length -eq 0) { continue }
 	$Events = @(Get-Content $EventsLog | ConvertFrom-Json)
 	if ($Events.Count -lt $StillQuarters.Count + 1) { Add-Failure "$Style logged $($Events.Count) events, the stills need $($StillQuarters.Count + 1)"; continue }
@@ -168,7 +171,10 @@ foreach ($Style in $Styles) {
 	$RivalEvents = @(0..($Events.Count - 1) | Where-Object {
 			($Events[$_].kind -eq "cast" -and [int]$Events[$_].actorId -eq $RivalActorId) -or
 			($Events[$_].kind -eq "hit" -and [int]$Events[$_].targetId -eq $RivalActorId) -or
-			($Events[$_].kind -eq "down" -and [int]$Events[$_].actorId -eq $RivalActorId) })
+			($Events[$_].kind -eq "death" -and [int]$Events[$_].actorId -eq $RivalActorId) })
+	# A seed where Brennic dies: the last still aims at his death (the kernel logs it as kind "death", actor 2).
+	$DeathIndex = @($RivalEvents | Where-Object { $Events[$_].kind -eq "death" }) | Select-Object -First 1
+	if ($null -ne $DeathIndex) { $Aims[$Aims.Count - 1] = [int]$DeathIndex }
 	$InView = @{}
 	$Used = @{}
 	$Oracle = $Manifests["greybox"]
