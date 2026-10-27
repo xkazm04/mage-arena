@@ -2538,8 +2538,14 @@ void ASessionPresentation::FlushGlow()
 			{
 				GlowTints.Base = SpellVfx::GlowMaterial();
 			}
+			UMaterialInstanceDynamic* Tint = Greybox::SharedTint(GlowTints, this, Frame.Key);
+			// T73: Fire's layer (bolts, embers, splash, star, ring and the wall) draws its darkest tones in the second rim hue.
+			if (const TOptional<FLinearColor> Rim = SpellVfx::GlowRimFor(ActiveElementPalette(), Frame.Key); Rim.IsSet() && SpellVfx::FireRimEnabled())
+			{
+				SpellVfx::ApplyGlowRim(Tint, Rim);
+			}
 			// T63: a card per puff (the engine plane), its flipbook cell in the custom data.
-			Layer = Greybox::MakeInstances(this, Greybox::LoadShape(TEXT("Plane")), Greybox::SharedTint(GlowTints, this, Frame.Key));
+			Layer = Greybox::MakeInstances(this, Greybox::LoadShape(TEXT("Plane")), Tint);
 			if (!Layer)
 			{
 				continue;

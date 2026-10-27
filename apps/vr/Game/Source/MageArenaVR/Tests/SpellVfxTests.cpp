@@ -868,6 +868,12 @@ float T73SrgbHue(const FLinearColor& Colour)
 	return Hue * 60.f;
 }
 
+// A colour times a shade, as the material's emissive (RGB only: the alpha is the opacity's, not the shade's).
+FLinearColor T73Shaded(const FLinearColor& Colour, float Shade)
+{
+	return FLinearColor(Colour.R * Shade, Colour.G * Shade, Colour.B * Shade, Colour.A);
+}
+
 float T73Luminance(const FLinearColor& Colour)
 {
 	return 0.2126f * Colour.R + 0.7152f * Colour.G + 0.0722f * Colour.B;
@@ -944,10 +950,11 @@ bool FMageArenaSpellVfxRimTerm::RunTest(const FString& Parameters)
 	return bPass;
 }
 
-// T73. The rim hue sits in its band in every palette a run may draw with: a second hue (not Fire's own chroma), deeper toward
-// red but inside Fire's red-orange family (at most half way to the leave red), never within BrazierFire::ThreatChromaMargin of
-// the unblockable's rim red or of another threat colour, never brighter than Fire in any channel, and darker in luminance at
-// the rim's shade, which is the edge contrast it buys. The body and the heart keep Fire's colour.
+// T73. The rim hue sits in its band in every palette a run may draw with: a second hue (at least 0.05 off Fire's chroma;
+// style 13, whose Fire sits nearest the leave red, has the least room), deeper toward red but inside Fire's red-orange family
+// (at most half way to the leave red), never within BrazierFire::ThreatChromaMargin of the unblockable's rim red or of another
+// threat colour, never brighter than Fire in any channel, and darker in luminance at the rim's shade, which is the edge
+// contrast it buys. The body and the heart keep Fire's colour.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFireRimBand, "MageArena.SpellVfx.FireRimHueInItsBand",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -963,7 +970,7 @@ bool FMageArenaSpellVfxFireRimBand::RunTest(const FString& Parameters)
 		const float FromFire = T73ChromaDistance(Rim, Fire);
 		const float FromLeave = T73ChromaDistance(Rim, Palette.UnblockableRim);
 		const float FireToLeave = T73ChromaDistance(Fire, Palette.UnblockableRim);
-		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim is a second hue, not Fire's chroma (%.3f from it, at least 0.08)"), *Name, FromFire), FromFire >= 0.08f);
+		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim is a second hue, not Fire's chroma (%.3f from it, at least 0.05)"), *Name, FromFire), FromFire >= 0.05f);
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim stays in Fire's family, at most half way to the leave red (%.3f of %.3f)"), *Name, FromFire, FireToLeave),
 		    FromFire <= FireToLeave * SpellVfx::FireRimMostShift + 1.0e-4f);
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim stands off the unblockable's rim red by chroma (%.3f)"), *Name, FromLeave), FromLeave >= BrazierFire::ThreatChromaMargin);
@@ -986,15 +993,15 @@ bool FMageArenaSpellVfxFireRimBand::RunTest(const FString& Parameters)
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the rim is never brighter than Fire in any channel (%s vs %s)"), *Name, *Rim.ToString(), *Fire.ToString()),
 		    Rim.R <= Fire.R + 1.0e-6f && Rim.G <= Fire.G + 1.0e-6f && Rim.B <= Fire.B + 1.0e-6f && FMath::IsNearlyEqual(Rim.GetMax(), Fire.GetMax(), 1.0e-5f));
 		const FLinearColor Edge = SpellVfx::GlowEmissive(Fire, Rim, 1.f, SpellVfx::FireRimShadeBottom);
-		bPass &= TestTrue(*FString::Printf(TEXT("%s: at the rim's shade the edge is the rim colour"), *Name), Edge.Equals(Rim * SpellVfx::FireRimShadeBottom, 1.0e-5f));
+		bPass &= TestTrue(*FString::Printf(TEXT("%s: at the rim's shade the edge is the rim colour"), *Name), Edge.Equals(T73Shaded(Rim, SpellVfx::FireRimShadeBottom), 1.0e-5f));
 		const float EdgeLuminance = T73Luminance(Edge);
-		const float T67Luminance = T73Luminance(Fire * SpellVfx::FireRimShadeBottom);
+		const float T67Luminance = T73Luminance(T73Shaded(Fire, SpellVfx::FireRimShadeBottom));
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: the edge is darker by hue at T67's shade (luminance %.4f vs T67 %.4f, at most 0.92 of it)"), *Name, EdgeLuminance, T67Luminance),
 		    EdgeLuminance <= T67Luminance * 0.92f);
 		for (const float Shade : {SpellVfx::FireRimShadeTop, 0.68f, 1.f})
 		{
 			const FLinearColor Body = SpellVfx::GlowEmissive(Fire, Rim, 1.f, Shade);
-			bPass &= TestTrue(*FString::Printf(TEXT("%s: at shade %.2f the body keeps Fire's colour"), *Name, Shade), Body.Equals(Fire * Shade, 1.0e-5f));
+			bPass &= TestTrue(*FString::Printf(TEXT("%s: at shade %.2f the body keeps Fire's colour"), *Name, Shade), Body.Equals(T73Shaded(Fire, Shade), 1.0e-5f));
 		}
 		const TOptional<FLinearColor> Drawn = SpellVfx::GlowRimFor(Palette, Fire);
 		bPass &= TestTrue(*FString::Printf(TEXT("%s: Fire's layer draws the rim"), *Name), Drawn.IsSet() && Drawn.GetValue().Equals(Rim));

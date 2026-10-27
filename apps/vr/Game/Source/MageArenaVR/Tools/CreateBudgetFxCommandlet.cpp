@@ -17,10 +17,13 @@
 #include "Materials/MaterialExpressionAdd.h"
 #include "Materials/MaterialExpressionAppendVector.h"
 #include "Materials/MaterialExpressionComponentMask.h"
+#include "Materials/MaterialExpressionDivide.h"
+#include "Materials/MaterialExpressionLinearInterpolate.h"
 #include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionPerInstanceCustomData.h"
 #include "Materials/MaterialExpressionSaturate.h"
 #include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionSubtract.h"
 #include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "Materials/MaterialExpressionVectorParameter.h"
@@ -311,6 +314,9 @@ UTexture2D* ImportSpellFlipbook()
  * Opacity = saturate(A x GlowGain): every pixel is the glow colour or a darker tone of the same chroma, never brighter
  * than its own threat and never another hue. The far-hemisphere falloff of T58 lives on as the SoftGlow cell. Every
  * colour stays one material instance and one instanced draw. Returns false when the import or the save fails.
+ *
+ * T73: one exception to "the same chroma": Fire's tint sets RimMix 1 and RimColor (SpellVfx::FireRimColour, a deeper
+ * red-orange of Fire's family, never brighter than Fire), and its darkest tones take that hue (SpellVfx::GlowEmissive).
  */
 bool CreateSpellGlowMaterial(bool bForce)
 {
@@ -399,9 +405,52 @@ bool CreateSpellGlowMaterial(bool bForce)
 	Sample->SamplerType = SAMPLERTYPE_LinearColor;
 	Sample->Coordinates.Expression = Cell;
 	Add(Sample, -500, 100);
+	// T73: the rim term. Weight = RimMix x saturate((RimShadeTop - shade) / (RimShadeTop - RimShadeBottom)), and the hue is
+	// lerp(Color, RimColor, Weight): a cell's darkest tones take RimColor. RimMix is 0 unless the presentation sets it (only
+	// Fire's tint, SpellVfx::ApplyGlowRim), and lerp(a, b, 0) is a, so every other tint draws Color x shade as before.
+	UMaterialExpressionVectorParameter* RimColour = NewObject<UMaterialExpressionVectorParameter>(Material);
+	RimColour->ParameterName = TEXT("RimColor");
+	RimColour->DefaultValue = FLinearColor::White;
+	Add(RimColour, -400, -450);
+	UMaterialExpressionScalarParameter* RimMix = NewObject<UMaterialExpressionScalarParameter>(Material);
+	RimMix->ParameterName = TEXT("RimMix");
+	RimMix->DefaultValue = 0.f;
+	Add(RimMix, -400, -600);
+	UMaterialExpressionScalarParameter* RimTop = NewObject<UMaterialExpressionScalarParameter>(Material);
+	RimTop->ParameterName = TEXT("RimShadeTop");
+	RimTop->DefaultValue = SpellVfx::FireRimShadeTop;
+	Add(RimTop, -650, -600);
+	UMaterialExpressionScalarParameter* RimBottom = NewObject<UMaterialExpressionScalarParameter>(Material);
+	RimBottom->ParameterName = TEXT("RimShadeBottom");
+	RimBottom->DefaultValue = SpellVfx::FireRimShadeBottom;
+	Add(RimBottom, -650, -500);
 	// TextureSample outputs: 0 RGB, 1 R, 2 G, 3 B, 4 A.
+	UMaterialExpressionSubtract* RimDepth = NewObject<UMaterialExpressionSubtract>(Material);
+	RimDepth->A.Expression = RimTop;
+	RimDepth->B.Connect(1, Sample);
+	Add(RimDepth, -500, -650);
+	UMaterialExpressionSubtract* RimBand = NewObject<UMaterialExpressionSubtract>(Material);
+	RimBand->A.Expression = RimTop;
+	RimBand->B.Expression = RimBottom;
+	Add(RimBand, -500, -550);
+	UMaterialExpressionDivide* RimRatio = NewObject<UMaterialExpressionDivide>(Material);
+	RimRatio->A.Expression = RimDepth;
+	RimRatio->B.Expression = RimBand;
+	Add(RimRatio, -380, -650);
+	UMaterialExpressionSaturate* RimRamp = NewObject<UMaterialExpressionSaturate>(Material);
+	RimRamp->Input.Expression = RimRatio;
+	Add(RimRamp, -300, -650);
+	UMaterialExpressionMultiply* RimWeight = NewObject<UMaterialExpressionMultiply>(Material);
+	RimWeight->A.Expression = RimRamp;
+	RimWeight->B.Expression = RimMix;
+	Add(RimWeight, -220, -600);
+	UMaterialExpressionLinearInterpolate* Hue = NewObject<UMaterialExpressionLinearInterpolate>(Material);
+	Hue->A.Expression = Colour;
+	Hue->B.Expression = RimColour;
+	Hue->Alpha.Expression = RimWeight;
+	Add(Hue, -200, -350);
 	UMaterialExpressionMultiply* Shaded = NewObject<UMaterialExpressionMultiply>(Material);
-	Shaded->A.Expression = Colour;
+	Shaded->A.Expression = Hue;
 	Shaded->B.Connect(1, Sample);
 	Add(Shaded, -250, -200);
 	UMaterialExpressionMultiply* Dense = NewObject<UMaterialExpressionMultiply>(Material);
@@ -428,8 +477,8 @@ bool CreateSpellGlowMaterial(bool bForce)
 		UE_LOG(LogMageArena, Error, TEXT("MAGEVR_BUDGET_FX fail %s save %s"), *Name, *PackageFile);
 		return false;
 	}
-	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=translucent shading=unlit twosided=1 instanced=1 flipbook=%s customdata=%d -> %s"), *Name,
-	    *Flipbook->GetName(), SpellVfx::CardCustomFloats, *PackageFile);
+	UE_LOG(LogMageArena, Display, TEXT("MAGEVR_BUDGET_FX %s blend=translucent shading=unlit twosided=1 instanced=1 flipbook=%s customdata=%d rim=RimColor,RimMix,RimShadeTop=%.2f,RimShadeBottom=%.2f -> %s"), *Name,
+	    *Flipbook->GetName(), SpellVfx::CardCustomFloats, SpellVfx::FireRimShadeTop, SpellVfx::FireRimShadeBottom, *PackageFile);
 	return true;
 }
 
