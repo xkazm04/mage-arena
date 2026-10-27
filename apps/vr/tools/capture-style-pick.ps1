@@ -16,14 +16,47 @@ $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
 $RunsDir = Join-Path $VrDir "..\..\runs\T16"
 $OutputShotsDir = Join-Path $RunsDir "shots"
 $AllStyles = @("greybox", "13", "25", "30")
-# The four stills are cut at the events a quarter, half and three quarters into the log, and at its last event (the
-# duel's end), so they span the whole duel. The logs are identical across styles, so the ticks are too.
+# The four stills aim at the events a quarter, half and three quarters into the log, and at its last event (the duel's
+# end), so they span the whole duel. Each aim snaps to the nearest Brennic event (his cast, or a hit on him) whose frame
+# shows him: the camera follows the duel, not the rival, so most events have him out of frame (L3, G5). "Shows him" is
+# his nameplate track, a flat 93,94,112 bar over his head (drawn unlit, so fog does not tint it), reaching a pixel count
+# in the arena band of the frame; out of view the band holds 0-25 such pixels, in view 70-680. The other styles grade
+# that colour (and put the same colour on a pillar), so the test reads the greybox frames. The camera and the event log
+# are identical across styles (the in-view counts agree frame for frame), so the ticks carry over. Without greybox in
+# -Styles the aims snap to Brennic events unchecked. The capture's driver starts seed 1 (the player loses, DF-011), so
+# his death clip is not in this duel; that needs a seed knob in StylePickCapture.cpp.
 $StillQuarters = @(1, 2, 3, 4)
+$RivalActorId = 2
+$RivalBarMinPixels = 60
 
 $Editor = "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 
 if (-not (Test-Path $RunsDir)) { New-Item -ItemType Directory -Path $RunsDir | Out-Null }
 if (-not (Test-Path $OutputShotsDir)) { New-Item -ItemType Directory -Path $OutputShotsDir | Out-Null }
+
+Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @"
+using System.Drawing;
+using System.Drawing.Imaging;
+public static class RivalBar {
+	public static int Count(string path) {
+		int n = 0;
+		using (var bmp = new Bitmap(path)) {
+			var rect = new Rectangle(0, 150, bmp.Width, 630);
+			var data = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
+			var row = new byte[data.Stride];
+			for (int y = 0; y < rect.Height; y++) {
+				System.Runtime.InteropServices.Marshal.Copy(new System.IntPtr(data.Scan0.ToInt64() + (long)y * data.Stride), row, 0, data.Stride);
+				for (int x = 0; x < rect.Width; x++) {
+					int b = row[x * 3], g = row[x * 3 + 1], r = row[x * 3 + 2];
+					if (System.Math.Abs(r - 93) <= 4 && System.Math.Abs(g - 94) <= 4 && System.Math.Abs(b - 112) <= 4) n++;
+				}
+			}
+			bmp.UnlockBits(data);
+		}
+		return n;
+	}
+}
+"@
 
 $Failures = @()
 function Add-Failure([string]$Why) {
@@ -127,15 +160,34 @@ foreach ($Style in $Styles) {
 	if (-not (Test-Path $EventsLog) -or (Get-Item $EventsLog).Length -eq 0) { continue }
 	$Events = @(Get-Content $EventsLog | ConvertFrom-Json)
 	if ($Events.Count -lt $StillQuarters.Count + 1) { Add-Failure "$Style logged $($Events.Count) events, the stills need $($StillQuarters.Count + 1)"; continue }
-	$StillEvents = @($StillQuarters | ForEach-Object { [int][math]::Floor(($Events.Count - 1) * $_ / 4) })
-	for ($i = 0; $i -lt $StillEvents.Count; $i++) {
-		$Tick = [int]$Events[$StillEvents[$i]].tick
-		$Frame = @($Manifests[$Style].shots | Where-Object { [int]$_.tick -eq $Tick }) | Select-Object -First 1
+	$Aims = @($StillQuarters | ForEach-Object { [int][math]::Floor(($Events.Count - 1) * $_ / 4) })
+	$RivalEvents = @(0..($Events.Count - 1) | Where-Object {
+			($Events[$_].kind -eq "cast" -and [int]$Events[$_].actorId -eq $RivalActorId) -or
+			($Events[$_].kind -eq "hit" -and [int]$Events[$_].targetId -eq $RivalActorId) })
+	$InView = @{}
+	$Used = @{}
+	$Oracle = $Manifests["greybox"]
+	for ($i = 0; $i -lt $Aims.Count; $i++) {
+		$Aim = $Aims[$i]
+		$Chosen = $null
+		foreach ($Index in @($RivalEvents | Sort-Object { [math]::Abs($_ - $Aim) })) {
+			$Tick = [int]$Events[$Index].tick
+			if ($Used.ContainsKey($Tick)) { continue }
+			$Frame = @($Manifests[$Style].shots | Where-Object { [int]$_.tick -eq $Tick }) | Select-Object -First 1
+			if (-not $Frame) { continue }
+			if ($Oracle -and -not $InView.ContainsKey($Index)) {
+				$OracleFrame = @($Oracle.shots | Where-Object { [int]$_.tick -eq $Tick }) | Select-Object -First 1
+				$InView[$Index] = if ($OracleFrame) { [RivalBar]::Count($OracleFrame.path) } else { 0 }
+			}
+			if (-not $Oracle -or $InView[$Index] -ge $RivalBarMinPixels) { $Chosen = $Index; $Used[$Tick] = $true; break }
+		}
 		$DestPath = Join-Path $OutputShotsDir ("{0}-0{1}.png" -f $Style, ($i + 1))
 		if (Test-Path $DestPath) { Remove-Item -Force $DestPath }
-		if (-not $Frame) { Add-Failure "$Style has no frame at event tick $Tick (event $($StillEvents[$i]))"; continue }
+		if ($null -eq $Chosen) { Add-Failure "$Style has no Brennic event with him in frame for still $($i + 1) (aim event $Aim)"; continue }
+		$Tick = [int]$Events[$Chosen].tick
+		$Frame = @($Manifests[$Style].shots | Where-Object { [int]$_.tick -eq $Tick }) | Select-Object -First 1
 		Copy-Item $Frame.path $DestPath
-		Write-Host "capture-style-pick: still $DestPath = $($Frame.name) tick=$Tick event=$($StillEvents[$i]) kind=$($Events[$StillEvents[$i]].kind)"
+		Write-Host "capture-style-pick: still $DestPath = $($Frame.name) tick=$Tick event=$Chosen kind=$($Events[$Chosen].kind) rivalbar=$(if ($Oracle) { $InView[$Chosen] } else { "unchecked" }) aim=$Aim"
 	}
 }
 
