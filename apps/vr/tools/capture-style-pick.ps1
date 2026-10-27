@@ -6,14 +6,17 @@
 # code is not the gate (T45).
 # The editors run one at a time (CLAUDE.md: one Unreal process at a time; the 60 fps cap needs the machine).
 # -Styles runs a subset (a smoke run; the art page is only written from a full four-style run). -ExtraArgs is appended
-# to every editor's command line (the T45 negative proofs use it).
-param([string[]]$Styles = @("greybox", "13", "25", "30"), [string]$ExtraArgs = "", [int]$TimeoutMinutes = 20)
+# to every editor's command line (the T45 negative proofs use it). -Seed is the duel's seed (-MageArenaStylePickSeed,
+# default 1). A seed other than 1 writes to runs\T16-seed<n> and art\style-pick\seed<n>, so the committed seed-1 stills
+# stay untouched; seed 2 is the duel Brennic loses, so his Death (a `down` event of his) is a candidate for the stills.
+param([string[]]$Styles = @("greybox", "13", "25", "30"), [string]$ExtraArgs = "", [int]$TimeoutMinutes = 20, [int]$Seed = 1)
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $VrDir = (Resolve-Path "$ScriptDir\..").Path
 $Project = Join-Path $VrDir "Game\MageArenaVR.uproject"
-$RunsDir = Join-Path $VrDir "..\..\runs\T16"
+if ($Seed -lt 1) { Write-Host "capture-style-pick: FAIL -Seed must be at least 1"; exit 1 }
+$RunsDir = Join-Path $VrDir $(if ($Seed -eq 1) { "..\..\runs\T16" } else { "..\..\runs\T16-seed$Seed" })
 $OutputShotsDir = Join-Path $RunsDir "shots"
 $AllStyles = @("greybox", "13", "25", "30")
 # The four stills aim at the events a quarter, half and three quarters into the log, and at its last event (the duel's
@@ -23,8 +26,8 @@ $AllStyles = @("greybox", "13", "25", "30")
 # in the arena band of the frame; out of view the band holds 0-25 such pixels, in view 70-680. The other styles grade
 # that colour (and put the same colour on a pillar), so the test reads the greybox frames. The camera and the event log
 # are identical across styles (the in-view counts agree frame for frame), so the ticks carry over. Without greybox in
-# -Styles the aims snap to Brennic events unchecked. The capture's driver starts seed 1 (the player loses, DF-011), so
-# his death clip is not in this duel; that needs a seed knob in StylePickCapture.cpp.
+# -Styles the aims snap to Brennic events unchecked. Seed 1 (the default, the player loses, DF-011) has no Brennic
+# death; -Seed 2 does, and the nearest-event snap may land on it.
 $StillQuarters = @(1, 2, 3, 4)
 $RivalActorId = 2
 $RivalBarMinPixels = 60
@@ -87,6 +90,7 @@ foreach ($Style in $Styles) {
 		"-abslog=$LogPath",
 		"-MageArenaStylePickCapture",
 		"-MageArenaStyle=$Style",
+		"-MageArenaStylePickSeed=$Seed",
 		"-usefixedtimestep",
 		"-fps=60",
 		"-ExecCmds=`"DisableAllScreenMessages; t.MaxFPS 60; sg.PostProcessQuality 3`""
@@ -163,7 +167,8 @@ foreach ($Style in $Styles) {
 	$Aims = @($StillQuarters | ForEach-Object { [int][math]::Floor(($Events.Count - 1) * $_ / 4) })
 	$RivalEvents = @(0..($Events.Count - 1) | Where-Object {
 			($Events[$_].kind -eq "cast" -and [int]$Events[$_].actorId -eq $RivalActorId) -or
-			($Events[$_].kind -eq "hit" -and [int]$Events[$_].targetId -eq $RivalActorId) })
+			($Events[$_].kind -eq "hit" -and [int]$Events[$_].targetId -eq $RivalActorId) -or
+			($Events[$_].kind -eq "down" -and [int]$Events[$_].actorId -eq $RivalActorId) })
 	$InView = @{}
 	$Used = @{}
 	$Oracle = $Manifests["greybox"]
@@ -201,8 +206,8 @@ if (@(Compare-Object $Styles $AllStyles).Count -ne 0) {
 	exit 0
 }
 
-$ArtDir = Join-Path $VrDir "art\style-pick"
-if (-not (Test-Path $ArtDir)) { New-Item -ItemType Directory -Path $ArtDir | Out-Null }
+$ArtDir = Join-Path $VrDir $(if ($Seed -eq 1) { "art\style-pick" } else { "art\style-pick\seed$Seed" })
+if (-not (Test-Path $ArtDir)) { New-Item -ItemType Directory -Path $ArtDir -Force | Out-Null }
 foreach ($Style in $Styles) {
 	Copy-Item "$RunsDir\style-$Style.mp4" "$ArtDir\" -Force
 	for ($i = 1; $i -le 4; $i++) {
