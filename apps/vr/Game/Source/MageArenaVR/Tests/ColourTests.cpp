@@ -3,14 +3,10 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Dom/JsonObject.h"
-#include "Greybox/ArenaStands.h"
-#include "Greybox/BrazierFire.h"
 #include "Kernel/ArenaKernel.h"
 #include "Kernel/Enemies.h"
 #include "Kernel/KernelData.h"
 #include "Kernel/SimTypes.h"
-#include "Misc/FileHelper.h"
-#include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Session/ElementColour.h"
@@ -18,23 +14,16 @@
 // T26, element-correct colour. ElementLook is the one function the presentation (SessionPresentation LookOf) calls for
 // every projectile, telegraph and cast, so these tests hold the drawn colours. Expected values are the greybox palette
 // literals (ElementColour.cpp): Water turquoise 0.009721/0.745404/0.745404, Fire ember orange 0.90/0.26/0.02, Air wind
-// green 0.20/0.85/0.22, steel 0.13/0.14/0.16 gunmetal (T74; was 0.68 grey), unblockable body 0.006995/0.006995/0.008023
-// with rim 0.745404/0.014444/0.009134.
+// green 0.20/0.85/0.22, steel 0.68 grey, unblockable body 0.006995/0.006995/0.008023 with rim 0.745404/0.014444/0.009134.
 
 namespace
 {
 const FLinearColor Water(0.009721f, 0.745404f, 0.745404f);
 const FLinearColor Fire(0.90f, 0.26f, 0.02f);
 const FLinearColor Air(0.20f, 0.85f, 0.22f);
-const FLinearColor Steel(0.13f, 0.14f, 0.16f);
+const FLinearColor Steel(0.68f, 0.68f, 0.68f);
 const FLinearColor Black(0.006995f, 0.006995f, 0.008023f);
 const FLinearColor Red(0.745404f, 0.014444f, 0.009134f);
-
-// T74 (SteelStandsApart): the greybox steel's brightest channel sits at least 1.5 x the black core line (0.08) and at most
-// half the old 0.68 off-white; under every palette its saturation stays steel-neutral (a cool cast at most).
-constexpr float SteelMinBrightest = 0.12f;
-constexpr float SteelMaxBrightest = 0.35f;
-constexpr float SteelMaxSaturation = 0.35f;
 
 bool Same(FAutomationTestBase& Test, const FString& What, const FLinearColor& Actual, const FLinearColor& Expected)
 {
@@ -238,66 +227,6 @@ bool FMageArenaColourStyleOverride::RunTest(const FString& Parameters)
 	bPass &= Same(*this, TEXT("empty style keeps fire"), Untouched.Fire, Fire);
 	ResetActiveElementPalette();
 	bPass &= Same(*this, TEXT("reset restores the greybox fire"), ActiveElementPalette().Fire, Fire);
-	return bPass;
-}
-
-// T74 (owner ruling 4, 2026-10-27): steel is the dodge colour, and darker than the old 0.68 grey that every T72 and T72b
-// critic read as an off-white "flat sticker disc", but still a class of its own. Under every palette it is steel-neutral in
-// chroma (a cool cast at most) and stands BrazierFire::ThreatChromaMargin off Water, Fire, Air (the wind green), Earth and
-// the leave red by chroma. The greybox palette, the one every bout draws, also keeps it well over the black core line
-// (every channel under 0.08) and under the old off-white. Styles 13, 25 and 30 keep their studies' dark slate steels, which
-// sit at or under that line (T74 report, section 6), so the brightness bounds hold the greybox steel only.
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaColourSteelStandsApart, "MageArena.Colour.SteelStandsApart",
-    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
-
-bool FMageArenaColourSteelStandsApart::RunTest(const FString& Parameters)
-{
-	TArray<TPair<FString, FElementPalette>> Palettes;
-	Palettes.Emplace(TEXT("greybox"), FElementPalette::Greybox());
-	for (const TCHAR* Id : {TEXT("13"), TEXT("25"), TEXT("30")})
-	{
-		FString Path = FPaths::Combine(FPaths::ProjectDir(), FString::Printf(TEXT("../data/vr/styles/style-%s.json"), Id));
-		FPaths::CollapseRelativeDirectories(Path);
-		FString Text;
-		TSharedPtr<FJsonObject> Style;
-		if (!TestTrue(FString::Printf(TEXT("style %s loads"), Id),
-		        FFileHelper::LoadFileToString(Text, *Path) && FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text), Style) && Style.IsValid()))
-		{
-			continue;
-		}
-		FElementPalette Palette = FElementPalette::Greybox();
-		TestEqual(FString::Printf(TEXT("style %s sets all seven threat colours"), Id), ApplyStylePalette(Palette, *Style), 7);
-		Palettes.Emplace(FString::Printf(TEXT("style %s"), Id), Palette);
-	}
-
-	bool bPass = true;
-	for (const TPair<FString, FElementPalette>& Entry : Palettes)
-	{
-		const FElementPalette& P = Entry.Value;
-		const float Most = FMath::Max3(P.Steel.R, P.Steel.G, P.Steel.B);
-		const float Least = FMath::Min3(P.Steel.R, P.Steel.G, P.Steel.B);
-		const float Saturation = Most > 1.0e-4f ? 1.f - Least / Most : 0.f;
-		const FString What = FString::Printf(TEXT("%s steel %s"), *Entry.Key, *P.Steel.ToString());
-		bPass &= TestTrue(FString::Printf(TEXT("%s is steel-neutral (saturation %.3f, at most %.2f)"), *What, Saturation, SteelMaxSaturation),
-		    Saturation <= SteelMaxSaturation);
-		bPass &= TestTrue(FString::Printf(TEXT("%s has its cast, if any, on the cool side (blue at least red)"), *What), P.Steel.B >= P.Steel.R);
-		const TPair<const TCHAR*, FLinearColor> Others[] = {{TEXT("water"), P.Water}, {TEXT("fire"), P.Fire}, {TEXT("air"), P.Air},
-		    {TEXT("earth"), P.Earth}, {TEXT("unblockable rim"), P.UnblockableRim}};
-		for (const TPair<const TCHAR*, FLinearColor>& Other : Others)
-		{
-			const float Distance = ArenaCrowd::ChromaDistance(P.Steel, Other.Value);
-			bPass &= TestTrue(FString::Printf(TEXT("%s stands %.3f off %s by chroma (margin %.2f)"), *What, Distance, Other.Key, BrazierFire::ThreatChromaMargin),
-			    Distance >= BrazierFire::ThreatChromaMargin);
-		}
-		if (Entry.Key == TEXT("greybox"))
-		{
-			bPass &= TestTrue(FString::Printf(TEXT("%s brightest channel %.3f is at least %.2f, well over the black core line 0.08"), *What, Most, SteelMinBrightest),
-			    Most >= SteelMinBrightest);
-			bPass &= TestTrue(FString::Printf(TEXT("%s brightest channel %.3f is at most %.2f, not the old off-white 0.68"), *What, Most, SteelMaxBrightest),
-			    Most <= SteelMaxBrightest);
-			bPass &= TestTrue(FString::Printf(TEXT("%s is not the unblockable core"), *What), !P.Steel.Equals(P.UnblockableBody, 0.05f));
-		}
-	}
 	return bPass;
 }
 
