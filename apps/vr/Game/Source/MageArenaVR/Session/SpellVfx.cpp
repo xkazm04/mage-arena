@@ -403,6 +403,30 @@ FLinearColor SpellVfx::RimPulseColour(const FLinearColor& Rim, float Pulse)
 	return FLinearColor(Rim.R * Gain, Rim.G * Gain, Rim.B * Gain, Rim.A);
 }
 
+FLinearColor SpellVfx::GlowEmissive(const FLinearColor& Colour, const FLinearColor& Rim, float RimMix, float Shade)
+{
+	return FLinearColor(Colour.R * Shade, Colour.G * Shade, Colour.B * Shade, Colour.A);
+}
+
+FLinearColor SpellVfx::FireRimColour(const FElementPalette& Palette)
+{
+	return Palette.Fire;
+}
+
+TOptional<FLinearColor> SpellVfx::GlowRimFor(const FElementPalette& Palette, const FLinearColor& Colour)
+{
+	return {};
+}
+
+bool SpellVfx::FireRimEnabled()
+{
+	return false;
+}
+
+void SpellVfx::ApplyGlowRim(UMaterialInstanceDynamic* Tint, const TOptional<FLinearColor>& Rim)
+{
+}
+
 UMaterialInterface* SpellVfx::GlowMaterial()
 {
 	static bool bWarned = false;

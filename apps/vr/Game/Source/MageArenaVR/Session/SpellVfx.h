@@ -159,6 +159,31 @@ inline constexpr float RimPulseSteps = 4.f;
 inline constexpr float RimPulseGain = 1.34f;
 inline constexpr double RimPulseCm = 14.0;
 
+/**
+ * T73 (owner ruling 3, 2026-10-27): Fire's second rim hue, a material rim term in M_SpellGlow. A layer's darkest tones
+ * (shade at or under FireRimShadeTop, all of it at FireRimShadeBottom: T67's outline) take RimColor instead of Color, by
+ * RimMix; the body and the heart keep Color. RimMix is 0 on every tint but Fire's, so every other layer and the braziers
+ * draw exactly as before. GlowEmissive is the material's term, so the tests hold what the GPU draws.
+ */
+MAGEARENAVR_API FLinearColor GlowEmissive(const FLinearColor& Colour, const FLinearColor& Rim, float RimMix, float Shade);
+/**
+ * Fire's rim colour in Palette: Fire's chroma moved along the line toward the unblockable rim red, stopped FireRimLeaveMargin
+ * short of that red's chroma and never more than FireRimMostShift of the way, at Fire's own brightest channel. Every channel
+ * is at most Fire's, so the rim is never brighter than the threat. A deeper red-orange, never the leave cue's red.
+ */
+MAGEARENAVR_API FLinearColor FireRimColour(const FElementPalette& Palette);
+/** The rim a glow layer of Colour draws: FireRimColour for Palette's Fire, unset for every other colour. */
+MAGEARENAVR_API TOptional<FLinearColor> GlowRimFor(const FElementPalette& Palette, const FLinearColor& Colour);
+/** False under -MageArenaFireRim=0 (a capture A/B: T67's Fire in the same build). */
+MAGEARENAVR_API bool FireRimEnabled();
+/** Writes the rim term's parameters on one tint of M_SpellGlow: Rim and RimMix 1, or RimMix 0 when Rim is unset. */
+MAGEARENAVR_API void ApplyGlowRim(class UMaterialInstanceDynamic* Tint, const TOptional<FLinearColor>& Rim);
+inline constexpr float FireRimShadeTop = 0.52f;
+inline constexpr float FireRimShadeBottom = 0.44f;
+/** 1.1 x BrazierFire::ThreatChromaMargin: the rim's least chroma distance from the leave red. */
+inline constexpr float FireRimLeaveMargin = 0.165f;
+inline constexpr float FireRimMostShift = 0.5f;
+
 /** Seconds an absorb splash and a perfect ring last. */
 inline constexpr double SplashS = 0.40;
 inline constexpr double PerfectS = 0.55;
