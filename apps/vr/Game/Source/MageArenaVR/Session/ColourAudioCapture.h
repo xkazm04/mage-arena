@@ -44,6 +44,8 @@ private:
 		WaitLio,
 		WaitSquall,
 		// audio
+		WarmDuel,
+		WaitWarm,
 		StartRecording,
 		Recording,
 		WaitWav,
@@ -70,6 +72,7 @@ private:
 	double RecordStartWall = 0.0;
 	/** Seconds of game time since the recording started (the audio clock: -deterministicaudio renders each frame's delta). */
 	double RecordedS = 0.0;
+	double LongestFrameS = 0.0;
 	double RecordStartClock = 0.0;
 	FString PendingShot;
 	bool bShotOpen = false;

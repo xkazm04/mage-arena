@@ -40,7 +40,9 @@
 //   minus the tier gate, cooldown and mana, as T23's capture does, and the still waits for three orbs in flight.
 // - Audio: the Brennic semifinal from Start, scripted seat, 30 s of game time recorded from the master submix with
 //   UAudioMixerBlueprintLibrary on the real-time mixer (the default output device also plays it), frame rate capped at
-//   60. Nothing is frozen or granted during the recording.
+//   60. Nothing is frozen or granted during the recording. A warm-up Start of the same duel runs first and is not
+//   recorded: the first frame that draws Brennic builds his figure (SK_Brennic, LOD reduction in the editor), about 2 s
+//   in one frame, and the master submix auto-disables in that silence and records none of it (L1, 2026-10-27).
 
 namespace
 {
@@ -253,7 +255,7 @@ void UColourAudioCaptureDriver::Advance()
 				}
 			}
 			Bout->SetSaveDirectory(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("MageArenaTests"), TEXT("t26-capture")));
-			Enter(bAudio ? EStep::StartRecording : EStep::StartCreatures);
+			Enter(bAudio ? EStep::WarmDuel : EStep::StartCreatures);
 		}
 		break;
 	}
@@ -454,6 +456,35 @@ void UColourAudioCaptureDriver::Advance()
 		}
 		break;
 	}
+	case EStep::WarmDuel:
+		// The same duel as the recording, started once and thrown away, so its one-time loads (the rival figure) land
+		// before the recording and not in it. StartRecording starts it again from scratch.
+		Bout->SetBout(2, true);
+		Bout->SetAirFinal(true);
+		if (!Session->Start(1, true))
+		{
+			Fail(TEXT("warm-up duel Start failed"));
+			break;
+		}
+		StableFrames = 0;
+		Enter(EStep::WaitWarm);
+		break;
+	case EStep::WaitWarm:
+	{
+		const float Delta = FApp::GetDeltaTime();
+		StableFrames = (Frames > 1 && Delta > 0.f && Delta < 0.05f) ? StableFrames + 1 : 0;
+		if (StableFrames >= 20)
+		{
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 warm-up done wall=%.3f frames=%d figure=%d"), Elapsed, Frames,
+			    Session->GetPresentation() && Session->GetPresentation()->IsRivalFigureShown() ? 1 : 0);
+			Enter(EStep::StartRecording);
+		}
+		else if (Elapsed > 60.0)
+		{
+			Fail(TEXT("the warm-up duel never ran 20 stable frames in 60 s"));
+		}
+		break;
+	}
 	case EStep::StartRecording:
 	{
 		Bout->SetBout(2, true);
@@ -466,6 +497,7 @@ void UColourAudioCaptureDriver::Advance()
 		UAudioMixerBlueprintLibrary::StartRecordingOutput(GetWorld(), static_cast<float>(RecordSeconds));
 		RecordStartWall = FPlatformTime::Seconds();
 		RecordedS = 0.0;
+		LongestFrameS = 0.0;
 		CueLog = TEXT("audio_s\tsim_s\tkind\tcue\tevent\tsource\tx_cm\ty_cm\tz_cm\tgain_db\tmixer_s\n");
 		const FActor* Brennic = FindSchoolMage(*Bout, true);
 		FAudioDevice* Device = GetWorld() ? GetWorld()->GetAudioDeviceRaw() : nullptr;
@@ -476,6 +508,8 @@ void UColourAudioCaptureDriver::Advance()
 	}
 	case EStep::Recording:
 		RecordedS += FApp::GetDeltaTime();
+		// A frame longer than the kernel's catch-up (8 steps) loses sim time, and a silent one loses WAV time.
+		LongestFrameS = FMath::Max(LongestFrameS, FApp::GetDeltaTime());
 		LogNewCues();
 		if (RecordedS >= RecordSeconds)
 		{
@@ -486,10 +520,12 @@ void UColourAudioCaptureDriver::Advance()
 			FAudioDevice* Device = GetWorld() ? GetWorld()->GetAudioDeviceRaw() : nullptr;
 			const double Clock = Device ? Device->GetAudioClock() : -1.0;
 			const double MixerS = Device ? Clock - RecordStartClock : -1.0;
-			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 recording stop audio=%.3f wall=%.3f sim=%.3f mixer=%.3f cues=%d phase=%s"), RecordedS,
-			    Now - RecordStartWall, Bout->GetSimSeconds(), MixerS, CuesLogged, *Bout->GetGames().Phase);
+			UE_LOG(LogMageArena, Log, TEXT("MAGEVR_T26 recording stop audio=%.3f wall=%.3f sim=%.3f mixer=%.3f cues=%d phase=%s longest=%.3f"), RecordedS,
+			    Now - RecordStartWall, Bout->GetSimSeconds(), MixerS, CuesLogged, *Bout->GetGames().Phase, LongestFrameS);
 			Evidence.Note(TEXT("audioS"), FString::Printf(TEXT("%.3f"), RecordedS));
 			Evidence.Note(TEXT("mixerS"), FString::Printf(TEXT("%.3f"), MixerS));
+			Evidence.Note(TEXT("simS"), FString::Printf(TEXT("%.3f"), Bout->GetSimSeconds()));
+			Evidence.Note(TEXT("longestFrameS"), FString::Printf(TEXT("%.3f"), LongestFrameS));
 			// The game clock and the mixer clock must agree: the take that "came out 20.8 s long for 30 s of play" is
 			// exactly this divergence.
 			const FString Drift = MageArenaCapture::CheckMixerDrift(RecordedS, MixerS, MageArenaCapture::AudioToleranceS);
