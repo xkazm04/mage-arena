@@ -8,11 +8,13 @@ class UMaterialInterface;
 class UObject;
 class UStaticMesh;
 
-/** The unit meshes the hand presentation draws. Each one is one instanced layer. */
+/**
+ * The unit meshes the hand presentation draws, each one instanced layer. Both are built in code (BuildPartMesh), no asset:
+ * a finger segment (round, tapering toward the tip) per phalanx, and a palm block (a rounded slab) per metacarpal,
+ * carpal and the forearm, which overlap into one palm.
+ */
 enum class EHandPart : uint8
 {
-	Joint,
-	Bone,
 	Finger,
 	Palm,
 	Count

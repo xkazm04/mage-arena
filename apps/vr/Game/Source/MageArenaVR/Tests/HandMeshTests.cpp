@@ -53,7 +53,7 @@ bool FMageArenaHandsMeshNotSpheres::RunTest(const FString& Parameters)
 			continue;
 		}
 		TestFalse(*FString::Printf(TEXT("%s mesh is the hand's own, not an engine basic shape (%s)"), Name, *Mesh->GetPathName()),
-		    Mesh->GetPathName().StartsWith(TEXT("/Engine/")));
+		    Mesh->GetPathName().StartsWith(TEXT("/Engine/BasicShapes/")));
 		const FVector Extent = Mesh->GetBounds().BoxExtent;
 		TestTrue(*FString::Printf(TEXT("%s mesh spans the unit box, so a part's size is its drawn size (%s)"), Name, *Extent.ToString()),
 		    Extent.Equals(FVector(0.5), 0.01));
@@ -91,7 +91,7 @@ bool FMageArenaHandsMeshNotSpheres::RunTest(const FString& Parameters)
 		{
 			Fingers += Pose.Part == EHandPart::Finger ? 1 : 0;
 			Palms += Pose.Part == EHandPart::Palm ? 1 : 0;
-			Placeholders += Pose.Part == EHandPart::Joint || Pose.Part == EHandPart::Bone ? 1 : 0;
+			Placeholders += Pose.Part != EHandPart::Finger && Pose.Part != EHandPart::Palm ? 1 : 0;
 			HandTriangles += Triangles.FindRef(Pose.Part);
 		}
 		const FString Label = FString::Printf(TEXT("%s %s"), Case.Path, Case.Hand == EControllerHand::Left ? TEXT("L") : TEXT("R"));
