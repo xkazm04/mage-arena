@@ -78,9 +78,6 @@ struct FPuff
 	bool bMirror = false;
 	bool bStreak = false;
 	float Roll = 0.f;
-	/** T75: the part of the cell's width the card shows, 0 to 1 (all of it by default). A perfect-ring bead shows its streak's head only. */
-	float CropU0 = 0.f;
-	float CropU1 = 1.f;
 };
 
 /**
@@ -102,11 +99,7 @@ MAGEARENAVR_API void BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector&
  */
 MAGEARENAVR_API void SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, bool bCrown, TArray<FPuff>& Out);
 
-/**
- * The perfect-absorb ring at the palm: RingBeads beads on a widening ring facing TowardEye. T75: each bead is the round head
- * of Trail's streak with its tail cropped off, and spans a share of the chord to its neighbour, so a gap stays open between
- * every two beads as the ring widens (T63's 20 overlapping streaks read as rope).
- */
+/** The perfect-absorb ring at the palm: 20 beads on a widening ring facing TowardEye, each a streak of Trail's school. */
 MAGEARENAVR_API void PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, double Age01, TArray<FPuff>& Out, ETrail Trail = ETrail::Droplets);
 
 /**
@@ -178,22 +171,8 @@ inline constexpr double ShellScale = 2.4;
 inline constexpr double ClusterCardScale = 1.5;
 /** T63: the absorb crown's card is this much wider than T58's crown disc: its splash body fills the middle of the card. */
 inline constexpr double CrownCardScale = 1.4;
-/** T75: the beads of the perfect ring. */
-inline constexpr int32 RingBeads = 10;
-/**
- * T75: a ring bead's card spans this share of the chord to its neighbour at age 0 (Fire's FireStreakScale times more),
- * shrinking to RingBeadEnd of it at age 1, so the gap is never less than about half a bead.
- */
-inline constexpr double RingBeadShare = 0.5;
-inline constexpr double RingBeadEnd = 0.5;
-/**
- * T75: the round head of the streak cells, as a share of the cell's width (the head at +U, the tail behind it): the droplet's
- * head with its whole dark rim, the spark's lit disc with its glow. Measured on apps/vr/art/vfx/spell-flipbook.png.
- */
-inline constexpr float DropletHeadU0 = 0.55f;
-inline constexpr float DropletHeadU1 = 0.92f;
-inline constexpr float SparkHeadU0 = 0.58f;
-inline constexpr float SparkHeadU1 = 0.96f;
+/** T63: a perfect-ring bead's streak card is this much larger than T58's bead: the streak's head is a part of its card. */
+inline constexpr double RingCardScale = 1.7;
 /**
  * T67: Fire's volume at the same puff count. The shell card is this much wider and taller than the other schools' (a flame
  * licks upward, so more tall than wide), a trail ember cluster this much wider, and the absorb flame star this much larger.
