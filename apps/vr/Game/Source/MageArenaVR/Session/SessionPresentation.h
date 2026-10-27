@@ -176,7 +176,7 @@ private:
 	void EnsureCuff();
 	void EnsureDome();
 	void SyncDome(const FArenaSession& Session, const struct FActor* Player);
-	void SyncWalls(const FArenaSession& Session);
+	void SyncWalls(const FArenaSession& Session, double Now);
 	void SyncCuff(const FArenaSession& Session, const struct FActor& Player, bool bPaused);
 	void ShowMask(const TCHAR* Name);
 	UTexture2D* LoadMask(const FString& Name);
@@ -219,7 +219,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UStaticMesh> Plane;
 
-	// T37: one material per colour for the opaque parts, and one per colour for the translucent dome and wall curtains.
+	// T37: one material per colour for the opaque parts, and one per colour for the translucent dome (the wall is glow flames since L2).
 	UPROPERTY()
 	FGreyboxTintCache PartTints;
 
@@ -287,9 +287,6 @@ private:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMeshComponent>> DomeRibs;
-
-	UPROPERTY()
-	TArray<TObjectPtr<UStaticMeshComponent>> WallSlats;
 
 	bool bDomeBuilt = false;
 

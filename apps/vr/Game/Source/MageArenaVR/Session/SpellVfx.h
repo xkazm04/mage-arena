@@ -102,6 +102,16 @@ MAGEARENAVR_API void SplashPuffs(ETrail Trail, const FVector& AtCm, const FVecto
 /** The perfect-absorb ring at the palm: 20 beads on a widening ring facing TowardEye, each a streak of Trail's school. */
 MAGEARENAVR_API void PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, double Age01, TArray<FPuff>& Out, ETrail Trail = ETrail::Droplets);
 
+/**
+ * L2. One flame of a fire wall standing at BaseCm (the sand under it), Index along its wall's arc: the school's flame
+ * cell, flickering and mirrored per flame. The flames are WallFlameWidthCm wide and WallFlameHeightCm tall, set apart by
+ * the wall's slat spacing, so the sand and the rival behind show between them (the cards are clear outside the flame).
+ */
+MAGEARENAVR_API void WallFlamePuffs(const FVector& BaseCm, int32 Index, double TimeS, TArray<FPuff>& Out);
+/** L2: a wall flame's card, centimetres. It stands below the seated eye line (1.2 m), so the rival's body shows above it. */
+inline constexpr double WallFlameWidthCm = 70.0;
+inline constexpr double WallFlameHeightCm = 105.0;
+
 /** T63. The custom data floats a card carries into M_SpellGlow: the atlas U scale (negative when mirrored), U offset, V offset. */
 inline constexpr int32 CardCustomFloats = 3;
 MAGEARENAVR_API void CardCustomData(const FPuff& Puff, float (&Out)[CardCustomFloats]);

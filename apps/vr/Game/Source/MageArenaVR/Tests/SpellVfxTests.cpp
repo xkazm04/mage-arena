@@ -241,6 +241,32 @@ bool FMageArenaSpellVfxPuffs::RunTest(const FString& Parameters)
 	return bPass;
 }
 
+// L2. A fire wall flame is one Fire flame card standing on the sand, narrower than the 1.3 m between neighbours on the
+// 4 m, 150 degree wall and lower than the seated eye (1.2 m), so the rival shows between and above the flames.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxWallFlames, "MageArena.SpellVfx.WallFlamesLeaveTheRivalVisible",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
+
+bool FMageArenaSpellVfxWallFlames::RunTest(const FString& Parameters)
+{
+	bool bPass = true;
+	for (int32 Index = 0; Index < 8; ++Index)
+	{
+		TArray<SpellVfx::FPuff> Puffs;
+		SpellVfx::WallFlamePuffs(FVector(400.0, 0.0, 0.0), Index, 0.7 * Index, Puffs);
+		bPass &= TestEqual(TEXT("one puff per flame"), Puffs.Num(), 1);
+		if (Puffs.Num() == 1)
+		{
+			const SpellVfx::FPuff& Puff = Puffs[0];
+			bPass &= TestTrue(TEXT("a Fire flame cell"), Puff.Cell == SpellVfx::ECell::FireFlameA || Puff.Cell == SpellVfx::ECell::FireFlameB);
+			bPass &= TestTrue(TEXT("stands on the sand"), FMath::IsNearlyEqual(Puff.CentreCm.Z - Puff.SizeCm.Y * 0.5, 0.0, 0.01));
+		}
+	}
+	const double SpacingCm = 400.0 * (150.0 * PI / 180.0) / 8.0;
+	bPass &= TestTrue(TEXT("flames leave gaps"), SpellVfx::WallFlameWidthCm < SpacingCm * 0.6);
+	bPass &= TestTrue(TEXT("flames stay below the seated eye"), SpellVfx::WallFlameHeightCm < 120.0);
+	return bPass;
+}
+
 // T63. The flipbook keeps T58's draw count: every glow colour is one layer (one instanced draw), whatever cells its
 // puffs show, because the cell rides in the per-instance custom data, not in the material or the layer key.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxFlipbookLayers, "MageArena.SpellVfx.FlipbookKeepsOneLayerPerColour",

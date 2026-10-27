@@ -1103,60 +1103,30 @@ void ASessionPresentation::SyncDome(const FArenaSession& Session, const FActor* 
 	DomeAnchor->SetWorldRotation(FRotator::ZeroRotator);
 }
 
-void ASessionPresentation::SyncWalls(const FArenaSession& Session)
+void ASessionPresentation::SyncWalls(const FArenaSession& Session, double Now)
 {
 	const FVrRuleset* Rules = Session.GetVrRules();
-	int32 Used = 0;
-	if (Rules && Rules->FireWall.bEnabled)
+	if (!Rules || !Rules->FireWall.bEnabled)
 	{
-		UStaticMesh* CylinderMesh = Greybox::LoadShape(TEXT("Cylinder"));
-		// The fire wall is the Fire school's defence (SCHOOL-DEFENCES C): the Fire colour.
-		const FLinearColor FireColour = ActiveElementPalette().Fire;
-		const FLinearColor Curtain(FireColour.R, FireColour.G, FireColour.B, 0.88f);
-		for (const FVrWall& Wall : Rules->Walls)
+		return;
+	}
+	// L2: the wall is flames on the glow layer (T63/T67 cells), set apart so Brennic shows between them. It is the Fire
+	// school's defence, in the Fire colour (DF-014 weighs that against the threat language).
+	const FLinearColor FireColour = ActiveElementPalette().Fire;
+	TArray<SpellVfx::FPuff> Puffs;
+	for (const FVrWall& Wall : Rules->Walls)
+	{
+		const int32 Segments = 8;
+		const double Arc = Wall.ArcDeg * SimPi / 180.0;
+		for (int32 Index = 0; Index < Segments; ++Index)
 		{
-			const int32 Segments = 8;
-			const double Arc = Wall.ArcDeg * SimPi / 180.0;
-			for (int32 Index = 0; Index < Segments; ++Index)
-			{
-				const double Angle = -Arc * 0.5 + Arc * (static_cast<double>(Index) + 0.5) / static_cast<double>(Segments);
-				const FSimVec Direction = SimRotate(Wall.Facing, Angle);
-				const FSimVec Point = SimAdd(Wall.Centre, SimScale(Direction, Wall.DistanceM));
-				if (!WallSlats.IsValidIndex(Used))
-				{
-					if (!CurtainTints.Base)
-					{
-						CurtainTints.Base = Greybox::TranslucentMaterial();
-					}
-					UMaterialInstanceDynamic* Material = Greybox::SharedTint(CurtainTints, this, Curtain);
-					UStaticMeshComponent* Mesh = Greybox::MakeMesh(this, CylinderMesh, Material);
-					if (Mesh)
-					{
-						Mesh->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-					}
-					WallSlats.Add(Mesh);
-				}
-				UStaticMeshComponent* Slat = WallSlats[Used];
-				if (Slat)
-				{
-					FVector World = Session.KernelToUnrealCm(Point);
-					World.Z += 60.0;
-					Slat->SetWorldLocation(World);
-					Slat->SetWorldRotation(FRotator::ZeroRotator);
-					Greybox::SetSized(Slat, FVector(16.0, 36.0, 120.0));
-					Slat->SetVisibility(true);
-				}
-				++Used;
-			}
+			const double Angle = -Arc * 0.5 + Arc * (static_cast<double>(Index) + 0.5) / static_cast<double>(Segments);
+			const FSimVec Direction = SimRotate(Wall.Facing, Angle);
+			const FSimVec Point = SimAdd(Wall.Centre, SimScale(Direction, Wall.DistanceM));
+			SpellVfx::WallFlamePuffs(Session.KernelToUnrealCm(Point), Wall.Id * Segments + Index, Now, Puffs);
 		}
 	}
-	for (int32 Index = Used; Index < WallSlats.Num(); ++Index)
-	{
-		if (WallSlats[Index])
-		{
-			WallSlats[Index]->SetVisibility(false);
-		}
-	}
+	GlowFrame.Add(FireColour, Puffs);
 }
 
 UWidgetComponent* ASessionPresentation::MakeStoneLabel(const TCHAR* Name)
@@ -1498,7 +1468,6 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	const bool bSpellVfx = SpellVfxOn();
 	const FActor* Player = SimFindActor(Games.State, Games.PlayerId);
 	SyncDome(Session, Player);
-	SyncWalls(Session);
 	const double Now = FPlatformTime::Seconds();
 	TSet<int32> LiveBodies;
 	TSet<int32> LiveShots;
@@ -1508,6 +1477,7 @@ void ASessionPresentation::Sync(const FArenaSession& Session, bool bPaused)
 	const FVector CamLoc = Camera ? Camera->GetComponentLocation() : FVector::ZeroVector;
 	// T63: the glow cards of this frame face the eye.
 	GlowFrame.Reset(CamLoc);
+	SyncWalls(Session, Now);
 	const FVector CamFwd = Camera ? Camera->GetForwardVector() : FVector::ForwardVector;
 	const FVrRuleset* Rules = Session.GetVrRules();
 	// T38: Brennic's figure stands in for his column; his HP bar stays.

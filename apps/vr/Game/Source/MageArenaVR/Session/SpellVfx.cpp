@@ -229,6 +229,15 @@ void SpellVfx::BoltPuffs(ETrail Trail, const FVector& AtCm, const FVector& Fligh
 	}
 }
 
+void SpellVfx::WallFlamePuffs(const FVector& BaseCm, int32 Index, double TimeS, TArray<FPuff>& Out)
+{
+	// Neighbouring flames are out of step, so the wall sways rather than blinks.
+	const int32 Frame = ShellFrame(Index * 3, TimeS);
+	const double Sway = 0.06 * FMath::Sin(TimeS * 4.0 + Index * 1.3);
+	const FVector Centre = BaseCm + FVector::UpVector * (WallFlameHeightCm * 0.5);
+	Card(Add(Out, Centre, FVector(WallFlameWidthCm, WallFlameHeightCm, WallFlameWidthCm)), ShellCell(ETrail::Embers, Frame), false, static_cast<float>(Sway), (Frame & 2) != 0);
+}
+
 void SpellVfx::SplashPuffs(ETrail Trail, const FVector& AtCm, const FVector& TowardEye, double Age01, int32 Seed, bool bCrown, TArray<FPuff>& Out)
 {
 	const double Age = FMath::Clamp(Age01, 0.0, 1.0);
