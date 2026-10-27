@@ -3,15 +3,17 @@
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
 #include "Greybox/ArenaLayout.h"
+#include "Hands/HandMesh.h"
 #include "HandPresentationComponent.generated.h"
 
 class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class USigilRecognizerSubsystem;
+class UStaticMesh;
 class UStaticMeshComponent;
 
 /**
- * Draws the active hand source as joint spheres and bone capsules in clip space.
+ * Draws the active hand source in clip space, one instanced layer per EHandPart (Hands/HandMesh.h).
  * A cast or reject flashes a ring. A raised ward draws the 140 degree arc.
  */
 UCLASS()
@@ -28,6 +30,8 @@ public:
 
 	bool IsCastFlashVisible() const { return bFlashOn && bFlashCast; }
 	bool IsWardArcVisible() const { return bWardVisible; }
+	/** The layer that draws Part, or null before BeginPlay and under -nullrhi. */
+	UInstancedStaticMeshComponent* GetPartLayer(EHandPart Part) const;
 
 private:
 	void BindSignals();
@@ -39,11 +43,9 @@ private:
 	void UpdateWard();
 	void FillRing(UInstancedStaticMeshComponent* Instances, const FVector& CentreCm, const FVector& AxisA, const FVector& AxisB, double RadiusCm, double TubeCm);
 
+	/** Indexed by EHandPart; null for a part with no mesh. */
 	UPROPERTY()
-	TObjectPtr<UInstancedStaticMeshComponent> Joints;
-
-	UPROPERTY()
-	TObjectPtr<UInstancedStaticMeshComponent> Bones;
+	TArray<TObjectPtr<UInstancedStaticMeshComponent>> Parts;
 
 	UPROPERTY()
 	TObjectPtr<UInstancedStaticMeshComponent> Flash;
@@ -68,6 +70,7 @@ private:
 	bool bWardVisible = false;
 	bool bHasRightTip = false;
 	FVector RightIndexTip = FVector::ZeroVector;
+	TArray<FHandPartPose> PartPoses;
 	FDelegateHandle CastHandle;
 	FDelegateHandle RejectHandle;
 	TWeakObjectPtr<USigilRecognizerSubsystem> Sigils;

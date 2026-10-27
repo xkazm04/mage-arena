@@ -9,42 +9,11 @@
 #include "Greybox/GreyboxUtil.h"
 #include "Hands/HandFrame.h"
 #include "Hands/HandInputSubsystem.h"
+#include "Hands/HandMesh.h"
 #include "Hands/MageArenaPawn.h"
 #include "HeadMountedDisplayTypes.h"
 #include "MageArenaVR.h"
 #include "Misc/Parse.h"
-
-namespace
-{
-const int32 BoneLinks[][2] = {
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::Palm) },
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::ThumbMetacarpal) },
-	{ static_cast<int32>(EHandKeypoint::ThumbMetacarpal), static_cast<int32>(EHandKeypoint::ThumbProximal) },
-	{ static_cast<int32>(EHandKeypoint::ThumbProximal), static_cast<int32>(EHandKeypoint::ThumbDistal) },
-	{ static_cast<int32>(EHandKeypoint::ThumbDistal), static_cast<int32>(EHandKeypoint::ThumbTip) },
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::IndexMetacarpal) },
-	{ static_cast<int32>(EHandKeypoint::IndexMetacarpal), static_cast<int32>(EHandKeypoint::IndexProximal) },
-	{ static_cast<int32>(EHandKeypoint::IndexProximal), static_cast<int32>(EHandKeypoint::IndexIntermediate) },
-	{ static_cast<int32>(EHandKeypoint::IndexIntermediate), static_cast<int32>(EHandKeypoint::IndexDistal) },
-	{ static_cast<int32>(EHandKeypoint::IndexDistal), static_cast<int32>(EHandKeypoint::IndexTip) },
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::MiddleMetacarpal) },
-	{ static_cast<int32>(EHandKeypoint::MiddleMetacarpal), static_cast<int32>(EHandKeypoint::MiddleProximal) },
-	{ static_cast<int32>(EHandKeypoint::MiddleProximal), static_cast<int32>(EHandKeypoint::MiddleIntermediate) },
-	{ static_cast<int32>(EHandKeypoint::MiddleIntermediate), static_cast<int32>(EHandKeypoint::MiddleDistal) },
-	{ static_cast<int32>(EHandKeypoint::MiddleDistal), static_cast<int32>(EHandKeypoint::MiddleTip) },
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::RingMetacarpal) },
-	{ static_cast<int32>(EHandKeypoint::RingMetacarpal), static_cast<int32>(EHandKeypoint::RingProximal) },
-	{ static_cast<int32>(EHandKeypoint::RingProximal), static_cast<int32>(EHandKeypoint::RingIntermediate) },
-	{ static_cast<int32>(EHandKeypoint::RingIntermediate), static_cast<int32>(EHandKeypoint::RingDistal) },
-	{ static_cast<int32>(EHandKeypoint::RingDistal), static_cast<int32>(EHandKeypoint::RingTip) },
-	{ static_cast<int32>(EHandKeypoint::Wrist), static_cast<int32>(EHandKeypoint::LittleMetacarpal) },
-	{ static_cast<int32>(EHandKeypoint::LittleMetacarpal), static_cast<int32>(EHandKeypoint::LittleProximal) },
-	{ static_cast<int32>(EHandKeypoint::LittleProximal), static_cast<int32>(EHandKeypoint::LittleIntermediate) },
-	{ static_cast<int32>(EHandKeypoint::LittleIntermediate), static_cast<int32>(EHandKeypoint::LittleDistal) },
-	{ static_cast<int32>(EHandKeypoint::LittleDistal), static_cast<int32>(EHandKeypoint::LittleTip) },
-};
-
-}
 
 UHandPresentationComponent::UHandPresentationComponent()
 {
@@ -79,8 +48,6 @@ void UHandPresentationComponent::BeginPlay()
 		return;
 	}
 
-	UStaticMesh* Sphere = Greybox::LoadShape(TEXT("Sphere"));
-	UStaticMesh* Cylinder = Greybox::LoadShape(TEXT("Cylinder"));
 	UStaticMesh* Cube = Greybox::LoadShape(TEXT("Cube"));
 	// BasicShapeMaterial is the one engine material that already supports instancing.
 	// The unlit translucent debug material does not, and -game substitutes the default grid.
@@ -98,8 +65,17 @@ void UHandPresentationComponent::BeginPlay()
 	Cast.A = 1.f;
 	FLinearColor Reject = Layout.RejectFlash;
 	Reject.A = 1.f;
-	Joints = Greybox::MakeInstances(Owner, Sphere, Greybox::Tint(Lit, Owner, Hand));
-	Bones = Greybox::MakeInstances(Owner, Cylinder, Greybox::Tint(Lit, Owner, Hand));
+	UMaterialInstanceDynamic* HandMaterial = Greybox::Tint(Lit, Owner, Hand);
+	Parts.SetNum(static_cast<int32>(EHandPart::Count));
+	for (int32 Part = 0; Part < Parts.Num(); ++Part)
+	{
+		UStaticMesh* Mesh = MageHandMesh::BuildPartMesh(static_cast<EHandPart>(Part), this, HandMaterial);
+		Parts[Part] = Mesh ? Greybox::MakeInstances(Owner, Mesh, HandMaterial) : nullptr;
+		if (Parts[Part])
+		{
+			Parts[Part]->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+		}
+	}
 	CastMaterial = Greybox::Tint(Lit, Owner, Cast);
 	RejectMaterial = Greybox::Tint(Lit, Owner, Reject);
 	Flash = Greybox::MakeInstances(Owner, Cube, CastMaterial);
@@ -116,20 +92,18 @@ void UHandPresentationComponent::BeginPlay()
 		Segment->SetVisibility(false);
 		WardSegments.Add(Segment);
 	}
-	if (Joints)
-	{
-		Joints->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-	}
-	if (Bones)
-	{
-		Bones->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-	}
 	if (Flash)
 	{
 		Flash->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
 		Flash->SetVisibility(false);
 	}
 	BindSignals();
+}
+
+UInstancedStaticMeshComponent* UHandPresentationComponent::GetPartLayer(EHandPart Part) const
+{
+	const int32 Index = static_cast<int32>(Part);
+	return Parts.IsValidIndex(Index) ? Parts[Index].Get() : nullptr;
 }
 
 void UHandPresentationComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -210,61 +184,43 @@ void UHandPresentationComponent::TickComponent(float DeltaTime, ELevelTick TickT
 void UHandPresentationComponent::UpdateHands()
 {
 	bHasRightTip = false;
-	if (Joints)
+	for (UInstancedStaticMeshComponent* Layer : Parts)
 	{
-		Joints->ClearInstances();
-	}
-	if (Bones)
-	{
-		Bones->ClearInstances();
+		if (Layer)
+		{
+			Layer->ClearInstances();
+		}
 	}
 	UGameInstance* Instance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
 	UHandInputSubsystem* Hands = Instance ? Instance->GetSubsystem<UHandInputSubsystem>() : nullptr;
-	if (!Hands)
+	if (Hands)
 	{
-		return;
-	}
-	const double JointCm = Layout.JointRadiusM * 2.0 * 100.0;
-	const double BoneCm = Layout.BoneRadiusM * 2.0 * 100.0;
-	const FVector JointSize(JointCm, JointCm, JointCm);
-	const EControllerHand Sides[] = { EControllerHand::Left, EControllerHand::Right };
-	for (EControllerHand Side : Sides)
-	{
-		FHandFrame Frame;
-		if (!Hands->GetLatest(Side, Frame) || Frame.Joints.Num() < MageHandJointCount)
+		const EControllerHand Sides[] = {EControllerHand::Left, EControllerHand::Right};
+		for (EControllerHand Side : Sides)
 		{
-			continue;
-		}
-		for (int32 Joint = 0; Joint < MageHandJointCount; ++Joint)
-		{
-			Greybox::AddSized(Joints, Frame.Joints[Joint].Location, FQuat::Identity, JointSize);
-		}
-		if (Side == EControllerHand::Right && Frame.Joints.IsValidIndex(static_cast<int32>(EHandKeypoint::IndexTip)))
-		{
-			RightIndexTip = Frame.Joints[static_cast<int32>(EHandKeypoint::IndexTip)].Location;
-			bHasRightTip = true;
-		}
-		for (int32 LinkIndex = 0; LinkIndex < UE_ARRAY_COUNT(BoneLinks); ++LinkIndex)
-		{
-			const FVector A = Frame.Joints[BoneLinks[LinkIndex][0]].Location;
-			const FVector B = Frame.Joints[BoneLinks[LinkIndex][1]].Location;
-			const double Length = FVector::Distance(A, B);
-			if (Length < 0.4)
+			FHandFrame Frame;
+			if (!Hands->GetLatest(Side, Frame) || Frame.Joints.Num() < MageHandJointCount)
 			{
 				continue;
 			}
-			const FVector Direction = (B - A).GetSafeNormal();
-			const FQuat Rotation = FQuat::FindBetweenNormals(FVector::UpVector, Direction);
-			Greybox::AddSized(Bones, (A + B) * 0.5, Rotation, FVector(BoneCm, BoneCm, Length));
+			if (Side == EControllerHand::Right)
+			{
+				RightIndexTip = Frame.Joints[static_cast<int32>(EHandKeypoint::IndexTip)].Location;
+				bHasRightTip = true;
+			}
+			MageHandMesh::PoseParts(Frame, PartPoses);
+			for (const FHandPartPose& Pose : PartPoses)
+			{
+				Greybox::AddSized(GetPartLayer(Pose.Part), Pose.CentreCm, Pose.Rotation, Pose.SizeCm);
+			}
 		}
 	}
-	if (Joints)
+	for (UInstancedStaticMeshComponent* Layer : Parts)
 	{
-		Joints->SetVisibility(Joints->GetInstanceCount() > 0);
-	}
-	if (Bones)
-	{
-		Bones->SetVisibility(Bones->GetInstanceCount() > 0);
+		if (Layer)
+		{
+			Layer->SetVisibility(Layer->GetInstanceCount() > 0);
+		}
 	}
 }
 
