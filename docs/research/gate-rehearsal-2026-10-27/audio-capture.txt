@@ -1,0 +1,30 @@
+# Wolf kaziho 2026-10-27 commit 64c1dc2 UE 5.8.3
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-colour-audio.ps1 -Run rehearsal-1027-audio -SkipStills   (exit 1)
+capture-colour-audio: audio run=rehearsal-1027-audio
+LogMageArena: MAGEVR_T26 start mode=audio run=rehearsal-1027-audio
+LogMageArena: MAGEVR_T26 recording start brennic=2 audioclock=2.411
+LogMageArena: MAGEVR_T26 recording stop audio=30.816 wall=30.814 sim=28.850 mixer=30.805 cues=134 phase=active
+LogMageArena: MAGEVR_T26 wav C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena-vr/28764f24/runs/rehearsal-1027-audio/audio/brennic-opening.wav bytes=5484588
+LogMageArena: MAGEVR_T26 wav duration=28.565 rate=48000 channels=2 bits=16
+LogMageArena: Error: MAGEVR_CAPTURE_FAIL wav duration 28.565s expected 30.800s within 1.0s rate=48000 channels=2 bits=16 bytes=5484544
+capture-colour-audio: missing MAGEVR_CAPTURE_DONE in C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\runs\rehearsal-1027-audio\capture-audio.log
+capture-colour-audio: C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\runs\rehearsal-1027-audio\capture-audio.log contains MAGEVR_CAPTURE_FAIL
+capture-colour-audio: audio failed done=False manifest=False wav=True
+capture-colour-audio: failed
+# ffmpeg ebur128: I -23.8 LUFS, peak -5.6 dBFS, mean -26.1 dB; md5 5a383d184e48a6581fad696b30401f72
+
+# re-run: -Run rehearsal-1027-audio2 -SkipStills   (exit 1)
+capture-colour-audio: audio run=rehearsal-1027-audio2
+LogMageArena: MAGEVR_T26 start mode=audio run=rehearsal-1027-audio2
+LogMageArena: MAGEVR_T26 recording start brennic=2 audioclock=2.816
+LogMageArena: MAGEVR_T26 recording stop audio=30.804 wall=30.802 sim=27.717 mixer=30.805 cues=128 phase=active
+LogMageArena: MAGEVR_T26 wav C:/Users/kazda/.personas/headless-masters/worktrees/mage-arena-vr/28764f24/runs/rehearsal-1027-audio2/audio/brennic-opening.wav bytes=5267500
+LogMageArena: MAGEVR_T26 wav duration=27.435 rate=48000 channels=2 bits=16
+LogMageArena: Error: MAGEVR_CAPTURE_FAIL wav duration 27.435s expected 30.800s within 1.0s rate=48000 channels=2 bits=16 bytes=5267456
+capture-colour-audio: missing MAGEVR_CAPTURE_DONE in C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\runs\rehearsal-1027-audio2\capture-audio.log
+capture-colour-audio: C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\runs\rehearsal-1027-audio2\capture-audio.log contains MAGEVR_CAPTURE_FAIL
+capture-colour-audio: audio failed done=False manifest=False wav=True
+capture-colour-audio: failed
+# ffmpeg ebur128: I -23.9 LUFS, peak -5.7 dBFS, mean -26.3 dB; md5 ff27c585ea61a583ec8dbed368ecc205
+
+# reference 2026-10-25 (e9d8abc): stop audio=30.803 wall=30.800 sim=30.800 cues=142; wav 30.677 s; -23.8 LUFS; ok

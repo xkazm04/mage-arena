@@ -1,0 +1,51 @@
+# Wolf kaziho 2026-10-27 commit 64c1dc2 UE 5.8.3
+# UnrealEditor-Cmd ... -ExecCmds="Automation RunTests MageArenaDesign.;Quit" (process exit 255, automation EXIT CODE -1: the two DF-011 reds)
+Result={Success} Name={Rivals} Path={MageArenaDesign.Census.Rivals}
+Result={Success} Name={Sweep} Path={MageArenaDesign.Census.Sweep}
+Result={Success} Name={AirSeated} Path={MageArenaDesign.Duel.AirSeated}
+Result={Fail} Name={FireSeated} Path={MageArenaDesign.Duel.FireSeated}
+Result={Success} Name={CreaturesSeated} Path={MageArenaDesign.Session.CreaturesSeated}
+Result={Fail} Name={FullSeated} Path={MageArenaDesign.Session.FullSeated}
+Result={Success} Name={Wave1Seated} Path={MageArenaDesign.Session.Wave1Seated}
+LogAutomationCommandLine: Display: **** TEST COMPLETE. EXIT CODE: -1 ****
+LogAutomationController: Error: Expected 'all four bouts won' to be 4, but it was 2. [C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\apps\vr\Game\Source\MageArenaVR\Tests\SessionTests.cpp(906)]
+LogAutomationController: Error: Expected 'brennic-c15 reached the last phase (1 of 2 breaks)' to be true. [C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\apps\vr\Game\Source\MageArenaVR\Tests\SessionTests.cpp(347)]
+LogAutomationController: Error: Expected 'the day closes' to be "closed", but it was "lost". [C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\apps\vr\Game\Source\MageArenaVR\Tests\SessionTests.cpp(905)]
+LogAutomationController: Error: Expected 'the script did not lose bout 3' to be false. [C:\Users\kazda\.personas\headless-masters\worktrees\mage-arena-vr\28764f24\apps\vr\Game\Source\MageArenaVR\Tests\SessionTests.cpp(904)]
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live-off.c1.0.medianS=44.83 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live-off.c1.0.winRate=0.95 target=0.70-1.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live-off.c1.5.medianS=40.56 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live-off.c1.5.winRate=0.75 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live.c1.0.medianS=43.47 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live.c1.0.winRate=0.50 target=0.70-1.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live.c1.5.medianS=39.39 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic live.c1.5.winRate=0.25 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal-off.c1.0.medianS=44.83 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal-off.c1.0.winRate=0.95 target=0.70-1.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal-off.c1.5.medianS=40.56 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal-off.c1.5.winRate=0.75 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal.c1.0.medianS=43.47 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal.c1.0.winRate=0.50 target=0.70-1.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal.c1.5.medianS=39.39 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.brennic proposal.c1.5.winRate=0.25 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio live.c1.0.medianS=21.91 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio live.c1.0.winRate=1.00 target=0.70-1.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio live.c1.5.medianS=22.67 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio live.c1.5.winRate=1.00 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio proposal.c1.0.medianS=21.91 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio proposal.c1.0.winRate=1.00 target=0.70-1.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio proposal.c1.5.medianS=22.67 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Census.Rivals.lio proposal.c1.5.winRate=1.00 target=0.40-0.60 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Duel.AirSeated lio-c15.lengthS=23.12 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Duel.AirSeated lio-c15.won=1.00 target=1.00-1.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Duel.FireSeated brennic-c1.lengthS=38.32 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Duel.FireSeated brennic-c1.won=0.00 target=1.00-1.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Duel.FireSeated brennic-c15.lengthS=37.50 target=45.00-80.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Duel.FireSeated brennic-c15.won=0.00 target=1.00-1.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Session.CreaturesSeated CreaturesSeated seated measured=31.02s pinned-window=30-45 INSIDE damageTaken=9.0
+LogMageArena: MAGEVR_MEASURE Session.CreaturesSeated victoryS=31.02 target=30.00-45.00 INSIDE
+LogMageArena: MAGEVR_MEASURE Session.FullSeated FullSeated day live: stage=lost won=2/4 fights=109.38 s day=153.97 s (2.57 min) with teach=225.83 s (3.76 min) plan=7-10 min OUTSIDE
+LogMageArena: MAGEVR_MEASURE Session.FullSeated dayNaturalS=311.83 target=420.00-600.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Session.FullSeated dayWithTeachS=225.83 target=420.00-600.00 OUTSIDE
+LogMageArena: MAGEVR_MEASURE Session.Wave1Seated Wave1Scripted seated measured=39.38s pinned-window=25-40 INSIDE damageTaken=86.4 offPad=0.0000
+LogMageArena: MAGEVR_MEASURE Session.Wave1Seated victoryS=39.38 target=25.00-40.00 INSIDE

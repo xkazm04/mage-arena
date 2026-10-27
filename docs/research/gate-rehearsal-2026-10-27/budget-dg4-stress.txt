@@ -1,0 +1,46 @@
+# Wolf kaziho 2026-10-27 commit 64c1dc2 UE 5.8.3
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix rehearsal-1027   (scene: D-G4 stress, default)
+budget: rehearsal-10271 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1212 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 91 / 114 / 117 / 118
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1124 / 1395 / 1459 / 1468
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 164160 max 166464 (n=6); draws median 34
+  dump pass DepthPass: median 164160 max 166464 (n=6); draws median 13
+  dump pass ShadowDepth: median 76006 max 76006 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 22774 max 23020 (n=6); draws median 40
+  dump pass TranslucentVelocity: median 2548 max 2794 (n=6); draws median 4
+  dump pass Velocity: median 80960 max 83264 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: rehearsal-10272 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1211 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 91 / 114 / 117 / 118
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1140 / 1394 / 1458 / 1467
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 163896 max 165456 (n=6); draws median 34
+  dump pass DepthPass: median 163896 max 165456 (n=6); draws median 12.5
+  dump pass ShadowDepth: median 76006 max 76006 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 23128 max 23132 (n=6); draws median 42
+  dump pass TranslucentVelocity: median 2902 max 2906 (n=6); draws median 6
+  dump pass Velocity: median 80696 max 82256 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: rehearsal-10273 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1211 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 88 / 113 / 117 / 118
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1130 / 1389 / 1454 / 1467
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 163328 max 164208 (n=6); draws median 34
+  dump pass DepthPass: median 163328 max 164208 (n=6); draws median 13
+  dump pass ShadowDepth: median 76006 max 76006 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 23002 max 23024 (n=6); draws median 41
+  dump pass TranslucentVelocity: median 2776 max 2798 (n=6); draws median 5
+  dump pass Velocity: median 80464 max 83168 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: ok (3 runs)
+EXIT=0

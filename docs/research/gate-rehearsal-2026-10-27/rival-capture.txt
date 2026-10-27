@@ -1,0 +1,22 @@
+# Wolf kaziho 2026-10-27 commit 64c1dc2 UE 5.8.3
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-rival.ps1 -Run rehearsal-1027-rival -Staging <worktree>\runs\rehearsal-1027-rival-stage   (exit 0)
+rival: committed cast ok under apps\vr\Game\Content\Characters
+rival: starting the replay run=rehearsal-1027-rival seeds=1,2
+LogMageArena: MAGEVR_CAPTURE_DONE shots=113
+rival: cast set seed1-cast-a1 (5 frames)
+rival: hit set seed1-hit-a16 (4 frames)
+rival: idle set seed1-idle-a4 (4 frames)
+rival: death set seed2-death-a1 (8 frames)
+rival: capture ok=True done=True failed=False
+rival: sheet seed1-idle-a4 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-idle-a4.png (4 frames, 377 px squares)
+rival: sheet seed1-idle-a5 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-idle-a5.png (4 frames, 1080 px squares)
+rival: sheet seed2-idle-a11 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed2-idle-a11.png (4 frames, 469 px squares)
+rival: sheet seed1-cast-a1 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-cast-a1.png (5 frames, 507 px squares)
+rival: sheet seed1-cast-a6 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-cast-a6.png (5 frames, 466 px squares)
+rival: sheet seed1-cast-a7 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-cast-a7.png (5 frames, 403 px squares)
+rival: sheet seed1-hit-a16 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-hit-a16.png (4 frames, 371 px squares)
+rival: sheet seed1-hit-a32 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-hit-a32.png (4 frames, 1080 px squares)
+rival: sheet seed1-hit-a33 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed1-hit-a33.png (4 frames, 1080 px squares)
+rival: sheet seed2-death-a1 exit=0 runs\rehearsal-1027-rival\rival\sheet-seed2-death-a1.png (8 frames, 392 px squares)
+rival: staged 125 files under runs\rehearsal-1027-rival-stage\runs\T38 (SHA256SUMS.txt)
+rival: ok (staging: runs\rehearsal-1027-rival-stage)

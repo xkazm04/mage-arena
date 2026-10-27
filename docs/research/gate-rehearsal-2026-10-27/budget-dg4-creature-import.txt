@@ -1,0 +1,52 @@
+# Wolf kaziho 2026-10-27 commit 64c1dc2 UE 5.8.3
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix rehearsal-1027-creatures -ExtraArgs -MageArenaCreatureImportScene   (scene: creature-import)
+budget: rehearsal-1027-creatures1 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1211 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 101 / 123 / 126 / 127
+  of which skeletal (LOD0, skinned meshes) median/max: 77528 / 77528
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1129 / 1395 / 1458 / 1468
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 217410 max 219858 (n=6); draws median 37
+  dump pass DepthPass: median 217410 max 219858 (n=6); draws median 12
+  dump pass ShadowDepth: median 183082 max 183082 (n=6); draws median 11
+  dump pass TranslucencyAfterDOF: median 23115 max 23140 (n=6); draws median 42
+  dump pass TranslucentVelocity: median 2898 max 2914 (n=6); draws median 6
+  dump pass Velocity: median 79784 max 83120 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 2 draws / 47980 tris; DepthPass 2 draws / 47980 tris; ShadowDepth 3 draws / 71970 tris
+  skinned SK_CinderHound (lod 0, segments 0): BasePass 1 draws / 11796 tris; DepthPass 1 draws / 11796 tris; ShadowDepth 2 draws / 23592 tris
+  skinned SK_MireMaw (lod 0, segments 0): BasePass 1 draws / 17752 tris; DepthPass 1 draws / 17752 tris; ShadowDepth 2 draws / 35504 tris
+budget: rehearsal-1027-creatures2 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1209 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 101 / 124 / 126 / 127
+  of which skeletal (LOD0, skinned meshes) median/max: 77528 / 77528
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1129 / 1393 / 1457 / 1467
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 216386 max 218994 (n=6); draws median 37
+  dump pass DepthPass: median 216386 max 218994 (n=6); draws median 12
+  dump pass ShadowDepth: median 183082 max 183082 (n=6); draws median 11
+  dump pass TranslucencyAfterDOF: median 23127 max 23138 (n=6); draws median 42
+  dump pass TranslucentVelocity: median 2902 max 2912 (n=6); draws median 6
+  dump pass Velocity: median 80464 max 82256 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 2 draws / 47980 tris; DepthPass 2 draws / 47980 tris; ShadowDepth 3 draws / 71970 tris
+  skinned SK_CinderHound (lod 0, segments 0): BasePass 1 draws / 11796 tris; DepthPass 1 draws / 11796 tris; ShadowDepth 2 draws / 23592 tris
+  skinned SK_MireMaw (lod 0, segments 0): BasePass 1 draws / 17752 tris; DepthPass 1 draws / 17752 tris; ShadowDepth 2 draws / 35504 tris
+budget: rehearsal-1027-creatures3 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=102 launches=1209 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=102 launches=8464
+  draw calls min/median/p95/max: 101 / 124 / 126 / 127
+  of which skeletal (LOD0, skinned meshes) median/max: 77528 / 77528
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 386 parts / 24 tuples, drawn hash 40507278af84518a819cd23416c729d8
+  live particles min/median/p95/max: 1129 / 1393 / 1458 / 1467
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  dump pass BasePass: median 216386 max 219042 (n=6); draws median 37
+  dump pass DepthPass: median 216386 max 219042 (n=6); draws median 13
+  dump pass ShadowDepth: median 183082 max 183082 (n=6); draws median 11
+  dump pass TranslucencyAfterDOF: median 23111 max 23140 (n=6); draws median 42
+  dump pass TranslucentVelocity: median 2892 max 2914 (n=6); draws median 6
+  dump pass Velocity: median 80696 max 82304 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 2 draws / 47980 tris; DepthPass 2 draws / 47980 tris; ShadowDepth 3 draws / 71970 tris
+  skinned SK_CinderHound (lod 0, segments 0): BasePass 1 draws / 11796 tris; DepthPass 1 draws / 11796 tris; ShadowDepth 2 draws / 23592 tris
+  skinned SK_MireMaw (lod 0, segments 0): BasePass 1 draws / 17752 tris; DepthPass 1 draws / 17752 tris; ShadowDepth 2 draws / 35504 tris
+budget: ok (3 runs)
+EXIT=0
