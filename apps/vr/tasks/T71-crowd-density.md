@@ -1,7 +1,6 @@
 # T71 - crowd density toward S1
 
-Status: BLOCKED 2026-10-26, before any Unreal work: the rows above the top tread need support geometry, and the card
-forbids building it (see "Blocked" below). Options for Athena are written up below. Nothing was built, captured or measured in Unreal.
+Status: done 2026-10-27 (option C, owner ruling 2026-10-27, DECISIONS ruling 1): `stands.tiers` 3 -> 5, 804 cards, crowd top 7.10 m -> 8.80 m, the first 436 cards unchanged, one draw; D-G4 max 110 (stress) and 119 (creature-import) in every run, BasePass max 167,230 and 220,768; `MageArena.` 344 green, `Overlay.Golden` re-recorded (hash lines only). The blind critic round is the Director's, still open. Report: `docs/research/CROWD-DENSITY-T71-2026-10-26.md`. (Was: BLOCKED 2026-10-26, before any Unreal work; the options below are the record.)
 Max turns: 160
 
 ## Goal
