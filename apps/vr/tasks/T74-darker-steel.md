@@ -1,6 +1,7 @@
 # T74 - Darker steel
 
-Status: open
+Status: ran, blind bar not met (steel read only "weakly" as metal and the flat disc partly a sticker in 3 of 3 rounds;
+dodge, never off-white, closer to S1 in 3 of 3), greybox steel restored to 0.68 (fallback) - report docs/research/DARKER-STEEL-T74-2026-10-27.md
 Max turns: 120
 
 ## Goal
