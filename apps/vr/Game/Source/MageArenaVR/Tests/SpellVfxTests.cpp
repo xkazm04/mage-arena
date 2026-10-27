@@ -820,7 +820,9 @@ bool FMageArenaSpellVfxFireNoWhite::RunTest(const FString& Parameters)
 // T75. The perfect ring reads as beads, not rope (owner ruling 4, 2026-10-27): T63's 20 streak cards, each about ten times
 // its share of the ring, merged into one twisted band. At age 0, 0.5 and 0.9 every school's neighbouring bead cards stay
 // apart along the ring, the gap at least half a bead. A bead's length is its card's width on screen (the card lies along
-// the tangent), so the clear border of the card counts as bead: the measure is on the safe side.
+// the tangent), so the clear border of the card counts as bead: the measure is on the safe side. Each bead is the round
+// head of its school's streak (Fire's spark, else the droplet), the tail cropped off and the cell not stretched, and the
+// splash, which shares the streak cells, still shows them whole.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FMageArenaSpellVfxRingBeads, "MageArena.SpellVfx.PerfectRingBeadsApart",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter)
 
@@ -834,12 +836,13 @@ bool FMageArenaSpellVfxRingBeads::RunTest(const FString& Parameters)
 	{
 		SpellVfx::ETrail Trail;
 		const TCHAR* Name;
+		SpellVfx::ECell Head;
 	};
 	const FSchool Schools[] = {
-	    {SpellVfx::ETrail::Embers, TEXT("fire")},
-	    {SpellVfx::ETrail::Droplets, TEXT("water")},
-	    {SpellVfx::ETrail::Wisps, TEXT("air")},
-	    {SpellVfx::ETrail::Grit, TEXT("earth")},
+	    {SpellVfx::ETrail::Embers, TEXT("fire"), SpellVfx::ECell::SparkStreak},
+	    {SpellVfx::ETrail::Droplets, TEXT("water"), SpellVfx::ECell::DropletStreak},
+	    {SpellVfx::ETrail::Wisps, TEXT("air"), SpellVfx::ECell::DropletStreak},
+	    {SpellVfx::ETrail::Grit, TEXT("earth"), SpellVfx::ECell::DropletStreak},
 	};
 	for (const FSchool& School : Schools)
 	{
@@ -859,11 +862,20 @@ bool FMageArenaSpellVfxRingBeads::RunTest(const FString& Parameters)
 				const SpellVfx::FPuff& Next = Ring[(Index + 1) % Ring.Num()];
 				const double Length = 0.5 * (SpellVfx::CardTransform(Bead, Eye).GetScale3D().X + SpellVfx::CardTransform(Next, Eye).GetScale3D().X) * 100.0;
 				Worst = FMath::Min(Worst, (FVector::Dist(Bead.CentreCm, Next.CentreCm) - Length) / Length);
+				const float Shown = Bead.CropU1 - Bead.CropU0;
+				bPass &= TestTrue(*FString::Printf(TEXT("%s bead %d at age %.1f is the head of %d, its tail cropped (%.2f of the cell shown)"), School.Name, Index, Age, static_cast<int32>(School.Head), Shown),
+				    Bead.Cell == School.Head && Bead.CropU0 >= 0.5f && Shown > 0.f && Shown <= 0.45f);
+				bPass &= TestTrue(*FString::Printf(TEXT("%s bead %d at age %.1f: the cell is not stretched, so the head stays round"), School.Name, Index, Age),
+				    FMath::IsNearlyEqual(Bead.SizeCm.X / Bead.SizeCm.Y, static_cast<double>(Shown), 1.0e-3));
 			}
 			AddInfo(FString::Printf(TEXT("MAGEVR_MEASURE SpellVfx.PerfectRingBeadsApart %s age=%.1f beads=%d gap/bead=%.2f"), School.Name, Age, Ring.Num(), Worst));
 			bPass &= TestTrue(*FString::Printf(TEXT("%s ring at age %.1f: neighbouring beads stay apart, the gap at least %.2f of a bead (worst %.2f)"), School.Name, Age, MinGapShare, Worst),
 			    Worst >= MinGapShare);
 		}
+		TArray<SpellVfx::FPuff> Splash;
+		SpellVfx::SplashPuffs(School.Trail, Ward, Eye - Ward, 0.3, 5, true, Splash);
+		bPass &= TestTrue(*FString::Printf(TEXT("%s splash shows its cells whole"), School.Name), Splash.Num() > 0 && Splash.ContainsByPredicate([](const SpellVfx::FPuff& Puff)
+		{ return Puff.CropU0 != 0.f || Puff.CropU1 != 1.f; }) == false);
 	}
 	return bPass;
 }

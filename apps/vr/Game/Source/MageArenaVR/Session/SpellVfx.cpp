@@ -292,15 +292,23 @@ void SpellVfx::PerfectRingPuffs(const FVector& AtCm, const FVector& TowardEye, d
 	FVector Lift;
 	Across(Facing, Side, Lift);
 	const double Radius = FMath::Lerp(8.0, 26.0, EaseOut(Age));
-	const double Bead = FMath::Lerp(6.0, 1.8, Age);
-	constexpr int32 Beads = 20;
-	for (int32 I = 0; I < Beads; ++I)
+	// T75: a bead's card (the clear border included) spans a share of the chord to its neighbour, so two beads never touch.
+	const double Chord = 2.0 * Radius * FMath::Sin(PI / RingBeads);
+	const double Width = Chord * RingBeadShare * FMath::Lerp(1.0, RingBeadEnd, Age) * StreakScaleFor(Trail) / CardOversize;
+	// The head of the school's streak: Fire's spark, else the droplet (Air's wisp has no round head).
+	const bool bSpark = Trail == ETrail::Embers;
+	const float U0 = bSpark ? SparkHeadU0 : DropletHeadU0;
+	const float U1 = bSpark ? SparkHeadU1 : DropletHeadU1;
+	for (int32 I = 0; I < RingBeads; ++I)
 	{
-		const double Angle = 2.0 * PI * I / Beads;
+		const double Angle = 2.0 * PI * I / RingBeads;
 		const FVector Radial = Side * FMath::Cos(Angle) + Lift * FMath::Sin(Angle);
 		const FVector Tangent = FVector::CrossProduct(Facing, Radial).GetSafeNormal();
-		// T63: each bead a streak of the school, head along the ring, so the ring reads as spinning out.
-		Card(Add(Out, AtCm + Radial * Radius, FVector(Bead * 2.4 * RingCardScale, Bead * RingCardScale, Bead) * StreakScaleFor(Trail), FRotationMatrix::MakeFromX(Tangent).ToQuat()), StreakCell(Trail), true);
+		// T75: the card shows the head only, as tall as the whole cell, so the head is not stretched and stays round.
+		FPuff& Bead = Add(Out, AtCm + Radial * Radius, FVector(Width, Width / (U1 - U0), Width), FRotationMatrix::MakeFromX(Tangent).ToQuat());
+		Card(Bead, bSpark ? ECell::SparkStreak : ECell::DropletStreak, true);
+		Bead.CropU0 = U0;
+		Bead.CropU1 = U1;
 	}
 }
 
@@ -310,9 +318,10 @@ void SpellVfx::CardCustomData(const FPuff& Puff, float (&Out)[CardCustomFloats])
 	const float Step = 1.f / FlipbookGrid;
 	const float Column = static_cast<float>(Index % FlipbookGrid);
 	const float Row = static_cast<float>(Index / FlipbookGrid);
-	// U = u x Out[0] + Out[1] and V = v / FlipbookGrid + Out[2]: a mirrored card reads its cell from right to left.
-	Out[0] = Puff.bMirror ? -Step : Step;
-	Out[1] = (Column + (Puff.bMirror ? 1.f : 0.f)) * Step;
+	// U = u x Out[0] + Out[1] and V = v / FlipbookGrid + Out[2]: a mirrored card reads its cell from right to left. T75: only
+	// the cell's width from CropU0 to CropU1.
+	Out[0] = (Puff.bMirror ? -Step : Step) * (Puff.CropU1 - Puff.CropU0);
+	Out[1] = (Column + (Puff.bMirror ? Puff.CropU1 : Puff.CropU0)) * Step;
 	Out[2] = Row * Step;
 }
 
@@ -320,7 +329,8 @@ SpellVfx::ECell SpellVfx::CellOfCustomData(const float (&Data)[CardCustomFloats]
 {
 	const float Step = 1.f / FlipbookGrid;
 	bOutMirror = Data[0] < 0.f;
-	const int32 Column = FMath::RoundToInt32(Data[1] / Step) - (bOutMirror ? 1 : 0);
+	// T75: the column under the middle of the part shown, so a cropped card reads its cell too.
+	const int32 Column = FMath::FloorToInt32((Data[1] + 0.5f * Data[0]) / Step);
 	const int32 Row = FMath::RoundToInt32(Data[2] / Step);
 	return static_cast<ECell>(FMath::Clamp(Row * FlipbookGrid + Column, 0, FlipbookGrid * FlipbookGrid - 1));
 }
