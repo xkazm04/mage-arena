@@ -224,3 +224,11 @@ deciding **16.7**; p5 re-judged 22.7 / 17.0. Flat: Brennic, the sigil and the ge
 regressed. Judge-to-judge spread is about 3 points per frame, so a round needs a gain of several points to show.
 One judge's realistic ceiling at 16 m: 38-40/45 (face capped at 2; hands, cuff and medium at 2 without heavy work).
 From p8 on, every handover carries a per-element no-regression check against the last judged frame.
+
+**p8 (`72ddf5d`, with Tier B's chalk hands, bronze cuff and wrist HUD, Brennic's screen-constant contour):** judged
+with p7 as control, mean of 3: both 22.3/45 and **17.3/36** deciding. The third flat round (17.0, 16.7, 17.3). The
+judges' repeated reason is the medium (1/3 every round): the per-material chalk leaves "a 3D render with a chalk
+overlay". **Change of approach for p9:** section 6's "no post pass" is revisited. The project ships MobileHDR on (the
+engine default), where the mobile renderer supports a post-process material, so p9 measures one cheap full-screen
+chalk pass (depth edges as chalk strokes, one shared grain, posterize, slate vignette) for its look and its GPU cost.
+The suite is 346/349 (the three known Lynx reds; six passes log expected warnings).
