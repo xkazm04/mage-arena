@@ -216,3 +216,11 @@ calls the remaining gap "mostly direction": the opponent's staging at 16 m, one 
 fire and pillars (no post pass on Quest, so per-material), and the hard foreground band. Open defects: the
 wardstones ignore their chalk brightness (cause not found), the cuff's runes face away, the fire still a compact ball,
 the sleeves untextured.
+
+**Gate 30/36 rounds (owner, 2026-10-28 night).** p6 (`b7f5190`, not judged): stroke fireball, wardstone colour-space
+fix, bigger sigil; the ward regressed into a corner splash and the sand into radial streaks. p7 (`b7dfff7`, with Tier
+B's chalk Brennic `49ec3c1`: drawn albedo, casting lunge, 1.15x): judged with p5 as control, mean of 3: p7 full 22.3,
+deciding **16.7**; p5 re-judged 22.7 / 17.0. Flat: Brennic, the sigil and the gesture gained, the ward and the ring
+regressed. Judge-to-judge spread is about 3 points per frame, so a round needs a gain of several points to show.
+One judge's realistic ceiling at 16 m: 38-40/45 (face capped at 2; hands, cuff and medium at 2 without heavy work).
+From p8 on, every handover carries a per-element no-regression check against the last judged frame.
