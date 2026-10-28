@@ -205,3 +205,14 @@ p1 9.0, flat 7.3. Open deciding points: the hands' storytelling (left open palm 
 the sigil), the cuff out of frame, the telegraph ring too faint, the backdrop's photographic finish and its seam, the
 wardstones as black brick, and the fire's glossy core. The opponent stays capped by the 16 m ruling (judges estimate
 +4-5 at 8 m).
+
+**Probes 4-5 (`a3328af`, `21aa2a5`):** the backdrop redrawn as chalk line work fading into a slate sky; a bold red
+chalk telegraph ring; the right hand posed from the recorded `sigil-line2` clip (shot only) with the sigil pinned to
+the fingertip; both wrists, sleeves and the bronze cuff in frame (shot-only hand offsets, -20 degree look); a curved,
+rubbed sand-to-slate edge; spawn posts hidden under chalk. D-G4 median 111, p95 113; 6.8 ms. Blind judges vs S30-VR
+(mean of 3): full /45: chalk p5 **24.0**, chalk p3 19.3, painted quest 13.3; deciding /36: p5 **18.7**, p3 13.7,
+painted 9.0. One judge puts the ceiling of this approach at about 34-36/45 with the opponent kept at 16 m. One judge
+calls the remaining gap "mostly direction": the opponent's staging at 16 m, one unifying medium across sand, wave,
+fire and pillars (no post pass on Quest, so per-material), and the hard foreground band. Open defects: the
+wardstones ignore their chalk brightness (cause not found), the cuff's runes face away, the fire still a compact ball,
+the sleeves untextured.
