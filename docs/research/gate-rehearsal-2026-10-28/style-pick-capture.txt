@@ -1,0 +1,52 @@
+# Wolf kaziho 2026-10-28 commit 7bdfe2c UE 5.8.3 CL 58210709 (worktree autopilot/accepted-idea-delivery-0cb3bd25)
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-style-pick.ps1   (exit 0; default styles greybox, 13, 25, 30; seed 1)
+capture-style-pick: running style greybox
+LogMageArena: MAGEVR_STYLEPICK start style=greybox frames=3600 bout=2 seed=1
+LogMageArena: MAGEVR_STYLEPICK sim after 1s: 1.000000
+LogMageArena: MAGEVR_STYLEPICK end seq=1870 tick=1870 stage=lost sim=31.167
+LogMageArena: MAGEVR_CAPTURE_DONE shots=1870 manifest=runs/T16/shots-greybox/manifest.json
+capture-style-pick: running style 13
+LogMageArena: MAGEVR_STYLEPICK start style=13 frames=3600 bout=2 seed=1
+LogMageArena: MAGEVR_STYLEPICK sim after 1s: 1.000000
+LogMageArena: MAGEVR_STYLEPICK end seq=1870 tick=1870 stage=lost sim=31.167
+LogMageArena: MAGEVR_CAPTURE_DONE shots=1870 manifest=runs/T16/shots-13/manifest.json
+capture-style-pick: running style 25
+LogMageArena: MAGEVR_STYLEPICK start style=25 frames=3600 bout=2 seed=1
+LogMageArena: MAGEVR_STYLEPICK sim after 1s: 1.000000
+LogMageArena: MAGEVR_STYLEPICK end seq=1870 tick=1870 stage=lost sim=31.167
+LogMageArena: MAGEVR_CAPTURE_DONE shots=1870 manifest=runs/T16/shots-25/manifest.json
+capture-style-pick: running style 30
+LogMageArena: MAGEVR_STYLEPICK start style=30 frames=3600 bout=2 seed=1
+LogMageArena: MAGEVR_STYLEPICK sim after 1s: 1.000000
+LogMageArena: MAGEVR_STYLEPICK end seq=1870 tick=1870 stage=lost sim=31.167
+LogMageArena: MAGEVR_CAPTURE_DONE shots=1870 manifest=runs/T16/shots-30/manifest.json
+capture-style-pick: greybox manifest frames=1870 commit=7bdfe2cb37ec9aeab09601b12c0450a1d3d89dad seed=1
+capture-style-pick: 13 manifest frames=1870 commit=7bdfe2cb37ec9aeab09601b12c0450a1d3d89dad seed=1
+capture-style-pick: 25 manifest frames=1870 commit=7bdfe2cb37ec9aeab09601b12c0450a1d3d89dad seed=1
+capture-style-pick: 30 manifest frames=1870 commit=7bdfe2cb37ec9aeab09601b12c0450a1d3d89dad seed=1
+capture-style-pick: events-greybox.jsonl md5=7B0715C871AC3399504C4F7A744896D4
+capture-style-pick: events-13.jsonl md5=7B0715C871AC3399504C4F7A744896D4
+capture-style-pick: events-25.jsonl md5=7B0715C871AC3399504C4F7A744896D4
+capture-style-pick: events-30.jsonl md5=7B0715C871AC3399504C4F7A744896D4
+capture-style-pick: encoding runs\T16\style-greybox.mp4
+capture-style-pick: still runs\T16\shots\greybox-01.png = seq/frame_0481.png tick=481 event=52 kind=cast rivalbar=379 aim=50
+capture-style-pick: still runs\T16\shots\greybox-02.png = seq/frame_0931.png tick=931 event=102 kind=cast rivalbar=253 aim=101
+capture-style-pick: still runs\T16\shots\greybox-03.png = seq/frame_1399.png tick=1399 event=151 kind=cast rivalbar=171 aim=151
+capture-style-pick: still runs\T16\shots\greybox-04.png = seq/frame_1477.png tick=1477 event=166 kind=hit rivalbar=374 aim=202
+capture-style-pick: encoding runs\T16\style-13.mp4
+capture-style-pick: still runs\T16\shots\13-01.png = seq/frame_0481.png tick=481 event=52 kind=cast rivalbar=379 aim=50
+capture-style-pick: still runs\T16\shots\13-02.png = seq/frame_0931.png tick=931 event=102 kind=cast rivalbar=253 aim=101
+capture-style-pick: still runs\T16\shots\13-03.png = seq/frame_1399.png tick=1399 event=151 kind=cast rivalbar=171 aim=151
+capture-style-pick: still runs\T16\shots\13-04.png = seq/frame_1477.png tick=1477 event=166 kind=hit rivalbar=374 aim=202
+capture-style-pick: encoding runs\T16\style-25.mp4
+capture-style-pick: still runs\T16\shots\25-01.png = seq/frame_0481.png tick=481 event=52 kind=cast rivalbar=379 aim=50
+capture-style-pick: still runs\T16\shots\25-02.png = seq/frame_0931.png tick=931 event=102 kind=cast rivalbar=253 aim=101
+capture-style-pick: still runs\T16\shots\25-03.png = seq/frame_1399.png tick=1399 event=151 kind=cast rivalbar=171 aim=151
+capture-style-pick: still runs\T16\shots\25-04.png = seq/frame_1477.png tick=1477 event=166 kind=hit rivalbar=374 aim=202
+capture-style-pick: encoding runs\T16\style-30.mp4
+capture-style-pick: still runs\T16\shots\30-01.png = seq/frame_0481.png tick=481 event=52 kind=cast rivalbar=379 aim=50
+capture-style-pick: still runs\T16\shots\30-02.png = seq/frame_0931.png tick=931 event=102 kind=cast rivalbar=253 aim=101
+capture-style-pick: still runs\T16\shots\30-03.png = seq/frame_1399.png tick=1399 event=151 kind=cast rivalbar=171 aim=151
+capture-style-pick: still runs\T16\shots\30-04.png = seq/frame_1477.png tick=1477 event=166 kind=hit rivalbar=374 aim=202
+capture-style-pick: ok
+# apps/vr/art/style-pick/ (rewritten by the script) copied out of the repo and restored with git checkout HEAD -- apps/vr/art/style-pick; git status clean afterwards

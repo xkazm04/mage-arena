@@ -1,0 +1,60 @@
+# Wolf kaziho 2026-10-28 commit 7bdfe2c UE 5.8.3 CL 58210709 (worktree autopilot/accepted-idea-delivery-0cb3bd25)
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-budget.ps1 -Runs 3 -Prefix gate1028   (scene: D-G4 stress, default; exit 0)
+budget: gate10281 starting UnrealEditor-Cmd
+budget: gate10281 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=52 launches=1211 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=52 launches=8464
+  draw calls min/median/p95/max: 85 / 103 / 107 / 108
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 378 parts / 23 tuples, drawn hash ad0ccf03bb6cd9b4f54c534e0d45b3a0
+  live particles min/median/p95/max: 1134 / 1393 / 1455 / 1467
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  csv draw calls Basepass: median 33 max 99
+  csv draw calls Prepass: median 10 max 36
+  csv draw calls ShadowDepths: median 5 max 15
+  csv draw calls Translucency: median 35 max 105
+  dump pass BasePass: median 137846 max 139518 (n=6); draws median 33
+  dump pass DepthPass: median 137846 max 139518 (n=6); draws median 11.5
+  dump pass ShadowDepth: median 81286 max 81286 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 18925 max 18944 (n=6); draws median 33
+  dump pass TranslucentVelocity: median 2779 max 2798 (n=6); draws median 5
+  dump pass Velocity: median 79984 max 82256 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: gate10282 starting UnrealEditor-Cmd
+budget: gate10282 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=52 launches=1212 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=52 launches=8464
+  draw calls min/median/p95/max: 83 / 104 / 107 / 108
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 378 parts / 23 tuples, drawn hash ad0ccf03bb6cd9b4f54c534e0d45b3a0
+  live particles min/median/p95/max: 1130 / 1398 / 1460 / 1468
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  csv draw calls Basepass: median 33 max 99
+  csv draw calls Prepass: median 11 max 36
+  csv draw calls ShadowDepths: median 5 max 15
+  csv draw calls Translucency: median 35 max 108
+  dump pass BasePass: median 137958 max 139518 (n=6); draws median 33
+  dump pass DepthPass: median 137958 max 139518 (n=6); draws median 11.5
+  dump pass ShadowDepth: median 81286 max 81286 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 18691 max 19056 (n=6); draws median 32
+  dump pass TranslucentVelocity: median 2547 max 2910 (n=6); draws median 4
+  dump pass Velocity: median 80776 max 82256 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: gate10283 starting UnrealEditor-Cmd
+budget: gate10283 ok=True done=True pop=MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=steady handInstances=52 launches=1209 | MAGEVR_BUDGET_POP enemies=20 projectiles=100 hands=2 niagara=6 phase=end handInstances=52 launches=8464
+  draw calls min/median/p95/max: 83 / 103 / 107 / 108
+  of which skeletal (LOD0, skinned meshes) median/max: 23990 / 23990
+  scene parity ok=True: planned 210 parts / 11 tuples, drawn 378 parts / 23 tuples, drawn hash ad0ccf03bb6cd9b4f54c534e0d45b3a0
+  live particles min/median/p95/max: 1129 / 1399 / 1461 / 1468
+  gpu emitters max: 1 (cross-check 1); niagara systems live min 6; zero-particle frames 0; allowGpuParticles True
+  particlesExercised True: exercised [pass]
+  csv draw calls Basepass: median 33 max 66
+  csv draw calls Prepass: median 10 max 26
+  csv draw calls ShadowDepths: median 5 max 10
+  csv draw calls Translucency: median 35 max 72
+  dump pass BasePass: median 137958 max 139518 (n=6); draws median 33
+  dump pass DepthPass: median 137958 max 139518 (n=6); draws median 10
+  dump pass ShadowDepth: median 81286 max 81286 (n=6); draws median 5
+  dump pass TranslucencyAfterDOF: median 18703 max 18834 (n=6); draws median 32
+  dump pass TranslucentVelocity: median 2557 max 2784 (n=6); draws median 4
+  dump pass Velocity: median 80696 max 82256 (n=6); draws median 3
+  skinned SK_Brennic (lod 0, segments 0): BasePass 1 draws / 23990 tris; DepthPass 1 draws / 23990 tris; ShadowDepth 1 draws / 23990 tris
+budget: ok (3 runs)

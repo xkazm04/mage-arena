@@ -1,0 +1,34 @@
+# Wolf kaziho 2026-10-28 commit 7bdfe2c UE 5.8.3 CL 58210709 (worktree autopilot/accepted-idea-delivery-0cb3bd25)
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-rival.ps1 -Run gate1028-rival -Staging C:\Users\kazda\scratch-gate1028\rival-stage   (exit 0; staging outside the repo)
+rival: committed cast ok under apps\vr\Game\Content\Characters
+rival: starting the replay run=gate1028-rival seeds=1,2
+LogMageArena: MAGEVR_RIVAL_FIGURE loaded /Game/Characters/Brennic/SK_Brennic.SK_Brennic lod0tris=23990 lods=3 forward=(1.00, -0.01) idle=2.000 cast=1.533 hit=0.800 death=2.000 s
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Cast attempt=1 full=1 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Cast attempt=6 full=2 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Cast attempt=7 full=3 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Hit attempt=16 full=1 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Idle attempt=4 full=1 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Hit attempt=32 full=2 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Idle attempt=5 full=2 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Hit attempt=33 full=3 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Idle attempt=11 full=3 of 3
+LogMageArena: MAGEVR_RIVAL_REPLAY clip=Death seed=2 frame=2218 tick=2218 sim=36.967 phase=active
+LogMageArena: MAGEVR_RIVAL_REPLAY set done clip=Death attempt=1 full=1 of 1
+LogMageArena: MAGEVR_CAPTURE_DONE shots=113
+rival: cast set seed1-cast-a1 (5 frames)
+rival: hit set seed1-hit-a16 (4 frames)
+rival: idle set seed1-idle-a4 (4 frames)
+rival: death set seed2-death-a1 (8 frames)
+rival: capture ok=True done=True failed=False
+rival: sheet seed1-idle-a4 exit=0 runs\gate1028-rival\rival\sheet-seed1-idle-a4.png (4 frames, 377 px squares)
+rival: sheet seed1-idle-a5 exit=0 runs\gate1028-rival\rival\sheet-seed1-idle-a5.png (4 frames, 1080 px squares)
+rival: sheet seed2-idle-a11 exit=0 runs\gate1028-rival\rival\sheet-seed2-idle-a11.png (4 frames, 469 px squares)
+rival: sheet seed1-cast-a1 exit=0 runs\gate1028-rival\rival\sheet-seed1-cast-a1.png (5 frames, 507 px squares)
+rival: sheet seed1-cast-a6 exit=0 runs\gate1028-rival\rival\sheet-seed1-cast-a6.png (5 frames, 466 px squares)
+rival: sheet seed1-cast-a7 exit=0 runs\gate1028-rival\rival\sheet-seed1-cast-a7.png (5 frames, 403 px squares)
+rival: sheet seed1-hit-a16 exit=0 runs\gate1028-rival\rival\sheet-seed1-hit-a16.png (4 frames, 371 px squares)
+rival: sheet seed1-hit-a32 exit=0 runs\gate1028-rival\rival\sheet-seed1-hit-a32.png (4 frames, 1080 px squares)
+rival: sheet seed1-hit-a33 exit=0 runs\gate1028-rival\rival\sheet-seed1-hit-a33.png (4 frames, 1080 px squares)
+rival: sheet seed2-death-a1 exit=0 runs\gate1028-rival\rival\sheet-seed2-death-a1.png (8 frames, 392 px squares)
+rival: staged 125 files under C:\Users\kazda\scratch-gate1028\rival-stage\runs\T38 (SHA256SUMS.txt)
+rival: ok (staging: C:\Users\kazda\scratch-gate1028\rival-stage)

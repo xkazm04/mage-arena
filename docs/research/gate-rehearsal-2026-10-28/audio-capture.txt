@@ -1,0 +1,38 @@
+# Wolf kaziho 2026-10-28 commit 7bdfe2c UE 5.8.3 CL 58210709 (worktree autopilot/accepted-idea-delivery-0cb3bd25)
+
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-colour-audio.ps1 -Run gate1028-audio1 -SkipStills   (exit 0)
+capture-colour-audio: audio run=gate1028-audio1
+LogMageArena: MAGEVR_T26 start mode=audio run=gate1028-audio1
+LogMageArena: MAGEVR_T26 warm-up done wall=2.517 frames=22 figure=1
+LogMageArena: MAGEVR_T26 recording start brennic=2 audioclock=5.141
+LogMageArena: MAGEVR_T26 recording stop audio=30.805 wall=30.803 sim=30.800 mixer=30.805 cues=147 phase=active longest=0.020
+LogMageArena: MAGEVR_T26 wav runs/gate1028-audio1/audio/brennic-opening.wav bytes=5910572
+LogMageArena: MAGEVR_T26 wav duration=30.784 rate=48000 channels=2 bits=16
+LogMageArena: MAGEVR_CAPTURE_DONE mode=audio shots=0
+capture-colour-audio: sample_rate=48000
+capture-colour-audio: channels=2
+capture-colour-audio: duration=30.784000
+capture-colour-audio: [Parsed_volumedetect_0 @ 000001be6f441a40] mean_volume: -26.1 dB
+capture-colour-audio: [Parsed_volumedetect_0 @ 000001be6f441a40] max_volume: -5.7 dB
+capture-colour-audio: ok
+
+# powershell -NoProfile -ExecutionPolicy Bypass -File apps/vr/tools/capture-colour-audio.ps1 -Run gate1028-audio2 -SkipStills   (exit 0)
+capture-colour-audio: audio run=gate1028-audio2
+LogMageArena: MAGEVR_T26 start mode=audio run=gate1028-audio2
+LogMageArena: MAGEVR_T26 warm-up done wall=2.329 frames=22 figure=1
+LogMageArena: MAGEVR_T26 recording start brennic=2 audioclock=5.035
+LogMageArena: MAGEVR_T26 recording stop audio=30.814 wall=30.811 sim=30.800 mixer=30.827 cues=149 phase=active longest=0.022
+LogMageArena: MAGEVR_T26 wav runs/gate1028-audio2/audio/brennic-opening.wav bytes=5918764
+LogMageArena: MAGEVR_T26 wav duration=30.827 rate=48000 channels=2 bits=16
+LogMageArena: MAGEVR_CAPTURE_DONE mode=audio shots=0
+capture-colour-audio: sample_rate=48000
+capture-colour-audio: channels=2
+capture-colour-audio: duration=30.826667
+capture-colour-audio: [Parsed_volumedetect_0 @ 000001c3e1ec1a40] mean_volume: -26.1 dB
+capture-colour-audio: [Parsed_volumedetect_0 @ 000001c3e1ec1a40] max_volume: -6.0 dB
+capture-colour-audio: ok
+
+# ffmpeg ebur128 (peak=true) over each WAV, md5 and cue rows (cues.tsv lines incl. header)
+# gate1028-audio1:  I: -23.8 LUFS; Peak: -5.7 dBFS; md5 2fc4d72f15981fbd57c919124ddd10af; cues.tsv lines 148
+# gate1028-audio2:  I: -23.8 LUFS; Peak: -6.0 dBFS; md5 fc36861b652f1c6572f9351cdbc846c3; cues.tsv lines 150
+# reference 10-27 rehearsal (64c1dc2): FAIL x2, wav 28.565 / 27.435 s, sim 28.850 / 27.717; L1 final (b34b6c5): wav 30.805 x2, ok x2
