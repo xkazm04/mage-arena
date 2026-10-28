@@ -2,6 +2,17 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-28 (evening) - Owner rulings on the retarget's open questions
+
+> "Decisions: 1. 16m range to keep 2. Allow chalk labels during the tutorial so we can imprint the artstyle into the
+> whole game 3. Approved next step"
+
+- **(1) The duel distance stays 16 m** (bout start 16.2 m), although S30-VR draws the mage at 8 m. The opponent's
+  score in the S30 scorecard is read with that ceiling in mind; presence work (pose, rim, contour, backdrop) carries it.
+- **(2) Chalk labels are allowed in the tutorial**, so the chalk-and-diagram language runs through the whole game,
+  not only the arena dressing. Labels stay out of combat outside the tutorial unless the owner widens this.
+- **(3) The chalk probe is approved**: the next step of `docs/concepts/RETARGET-CHALK-SLATE-2026-10-28.md` section 8.
+
 ## 2026-10-28 (evening) - Owner: retarget the art style to 30 Chalk & Slate
 
 > "The progress in Quest desktop is impressive, yet the key art needs to retarget. At the start of this conversation I

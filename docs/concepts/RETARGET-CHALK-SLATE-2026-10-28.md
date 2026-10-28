@@ -147,6 +147,11 @@ place to forge one (`standalone-headset-frame-budgets` or a new subject), with t
 
 ## 7. Owner questions this retarget reopens
 
+**Answered 2026-10-28 (`docs/DECISIONS.md`):** (1) the duel distance stays 16 m; (2) chalk labels are allowed in the
+tutorial, so the drawn-diagram language runs through the whole game; (3) the probe in section 8 is approved. Question 3
+below (store key art) stays open until the in-game look settles.
+
+
 1. **Duel distance.** S30-VR, the storyboard prompt and its callout all say the fire mage stands **8 m** ahead; the
    game's bout-start distance is 16.2 m, and the owner kept 16 m on 2026-10-28 for S1. The retarget does not change
    the ruling by itself, but the new target is drawn at 8 m, so the opponent elements will again cap the score at 16 m.
