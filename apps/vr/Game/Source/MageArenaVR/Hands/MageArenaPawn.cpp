@@ -12,6 +12,7 @@
 #include "HAL/IConsoleManager.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Hands/MageSettings.h"
+#include "Look/ArenaLook.h"
 #include "MageArenaVR.h"
 
 namespace
@@ -96,6 +97,11 @@ void AMageArenaPawn::ConfigureFromLayout(const FArenaLayout& InLayout)
 	{
 		Camera->SetRelativeLocation(FVector(0.0, 0.0, EyeCm));
 		Camera->SetFieldOfView(static_cast<float>(Layout.CameraFovDeg));
+	}
+	// The flat look's camera: manual exposure, no bloom, no local exposure. The quest and epic looks set their own
+	// (docs/concepts/GRAPHICS-PUSH-2026-10-28.md).
+	if (Camera && ArenaLook::IsFlat())
+	{
 		FPostProcessSettings& Post = Camera->PostProcessSettings;
 		Post.bOverride_AutoExposureMethod = true;
 		Post.AutoExposureMethod = AEM_Manual;
@@ -119,7 +125,8 @@ void AMageArenaPawn::ConfigureFromLayout(const FArenaLayout& InLayout)
 void AMageArenaPawn::ApplyFlatPresentation()
 {
 	// Global cvars stay out of ConfigureFromLayout so a headless test cannot change the editor.
-	if (!GetWorld())
+	// Only the flat look turns the tonemapper off; the quest and epic looks keep it (GRAPHICS-PUSH-2026-10-28).
+	if (!GetWorld() || !ArenaLook::IsFlat())
 	{
 		return;
 	}

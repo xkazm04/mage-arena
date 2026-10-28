@@ -80,8 +80,9 @@ in `C:/Users/kazda/mage-art-staging/push-1028/`.
   leave. A look that makes a threat ambiguous is a failed look, whatever its score.
 - No combat-number, pinned-data or clip-corpus edit (`apps/vr/data/pinned/**`, `PINNED.json`, conformance, clips).
   Camera position and threat distances are gameplay; the key-art camera exists only in the S1 shot.
-- `MageArena.` stays green (347 at handover, the two DF-011 reds in `MageArenaDesign` are accepted) on the
-  default `flat` look. `build.ps1` prints `Result: Succeeded` before every commit that touches C++.
+- `MageArena.` gets **no new red** on the default `flat` look. Lynx baseline (2026-10-28, master with the look switch):
+  345 of 348 pass; `Fire.Golden`, `Rivals.NullPath` and `Overlay.Golden` are red on Lynx only (sim hashes under
+  emulated x64, `docs/research/UE-ON-LYNX-2026-10-22.md`), green on Wolf. The DF-011 reds in `MageArenaDesign` stay accepted. `build.ps1` prints `Result: Succeeded` before every commit that touches C++.
 - Unreal on Lynx: **at most one Unreal process per tier** (two machine-wide), and only with 8 GB or more free RAM.
 - Paid images: the owner's Leonardo **web studio** (GPT Image 2.5 Sunburst) through
   `apps/vr/tools/keyart/studio-still.mts`, which downloads each still and deletes the generation from the studio.
