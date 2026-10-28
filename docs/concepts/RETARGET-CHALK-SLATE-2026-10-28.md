@@ -187,3 +187,8 @@ Blind judges vs S30-VR (mean of 3, /45): chalk p1 **15.0**, painted quest 13.3, 
 every frame ("plain CG"). Diagnosis: wrong polarity (dark hatching on grey-filled stone reads as cobblestone; on slate,
 light is added chalk and shadow is bare slate), no contour lines, no slate board around the player, colour everywhere
 instead of only on the magic, the robe, the banners and the hands. Probe 2 addresses these without a post pass.
+
+**Owner redirect (2026-10-28, late):** the arena and crowd become one chalk-drawn 2D backdrop under the chalk style;
+probe effort goes to the opponent, surface, spells, hands and the chalk medium, which alone decide continue or stop.
+For the judges, elements 11-13 (wall, crowd, banners) are reported but left out of the deciding score; the deciding
+score is elements 1-10, 14 and 15, out of 36.

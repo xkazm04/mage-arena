@@ -2,6 +2,19 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-28 (late) - Owner: the arena becomes one 2D backdrop; effort goes to the opponent, surface, spells, hands, chalk
+
+> "I would suggest to spend less effort on arena construction and visitors in this stage. For simplicity we can use one
+> 2D background with the arena environment, focusing rather on oponent, surface, spell graphics, hands, chalk. The arena
+> importance and its 3D design will not be factor for deciding whether to throw the project or going all in to chase
+> art direction in perfection."
+
+- Under `-MageArenaStyle=chalk` the 3D wall, stands, crowd cards, pylons and stand banners are replaced by one chalk-drawn
+  2D arena backdrop (a cylinder or dome card). The painted style keeps the 3D arena untouched.
+- The continue-or-stop read is made on: the opponent, the surface (the sand and the slate board with rune circles round
+  the seat), the spell graphics (fire, ward, sigil, telegraph ring), the hands and cuff, and the chalk medium. Arena and
+  crowd elements are scored but do not decide it.
+
 ## 2026-10-28 (evening) - Owner rulings on the retarget's open questions
 
 > "Decisions: 1. 16m range to keep 2. Allow chalk labels during the tutorial so we can imprint the artstyle into the
