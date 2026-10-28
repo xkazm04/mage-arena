@@ -2,6 +2,15 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-29 - Owner: MiniMax H3 allowed (hackathon, non-commercial)
+
+> "Licensing - we are not making commercial app, it is a hackathon project for our own education and fun, allow
+> MiniMax H3 to be involved if needed"
+
+- MiniMax H3 (`fl2va`, `ref2va`) may be used for the 2.5D spike and its follow-ups. The research report's licence note
+  (`docs/research/IMAGE-BASED-25D-RESEARCH-2026-10-29.md`: H3 excludes the EU, the UK, the US and South Korea without
+  a grant) is recorded and accepted by the owner for this non-commercial use. Revisit if the project ever becomes commercial.
+
 ## 2026-10-29 - Owner: judge asset quality and style fit, not 1:1 frame matching; research and spike a 2.5D image-based route
 
 > "the distance should not be factor for the evaluation, the reason why the score stays because all the other items
