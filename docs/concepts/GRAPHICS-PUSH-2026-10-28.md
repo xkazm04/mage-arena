@@ -116,3 +116,11 @@ Quest led because it already carried the lit pylon fires and banners (`fcd0865`)
 three judges called the remaining gap art and composition, not rendering technology. Every judge named the opponent's
 size at 16 m first (elements 1-3 score 1/0/1 in every frame), then the hands (pale, cropped, the HUD over them), the
 ward's shape (S1's is an arch framing the fireball) and the glossy fireball core. Set: `push-1028/judge-r1/`.
+
+**Judge round 2 (2026-10-28, three blind judges, frozen-clock S1 shot at pitch -10, baseline re-shot at the same
+camera):** baseline 14 / 14 / 14 (mean 14.0); Quest r7 desktop (`e58e2dc`) 23 / 23 / 26 (24.0); Quest r7 on the
+mobile renderer with MobileHDR off 23 / 23 / 26 (24.0, called "nearly the same image" as desktop by all three); Epic r6
+(`ad912e2`) 26 / 25 / 30 (27.0). Epic led on the golden sky, the grade and the white-gold fireball heart; Quest's
+teal-lilac regrade, tuned on region numbers, read as "muddy mauve" (lesson: perception beats region statistics).
+Every judge again named the 16 m opponent first. One judge: the arena "is close to shipping quality", but next to S1 on
+a store page the gap is the composition (opponent size, hands), not the rendering. Set: `push-1028/judge-r2/`.
