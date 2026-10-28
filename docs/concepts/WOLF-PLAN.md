@@ -363,6 +363,10 @@ result, and each passes `format-check.mjs` and `unused-members.mjs` (section d).
   `docs/research/GATE-REHEARSAL-VR-2026-10-27.md`. `MageArena.` 342/342; `MageArenaDesign.` 5/7 (DF-011's two);
   style-pick ok; D-G4 ok (max 118 stress, 127 creature-import); `capture-colour-audio.ps1` FAIL x2 (WAV 28.6 / 27.4 s of
   30.8); no Win64 stage script. Tally met 4, partly 3, not met 7, owner's 1.
+- Rehearsal, not ticked: `Wolf kaziho 2026-10-28 7bdfe2c UE 5.8.3 CL 58210709`,
+  `docs/research/GATE-REHEARSAL-VR-2026-10-28.md`. `MageArena.` 347/347; `MageArenaDesign.` 5/7 (DF-011's two);
+  style-pick ok (Brennic in 4 of 4 stills); `capture-colour-audio.ps1` ok x2 (WAV 30.784 / 30.827 s of 30.8); rival ok;
+  D-G4 ok (max 108 stress, 117 creature-import); no Win64 stage script. Tally met 4, partly 3, not met 7, owner's 1.
 
 ### P9. [DEFERRED 2026-10-24, ruling 2, `docs/DECISIONS.md` "P5/P9 deferred"] Device: V1 bring-up, V2 hands, V3 beta and RC (soft: V1 Sun 1 - Wed 4 Nov, V2 Thu 5 - Sun 8 Nov, V3 Mon 9 - Fri 13 Nov)
 
