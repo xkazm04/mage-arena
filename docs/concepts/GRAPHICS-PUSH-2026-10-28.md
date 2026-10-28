@@ -109,3 +109,10 @@ virtual shadow maps must be off under forward shading or no shadows draw.
 
 **Owner, 2026-10-28:** Brennic stays at his 16 m duel distance; push his presence instead (rim light, cast glow, pose,
 up to 1.15x visual scale). The wardstones may be restyled as stone pylons, keeping the Tithe glow as the signal.
+
+**Judge round 1 (2026-10-28, three blind context-free judges, anonymised game-camera frames vs S1):** baseline
+13 / 12 / 14 (mean 13.0); Quest r3 (`1528e3a`) 29 / 25 / 25 (mean 26.3); Epic r2 (`99e5da0`) 25 / 24 / 23 (mean 24.0).
+Quest led because it already carried the lit pylon fires and banners (`fcd0865`), which Epic r2 had not taken yet. All
+three judges called the remaining gap art and composition, not rendering technology. Every judge named the opponent's
+size at 16 m first (elements 1-3 score 1/0/1 in every frame), then the hands (pale, cropped, the HUD over them), the
+ward's shape (S1's is an arch framing the fireball) and the glossy fireball core. Set: `push-1028/judge-r1/`.
