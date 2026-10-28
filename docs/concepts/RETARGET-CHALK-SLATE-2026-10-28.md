@@ -243,3 +243,14 @@ cuff and face (net -1); p10 fixes it with a near-field fade and lower grain. The
 about 30: the pass without halos (+2), an oval sand-to-slate edge (+2-3), a true pointing finger with the sigil at
 its tip (+1-2), the ward as a taller curtain on the left (+1), a metallic cuff (+1), pencil instead of ink on the hands
 (+1). The opponent stays near 4/9 at 16 m. One new timing red (`Kernel.EnemyStepCost`, 66.8 us vs 60) passed alone.
+
+**p10 (`2a1e515`, with hero-6: a shot-only pointing hand with the sigil on the index tip, pencil hand outline, lighter
+bronze cuff):** the post pass fixed (no edges or banding within 1.5 m, half grain, none on emissive; steady cost
+**+0.35 ms GPU** on the true ES3.1 path, MobileHDR on, 1920x1080 on the desk GPU; p9's 9 ms p95 was a first-launch
+shader warm-up), an oval sand fade, a taller ward on the left, mid-value wardstones. Blind judges (mean of 3, deciding
+/36): p10 with and without the pass **19.3**; the p9 control re-judged **18.0** (21.3 in its own round): judge-set
+noise is about ±2-3 on the mean, so a round's gain is read against its control in the same set. Two judges put the
+ceiling of this approach at about 37/45 with the opponent at its 16 m size (opponent rows about 5/9), which is about
+**29-30/36 deciding**: the owner's 30 gate is at the ceiling for 16 m, and 36 is out of reach without moving the
+opponent. Next losses to fix: the sand fade read as "a blob over black void", the ground too black, the ward split into
+pieces, the cuff reads as woven card, the hands as comic ink.
