@@ -124,3 +124,11 @@ mobile renderer with MobileHDR off 23 / 23 / 26 (24.0, called "nearly the same i
 teal-lilac regrade, tuned on region numbers, read as "muddy mauve" (lesson: perception beats region statistics).
 Every judge again named the 16 m opponent first. One judge: the arena "is close to shipping quality", but next to S1 on
 a store page the gap is the composition (opponent size, hands), not the rendering. Set: `push-1028/judge-r2/`.
+
+**Final judge round 3 (2026-10-28, three blind judges, final frames from the merged branch `push/epic-look` `fa82afe`,
+all three looks rendered from one tree):** flat 14 / 13 / 14 (13.7); Quest desktop 25 / 24 / 26 (25.0); Quest on the
+mobile renderer with MobileHDR off 26 / 24 / 26 (25.3); Epic 29 / 25 / 25 (26.3). The tiers are within about one point
+and round-to-round noise is about two, so Quest and Epic are level. Opponent elements 1-3 average about 1.1 / 0.3 / 1.0
+in every lit frame; one judge estimates about +4-5 points if the opponent stood close and large as in S1. All three
+judges again rank the opponent's size first, then the hands' framing (no sleeves, bunched centre), then the sky.
+Records: `docs/research/QUEST-LOOK-2026-10-28.md`, `docs/research/EPIC-LOOK-2026-10-28.md` (on `push/epic-look`).
