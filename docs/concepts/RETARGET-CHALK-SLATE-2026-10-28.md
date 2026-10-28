@@ -232,3 +232,14 @@ overlay". **Change of approach for p9:** section 6's "no post pass" is revisited
 engine default), where the mobile renderer supports a post-process material, so p9 measures one cheap full-screen
 chalk pass (depth edges as chalk strokes, one shared grain, posterize, slate vignette) for its look and its GPU cost.
 The suite is 346/349 (the three known Lynx reds; six passes log expected warnings).
+
+**p9 (`26aecf1`, with Tier B's hero-5: aged bronze cuff with engraved HUD channels, outlined and hatched hands, a
+wider lunge):** the first mobile chalk post pass (`M_Q_ChalkPost`: depth edges as chalk strokes, shared grain,
+posterize, slate vignette; MobileHDR on only; +0.72 ms GPU on the ES3.1 proxy at 1920x1080 on the desk GPU, p95
+spikes unexplained), the fireball back in flight on the line from the thrust hand, the ring beside it, slate wardstones.
+Blind judges (mean of 3, deciding /36): **p9 without the pass 21.3**, with the pass 20.3, p8 control 17.3 (stable).
+The plateau broke (+4). The pass gives the medium (+1) but its depth edges halo the hands and its grain muddies the
+cuff and face (net -1); p10 fixes it with a near-field fade and lower grain. The judges' itemised next gains sum to
+about 30: the pass without halos (+2), an oval sand-to-slate edge (+2-3), a true pointing finger with the sigil at
+its tip (+1-2), the ward as a taller curtain on the left (+1), a metallic cuff (+1), pencil instead of ink on the hands
+(+1). The opponent stays near 4/9 at 16 m. One new timing red (`Kernel.EnemyStepCost`, 66.8 us vs 60) passed alone.
