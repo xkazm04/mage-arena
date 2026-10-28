@@ -98,4 +98,14 @@ in `C:/Users/kazda/mage-art-staging/push-1028/`.
 
 ## Results
 
-(Filled in per round: frame paths, scores, cost figures.)
+(Filled in per round: frame paths, scores, cost figures.) Frames: `C:/Users/kazda/mage-art-staging/push-1028/frames/`.
+
+**Round 1 (2026-10-28, builders' self-scores on the game camera, not yet judged):** baseline 13/45, Quest r1 21/45
+(`push/quest-look` `be533fd`, `189ef92`; D-G4 stress median 137 draws, p95 141, BasePass median 146k), Epic r1 23/45
+(`push/epic-look` `90d793c`, `ff1f720`; 7.2 ms GPU at 1376x768). Both tiers lifted the arena (walls, sand, sky, sun,
+banners) to about 2 each; the opponent, spells and hands stayed at 0-1, and the two tiers look alike, so the gap is
+assets and grade, not the renderer. Engine pitfalls: a spawned directional light must be Movable before it is rotated;
+virtual shadow maps must be off under forward shading or no shadows draw.
+
+**Owner, 2026-10-28:** Brennic stays at his 16 m duel distance; push his presence instead (rim light, cast glow, pose,
+up to 1.15x visual scale). The wardstones may be restyled as stone pylons, keeping the Tithe glow as the signal.
