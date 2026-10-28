@@ -2,6 +2,19 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-28 (night) - Owner: keep polishing Chalk & Slate to a 30/36 focus score before the next gate; no APK yet
+
+> "lets continue with rounds, keep polishing and generating assets so we can reach at least 30 score in focus areas
+> before next decision gate. This will be point we will realize whether perfect 36 is achievable and game mechanics
+> realistic to wire into. We don't need APK build and test in this phase as we are still uncertain of the feasibility"
+
+- **Gate:** the blind-judged deciding score against S30-VR (elements 1-10, 14, 15; mean of three judges) reaches at
+  least **30 of 36**. At the gate the owner decides whether 36 is achievable and whether wiring the look into the game
+  mechanics is realistic. Latest before this ruling: 18.7 (chalk probe 5, `21aa2a5`).
+- **No APK or headset test in this phase.** The mobile-renderer proxy stays the Quest check.
+- Rounds keep generating studio assets (web studio, deleted after download). The duel distance stays 16 m; the
+  opponent's elements are capped by it, which the gate report must state.
+
 ## 2026-10-28 (late) - Owner: the arena becomes one 2D backdrop; effort goes to the opponent, surface, spells, hands, chalk
 
 > "I would suggest to spend less effort on arena construction and visitors in this stage. For simplicity we can use one
