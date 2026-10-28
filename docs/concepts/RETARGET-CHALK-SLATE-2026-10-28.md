@@ -267,3 +267,32 @@ opponent at 16 m (rows 1-3 about 3-4 of 9; every judge asks for about 8 m, estim
 drawn backdrop with 3D hands and effects (medium 1-2); the cuff's HUD stripes read as "rainbow stripes on a tan tube"
 whatever its material; the fireball's hot core reads as "a white placeholder dot". The 30/36 gate is not in reach on
 this trajectory at 16 m; the owner decides how to proceed.
+
+**New yardstick (owner, 2026-10-29): asset quality and style fit, not 1:1 with S30, distance not scored.** Six classes
+(opponent, sand, near floor and slate, spells, hands and cuff, chalk treatment), each scored 0-3 for fidelity at a
+2020s game-art standard and 0-3 for chalk-on-slate style fit (/36). Animation sheets are judged on their own (/12).
+
+**S2 combined 2.5D frame (`push/chalk` `bf49e62`: a Flux 2 ControlNet panorama of the static scene projected from the
+seat, Tier B's painted Brennic sprite and LTX fire flipbook; hands still hero-7) vs p11 (`11eb2b3`):** blind judges,
+mean of 3: **S2 17.0** (18, 16, 17), **p11 17.3** (18, 16, 18), a tie that hides a trade.
+- **Fidelity rose:** S2 about 9 against 7, carried by the opponent (2 from every judge) and the fire (2).
+- **Style fit fell:** S2 7-8 against 9-11.
+  - The ControlNet panorama reads as a grey engraving on light stone, while p11's backdrop, white chalk line on
+    near-black, was the strongest chalk element in either build.
+  - The painted mage has no chalk line, so the frame mixes four styles: engraved backdrop, painted mage, woodcut hands,
+    vector floor.
+- **Shared by both builds:**
+  - The hands and cuff ("toy-like rainbow stripes").
+  - A hard sand-to-slate seam that clips the ward curtains.
+  - A magenta marker above the gate.
+- **Animation 6/12** from all three judges: Death has headless, melting frames; Hit loses the face; Idle motion is
+  invisible at sheet scale; Cast reads well.
+
+Read: the image-based route lifts fidelity as predicted. The next gains are bringing every generated asset into one
+chalk idiom:
+- a dark-ground chalk panorama,
+- a chalk contour and grain baked into the sprite,
+- pastel hands and an engraved cuff,
+- clean sand and seam,
+- repaired Death and Hit clips.
+That work is round S3.
