@@ -1,0 +1,26 @@
+{
+  "title": "Style 30 Chalk & Slate: the art target from 2026-10-28",
+  "label": "concept key art, not a gameplay capture",
+  "model": "seedream-5.0-flash (Leonardo web studio)",
+  "note": "The owner's retarget of 2026-10-28 (docs/DECISIONS.md). These replace key-art-s5101 (S1) as the visual target for every asset. Prompts are the storyboard's 30-VR and 30-KEY, verbatim (docs/ART-STYLE-STORYBOARD.md, section 30). Downloaded by the owner 2026-10-28 08:22-08:23; seeds were not recorded. The text labels drawn into s30-vr (ARENA, PLAYER SEAT, 8m TO MAGE, TELEGRAPH RING, SIGIL, WARD 140 ARC, RUNE CIRCLE x3, CROWD x100+) are the model's design callouts, not in-game UI.",
+  "images": [
+    {
+      "path": "apps/vr/art/key-art/style30/s30-vr.jpg",
+      "id": "S30-VR",
+      "role": "the in-game target: first-person from the seat, the frame every look capture is judged against",
+      "storyboardPrompt": "30-VR",
+      "width": 1824,
+      "height": 1024,
+      "bytes": 621337
+    },
+    {
+      "path": "apps/vr/art/key-art/style30/s30-key.jpg",
+      "id": "S30-KEY",
+      "role": "the mood and key-art reference: palette, line quality, how colour is reserved for the magic",
+      "storyboardPrompt": "30-KEY",
+      "width": 1824,
+      "height": 1024,
+      "bytes": 679694
+    }
+  ]
+}

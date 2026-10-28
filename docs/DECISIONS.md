@@ -2,6 +2,22 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-28 (evening) - Owner: retarget the art style to 30 Chalk & Slate
+
+> "The progress in Quest desktop is impressive, yet the key art needs to retarget. At the start of this conversation I
+> provided different style to follow which we need to reach, as current key art seems to be [an] unattractive ceiling
+> which we should not spend effort to make to reach [the] gap between 25 and 40-45. ... please prepare [the] project for
+> retargeting of the artstyle which would have impact on all assets and parts of the push/epic-look progress."
+
+- **The art target is style 30, Chalk & Slate**: `apps/vr/art/key-art/style30/s30-vr.jpg` (in-game target, S30-VR) and
+  `s30-key.jpg` (mood), made from the storyboard's own 30-VR and 30-KEY prompts. Style 30 was on the 2026-10-02
+  shortlist. This settles the open style pick (13 / 25 / 30 / greybox) in favour of 30.
+- **S1 (`key-art-s5101`) is retired as a target.** The push's S1 scores (quest 25.3, epic 26.3 of 45) stay as history.
+- The plan, style contract, per-asset impact and order of work: `docs/concepts/RETARGET-CHALK-SLATE-2026-10-28.md`.
+  It recommends one tier (quest) for the chalk style and freezes the epic tier at `fa82afe`.
+- Unchanged: the threat colour language, the pinned data, the green `MageArena.` gate, the 16 m duel distance (the
+  ruling of 2026-10-28 stands until the owner reopens it; S30-VR draws the mage at 8 m, see the plan's section 7).
+
 ## 2026-10-28 - Owner: graphics push on Lynx, two tiers in parallel, greybox rule lifted for visuals
 
 > "The project was moved from Wolf device because the graphics are terrible and not leading a good way ... lets do
