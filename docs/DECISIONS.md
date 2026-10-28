@@ -2,6 +2,27 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-29 - Owner: judge asset quality and style fit, not 1:1 frame matching; research and spike a 2.5D image-based route
+
+> "the distance should not be factor for the evaluation, the reason why the score stays because all the other items
+> still look terrible and far from the art: Sand surface, Spells graphical quality, Visual fidelity of hands and the
+> oponent no matter how far he is. The art shows assets with quality of detail comparable with what we know in 2020s,
+> whereas the graphical quality in Round 11 is in mid 1990s rpg games." ... "There is one dimension in chasing art 1:1
+> which we focus on too much, and one to create high quality assets and animations to fit the artstyle direction at
+> least. I agree with your next steps, lets start both"
+
+- **The yardstick changes.** S30-VR and S30-KEY become style references, not composition targets. Each asset class
+  (opponent, hands, fire, ward, sigil, sand and slate, arena) is judged on (a) fidelity and detail against a 2020s
+  standard, (b) fit to the Chalk & Slate style, and (c) animation quality where it moves. Distance and framing are not
+  scored. The S30 frame score is kept only as a secondary record.
+- **The per-material 3D rebuild (p1-p11) is judged at its limit** for fidelity: generated meshes, tiled textures and
+  procedural shaders read as mid-1990s.
+- **Two parallel tracks start:** (1) deep web research on an image-based 2.5D route (camera-projected depth-matched
+  paintings for the static scene, generated sprite characters in stereo, video-generated VFX flipbooks, hands that
+  stay 3D with projected painted textures); (2) a spike proving the hardest parts with the local ComfyUI models
+  (Flux 2 dev, LTX-2.5, MiniMax H3), judged on the new yardstick against round 11.
+- Unchanged: 16 m duel distance, threat colour language, pinned data, the green gate, no APK in this phase.
+
 ## 2026-10-28 (night) - Owner: keep polishing Chalk & Slate to a 30/36 focus score before the next gate; no APK yet
 
 > "lets continue with rounds, keep polishing and generating assets so we can reach at least 30 score in focus areas
