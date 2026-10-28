@@ -192,3 +192,16 @@ instead of only on the magic, the robe, the banners and the hands. Probe 2 addre
 probe effort goes to the opponent, surface, spells, hands and the chalk medium, which alone decide continue or stop.
 For the judges, elements 11-13 (wall, crowd, banners) are reported but left out of the deciding score; the deciding
 score is elements 1-10, 14 and 15, out of 36.
+
+**Probe 2 (`6ee08c5`):** chalk polarity inverted (light is added chalk, shade is bare slate), white chalk contours
+along the arena's box edges, a slate board round the seat with rune circles and construction lines, a slate sky, the
+sigil and telegraph ring in the shot. Not judged (an intermediate frame); D-G4 p95 151 from the new outlines.
+
+**Probe 3 (`b9782f6`, owner redirect applied):** one chalk-drawn arena panorama replaces the 3D arena and crowd under
+chalk; pastel and hatched hands with a broken contour; ward as a continuous chalk-wave band; pale ochre pastel sand;
+Brennic in a stepped chalk material. D-G4 median 115, p95 118 (from 151); 7.0 ms. Blind judges vs S30-VR (mean of 3):
+full /45: chalk p3 **20.7**, painted quest 13.3, chalk p1 12.7, flat 10.7; deciding /36: p3 **14.7**, painted 9.7,
+p1 9.0, flat 7.3. Open deciding points: the hands' storytelling (left open palm with the ward, right index drawing
+the sigil), the cuff out of frame, the telegraph ring too faint, the backdrop's photographic finish and its seam, the
+wardstones as black brick, and the fire's glossy core. The opponent stays capped by the 16 m ruling (judges estimate
++4-5 at 8 m).
