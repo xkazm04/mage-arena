@@ -2,6 +2,25 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-28 - Owner: graphics push on Lynx, two tiers in parallel, greybox rule lifted for visuals
+
+> "The project was moved from Wolf device because the graphics are terrible and not leading a good way ... lets do
+> anything necessary to move the graphics of this one 1v1 duels as close to art as possible." On the render target:
+> "Lets do both, orchestrate two Opus subagents to do in parallel so we can see in two days whether the directions
+> have potential or we throw the project." On paid images: "Use Leonardo Studio ... generating images with GPT 2.5
+> model, deleting in UI after downloading to [keep the] studio clean." On process: the fast owner override.
+
+- The CLAUDE.md "greybox only" rule is **lifted for visual work** from today. The threat colour language, the pinned
+  data, the clip corpus and the green `MageArena.` gate stay binding.
+- Two tiers are built in parallel for two days, behind `-MageArenaLook=quest|epic` (default `flat`):
+  Tier A Quest-viable, Tier B desktop showcase. Plan, yardstick and constraints: `docs/concepts/GRAPHICS-PUSH-2026-10-28.md`.
+- Per-lane blind-critic bars with revert-on-fail (T72-T75) are **replaced for this push** by an S1 element scorecard
+  per round and one blind panel at the end.
+- Lynx may run two Unreal processes at once (one per tier) with 8 GB or more free RAM; the Wolf rule of one stands on Wolf.
+- Leonardo: the owner's web studio (not the API pool), at most 40 stills per tier, each deleted from the studio after
+  download (`apps/vr/tools/keyart/studio-still.mts`).
+- After the push the owner decides: continue (and with which tier) or stop the project.
+
 ## 2026-10-27 - Owner rulings (standup, relayed by Athena): T71 stands.tiers 3 -> 5 (option C), PC mood bands, Fire second rim hue, darker steel, bead ring
 
 > The owner, 2026-10-27 standup, relayed by Athena (Director) while the owner is away. Recorded as the dispatch brief
