@@ -254,3 +254,16 @@ ceiling of this approach at about 37/45 with the opponent at its 16 m size (oppo
 **29-30/36 deciding**: the owner's 30 gate is at the ceiling for 16 m, and 36 is out of reach without moving the
 opponent. Next losses to fix: the sand fade read as "a blob over black void", the ground too black, the ward split into
 pieces, the cuff reads as woven card, the hands as comic ink.
+
+**p11 (`11eb2b3`, with hero-7: a lit bronze cuff, hands without the ink hull, a stronger Brennic rim):** the sand
+fills the floor again with a wide soft fade, the slate lifted to charcoal with chalk dust, a continuous ward curtain
+with no printed crest, a denser fireball, the ring under it, 2D chalk-drawn obelisk wardstones. Blind judges (mean of
+3, deciding /36): p11 **17.7**, p10 control 17.0 (19.3 in its own round). Sand, ring, cuff and medium gained; the new
+ward reads as "glass or fog curtains" and gave its point back.
+
+**Plateau read (after p5-p11):** the deciding score has stayed in the 17-21 band across six judged rounds while
+individual elements improved, with a judge-set spread of about ±2-3. The repeated blockers in every round: the
+opponent at 16 m (rows 1-3 about 3-4 of 9; every judge asks for about 8 m, estimated +4-5); the frame still mixes a
+drawn backdrop with 3D hands and effects (medium 1-2); the cuff's HUD stripes read as "rainbow stripes on a tan tube"
+whatever its material; the fireball's hot core reads as "a white placeholder dot". The 30/36 gate is not in reach on
+this trajectory at 16 m; the owner decides how to proceed.
