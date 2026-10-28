@@ -173,3 +173,17 @@ below (store key art) stays open until the in-game look settles.
 5. **Judge rounds** after each of 2-4; the final blind panel against S30-VR with today's painted quest frame as the control.
 
 Studio budget: about 30 stills for the whole retarget (each 20 credits, deleted after download).
+
+## 9. Results
+
+**Preparation (`push/chalk`, 2026-10-28):** the style axis `-MageArenaStyle=painted|chalk` (`a0ddd93`), style
+manifests and README (`a557e9b`), the studio prompt composer with `--style/--slot/--dry` (`9737bdc`), separate chalk
+asset folders (`89c7b70`), and the S30 target shot `capture-s1.ps1 -Target s30` (`637def1`; S30-VR puts Brennic at
+0.344 of the frame height, matched by the key-art camera at FOV 35.5 and pitch -7.0; the game camera stays at 16.2 m).
+
+**Probe 1 (`e12ed95`):** an unlit chalk surface shader (world-aligned chalk still, hatching stepped by N·L, grain) on
+the arena and a slate sky; fire and ward re-textured. 0 extra draws, 6.6 ms median, the same on the mobile proxy.
+Blind judges vs S30-VR (mean of 3, /45): chalk p1 **15.0**, painted quest 13.3, flat 10.3. The medium scored 0-1 in
+every frame ("plain CG"). Diagnosis: wrong polarity (dark hatching on grey-filled stone reads as cobblestone; on slate,
+light is added chalk and shadow is bare slate), no contour lines, no slate board around the player, colour everywhere
+instead of only on the magic, the robe, the banners and the hands. Probe 2 addresses these without a post pass.
