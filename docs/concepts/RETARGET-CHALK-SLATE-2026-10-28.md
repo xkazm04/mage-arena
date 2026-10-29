@@ -361,3 +361,22 @@ on five pages, one matte and contour pass, cross-hatch hands that follow the for
   Every judge puts 30 within reach from these items.
 - **Texture memory:** about 131 MiB on desktop; about 47 MiB for the sprite pages at ASTC 6x6 on Quest (not measured on
   the device).
+
+**S6 (`push/chalk` `681abaa`: a chalk contour and pastel highlights on the hands in their own material, chalk over the
+cuff and sleeve, the sand fading irregularly into the slate, a scribbled fireball core held off Brennic's body at
+4-7 m, rune circles with uneven pressure; Brennic is still the round-5 sprite):** three builds in one judge set (/36,
+mean of 3): **s6 25.7** (28, 26, 23), s5b 23.0 (24, 24, 21), p11 13.7.
+- **Where s6 won:** every judge preferred it on hands, spells and chalk consistency.
+- **Remaining items the judges name:**
+  - Brennic's ink cut-out edge and painted shading (Tier B's chalk contour pass is in the pipeline).
+  - The cardboard-flat skin fill on the hands.
+  - Near slate detail, and a dark half-disc under the ward.
+  - The sand's light-pool edge and blob footprints.
+  - A busy ward stroke pattern.
+- **Reaching 30:** each judge puts it within the hands plus Brennic.
+- **A machine note from this round:** the box ran out of memory twice.
+  - First, ComfyUI with Flux and H3 loaded took about 57 GB of the 64 GB unified memory, while orphaned generation scripts
+    kept submitting jobs.
+  - Second, a Meta XR Simulator server left running since 2026-10-28 00:16 held about 85 GB committed. It was stopped with
+    the owner's approval.
+  - From now on, ComfyUI and Unreal take turns.
