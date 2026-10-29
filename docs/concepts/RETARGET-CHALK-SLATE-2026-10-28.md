@@ -336,3 +336,28 @@ in one judge set (/36, mean of 3): **s4b 24.0** (26, 24, 22), s3b 16.7 (16, 19, 
   - Smaller items: hands without the wood-grain read, dusty floor lines.
 
   Their estimates: 30-33.
+
+**S5 (`push/chalk` `d01c7a1`: randomised pastel sand with footprints, a drawn flame over the fire flipbook, the ward as
+dense chalk-water strokes with a foam crest, a broken chalk ring, one shared grain pass; Tier B's round 5: 512 px cells
+on five pages, one matte and contour pass, cross-hatch hands that follow the form, a Death that ends lying down, a
+28 cm depth card):** three builds in one judge set (/36, mean of 3): **s5b 24.7** (25, 24, 25), s4b 20.0
+(19, 20, 21), p11 13.3.
+- **Score:** +4.7 over s4b in the same set.
+- **What gained:**
+  - The ward ("close to 3", "convincing chalk-blue strokes").
+  - The fire ("hand-drawn flame").
+  - The sand (style 3 from one judge).
+- **Depth card:** two judges measured the 4 m stereo pair by block matching. Both found the 1-3 px spread inside the figure
+  sits within measurement noise, so the stills cannot show whether a 28 cm depth card helps. A body about 30 cm deep at
+  4 m gives about 1 px here and about 4 arcmin on a headset. Only a headset can settle it.
+- **Still holding the score back:**
+  - Brennic's dark outline and painted shading (not chalk).
+  - The cape popping in and out.
+  - Hit with no flinch, and Strafe that reads as idle.
+  - Woodcut hands and a CG cuff.
+  - The hard sand/slate seam and an elliptical spotlight edge on the sand.
+  - A flat white fireball core.
+
+  Every judge puts 30 within reach from these items.
+- **Texture memory:** about 131 MiB on desktop; about 47 MiB for the sprite pages at ASTC 6x6 on Quest (not measured on
+  the device).
