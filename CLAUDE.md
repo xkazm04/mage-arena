@@ -1,5 +1,8 @@
 # Mage Arena VR - agent guide
 
+> **Decommissioned 2026-10-29** (DECISIONS 2026-10-29). No further VR work is planned; the game may return one day as
+> the PC channel (`kiro/mage-arena-pc`). The sections below describe the project as it was.
+
 A seated, hands-first spell duel for Meta Quest, built in **Unreal Engine 5.8** (C++ project in `apps/vr/Game/`). Entry for
 the Meta VR Start Developer Competition 2026 (Gaming track; deadline **2026-11-18**). One of three channels of one game:
 TV (`kiro/mage-arena-tv`, the canon owner), VR (this repo), PC (future, joins the TV repo).

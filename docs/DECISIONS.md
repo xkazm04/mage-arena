@@ -2,6 +2,38 @@
 
 Newest first. Quotes are the owner's words; the lines under them are what the plan does about it.
 
+## 2026-10-29 - Owner: decommission the VR project; the game may continue one day as the PC channel
+
+> "lets stop the agents. We will decomission the project, leave VR repo and continue one day in PC. Clean generated
+> assets, commit and push the repo."
+
+> (on the result) "From my perspective the result is about 20 right now, I don't think we have the knowledge and
+> tooling to achieve the breakthrough needed"
+
+- **The VR project stops here.** No further VR work is planned. This repo stays on GitHub as a record. If the game
+  returns, it returns as the PC channel (`kiro/mage-arena-pc`), not as VR.
+- **Graphics push result (2026-10-28/29, Lynx):**
+  - The image-based 2.5D Chalk & Slate route reached about 24-26/36 with the blind model judges, against 13-17 for
+    the 3D-material build (round 11) in the same judge sets.
+  - The owner's own read is about 20/36.
+  - The judges plateaued for four rounds (s4b-s8). The gap they named every round: hands, opponent fidelity (an
+    AI-painted sprite card without volume), and mixed media (painted backdrop + sprite + 3D hands).
+  - The 30/36 gate was not reached. The full record is in `docs/concepts/RETARGET-CHALK-SLATE-2026-10-28.md`
+    section 9.
+- **What is kept:**
+  - Master keeps the `-MageArenaLook` switch, all plans, judge records and research.
+  - `docs/archive/graphics-push-2026-10/` holds:
+    - 16 judged frames,
+    - the four experiment branches as `git format-patch` mboxes (code and LFS pointers only; the binaries were not
+      kept),
+    - the generation pipeline scripts,
+    - the hand-off log and the sprite-coverage memo.
+- **Deleted as generated assets:**
+  - the staging folder (generations, frames, judge sets, about 4.2 GB),
+  - the two worktrees,
+  - the local experiment branches.
+- **Lessons go to the ai-registry** (game-development domain) in a separate reflection, without naming this product.
+
 ## 2026-10-29 - Owner: MiniMax H3 allowed (hackathon, non-commercial)
 
 > "Licensing - we are not making commercial app, it is a hackathon project for our own education and fun, allow

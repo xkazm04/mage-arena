@@ -416,3 +416,17 @@ s8 24.3 (26, 23, 24), **s7b 25.3** (27, 24, 25), p11 17.3.
   - The hands (1-2/1-2; p11's etched hands score best for line work).
   - The opponent's fidelity: a painted sprite with a sticker halo and dither at 4 m.
   - Sand detail.
+
+**Close (2026-10-29): the owner decommissioned the VR project** (DECISIONS 2026-10-29). Last judged round: s8 24.3,
+s7b 25.3 (the best, in the same set). The owner's own read is about 20/36. The 30/36 gate was not reached.
+- **What every judge set named:**
+  - hands that never read as drawn (wood grain, plastic, cardboard, smears across eight rounds);
+  - an opponent that is an AI-painted card without volume;
+  - a frame of three media (painted backdrop, sprite, 3D hands).
+- **What worked:**
+  - the projected painted backdrop (cheap, stereo-stable);
+  - the drawn fire and ward flipbooks;
+  - the sprite pipeline's wiring (half a day; the kernel was untouched).
+- **Feasibility:** the art cost is about 1-1.5 h per clip and about 60 MB of sprite pages on Quest for one opponent.
+  That is feasible for one showcase opponent, not for a roster.
+- **Archive:** `docs/archive/graphics-push-2026-10/`.
