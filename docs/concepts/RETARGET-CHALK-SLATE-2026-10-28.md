@@ -313,3 +313,26 @@ mean of 3): **s3b 20.7** (21, 20, 21), **s2 21.3** (22, 20, 22), **p11 15.3** (1
   circles by the sigil).
 
 Combining the best class from each build, the judges' estimates come to about 24-25 before the round S4 fixes.
+
+**S4 (`push/chalk` `0d78685`: s2's ochre sand in the chalk panorama, a lighter chalk-blue ward, antialiased rings, the
+debug-looking leftovers gone, a contact shadow; Tier B's round 4: hatched line-art hands, engraved cuff runes, a
+two-tone contour on Brennic, a Death that falls; plus 7 m and 4 m shot variants and a 4 m stereo pair):** three builds
+in one judge set (/36, mean of 3): **s4b 24.0** (26, 24, 22), s3b 16.7 (16, 19, 15), p11 14.7 (16, 14, 14).
+- **Score:** +7 over the in-set control. One judge gave chalk treatment 3/3 for the first time.
+- **Brennic at duel distance** (Tier B's trace: 3.5-8 m, median 6.9 m):
+  - At 7 m: 2/2 from two judges.
+  - At 4 m the sprite is visibly upscaled (256 px cells).
+  - The stereo pair reads as a flat cardboard cut-out. Two of three judges call that a major presence break.
+- **Animation:** about 1.6/3 per clip over 7 clips.
+  - Death ends in a rigid in-plane rotation.
+  - The cape pops in and out between clips.
+  - The scale grows mid-clip.
+  - The new clips use a different matte (dark fringe vs cream rim).
+- **The judges' path to 30 (all three agree, each item about +2):**
+  - Brennic: 512 px cells, one matte and contour pass, and depth (a depth card).
+  - Sand: non-radial, filtered chalk strokes with scuffs.
+  - Spells: drawn flame tongues, ward strands, a drawn ring.
+  - One grain and outline weight across the frame.
+  - Smaller items: hands without the wood-grain read, dusty floor lines.
+
+  Their estimates: 30-33.
