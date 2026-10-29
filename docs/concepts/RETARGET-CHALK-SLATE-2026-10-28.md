@@ -296,3 +296,20 @@ chalk idiom:
 - clean sand and seam,
 - repaired Death and Hit clips.
 That work is round S3.
+
+**S3 (`push/chalk` `77fba63`: the ControlNet panorama redone as chalk on dark slate, a floor face that reaches straight
+down, the water flipbook in the ward with a faded foot, the HP bar hidden; Tier B's round 2-3 taken: repaired Hit and
+Death, a chalk contour on the sprite, pastel hands, a cuff without stripes):** three builds in one judge set (/36,
+mean of 3): **s3b 20.7** (21, 20, 21), **s2 21.3** (22, 20, 22), **p11 15.3** (15, 15, 16).
+- **Both 2.5D builds beat p11 by 5-6 when judged in the same set.** The earlier S2-vs-p11 tie was a difference in how
+  each judge set anchored its scores.
+- **What s3b gained:** the chalk backdrop, the stroked ward and grain on the slate.
+- **What s3b lost:**
+  - The sand: peach and blotchy, against s2's ochre raked strokes.
+  - The hands: the smooth pastel repaint reads as "3D plastic". The hatched line-art hands score higher.
+- **Brennic's new contour does not show at game scale.**
+- **Animation 7.3/12:** Death ends in a kneel and never falls.
+- **Every build:** stair-stepped chalk rings and wall line, and leftovers that read as debug (purple corner orbs, stray
+  circles by the sigil).
+
+Combining the best class from each build, the judges' estimates come to about 24-25 before the round S4 fixes.
