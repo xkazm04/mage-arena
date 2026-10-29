@@ -1,0 +1,75 @@
+{
+ "cell_px": 512,
+ "cols": 8,
+ "rows": 8,
+ "page_px": 4096,
+ "depth_cell_px": 128,
+ "cell_m": 2.4,
+ "foot_m": 0.2,
+ "clips": {
+  "Idle": {
+   "page": 0,
+   "first": 0,
+   "count": 55,
+   "fps": 24,
+   "scale_min": 0.99,
+   "scale_max": 1.0,
+   "flicker_mean": 0.22
+  },
+  "Cast": {
+   "page": 1,
+   "first": 0,
+   "count": 38,
+   "fps": 24,
+   "scale_min": 1.0,
+   "scale_max": 1.0,
+   "flicker_mean": 1.73
+  },
+  "Hit": {
+   "page": 1,
+   "first": 38,
+   "count": 22,
+   "fps": 24,
+   "scale_min": 0.865,
+   "scale_max": 1.0,
+   "flicker_mean": 3.98
+  },
+  "Death": {
+   "page": 2,
+   "first": 0,
+   "count": 50,
+   "fps": 14,
+   "scale_min": 0.941,
+   "scale_max": 1.005,
+   "flicker_mean": 2.44
+  },
+  "Ward": {
+   "page": 3,
+   "first": 0,
+   "count": 49,
+   "fps": 24,
+   "scale_min": 0.871,
+   "scale_max": 1.0,
+   "flicker_mean": 1.26
+  },
+  "Strafe": {
+   "page": 4,
+   "first": 0,
+   "count": 64,
+   "fps": 24,
+   "scale_min": 0.85,
+   "scale_max": 1.005,
+   "flicker_mean": 2.62
+  },
+  "Sunfall": {
+   "page": 5,
+   "first": 0,
+   "count": 43,
+   "fps": 24,
+   "scale_min": 1.0,
+   "scale_max": 1.0,
+   "flicker_mean": 1.76
+  }
+ },
+ "pages": 6
+}

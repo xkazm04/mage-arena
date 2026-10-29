@@ -1,0 +1,223 @@
+{
+  "name": "left-sand-1024-s104",
+  "model": "flux2_dev_fp8mixed",
+  "prompt": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn entirely in WHITE AND PALE GREY CHALK LINES ON A NEAR-BLACK SLATE BLACKBOARD, like a master chalk artist's blackboard illustration. The board itself is the darkness: the arena walls, arches, tiers, statues and the cheering crowd are dark slate (#1E2226) described only by crisp white chalk contour lines, light chalk hatching and a few smudged highlights; never light stone, never an engraving, never a pencil sketch on paper. Small accents of red, blue and ochre chalk on cloth banners. The sky above the arena is the bare dark slate with faint smudged chalk clouds. The arena floor is a wide expanse of muted ochre pastel sand (#B8955E) rubbed onto the slate: matte and dusty, drawn with many short pastel strokes in random directions like a hand-rubbed pastel texture, scattered small drawn footprints and gentle scuffs. The strokes never converge on a point: NO radial lines, NO rays, NO spin blur, NO raked lines toward the centre. It fades softly into the dark slate at its rim. The near ground is the dark blue-grey slate board (#2A2F33) with rubbed chalk dust, soft wipe marks and hand-drawn white chalk rune circles with broken, wobbly, grainy strokes. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand.  no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text.",
+  "seed": 104,
+  "steps": 24,
+  "denoise": 0.62,
+  "guidance": 4.0,
+  "sampler": "euler",
+  "width": 1024,
+  "height": 1024,
+  "init": "",
+  "refs": [],
+  "struct": [],
+  "control": [
+    "runs/chalk/25d-face-left/control-depth.png:0.75:0.65",
+    "runs/chalk/25d-face-left/control-edge.png:0.4:0.5"
+  ],
+  "controlnet": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors",
+  "late": 0.3,
+  "promptId": "1bdb3309-8a66-4909-9b65-366b42c5a267",
+  "wallS": 924.1,
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "flux2_dev_fp8mixed.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+        "type": "flux2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn entirely in WHITE AND PALE GREY CHALK LINES ON A NEAR-BLACK SLATE BLACKBOARD, like a master chalk artist's blackboard illustration. The board itself is the darkness: the arena walls, arches, tiers, statues and the cheering crowd are dark slate (#1E2226) described only by crisp white chalk contour lines, light chalk hatching and a few smudged highlights; never light stone, never an engraving, never a pencil sketch on paper. Small accents of red, blue and ochre chalk on cloth banners. The sky above the arena is the bare dark slate with faint smudged chalk clouds. The arena floor is a wide expanse of muted ochre pastel sand (#B8955E) rubbed onto the slate: matte and dusty, drawn with many short pastel strokes in random directions like a hand-rubbed pastel texture, scattered small drawn footprints and gentle scuffs. The strokes never converge on a point: NO radial lines, NO rays, NO spin blur, NO raked lines toward the centre. It fades softly into the dark slate at its rim. The near ground is the dark blue-grey slate board (#2A2F33) with rubbed chalk dust, soft wipe marks and hand-drawn white chalk rune circles with broken, wobbly, grainy strokes. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand.  no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text."
+      }
+    },
+    "7": {
+      "class_type": "Flux2Scheduler",
+      "inputs": {
+        "steps": 24,
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": 104
+      }
+    },
+    "41": {
+      "class_type": "EmptyFlux2LatentImage",
+      "inputs": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    "60": {
+      "class_type": "JLCFlux2ControlNetLoader",
+      "inputs": {
+        "controlnet_name": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors"
+      }
+    },
+    "61": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-caa8b4d9d8bde15f.png"
+      }
+    },
+    "71": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "4",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "61",
+          0
+        ],
+        "strength": 0.75,
+        "start_percent": 0.0,
+        "end_percent": 0.65,
+        "diagnostics": false
+      }
+    },
+    "62": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-681ac1359c9c3b1b.png"
+      }
+    },
+    "72": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "71",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "62",
+          0
+        ],
+        "strength": 0.4,
+        "start_percent": 0.0,
+        "end_percent": 0.5,
+        "diagnostics": false
+      }
+    },
+    "5": {
+      "class_type": "FluxGuidance",
+      "inputs": {
+        "conditioning": [
+          "72",
+          0
+        ],
+        "guidance": 4.0
+      }
+    },
+    "10": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "conditioning": [
+          "5",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "9",
+          0
+        ],
+        "guider": [
+          "10",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "7",
+          0
+        ],
+        "latent_image": [
+          "41",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "11",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "12",
+          0
+        ],
+        "filename_prefix": "mage25d/left-sand-1024-s104"
+      }
+    }
+  }
+}

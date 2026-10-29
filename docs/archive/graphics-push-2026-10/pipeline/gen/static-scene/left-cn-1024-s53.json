@@ -1,0 +1,223 @@
+{
+  "name": "left-cn-1024-s53",
+  "model": "flux2_dev_fp8mixed",
+  "prompt": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of muted warm ochre pastel sand (soft and dusty, not orange), layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Above the arena a dark slate sky with faint smudged chalk clouds. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. The sand is pale dusty ochre pastel (#C9A46A), soft and matte, never orange. The bottom of the frame is an empty low stone seat platform. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text.",
+  "seed": 53,
+  "steps": 24,
+  "denoise": 0.62,
+  "guidance": 4.0,
+  "sampler": "euler",
+  "width": 1024,
+  "height": 1024,
+  "init": "",
+  "refs": [],
+  "struct": [],
+  "control": [
+    "runs/chalk/25d-face-left/control-depth.png:0.75:0.65",
+    "runs/chalk/25d-face-left/control-edge.png:0.4:0.5"
+  ],
+  "controlnet": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors",
+  "late": 0.3,
+  "promptId": "a213b8f4-4428-4862-a50c-50faf7609ac4",
+  "wallS": 253.2,
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "flux2_dev_fp8mixed.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+        "type": "flux2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of muted warm ochre pastel sand (soft and dusty, not orange), layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Above the arena a dark slate sky with faint smudged chalk clouds. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. The sand is pale dusty ochre pastel (#C9A46A), soft and matte, never orange. The bottom of the frame is an empty low stone seat platform. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text."
+      }
+    },
+    "7": {
+      "class_type": "Flux2Scheduler",
+      "inputs": {
+        "steps": 24,
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": 53
+      }
+    },
+    "41": {
+      "class_type": "EmptyFlux2LatentImage",
+      "inputs": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    "60": {
+      "class_type": "JLCFlux2ControlNetLoader",
+      "inputs": {
+        "controlnet_name": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors"
+      }
+    },
+    "61": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-caa8b4d9d8bde15f.png"
+      }
+    },
+    "71": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "4",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "61",
+          0
+        ],
+        "strength": 0.75,
+        "start_percent": 0.0,
+        "end_percent": 0.65,
+        "diagnostics": false
+      }
+    },
+    "62": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-681ac1359c9c3b1b.png"
+      }
+    },
+    "72": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "71",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "62",
+          0
+        ],
+        "strength": 0.4,
+        "start_percent": 0.0,
+        "end_percent": 0.5,
+        "diagnostics": false
+      }
+    },
+    "5": {
+      "class_type": "FluxGuidance",
+      "inputs": {
+        "conditioning": [
+          "72",
+          0
+        ],
+        "guidance": 4.0
+      }
+    },
+    "10": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "conditioning": [
+          "5",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "9",
+          0
+        ],
+        "guider": [
+          "10",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "7",
+          0
+        ],
+        "latent_image": [
+          "41",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "11",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "12",
+          0
+        ],
+        "filename_prefix": "mage25d/left-cn-1024-s53"
+      }
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+ "prompt": "A single fireball drawn in hand-drawn chalk and soft pastel, centred, round core with ragged licking flame tongues curling upward and outward, bright white-gold hot centre, orange and red pastel strokes, crimson chalk at the edges, small embers and chalk dust specks around it, visible chalk strokes and smudges like an epic illustrated poster. Pure black background, nothing else, no ground, no hand, no text, no frame.",
+ "seed": 21,
+ "width": 768,
+ "height": 768,
+ "late": 0.25,
+ "refs": [
+  "refs/s30-fire-crop.png"
+ ],
+ "init": null,
+ "denoise": 1.0,
+ "model": "flux2_dev_fp8mixed",
+ "steps": 20,
+ "guidance": 4.0,
+ "sampler": "euler",
+ "wall_s": 241.1,
+ "prompt_id": "a05c3bc3-215d-4479-80cb-207ca128eef1",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "flux2_dev_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+    "type": "flux2",
+    "device": "default"
+   }
+  },
+  "3": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "flux2-vae.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "2",
+     0
+    ],
+    "text": "A single fireball drawn in hand-drawn chalk and soft pastel, centred, round core with ragged licking flame tongues curling upward and outward, bright white-gold hot centre, orange and red pastel strokes, crimson chalk at the edges, small embers and chalk dust specks around it, visible chalk strokes and smudges like an epic illustrated poster. Pure black background, nothing else, no ground, no hand, no text, no frame."
+   }
+  },
+  "6": {
+   "class_type": "EmptyFlux2LatentImage",
+   "inputs": {
+    "width": 768,
+    "height": 768,
+    "batch_size": 1
+   }
+  },
+  "7": {
+   "class_type": "Flux2Scheduler",
+   "inputs": {
+    "steps": 20,
+    "width": 768,
+    "height": 768
+   }
+  },
+  "8": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler"
+   }
+  },
+  "9": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 21
+   }
+  },
+  "200": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-8853a0c74d56f769.png"
+   }
+  },
+  "210": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "200",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "220": {
+   "class_type": "ReferenceLatent",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "latent": [
+     "210",
+     0
+    ]
+   }
+  },
+  "30": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "start": 0.0,
+    "end": 0.25
+   }
+  },
+  "31": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "220",
+     0
+    ],
+    "start": 0.25,
+    "end": 1.0
+   }
+  },
+  "32": {
+   "class_type": "ConditioningCombine",
+   "inputs": {
+    "conditioning_1": [
+     "30",
+     0
+    ],
+    "conditioning_2": [
+     "31",
+     0
+    ]
+   }
+  },
+  "5": {
+   "class_type": "FluxGuidance",
+   "inputs": {
+    "conditioning": [
+     "32",
+     0
+    ],
+    "guidance": 4.0
+   }
+  },
+  "10": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "conditioning": [
+     "5",
+     0
+    ]
+   }
+  },
+  "11": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "9",
+     0
+    ],
+    "guider": [
+     "10",
+     0
+    ],
+    "sampler": [
+     "8",
+     0
+    ],
+    "sigmas": [
+     "7",
+     0
+    ],
+    "latent_image": [
+     "6",
+     0
+    ]
+   }
+  },
+  "12": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "11",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "13": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "12",
+     0
+    ],
+    "filename_prefix": "mage-s2/seed-21"
+   }
+  }
+ }
+}

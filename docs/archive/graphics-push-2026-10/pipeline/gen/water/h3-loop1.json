@@ -1,0 +1,16 @@
+{
+ "asset": "water",
+ "first": "water/seed-s41.png",
+ "last": "water/seed-s41.png",
+ "frames": 56,
+ "size": [
+  1280,
+  704
+ ],
+ "seed": 9,
+ "steps": 8,
+ "prompt": "A hand-drawn chalk and pastel sheet of water on a pure black background flows continuously from left to right: white and pale blue strokes stream along, foam crests curl and break, droplets spray off the top edge and fall back. The sheet stays in place and the same size, constant brightness, seamless continuous loop. Static locked-off camera, no zoom, no camera movement, black background throughout, no text.",
+ "model": "minimax_h3_fl2va int8 + turbo 8-step LoRA",
+ "prompt_id": "55a96433-42cb-4306-9a6e-ba1ace85b340",
+ "note": "client timed out polling; outputs fetched from /history afterwards"
+}

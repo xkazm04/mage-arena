@@ -1,0 +1,305 @@
+{
+  "name": "front-b-d045-refs",
+  "model": "flux2_dev_fp8mixed",
+  "prompt": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of rich warm ochre pastel sand, layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. Images 1 to 3 are style references only (chalk and pastel on dark slate); copy their drawing technique, not their layout. Keep every edge, circle and horizon exactly where the start image has it. The low stone seat at the bottom is empty: no figure, no knight, no statue on it. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text.",
+  "seed": 12,
+  "steps": 28,
+  "denoise": 0.45,
+  "guidance": 4.0,
+  "sampler": "euler",
+  "width": 2048,
+  "height": 2048,
+  "init": "runs/chalk/25d-front/25d-beauty.png",
+  "refs": [
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-stands.png",
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-sand.png",
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-slate.png"
+  ],
+  "late": 0.25,
+  "promptId": "3332090d-aa0e-4f07-8ef0-61c3c0749b60",
+  "wallS": 795.6,
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "flux2_dev_fp8mixed.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+        "type": "flux2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of rich warm ochre pastel sand, layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. Images 1 to 3 are style references only (chalk and pastel on dark slate); copy their drawing technique, not their layout. Keep every edge, circle and horizon exactly where the start image has it. The low stone seat at the bottom is empty: no figure, no knight, no statue on it. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text."
+      }
+    },
+    "7": {
+      "class_type": "Flux2Scheduler",
+      "inputs": {
+        "steps": 28,
+        "width": 2048,
+        "height": 2048
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": 12
+      }
+    },
+    "40": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-6b185c2dd8cd8b87.png"
+      }
+    },
+    "41": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "40",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "42": {
+      "class_type": "SplitSigmasDenoise",
+      "inputs": {
+        "sigmas": [
+          "7",
+          0
+        ],
+        "denoise": 0.45
+      }
+    },
+    "200": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-0044fc45c25998e8.png"
+      }
+    },
+    "210": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "200",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "220": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "4",
+          0
+        ],
+        "latent": [
+          "210",
+          0
+        ]
+      }
+    },
+    "201": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-c5c26bc7a80af1b0.png"
+      }
+    },
+    "211": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "201",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "221": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "220",
+          0
+        ],
+        "latent": [
+          "211",
+          0
+        ]
+      }
+    },
+    "202": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-7b1c60f815d2e136.png"
+      }
+    },
+    "212": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "202",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "222": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "221",
+          0
+        ],
+        "latent": [
+          "212",
+          0
+        ]
+      }
+    },
+    "30": {
+      "class_type": "ConditioningSetTimestepRange",
+      "inputs": {
+        "conditioning": [
+          "4",
+          0
+        ],
+        "start": 0.0,
+        "end": 0.25
+      }
+    },
+    "31": {
+      "class_type": "ConditioningSetTimestepRange",
+      "inputs": {
+        "conditioning": [
+          "222",
+          0
+        ],
+        "start": 0.25,
+        "end": 1.0
+      }
+    },
+    "32": {
+      "class_type": "ConditioningCombine",
+      "inputs": {
+        "conditioning_1": [
+          "30",
+          0
+        ],
+        "conditioning_2": [
+          "31",
+          0
+        ]
+      }
+    },
+    "5": {
+      "class_type": "FluxGuidance",
+      "inputs": {
+        "conditioning": [
+          "32",
+          0
+        ],
+        "guidance": 4.0
+      }
+    },
+    "10": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "conditioning": [
+          "5",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "9",
+          0
+        ],
+        "guider": [
+          "10",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "42",
+          1
+        ],
+        "latent_image": [
+          "41",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "11",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "12",
+          0
+        ],
+        "filename_prefix": "mage25d/front-b-d045-refs"
+      }
+    }
+  }
+}

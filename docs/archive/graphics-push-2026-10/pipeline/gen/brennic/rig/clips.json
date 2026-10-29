@@ -1,0 +1,28 @@
+{
+ "fps": 30,
+ "res": 768,
+ "camera": {
+  "dist_m": 16.0,
+  "eye_h_m": 1.9,
+  "aim_h_m": 1.0,
+  "frame_m": 2.4
+ },
+ "clips": {
+  "Idle": {
+   "action": "Armature|Idle",
+   "frames": 61
+  },
+  "Cast": {
+   "action": "Armature.001|Scene",
+   "frames": 47
+  },
+  "Hit": {
+   "action": "Armature|Hit",
+   "frames": 25
+  },
+  "Death": {
+   "action": "Armature|Death",
+   "frames": 61
+  }
+ }
+}

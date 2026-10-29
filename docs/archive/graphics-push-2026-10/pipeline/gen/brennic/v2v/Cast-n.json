@@ -1,0 +1,372 @@
+{
+ "clip": "Cast",
+ "drive": "brennic/drive/Cast.mp4",
+ "frame0": "brennic/pose0-s7.png",
+ "guides": "24:brennic/castkeyn-s7.png,-1:brennic/pose0-s7.png",
+ "frames": 49,
+ "sigmas": [
+  0.909375,
+  0.725,
+  0.421875,
+  0.0
+ ],
+ "seed": 11,
+ "prompt": "A hand-drawn chalk and soft pastel animation on a dark slate blackboard: Brennic, a broad Roman fire mage with dark curly hair, a full curly beard and a fierce scowl, in a crimson wool tunic, a short dark brown shawl collar on his shoulders with nothing hanging behind him, a bronze collar and leather wraps, moves exactly as in the source motion. Every frame is drawn with visible chalk strokes, cross-hatching, pastel smudges and crisp dark contour lines, consistent from frame to frame. Static locked-off camera, the figure stays in place, plain flat dark slate background, no fire, no effects, no text.",
+ "negative": "photo, 3d render, cgi, plastic, smooth shading, blurry, morphing face, extra limbs, camera movement, zoom, text, watermark",
+ "model": "ltx-2.5-22b-distilled int8",
+ "fps": 30,
+ "wall_s": 52.1,
+ "prompt_id": "8ddfa5a0-257a-49f6-8d91-eb87d2134378",
+ "graph": {
+  "10": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "11": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors",
+    "type": "ltxv",
+    "device": "default"
+   }
+  },
+  "12": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "ltx-2.5-video-vae-bf16.safetensors"
+   }
+  },
+  "13": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "ltx-2.5-audio-vae-bf16.safetensors"
+   }
+  },
+  "14": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "11",
+     0
+    ],
+    "text": "A hand-drawn chalk and soft pastel animation on a dark slate blackboard: Brennic, a broad Roman fire mage with dark curly hair, a full curly beard and a fierce scowl, in a crimson wool tunic, a short dark brown shawl collar on his shoulders with nothing hanging behind him, a bronze collar and leather wraps, moves exactly as in the source motion. Every frame is drawn with visible chalk strokes, cross-hatching, pastel smudges and crisp dark contour lines, consistent from frame to frame. Static locked-off camera, the figure stays in place, plain flat dark slate background, no fire, no effects, no text."
+   }
+  },
+  "15": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "11",
+     0
+    ],
+    "text": "photo, 3d render, cgi, plastic, smooth shading, blurry, morphing face, extra limbs, camera movement, zoom, text, watermark"
+   }
+  },
+  "16": {
+   "class_type": "LTXVConditioning",
+   "inputs": {
+    "positive": [
+     "14",
+     0
+    ],
+    "negative": [
+     "15",
+     0
+    ],
+    "frame_rate": 30.0
+   }
+  },
+  "20": {
+   "class_type": "LoadVideo",
+   "inputs": {
+    "file": "ref-64ea2087a2a9855e.mp4"
+   }
+  },
+  "21": {
+   "class_type": "GetVideoComponents",
+   "inputs": {
+    "video": [
+     "20",
+     0
+    ]
+   }
+  },
+  "22": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "21",
+     0
+    ],
+    "vae": [
+     "12",
+     0
+    ]
+   }
+  },
+  "23": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-fd28ea0809b89ae6.png"
+   }
+  },
+  "24": {
+   "class_type": "LTXVPreprocess",
+   "inputs": {
+    "image": [
+     "23",
+     0
+    ],
+    "img_compression": 18
+   }
+  },
+  "25": {
+   "class_type": "LTXVImgToVideoInplace",
+   "inputs": {
+    "vae": [
+     "12",
+     0
+    ],
+    "image": [
+     "24",
+     0
+    ],
+    "latent": [
+     "22",
+     0
+    ],
+    "strength": 1.0,
+    "bypass": false
+   }
+  },
+  "26": {
+   "class_type": "LTXVEmptyLatentAudio",
+   "inputs": {
+    "frames_number": 49,
+    "frame_rate": 30,
+    "batch_size": 1,
+    "audio_vae": [
+     "13",
+     0
+    ]
+   }
+  },
+  "27": {
+   "class_type": "LTXVConcatAVLatent",
+   "inputs": {
+    "video_latent": [
+     "61",
+     2
+    ],
+    "audio_latent": [
+     "26",
+     0
+    ]
+   }
+  },
+  "28": {
+   "class_type": "ManualSigmas",
+   "inputs": {
+    "sigmas": "0.909375, 0.725, 0.421875, 0.0"
+   }
+  },
+  "29": {
+   "class_type": "LTXVDualCFGGuider",
+   "inputs": {
+    "model": [
+     "10",
+     0
+    ],
+    "positive": [
+     "61",
+     0
+    ],
+    "negative": [
+     "61",
+     1
+    ],
+    "video_cfg": 1,
+    "audio_cfg": 1
+   }
+  },
+  "30": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler_ancestral"
+   }
+  },
+  "31": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 11
+   }
+  },
+  "32": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "31",
+     0
+    ],
+    "guider": [
+     "29",
+     0
+    ],
+    "sampler": [
+     "30",
+     0
+    ],
+    "sigmas": [
+     "28",
+     0
+    ],
+    "latent_image": [
+     "27",
+     0
+    ]
+   }
+  },
+  "33": {
+   "class_type": "LTXVSeparateAVLatent",
+   "inputs": {
+    "av_latent": [
+     "32",
+     0
+    ]
+   }
+  },
+  "34": {
+   "class_type": "VAEDecodeTiled",
+   "inputs": {
+    "samples": [
+     "36",
+     2
+    ],
+    "vae": [
+     "12",
+     0
+    ],
+    "tile_size": 512,
+    "overlap": 64,
+    "temporal_size": 64,
+    "temporal_overlap": 16
+   }
+  },
+  "35": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "34",
+     0
+    ],
+    "filename_prefix": "mage-s2/v2v-Cast-n"
+   }
+  },
+  "40": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-77c55542fdd1aeac.png"
+   }
+  },
+  "50": {
+   "class_type": "LTXVPreprocess",
+   "inputs": {
+    "image": [
+     "40",
+     0
+    ],
+    "img_compression": 18
+   }
+  },
+  "60": {
+   "class_type": "LTXVAddGuide",
+   "inputs": {
+    "positive": [
+     "16",
+     0
+    ],
+    "negative": [
+     "16",
+     1
+    ],
+    "vae": [
+     "12",
+     0
+    ],
+    "latent": [
+     "25",
+     0
+    ],
+    "image": [
+     "50",
+     0
+    ],
+    "frame_idx": 24,
+    "strength": 1.0
+   }
+  },
+  "41": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-fd28ea0809b89ae6.png"
+   }
+  },
+  "51": {
+   "class_type": "LTXVPreprocess",
+   "inputs": {
+    "image": [
+     "41",
+     0
+    ],
+    "img_compression": 18
+   }
+  },
+  "61": {
+   "class_type": "LTXVAddGuide",
+   "inputs": {
+    "positive": [
+     "60",
+     0
+    ],
+    "negative": [
+     "60",
+     1
+    ],
+    "vae": [
+     "12",
+     0
+    ],
+    "latent": [
+     "60",
+     2
+    ],
+    "image": [
+     "51",
+     0
+    ],
+    "frame_idx": -1,
+    "strength": 1.0
+   }
+  },
+  "36": {
+   "class_type": "LTXVCropGuides",
+   "inputs": {
+    "positive": [
+     "61",
+     0
+    ],
+    "negative": [
+     "61",
+     1
+    ],
+    "latent": [
+     "33",
+     0
+    ]
+   }
+  }
+ }
+}

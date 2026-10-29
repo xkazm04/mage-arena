@@ -1,0 +1,223 @@
+{
+  "name": "floor-down-1024-s83",
+  "model": "flux2_dev_fp8mixed",
+  "prompt": "Looking almost straight down at the floor around a seated duellist's low stone dais: a large dark blue-grey slate board (#2A2F33) seen from above, with rubbed chalk dust, soft wipe marks and hand-drawn white chalk rune circles and construction lines in broken, wobbly, grainy chalk strokes. The low stone seat platform and the dais blocks are drawn in white and pale grey chalk line work with light hatching on the dark slate. Only the floor: no arena, no walls, no crowd, no sky, no sand, no map, no plan view of a building, no people, no hands, no fire, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand.  no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text.",
+  "seed": 83,
+  "steps": 24,
+  "denoise": 0.62,
+  "guidance": 4.0,
+  "sampler": "euler",
+  "width": 1024,
+  "height": 1024,
+  "init": "",
+  "refs": [],
+  "struct": [],
+  "control": [
+    "runs/chalk/25d-face-floor/control-depth.png:0.75:0.65",
+    "runs/chalk/25d-face-floor/control-edge.png:0.4:0.5"
+  ],
+  "controlnet": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors",
+  "late": 0.3,
+  "promptId": "5d72d144-541f-40e3-a455-f46da1493486",
+  "wallS": 936.3,
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "flux2_dev_fp8mixed.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+        "type": "flux2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "Looking almost straight down at the floor around a seated duellist's low stone dais: a large dark blue-grey slate board (#2A2F33) seen from above, with rubbed chalk dust, soft wipe marks and hand-drawn white chalk rune circles and construction lines in broken, wobbly, grainy chalk strokes. The low stone seat platform and the dais blocks are drawn in white and pale grey chalk line work with light hatching on the dark slate. Only the floor: no arena, no walls, no crowd, no sky, no sand, no map, no plan view of a building, no people, no hands, no fire, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand.  no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text."
+      }
+    },
+    "7": {
+      "class_type": "Flux2Scheduler",
+      "inputs": {
+        "steps": 24,
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": 83
+      }
+    },
+    "41": {
+      "class_type": "EmptyFlux2LatentImage",
+      "inputs": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    "60": {
+      "class_type": "JLCFlux2ControlNetLoader",
+      "inputs": {
+        "controlnet_name": "FLUX.2-dev-Fun-Controlnet-Union-2602.safetensors"
+      }
+    },
+    "61": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-4fb996f7bc455b65.png"
+      }
+    },
+    "71": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "4",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "61",
+          0
+        ],
+        "strength": 0.75,
+        "start_percent": 0.0,
+        "end_percent": 0.65,
+        "diagnostics": false
+      }
+    },
+    "62": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-e25772e046324e01.png"
+      }
+    },
+    "72": {
+      "class_type": "JLCFlux2ControlNetApplyDiagnostic",
+      "inputs": {
+        "controlnet": [
+          "60",
+          0
+        ],
+        "conditioning": [
+          "71",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ],
+        "control_image": [
+          "62",
+          0
+        ],
+        "strength": 0.4,
+        "start_percent": 0.0,
+        "end_percent": 0.5,
+        "diagnostics": false
+      }
+    },
+    "5": {
+      "class_type": "FluxGuidance",
+      "inputs": {
+        "conditioning": [
+          "72",
+          0
+        ],
+        "guidance": 4.0
+      }
+    },
+    "10": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "conditioning": [
+          "5",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "9",
+          0
+        ],
+        "guider": [
+          "10",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "7",
+          0
+        ],
+        "latent_image": [
+          "41",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "11",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "12",
+          0
+        ],
+        "filename_prefix": "mage25d/floor-down-1024-s83"
+      }
+    }
+  }
+}

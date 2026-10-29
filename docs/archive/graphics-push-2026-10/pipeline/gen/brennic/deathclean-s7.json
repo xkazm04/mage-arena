@@ -1,0 +1,207 @@
+{
+ "prompt": "Hand-drawn chalk and soft pastel on a dark slate blackboard: an empty, plain, flat dark charcoal slate background with nothing on it, no figure, no person, no legs, no cloak, just the dark board with faint chalk dust; at the bottom, the edge of a man's dark curly hair and his brown cloak lying on the ground. No text.",
+ "seed": 7,
+ "width": 768,
+ "height": 768,
+ "late": 0.0,
+ "refs": [],
+ "init": "deathlying-src.png",
+ "mask": "deathlying-clean-mask.png",
+ "denoise": 0.95,
+ "model": "flux2_dev_fp8mixed",
+ "steps": 20,
+ "guidance": 4.0,
+ "sampler": "euler",
+ "wall_s": 240.8,
+ "prompt_id": "f88756ea-28ca-4721-a678-33024a70d184",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "flux2_dev_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+    "type": "flux2",
+    "device": "default"
+   }
+  },
+  "3": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "flux2-vae.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "2",
+     0
+    ],
+    "text": "Hand-drawn chalk and soft pastel on a dark slate blackboard: an empty, plain, flat dark charcoal slate background with nothing on it, no figure, no person, no legs, no cloak, just the dark board with faint chalk dust; at the bottom, the edge of a man's dark curly hair and his brown cloak lying on the ground. No text."
+   }
+  },
+  "6": {
+   "class_type": "EmptyFlux2LatentImage",
+   "inputs": {
+    "width": 768,
+    "height": 768,
+    "batch_size": 1
+   }
+  },
+  "7": {
+   "class_type": "Flux2Scheduler",
+   "inputs": {
+    "steps": 20,
+    "width": 768,
+    "height": 768
+   }
+  },
+  "8": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler"
+   }
+  },
+  "9": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 7
+   }
+  },
+  "40": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-b8947a0fd02427e7.png"
+   }
+  },
+  "41": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "40",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "42": {
+   "class_type": "SplitSigmasDenoise",
+   "inputs": {
+    "sigmas": [
+     "7",
+     0
+    ],
+    "denoise": 0.95
+   }
+  },
+  "43": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-8ae6967f5a26bcae.png"
+   }
+  },
+  "44": {
+   "class_type": "ImageToMask",
+   "inputs": {
+    "image": [
+     "43",
+     0
+    ],
+    "channel": "red"
+   }
+  },
+  "45": {
+   "class_type": "SetLatentNoiseMask",
+   "inputs": {
+    "samples": [
+     "41",
+     0
+    ],
+    "mask": [
+     "44",
+     0
+    ]
+   }
+  },
+  "5": {
+   "class_type": "FluxGuidance",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "guidance": 4.0
+   }
+  },
+  "10": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "conditioning": [
+     "5",
+     0
+    ]
+   }
+  },
+  "11": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "9",
+     0
+    ],
+    "guider": [
+     "10",
+     0
+    ],
+    "sampler": [
+     "8",
+     0
+    ],
+    "sigmas": [
+     "42",
+     1
+    ],
+    "latent_image": [
+     "45",
+     0
+    ]
+   }
+  },
+  "12": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "11",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "13": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "12",
+     0
+    ],
+    "filename_prefix": "mage-s2/deathclean-7"
+   }
+  }
+ }
+}

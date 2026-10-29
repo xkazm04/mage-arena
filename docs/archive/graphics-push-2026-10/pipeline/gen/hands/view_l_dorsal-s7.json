@@ -1,0 +1,246 @@
+{
+ "prompt": "Close-up drawing of the back of a man's hand and wrist in soft chalk and warm pastel on toned paper, like the hands in an epic illustrated poster: smooth simple planes of warm tan skin blended with soft pastel, gentle form shading, knuckles and tendons on the back of the hand suggested with soft shading, short knuckle creases only at the finger joints, clean pale fingernails, a fine pencil outline. Smooth skin: no wood grain, no fingerprint whorls, no rings on the fingers, no fibrous lines or texture strokes across the skin. Evenly lit, flat diffuse light, no cast shadows, no rings, no jewellery. Keep the exact outline, pose and position of the hand. Plain white background.",
+ "seed": 7,
+ "width": 768,
+ "height": 768,
+ "late": 0.25,
+ "refs": [
+  "../refs/s30-hands-crop.png"
+ ],
+ "init": "views/view_l_dorsal.png",
+ "denoise": 0.62,
+ "model": "flux2_dev_fp8mixed",
+ "steps": 20,
+ "guidance": 4.0,
+ "sampler": "euler",
+ "wall_s": 84.3,
+ "prompt_id": "690f1d38-b6db-4222-be18-df8fb993034f",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "flux2_dev_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+    "type": "flux2",
+    "device": "default"
+   }
+  },
+  "3": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "flux2-vae.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "2",
+     0
+    ],
+    "text": "Close-up drawing of the back of a man's hand and wrist in soft chalk and warm pastel on toned paper, like the hands in an epic illustrated poster: smooth simple planes of warm tan skin blended with soft pastel, gentle form shading, knuckles and tendons on the back of the hand suggested with soft shading, short knuckle creases only at the finger joints, clean pale fingernails, a fine pencil outline. Smooth skin: no wood grain, no fingerprint whorls, no rings on the fingers, no fibrous lines or texture strokes across the skin. Evenly lit, flat diffuse light, no cast shadows, no rings, no jewellery. Keep the exact outline, pose and position of the hand. Plain white background."
+   }
+  },
+  "6": {
+   "class_type": "EmptyFlux2LatentImage",
+   "inputs": {
+    "width": 768,
+    "height": 768,
+    "batch_size": 1
+   }
+  },
+  "7": {
+   "class_type": "Flux2Scheduler",
+   "inputs": {
+    "steps": 20,
+    "width": 768,
+    "height": 768
+   }
+  },
+  "8": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler"
+   }
+  },
+  "9": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 7
+   }
+  },
+  "200": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-9fd6673d5575ede0.png"
+   }
+  },
+  "210": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "200",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "220": {
+   "class_type": "ReferenceLatent",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "latent": [
+     "210",
+     0
+    ]
+   }
+  },
+  "30": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "start": 0.0,
+    "end": 0.25
+   }
+  },
+  "31": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "220",
+     0
+    ],
+    "start": 0.25,
+    "end": 1.0
+   }
+  },
+  "32": {
+   "class_type": "ConditioningCombine",
+   "inputs": {
+    "conditioning_1": [
+     "30",
+     0
+    ],
+    "conditioning_2": [
+     "31",
+     0
+    ]
+   }
+  },
+  "40": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-1010aca553f7c5f4.png"
+   }
+  },
+  "41": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "40",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "42": {
+   "class_type": "SplitSigmasDenoise",
+   "inputs": {
+    "sigmas": [
+     "7",
+     0
+    ],
+    "denoise": 0.62
+   }
+  },
+  "5": {
+   "class_type": "FluxGuidance",
+   "inputs": {
+    "conditioning": [
+     "32",
+     0
+    ],
+    "guidance": 4.0
+   }
+  },
+  "10": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "conditioning": [
+     "5",
+     0
+    ]
+   }
+  },
+  "11": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "9",
+     0
+    ],
+    "guider": [
+     "10",
+     0
+    ],
+    "sampler": [
+     "8",
+     0
+    ],
+    "sigmas": [
+     "42",
+     1
+    ],
+    "latent_image": [
+     "41",
+     0
+    ]
+   }
+  },
+  "12": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "11",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "13": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "12",
+     0
+    ],
+    "filename_prefix": "mage-s2/view_l_dorsal-7"
+   }
+  }
+ }
+}

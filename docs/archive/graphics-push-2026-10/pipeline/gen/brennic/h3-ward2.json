@@ -1,0 +1,172 @@
+{
+ "asset": "brennic",
+ "first": "brennic/wardkey-s7.png",
+ "last": "brennic/pose0-s7.png",
+ "frames": 22,
+ "size": [
+  768,
+  768
+ ],
+ "seed": 13,
+ "steps": 8,
+ "prompt": "Hand-drawn chalk and soft pastel animation of Brennic, a broad Roman fire mage in a crimson tunic, dark brown cloak and bronze collar, facing the viewer. He moves smoothly and naturally from the first pose to the last pose, his face, beard and head clearly visible and the same size in every frame, his body the same size and in the same place. Locked-off static camera, plain flat dark slate background, consistent chalk strokes in every frame, no fire, no effects, no text.",
+ "model": "minimax_h3_fl2va int8 + turbo 8-step LoRA",
+ "wall_s": 395.3,
+ "prompt_id": "e6ea1c90-ca5f-44c5-9a9f-2b146a7ad859",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "LoraLoaderModelOnly",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "lora_name": "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors",
+    "strength_model": 1.0
+   }
+  },
+  "3": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+    "type": "minimax",
+    "device": "default"
+   }
+  },
+  "4": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+   }
+  },
+  "5": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-a0f944d4eb1d2f39.png"
+   }
+  },
+  "6": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-fd28ea0809b89ae6.png"
+   }
+  },
+  "7": {
+   "class_type": "MiniMaxH3ImageToVideo",
+   "inputs": {
+    "clip": [
+     "3",
+     0
+    ],
+    "vae": [
+     "4",
+     0
+    ],
+    "prompt": "Hand-drawn chalk and soft pastel animation of Brennic, a broad Roman fire mage in a crimson tunic, dark brown cloak and bronze collar, facing the viewer. He moves smoothly and naturally from the first pose to the last pose, his face, beard and head clearly visible and the same size in every frame, his body the same size and in the same place. Locked-off static camera, plain flat dark slate background, consistent chalk strokes in every frame, no fire, no effects, no text.",
+    "width": 768,
+    "height": 768,
+    "length": 22,
+    "first_frame": [
+     "5",
+     0
+    ],
+    "last_frame": [
+     "6",
+     0
+    ]
+   }
+  },
+  "8": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "2",
+     0
+    ],
+    "conditioning": [
+     "7",
+     0
+    ]
+   }
+  },
+  "9": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "res_multistep"
+   }
+  },
+  "10": {
+   "class_type": "BasicScheduler",
+   "inputs": {
+    "model": [
+     "2",
+     0
+    ],
+    "scheduler": "simple",
+    "steps": 8,
+    "denoise": 1.0
+   }
+  },
+  "11": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 13
+   }
+  },
+  "12": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "11",
+     0
+    ],
+    "guider": [
+     "8",
+     0
+    ],
+    "sampler": [
+     "9",
+     0
+    ],
+    "sigmas": [
+     "10",
+     0
+    ],
+    "latent_image": [
+     "7",
+     1
+    ]
+   }
+  },
+  "13": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "12",
+     0
+    ],
+    "vae": [
+     "4",
+     0
+    ]
+   }
+  },
+  "14": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "13",
+     0
+    ],
+    "filename_prefix": "mage-s2/h3-brennic-ward2"
+   }
+  }
+ }
+}

@@ -1,0 +1,60 @@
+{
+ "src": "brennic/v2v/Death-r5",
+ "model": "birefnet",
+ "wall_s": 260.5,
+ "graph": {
+  "1": {
+   "class_type": "LoadVideo",
+   "inputs": {
+    "file": "ref-96d768b7f4f90938.mp4"
+   }
+  },
+  "2": {
+   "class_type": "GetVideoComponents",
+   "inputs": {
+    "video": [
+     "1",
+     0
+    ]
+   }
+  },
+  "3": {
+   "class_type": "LoadBackgroundRemovalModel",
+   "inputs": {
+    "bg_removal_name": "birefnet.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "RemoveBackground",
+   "inputs": {
+    "bg_removal_model": [
+     "3",
+     0
+    ],
+    "image": [
+     "2",
+     0
+    ]
+   }
+  },
+  "5": {
+   "class_type": "MaskToImage",
+   "inputs": {
+    "mask": [
+     "4",
+     0
+    ]
+   }
+  },
+  "6": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "5",
+     0
+    ],
+    "filename_prefix": "mage-s2/matte"
+   }
+  }
+ }
+}

@@ -1,0 +1,30 @@
+{
+ "Idle": {
+  "frames": 61,
+  "max_dE_mean": 0.27,
+  "median_dE": 0.11,
+  "frame_change_paint": 0.03,
+  "frame_change_rig": 0.03
+ },
+ "Cast": {
+  "frames": 47,
+  "max_dE_mean": 2.68,
+  "median_dE": 1.91,
+  "frame_change_paint": 1.51,
+  "frame_change_rig": 1.29
+ },
+ "Hit": {
+  "frames": 25,
+  "max_dE_mean": 7.63,
+  "median_dE": 5.08,
+  "frame_change_paint": 0.38,
+  "frame_change_rig": 1.07
+ },
+ "Death": {
+  "frames": 61,
+  "max_dE_mean": 6.24,
+  "median_dE": 2.2,
+  "frame_change_paint": 1.19,
+  "frame_change_rig": 0.86
+ }
+}

@@ -1,0 +1,148 @@
+{
+ "prompt": "Flat unwrapped texture strip of an aged hammered bronze arm cuff, painted in chalk and soft pastel like an epic illustrated poster: warm bronze with dark green patina in the recesses, fine scratches, small hammer dents, bright worn edges catching the light, a row of round rivets along the top edge and along the bottom edge, a slightly raised rim at both edges. Evenly lit, flat front view, orthographic, no perspective, seamless from left to right, filling the whole frame, no text, no symbols.",
+ "seed": 61,
+ "width": 1536,
+ "height": 384,
+ "late": 0.0,
+ "refs": [],
+ "init": null,
+ "denoise": 1.0,
+ "model": "flux2_dev_fp8mixed",
+ "steps": 20,
+ "guidance": 4.0,
+ "sampler": "euler",
+ "wall_s": 124.5,
+ "prompt_id": "24c710c4-9143-4fae-a7cb-60913efea4a9",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "flux2_dev_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+    "type": "flux2",
+    "device": "default"
+   }
+  },
+  "3": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "flux2-vae.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "2",
+     0
+    ],
+    "text": "Flat unwrapped texture strip of an aged hammered bronze arm cuff, painted in chalk and soft pastel like an epic illustrated poster: warm bronze with dark green patina in the recesses, fine scratches, small hammer dents, bright worn edges catching the light, a row of round rivets along the top edge and along the bottom edge, a slightly raised rim at both edges. Evenly lit, flat front view, orthographic, no perspective, seamless from left to right, filling the whole frame, no text, no symbols."
+   }
+  },
+  "6": {
+   "class_type": "EmptyFlux2LatentImage",
+   "inputs": {
+    "width": 1536,
+    "height": 384,
+    "batch_size": 1
+   }
+  },
+  "7": {
+   "class_type": "Flux2Scheduler",
+   "inputs": {
+    "steps": 20,
+    "width": 1536,
+    "height": 384
+   }
+  },
+  "8": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler"
+   }
+  },
+  "9": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 61
+   }
+  },
+  "5": {
+   "class_type": "FluxGuidance",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "guidance": 4.0
+   }
+  },
+  "10": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "conditioning": [
+     "5",
+     0
+    ]
+   }
+  },
+  "11": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "9",
+     0
+    ],
+    "guider": [
+     "10",
+     0
+    ],
+    "sampler": [
+     "8",
+     0
+    ],
+    "sigmas": [
+     "7",
+     0
+    ],
+    "latent_image": [
+     "6",
+     0
+    ]
+   }
+  },
+  "12": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "11",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "13": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "12",
+     0
+    ],
+    "filename_prefix": "mage-s2/band-61"
+   }
+  }
+ }
+}

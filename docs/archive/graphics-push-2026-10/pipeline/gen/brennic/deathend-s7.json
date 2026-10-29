@@ -1,0 +1,279 @@
+{
+ "prompt": "Full-body illustration of Brennic, a broad-shouldered Roman fire mage in his forties, standing facing the viewer, seen from across an arena, the whole figure from head to sandals. Hand-drawn chalk and soft pastel on a dark slate blackboard, richly detailed like an epic illustrated poster: visible chalk strokes, cross-hatching, pastel smudges, crisp dark contour lines, fine texture in cloth folds. Dark curly hair and a full dark curly beard, heavy brows in a fierce scowl. Crimson wool tunic robe with deep folds, a dark brown wool cloak over the shoulders, a polished bronze collar with a bronze clasp, leather belt with a bronze buckle, wrapped leather bracers, wrapped leather greaves and sandals. Defeated: slumped forward on his knees, head bowed low, the cloak spilling over his back. No fire, no effects. Keep the exact pose, proportions and position of the figure. Plain flat uniform dark charcoal slate background with nothing else on it, no ground, no shadow, no text. Warm light on the front of the figure.",
+ "seed": 7,
+ "width": 768,
+ "height": 768,
+ "late": 0.25,
+ "refs": [
+  "pose0-s7.png",
+  "../refs/brennic-master-384.png"
+ ],
+ "init": "drive-Death-64.png",
+ "denoise": 0.8,
+ "model": "flux2_dev_fp8mixed",
+ "steps": 20,
+ "guidance": 4.0,
+ "sampler": "euler",
+ "wall_s": 285.0,
+ "prompt_id": "12e65225-4737-4134-9024-249b110d97e7",
+ "graph": {
+  "1": {
+   "class_type": "UNETLoader",
+   "inputs": {
+    "unet_name": "flux2_dev_fp8mixed.safetensors",
+    "weight_dtype": "default"
+   }
+  },
+  "2": {
+   "class_type": "CLIPLoader",
+   "inputs": {
+    "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+    "type": "flux2",
+    "device": "default"
+   }
+  },
+  "3": {
+   "class_type": "VAELoader",
+   "inputs": {
+    "vae_name": "flux2-vae.safetensors"
+   }
+  },
+  "4": {
+   "class_type": "CLIPTextEncode",
+   "inputs": {
+    "clip": [
+     "2",
+     0
+    ],
+    "text": "Full-body illustration of Brennic, a broad-shouldered Roman fire mage in his forties, standing facing the viewer, seen from across an arena, the whole figure from head to sandals. Hand-drawn chalk and soft pastel on a dark slate blackboard, richly detailed like an epic illustrated poster: visible chalk strokes, cross-hatching, pastel smudges, crisp dark contour lines, fine texture in cloth folds. Dark curly hair and a full dark curly beard, heavy brows in a fierce scowl. Crimson wool tunic robe with deep folds, a dark brown wool cloak over the shoulders, a polished bronze collar with a bronze clasp, leather belt with a bronze buckle, wrapped leather bracers, wrapped leather greaves and sandals. Defeated: slumped forward on his knees, head bowed low, the cloak spilling over his back. No fire, no effects. Keep the exact pose, proportions and position of the figure. Plain flat uniform dark charcoal slate background with nothing else on it, no ground, no shadow, no text. Warm light on the front of the figure."
+   }
+  },
+  "6": {
+   "class_type": "EmptyFlux2LatentImage",
+   "inputs": {
+    "width": 768,
+    "height": 768,
+    "batch_size": 1
+   }
+  },
+  "7": {
+   "class_type": "Flux2Scheduler",
+   "inputs": {
+    "steps": 20,
+    "width": 768,
+    "height": 768
+   }
+  },
+  "8": {
+   "class_type": "KSamplerSelect",
+   "inputs": {
+    "sampler_name": "euler"
+   }
+  },
+  "9": {
+   "class_type": "RandomNoise",
+   "inputs": {
+    "noise_seed": 7
+   }
+  },
+  "200": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-fd28ea0809b89ae6.png"
+   }
+  },
+  "210": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "200",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "220": {
+   "class_type": "ReferenceLatent",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "latent": [
+     "210",
+     0
+    ]
+   }
+  },
+  "201": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-0cb5244c1ef69b06.png"
+   }
+  },
+  "211": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "201",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "221": {
+   "class_type": "ReferenceLatent",
+   "inputs": {
+    "conditioning": [
+     "220",
+     0
+    ],
+    "latent": [
+     "211",
+     0
+    ]
+   }
+  },
+  "30": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "4",
+     0
+    ],
+    "start": 0.0,
+    "end": 0.25
+   }
+  },
+  "31": {
+   "class_type": "ConditioningSetTimestepRange",
+   "inputs": {
+    "conditioning": [
+     "221",
+     0
+    ],
+    "start": 0.25,
+    "end": 1.0
+   }
+  },
+  "32": {
+   "class_type": "ConditioningCombine",
+   "inputs": {
+    "conditioning_1": [
+     "30",
+     0
+    ],
+    "conditioning_2": [
+     "31",
+     0
+    ]
+   }
+  },
+  "40": {
+   "class_type": "LoadImage",
+   "inputs": {
+    "image": "mage-s2/ref-3a0f5ed302fcbd8e.png"
+   }
+  },
+  "41": {
+   "class_type": "VAEEncode",
+   "inputs": {
+    "pixels": [
+     "40",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "42": {
+   "class_type": "SplitSigmasDenoise",
+   "inputs": {
+    "sigmas": [
+     "7",
+     0
+    ],
+    "denoise": 0.8
+   }
+  },
+  "5": {
+   "class_type": "FluxGuidance",
+   "inputs": {
+    "conditioning": [
+     "32",
+     0
+    ],
+    "guidance": 4.0
+   }
+  },
+  "10": {
+   "class_type": "BasicGuider",
+   "inputs": {
+    "model": [
+     "1",
+     0
+    ],
+    "conditioning": [
+     "5",
+     0
+    ]
+   }
+  },
+  "11": {
+   "class_type": "SamplerCustomAdvanced",
+   "inputs": {
+    "noise": [
+     "9",
+     0
+    ],
+    "guider": [
+     "10",
+     0
+    ],
+    "sampler": [
+     "8",
+     0
+    ],
+    "sigmas": [
+     "42",
+     1
+    ],
+    "latent_image": [
+     "41",
+     0
+    ]
+   }
+  },
+  "12": {
+   "class_type": "VAEDecode",
+   "inputs": {
+    "samples": [
+     "11",
+     0
+    ],
+    "vae": [
+     "3",
+     0
+    ]
+   }
+  },
+  "13": {
+   "class_type": "SaveImage",
+   "inputs": {
+    "images": [
+     "12",
+     0
+    ],
+    "filename_prefix": "mage-s2/deathend-7"
+   }
+  }
+ }
+}

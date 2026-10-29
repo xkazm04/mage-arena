@@ -1,0 +1,373 @@
+{
+  "name": "front-c-s21",
+  "model": "flux2_dev_fp8mixed",
+  "prompt": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of muted warm ochre pastel sand (soft and dusty, not orange), layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Above the arena a dark slate sky with faint smudged chalk clouds. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. Image 1 is a depth map and image 2 an edge map of this exact scene: keep its layout exactly, the horizon, the straight front edge of the slate board, every circle and the arena ring where they are. Images 3 to 5 are style references only: copy their chalk drawing technique, not their layout. The bottom of the frame is an empty low stone seat platform. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text.",
+  "seed": 21,
+  "steps": 28,
+  "denoise": 0.65,
+  "guidance": 4.0,
+  "sampler": "euler",
+  "width": 1024,
+  "height": 1024,
+  "init": "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/neutral-slate-1024.png",
+  "refs": [
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-stands.png",
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-sand.png",
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/s30-slate.png"
+  ],
+  "struct": [
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/front-depth.png",
+    "C:/Users/kazda/mage-art-staging/push-1028/gen/static-scene/refs/front-edge.png"
+  ],
+  "late": 0.25,
+  "promptId": "40e250b1-bda3-4fae-9260-45065a0ace09",
+  "wallS": 861.5,
+  "graph": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "flux2_dev_fp8mixed.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "mistral_3_small_flux2_fp8.safetensors",
+        "type": "flux2",
+        "device": "default"
+      }
+    },
+    "3": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "flux2-vae.safetensors"
+      }
+    },
+    "4": {
+      "class_type": "CLIPTextEncode",
+      "inputs": {
+        "clip": [
+          "2",
+          0
+        ],
+        "text": "A first-person view from a seated duellist's stone dais into an empty Roman arena, drawn as a highly detailed chalk-and-pastel illustration. The near ground is a dark blue-grey slate board with rubbed chalk dust, soft wipe marks and finely drawn white chalk rune circles and construction lines. Beyond its edge a wide oval of muted warm ochre pastel sand (soft and dusty, not orange), layered strokes, drawn footprints, scuffs and drag marks, fading softly into slate at its rim. Around it the arena wall and tiers of a cheering crowd and statues drawn in grey and white chalk line work with cross-hatched shade, cloth banners in red, blue and ochre chalk, an arched gate in the far wall. Above the arena a dark slate sky with faint smudged chalk clouds. Crisp, intricate, 2020s concept-art level of detail in every stroke. No people in the arena, no characters, no hands, no fire, no magic, no text, no lettering. Chalk and soft pastel drawn on a dark slate board. Dusty chalk strokes with visible grain, smudged and rubbed fills, confident contour lines, cross-hatching for shade, construction lines and pale geometric guides left visible. Grey and white chalk for stone, wood and crowd; warm ochre pastel for sand. Image 1 is a depth map and image 2 an edge map of this exact scene: keep its layout exactly, the horizon, the straight front edge of the slate board, every circle and the arena ring where they are. Images 3 to 5 are style references only: copy their chalk drawing technique, not their layout. The bottom of the frame is an empty low stone seat platform. no photograph, no 3D render, no glossy reflections, no oil paint, no renderer gradients, no lens effects, no text."
+      }
+    },
+    "7": {
+      "class_type": "Flux2Scheduler",
+      "inputs": {
+        "steps": 28,
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    "8": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "9": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": 21
+      }
+    },
+    "40": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-e6f6f0088f489c59.png"
+      }
+    },
+    "41": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "40",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "42": {
+      "class_type": "SplitSigmasDenoise",
+      "inputs": {
+        "sigmas": [
+          "7",
+          0
+        ],
+        "denoise": 0.65
+      }
+    },
+    "500": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-c767bd97f418e883.png"
+      }
+    },
+    "510": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "500",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "520": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "4",
+          0
+        ],
+        "latent": [
+          "510",
+          0
+        ]
+      }
+    },
+    "501": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-f23ac697ae83dd7c.png"
+      }
+    },
+    "511": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "501",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "521": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "520",
+          0
+        ],
+        "latent": [
+          "511",
+          0
+        ]
+      }
+    },
+    "200": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-0044fc45c25998e8.png"
+      }
+    },
+    "210": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "200",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "220": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "521",
+          0
+        ],
+        "latent": [
+          "210",
+          0
+        ]
+      }
+    },
+    "201": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-c5c26bc7a80af1b0.png"
+      }
+    },
+    "211": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "201",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "221": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "220",
+          0
+        ],
+        "latent": [
+          "211",
+          0
+        ]
+      }
+    },
+    "202": {
+      "class_type": "LoadImage",
+      "inputs": {
+        "image": "mage25d/mage25d-7b1c60f815d2e136.png"
+      }
+    },
+    "212": {
+      "class_type": "VAEEncode",
+      "inputs": {
+        "pixels": [
+          "202",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "222": {
+      "class_type": "ReferenceLatent",
+      "inputs": {
+        "conditioning": [
+          "221",
+          0
+        ],
+        "latent": [
+          "212",
+          0
+        ]
+      }
+    },
+    "30": {
+      "class_type": "ConditioningSetTimestepRange",
+      "inputs": {
+        "conditioning": [
+          "521",
+          0
+        ],
+        "start": 0.0,
+        "end": 0.25
+      }
+    },
+    "31": {
+      "class_type": "ConditioningSetTimestepRange",
+      "inputs": {
+        "conditioning": [
+          "222",
+          0
+        ],
+        "start": 0.25,
+        "end": 1.0
+      }
+    },
+    "32": {
+      "class_type": "ConditioningCombine",
+      "inputs": {
+        "conditioning_1": [
+          "30",
+          0
+        ],
+        "conditioning_2": [
+          "31",
+          0
+        ]
+      }
+    },
+    "5": {
+      "class_type": "FluxGuidance",
+      "inputs": {
+        "conditioning": [
+          "32",
+          0
+        ],
+        "guidance": 4.0
+      }
+    },
+    "10": {
+      "class_type": "BasicGuider",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "conditioning": [
+          "5",
+          0
+        ]
+      }
+    },
+    "11": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "9",
+          0
+        ],
+        "guider": [
+          "10",
+          0
+        ],
+        "sampler": [
+          "8",
+          0
+        ],
+        "sigmas": [
+          "42",
+          1
+        ],
+        "latent_image": [
+          "41",
+          0
+        ]
+      }
+    },
+    "12": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "11",
+          0
+        ],
+        "vae": [
+          "3",
+          0
+        ]
+      }
+    },
+    "13": {
+      "class_type": "SaveImage",
+      "inputs": {
+        "images": [
+          "12",
+          0
+        ],
+        "filename_prefix": "mage25d/front-c-s21"
+      }
+    }
+  }
+}
