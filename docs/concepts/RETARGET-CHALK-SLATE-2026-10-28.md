@@ -401,3 +401,18 @@ three builds in one judge set (/36, mean of 3): **s7b 26.3** (27, 26, 26), s6 25
   - Sunfall's size jump.
 
   The judges' estimates for these: 30-32.
+
+**S8 (`push/chalk` `5d4247c`: Tier B's round 7, with the hand fire on the painted hand, a cape-free Ward/Strafe/Hit/
+Sunfall, a breathing Idle and the chest-seam fix; s8 surfaces: thin wavy ward strands, no dark arc, a smooth fireball
+edge, a hand rim without blotches, distance grain on the sand):** three builds in one judge set (/36, mean of 3):
+s8 24.3 (26, 23, 24), **s7b 25.3** (27, 24, 25), p11 17.3.
+- **The plateau:** s4b 24.0, s5b 24.7, s6 25.7, s7b 26.3/25.3, s8 24.3. That is four rounds within the judge-set spread
+  (about ±1-2).
+- **Why s8 trailed:**
+  - The ward was too thin. Judges reversed their S7 preference and asked for broad sheets.
+  - The hand rim read as white smears.
+  - The strip stopped Death at the kneel.
+- **The gap to 30, in every judge's sheet:**
+  - The hands (1-2/1-2; p11's etched hands score best for line work).
+  - The opponent's fidelity: a painted sprite with a sticker halo and dither at 4 m.
+  - Sand detail.
