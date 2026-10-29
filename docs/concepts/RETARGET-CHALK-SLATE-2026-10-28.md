@@ -380,3 +380,24 @@ mean of 3): **s6 25.7** (28, 26, 23), s5b 23.0 (24, 24, 21), p11 13.7.
   - Second, a Meta XR Simulator server left running since 2026-10-28 00:16 held about 85 GB committed. It was stopped with
     the owner's approval.
   - From now on, ComfyUI and Unreal take turns.
+
+**S7 (`push/chalk` `77c5ae7`: s7 surfaces (near-slate dust and scuffs, chalk-rimmed footprints, a wider-stroke ward, a
+rougher ring) plus the sky light as a fixed cubemap under chalk, which removes the 829-draw recapture frame; Tier B's
+round 6: a pale chalk contour and hatched pastel shading on Brennic, re-rendered Hit (flinch), Strafe (steps), Death
+(falls to the ground), Cast (hand intact), a pastel hand fill, Ward/Strafe/Sunfall wired with the `SpritePick` test):**
+three builds in one judge set (/36, mean of 3): **s7b 26.3** (27, 26, 26), s6 25.7 (26, 26, 25), p11 13.7.
+- **Brennic gained:** style 3 from two judges.
+- **The ward regressed:** the wider diagonal strokes read as rain or light shafts.
+- **Animation in game at 7 m:** Hit, Death, Ward and Strafe 2/3; Idle and Sunfall 1/3.
+- **Worst defect:** the hand fire sits on the hidden rig's hand, so it floats off the painted hand and hangs over the
+  body in Death.
+- **Remaining items the judges name:**
+  - A ward drawn as water.
+  - A dark arc under the ward's base.
+  - The fireball's pixel fringe.
+  - Hands as pastel on toned paper (no white blotches or palm stripes).
+  - The hand-fire anchor.
+  - An Idle that moves.
+  - Sunfall's size jump.
+
+  The judges' estimates for these: 30-32.
