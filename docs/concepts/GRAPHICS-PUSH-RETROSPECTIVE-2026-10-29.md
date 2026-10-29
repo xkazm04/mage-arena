@@ -154,6 +154,31 @@ only source of taste was a generative model steered by prompts and judged by oth
   marked-up frames as the steering signal.
 - Let agents do the production work around that direction.
 
+### 10. The knowledge existed, and the loop did not pull it in at the moment it mattered
+
+The ai-registry already held the techniques this push lacked:
+- an approved reference sheet (one anchor that every later asset is made against);
+- "no gate self-certifies" (a builder does not grade its own round);
+- declaring the producer per asset class (kit, script or generator, decided by a paired trial);
+- named benchmark anchors per rubric level;
+- the two-round stop rule.
+
+The builders consulted the registry while planning, and the judge loop never did. The second research round
+(`reports/Opus built PC games recent evidence.md` in the workspace) found the same habits in the creators who
+are shipping convincing agent-built 3D games:
+- a target chosen from several in-game mock-ups;
+- a short style file plus one anchor asset;
+- routing each asset class to kit, script or generator;
+- a separate skeptical critic that compares rendered frames pairwise and is checked against the owner;
+- nothing done until the running game is recorded and watched;
+- winning procedures written back into skills.
+
+They also pay for image, 3D and rigging services ($100-500 per game), where this push stayed local-only.
+
+**Do differently:** make these the round template, not background reading. A round may not start without a
+chosen target, a style file and an anchor per asset class. A round may not close without several candidates,
+an isolated critic's pairwise pick, the owner's anchor, and a watched capture of the running game.
+
 ## What a revived PC version should take from this
 
 1. **Pick the art direction by toolkit fit.**
